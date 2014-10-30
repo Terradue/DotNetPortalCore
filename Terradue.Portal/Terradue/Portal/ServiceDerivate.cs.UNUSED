@@ -1,0 +1,320 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Text.RegularExpressions;
+using System.Xml;
+using Terradue.Util;
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+namespace Terradue.Portal {
+
+    
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+    
+
+    /// <summary>Abstract base class for entities that are created using a service configuration and its specific programming logic.</summary>
+    /*!
+        The members of this class allow verifying the validity of attributes and parameters against the service definition file, which is is the <i>service.xml</i> file in the service folder on the web portal machine.
+        
+        Tasks and task schedulers are service derivates. 
+    */
+    [EntityTable(null, EntityTableConfiguration.Full, Storage = EntityTableStorage.Below)]
+    [EntityReferenceTable("usr", USER_TABLE)]
+    public abstract class ServiceDerivate : Entity {
+        
+        private const int USER_TABLE = 1;
+
+        private Service service;
+        private ComputingResource computingResource;
+        private PublishServer publishServer;
+        private RequestParameterCollection requestParameters = new RequestParameterCollection();
+        private RequestParameterCollection constants = new RequestParameterCollection();
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        protected bool Changed { get; set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the service derivate has been created based on a Service reference.</summary>
+        protected bool ServiceBased { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the service derivate attributes have predefined values.</summary>
+        protected ValueUpdateMethod ParameterUpdateMethod { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets (protected) the ID of the service that defines the derivate.</summary>
+        [EntityDataField("id_service", IsForeignKey = true)]
+        public int ServiceId { get; protected set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the service that defines the derivate</summary>
+        public Service Service {
+            get {
+                if (service == null && ServiceId != 0) {
+                    bool hide = context.HideMessages;
+                    context.HideMessages = true;
+                    try {
+                        service = Service.FromId(context, ServiceId);
+                    } catch (Exception e) {
+                        context.HideMessages = hide;
+                        throw e;
+                    }
+                    context.HideMessages = hide;
+                }
+                return service;
+            }
+            protected set { 
+                service = value; 
+                ServiceId = (value == null ? 0 : value.Id);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the unique name of service that defines the derivate.</summary>
+        public string ServiceIdentifier {
+            get { return Service.Identifier; } 
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the ID of the computing resource assigned to the derivate.</summary>
+        [EntityDataField("id_cr", IsForeignKey = true)]
+        public int ComputingResourceId { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the computing resource assigned to the derivate.</summary>
+        public virtual ComputingResource ComputingResource {
+            get {
+                if (Service.FixedComputingResource != null) computingResource = Service.FixedComputingResource;
+                else if (ComputingResourceId == 0) computingResource = null;
+                else if (computingResource == null || ComputingResourceId != computingResource.Id) computingResource = ComputingResource.FromId(context, ComputingResourceId);
+                return computingResource; 
+            }
+            set { 
+                if (Service.FixedComputingResource != null) return;
+                computingResource = value;
+                ComputingResourceId = (computingResource == null ? 0 : computingResource.Id);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the computing resource can be used by the owner of the derivate.</summary>
+        public bool CanUseComputingResource { 
+            get { return (Service.FixedComputingResource != null || ComputingResource == null || ComputingResource.Availability + OwnerUserLevel > IfyContext.MaxUserLevel); }
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the computing resource can be used by the owner of the derivate.</summary>
+        public bool CanUseService { 
+            get { return true; }//(Service.Availability + OwnerUserLevel > IfyContext.MaxUserLevel); }
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the ID of the publish server assigned to the derivate.</summary>
+        [EntityDataField("id_pubserver", IsForeignKey = true)]
+        public int PublishServerId { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Get or sets the publish server assigned to the derivate.</summary>
+        public virtual PublishServer PublishServer {
+            get {
+                if (publishServer == null && PublishServerId != 0) publishServer = PublishServer.FromId(context, PublishServerId);
+                return publishServer; 
+            }
+            set { 
+                publishServer = value;
+                PublishServerId = (value == null ? 0 : value.Id);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the privilege level of the service derivate owner.</summary>
+        [EntityForeignField("level", USER_TABLE)]
+        public int OwnerUserLevel { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the username of the service derivate owner.</summary>
+        [EntityForeignField("username", USER_TABLE)]
+        public string Username { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the user caption of the service derivate owner.</summary>
+        [EntityForeignField("username", USER_TABLE)]
+        public string UserCaption { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the processing priority value of the service derivate.</summary>
+        [EntityDataField("priority")]
+        public double Priority { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the result compression value of the service derivate.</summary>
+        [EntityDataField("compression")]
+        public string Compression { get; set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether there have been errors during the processing of a request.</summary>
+        public bool Error { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>Gets the latest task error message. </summary>
+        public string ErrorMessage { get; protected set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        // ! Indicates whether one or more input files parameters is empty.
+        //public bool InputFilesMissing { get; protected set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the output results of the task are registered automatically. </summary>
+        //[EntityDataField("auto_register")]
+        public bool AutoRegister { get; set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public ServiceParameterSet ServiceParameters { get; set; }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the collection of the request parameters.</summary>
+        public RequestParameterCollection RequestParameters { // the parameters and their descriptions (type, caption, default value etc.) used to build the actual parameters (values usually coming from the HTTP request)
+            get { return requestParameters; }
+        }        
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the collection of the request parameters (alias for RequestParameters).</summary>
+        public RequestParameterCollection Request {
+            get { return requestParameters; } 
+        }        
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the derivate is being defined.</summary>
+        public bool Defining { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the parameters that are used for the catalogue search can be omitted.</summary>
+        /*!
+            If the value is <i>true</i>, derivate parameters that are used for input file query (i.e. parameters with an OpenSearch extension) are accepted as valid even if they are empty.
+            The input files are included or considered to be included in the request, which renders the catalogue query unnecessary.
+        */
+        public bool OptionalSearchParameters { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether a request parameter with the source "caption" becomes the caption of the service derivate.</summary>
+        protected bool AssignName { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new ServiceDerivate instance.</summary>
+        /*!
+        /// <param name="context">The execution environment context.</param>
+        */
+        public ServiceDerivate(IfyContext context) : base(context) {
+            OwnerUserLevel = context.UserLevel;
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sends an info message (can be translated to a Javascript "alert" message in a client user interface). </summary>
+        /*!
+        /// <param name="message">the warning message</param>
+        */
+        public void SendInfo(string message) {
+            context.AddInfo(message);
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sends a warning message (can be translated to a Javascript "confirm" message in a client user interface). </summary>
+        /*!
+        /// <param name="message">the warning message</param>
+        */
+        public void SendWarning(string message) {
+            context.AddWarning(message, "confirm");
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the service derivate operation to failed and sends an error message. </summary>
+        /*!
+        /// <param name="message">the error message</param>
+        */
+        public void SendError(string message) {
+            Error = true;
+            context.AddError(message);
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the service derivate operation to failed and sends an error message. </summary>
+        /*!
+        /// <param name="message">the error message</param>
+        */
+        public void Invalidate(string message) {
+            Invalidate(message, null, true);
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the service derivate operation to failed and optionally sends an error message. </summary>
+        /*!
+        /// <param name="message">the error message</param>
+        /// <param name="show">determines whether the error message is written to the output</param>
+        */
+        public void Invalidate(string message, string messageClass, bool show) {
+            Error = true;
+            if (!show || message == null || ErrorMessage != null) return;
+            context.AddError(message, messageClass);
+            ErrorMessage = message;
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>!!!</summary>
+        protected abstract void LoadParameters();
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+    }
+
+}

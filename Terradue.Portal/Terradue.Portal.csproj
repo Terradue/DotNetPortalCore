@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BuildDir>$(MSBuildProjectDirectory)</BuildDir>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2E8D7875-8347-4205-936B-F1BBA2164D87}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Terradue.Portal</RootNamespace>
+    <AssemblyName>Terradue.Portal</AssemblyName>
+    <UseMSBuildEngine>False</UseMSBuildEngine>
+    <ReleaseVersion>2.5</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Core" />
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Util">
+      <HintPath>..\packages\Terradue.Util.1.4.0\lib\net40\Terradue.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Metadata">
+      <HintPath>..\packages\Terradue.Metadata.1.4.0\lib\net40\Terradue.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.1.0.7.30073\lib\net40\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.ServiceModel.Syndication">
+      <HintPath>..\packages\Terradue.ServiceModel.Syndication.1.0.0.0\lib\net40\Terradue.ServiceModel.Syndication.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.ServiceModel.Ogc.OwsContext">
+      <HintPath>..\packages\Terradue.ServiceModel.Ogc.OwsContext.1.0.0\lib\net40\Terradue.ServiceModel.Ogc.OwsContext.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.OpenSearch">
+      <HintPath>..\packages\Terradue.OpenSearch.1.7.2\lib\net40\Terradue.OpenSearch.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Terradue\" />
+    <Folder Include="Terradue\Portal\generated\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Terradue\Portal\Action.cs" />
+    <Compile Include="Terradue\Portal\ActionLoop.cs" />
+    <Compile Include="Terradue\Portal\Application.cs" />
+    <Compile Include="Terradue\Portal\Article.cs" />
+    <Compile Include="Terradue\Portal\AuthenticationType.cs" />
+    <Compile Include="Terradue\Portal\BoundingBox.cs" />
+    <Compile Include="Terradue\Portal\ComputingResource.cs" />
+    <Compile Include="Terradue\Portal\Configuration.cs" />
+    <Compile Include="Terradue\Portal\DataSet.cs" />
+    <Compile Include="Terradue\Portal\Entity.cs" />
+    <Compile Include="Terradue\Portal\EntityCollections.cs" />
+    <Compile Include="Terradue\Portal\EntityData.cs" />
+    <Compile Include="Terradue\Portal\Faq.cs" />
+    <Compile Include="Terradue\Portal\Filter.cs" />
+    <Compile Include="Terradue\Portal\GlobusComputingElement.cs" />
+    <Compile Include="Terradue\Portal\Group.cs" />
+    <Compile Include="Terradue\Portal\IfyContext.Version.cs" />
+    <Compile Include="Terradue\Portal\IfyContext.cs" />
+    <Compile Include="Terradue\Portal\IfyLocalContext.cs" />
+    <Compile Include="Terradue\Portal\IfyWebContext.cs" />
+    <Compile Include="Terradue\Portal\Image.cs" />
+    <Compile Include="Terradue\Portal\InputSource.cs" />
+    <Compile Include="Terradue\Portal\Job.cs" />
+    <Compile Include="Terradue\Portal\LightGridEngine.cs" />
+    <Compile Include="Terradue\Portal\LookupList.cs" />
+    <Compile Include="Terradue\Portal\ProductType.cs" />
+    <Compile Include="Terradue\Portal\Project.cs" />
+    <Compile Include="Terradue\Portal\PublishServer.cs" />
+    <Compile Include="Terradue\Portal\RequestParameter.cs" />
+    <Compile Include="Terradue\Portal\Scheduler.cs" />
+    <Compile Include="Terradue\Portal\SchedulerClass.cs" />
+    <Compile Include="Terradue\Portal\Series.cs" />
+    <Compile Include="Terradue\Portal\Service.cs" />
+    <Compile Include="Terradue\Portal\ServiceCategory.cs" />
+    <Compile Include="Terradue\Portal\ServiceClass.cs" />
+    <Compile Include="Terradue\Portal\ServiceParameterConfiguration.cs" />
+    <Compile Include="Terradue\Portal\Task.cs" />
+    <Compile Include="Terradue\Portal\TypedValue.cs" />
+    <Compile Include="Terradue\Portal\User.cs" />
+    <Compile Include="Terradue\Portal\ValueSet.cs" />
+    <Compile Include="Terradue\Portal\WpsApplication.cs" />
+    <Compile Include="Terradue\Portal\wsServerClient.cs" />
+    <Compile Include="Terradue\Portal\RestAction.cs" />
+    <Compile Include="Terradue\Portal\Catalogue.cs" />
+    <Compile Include="Terradue\Portal\Domain.cs" />
+    <Compile Include="Terradue\Portal\EntityOperation.cs" />
+    <Compile Include="Terradue\Portal\FieldExpression.cs" />
+    <Compile Include="Terradue\Portal\ManagerRole.cs" />
+    <Compile Include="Terradue\Portal\Mailer.cs" />
+    <Compile Include="Terradue\Portal\RemoteResource.cs" />
+    <Compile Include="Terradue\Portal\EntityAttributes.cs" />
+    <Compile Include="Terradue\Portal\EntityType.cs" />
+    <Compile Include="Terradue\Portal\ScriptBasedService.cs" />
+    <Compile Include="Terradue\Portal\ServiceParameter.cs" />
+    <Compile Include="Terradue\Portal\ServiceParameterSet.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Terradue\Portal\IfyContext.Logging.cs" />
+    <Compile Include="Terradue\Portal\WpsProcessOffering.cs" />
+    <Compile Include="Terradue\Portal\WpsProvider.cs" />
+    <Compile Include="Terradue\Portal\MultiSeries.cs" />
+    <Compile Include="Terradue\Portal\ProcessingParameter.cs" />
+    <Compile Include="Terradue\Portal\EntityData.Subclasses.cs" />
+    <Compile Include="Terradue\Portal\Feature.cs" />
+    <Compile Include="Terradue\Portal\TaskScheduler.cs" />
+    <Compile Include="Terradue\Portal\SchedulerRunConfiguration.cs" />
+    <Compile Include="Terradue\Portal\VirtualEntity.cs" />
+    <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
+    <Compile Include="Terradue\Portal\generated\wps.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Terradue.Portal.csproj" />
+  </ItemGroup>
+</Project>

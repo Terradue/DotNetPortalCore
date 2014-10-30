@@ -1,0 +1,213 @@
+
+
+select.dataset {
+	display:none;
+	/*float:none;
+	height:0px;*/
+}
+
+#additionalParameters{
+	top:30px;
+}
+
+
+
+/*
+	div.dataset_query_status span.message{
+		position:relative;
+		top:0px;
+		left:0px;
+	}
+	*/
+.dataTables_wrapper{
+	position:relative;
+	top:0px;
+	left:0px;
+	width:100%;
+	padding-bottom:40px;
+	margin-top:20px;
+	border-bottom:solid black 1px;
+	clear: both;
+	margin-left:0px;
+
+}
+
+.DatasetDetails{
+	padding:5px;
+	border:1px solid black;
+	padding-left:10px;
+	width:100%;
+	min-height:100px;
+	overflow:auto;
+
+}
+table.DatasetDetails label{
+			text-align:left;
+			display:inline;
+			margin-top:0px;
+			margin-bottom:0px;
+			color:black;
+			font-size: 10px; 
+			font-weight:bold; 
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables display
+ */
+table.display {
+	margin-bottom: 10px;
+	width: 100%;
+	clear: both;
+
+}
+.wrap{
+	margin-left:0px;
+	margin:0px;
+	padding:0px;
+	left:0px;
+	width: 100%;
+	overflow:auto;
+	clear: both;
+	min-height:230px;
+}
+table.display thead th {
+	padding: 3px 18px 3px 10px;
+	border-bottom: 1px solid black;
+	font-weight: bold;
+	cursor: pointer;
+	text-align:center;
+}
+table.display thead th.no_sort {
+	padding: 1px 1px 1px 1px;
+	border-bottom: 0px solid black;
+}
+
+table.display tfoot th {
+	padding: 3px 10px;
+	border-top: 1px solid black;
+	font-weight: bold;
+	margin-bottom:5px;
+}
+
+table.display tr.heading2 td {
+	border-bottom: 1px solid #aaa;
+}
+
+table.display td {
+	/*padding: 3px 10px;*/
+	text-align: center;
+	font-size:9px;
+	cursor: pointer;
+}
+
+table.display td.center {
+	text-align: center;
+}
+
+
+table.display tr.even.row_selected td {
+	background-color: #B0BED9;
+}
+
+table.display tr.odd.row_selected td {
+	background-color: #9FAFD1;
+}
+
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables sorting
+ */
+
+.sorting_asc {background: url('../images/sort_asc.png') no-repeat center right;}
+
+.sorting_desc {background: url('../images/sort_desc.png') no-repeat center right;}
+
+.sorting {background: url('../images/sort_both.png') no-repeat center right;}
+
+.sorting_asc_disabled {background: url('../images/sort_asc_disabled.png') no-repeat center right;}
+
+.sorting_desc_disabled {background: url('../images/sort_desc_disabled.png') no-repeat center right;}
+
+
+
+/* search input **/ 
+
+.dataTables_processing {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 250px;
+	height: 30px;
+	margin-left: -125px;
+	margin-top: -15px;
+	padding: 14px 0 2px 0;
+	border: 1px solid #ddd;
+	text-align: center;
+	color: #999;
+	font-size: 14px;
+	background-color: white;
+}
+
+
+.dataTables_length {
+	width: 40%;
+	padding-top:10px;
+	float:left;
+	padding-left:40px;
+	display:none;
+}
+
+.dataTables_filter {
+	padding-top:10px;
+	float:left;
+	display:none;
+}
+
+
+.dataTables_show_elements{
+	display:block;
+}
+
+.dataTables_filter input{
+	width: 200px;
+}
+
+.dataTables_info {
+	width: 60%;
+	padding-top:10px;
+}
+
+
+
+.dataTables_paginate {
+	width: 44px;
+	float: right;
+	text-align: right;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
+	height: 19px;
+	width: 19px;
+	margin-left: 3px;
+	float: left;
+}
+
+.paginate_disabled_previous {
+	background-image: url('../images/back_disabled.jpg');
+}
+
+.paginate_enabled_previous {
+	background-image: url('../images/back_enabled.jpg');
+}
+
+.paginate_disabled_next {
+	background-image: url('../images/forward_disabled.jpg');
+}
+
+.paginate_enabled_next {
+	background-image: url('../images/forward_enabled.jpg');
+}
+

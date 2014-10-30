@@ -1,0 +1,161 @@
+using System;
+using Terradue.OpenSearch;
+using Terradue.OpenSearch.Result;
+using System.Collections.Specialized;
+using Terradue.ServiceModel.Syndication;
+using Terradue.ServiceModel.Ogc.OwsContext;
+using System.Collections.Generic;
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+namespace Terradue.Portal {
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Represents a WPS process offering on a remote WPS server.</summary>
+    [EntityTable("wpsproc", EntityTableConfiguration.Custom)]
+    public class WpsProcessOffering : Service, IAtomizable {
+
+        private WpsProvider provider;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataFieldAttribute("id_provider", IsForeignKey = true)]
+        public int ProviderId { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataFieldAttribute("remote_id")]
+        public string RemoteIdentifier { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+       
+        [Obsolete("Use RemoteIdentifier")]
+        public string ProcessIdentifier {
+            get { return RemoteIdentifier; }
+            set { RemoteIdentifier = value; } 
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the WPS provider to which the WPS process offering belongs.</summary>
+        public WpsProvider Provider {
+            get {
+                if (ProviderId == 0) provider = null;
+                else if (provider == null || provider.Id != ProviderId) provider = ComputingResource.FromId(context, ProviderId) as WpsProvider;
+                return provider;
+            }
+            set {
+                provider = value;
+                ProviderId = (provider == null ? 0 : provider.Id);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the computing resource that must be used by the WPS process offering.</summary>
+        /// <remarks>The value is always the same as the WPS provider to which the WPS process offering belongs.</remarks>
+        public override ComputingResource FixedComputingResource {
+            get { return Provider; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new WpsProcessOffering instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        public WpsProcessOffering(IfyContext context) : base(context) {}
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override ServiceParameterSet GetParameters() {
+            return null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void BuildTask(Task task) {
+            //this.ComputingResourceId = Provider;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        #region IAtomizable implementation
+
+        public new AtomItem ToAtomItem(NameValueCollection parameters) {
+
+            string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
+            string name = (this.Name != null ? this.Name : identifier);
+            string description = this.Description;
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            if (parameters["q"] != null) {
+                string q = parameters["q"];
+                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
+            }
+                
+            AtomItem atomEntry = null;
+            try{
+                atomEntry = new AtomItem(name, description, null, this.Id.ToString(), DateTime.UtcNow);
+            }catch(Exception e){
+                atomEntry = new AtomItem();
+            }
+            OwsContextAtomEntry entry = new OwsContextAtomEntry(atomEntry);
+            var offering = new OwcOffering();
+            List<OwcOperation> operations = new List<OwcOperation>();
+
+            string providerUrl = null;
+
+            if (this.Provider.Proxy) {
+                providerUrl = context.BaseUrl + "/wps/WebProcessingService";
+            } else {
+                if (this.Provider.BaseUrl.Contains("request=")) {
+                    providerUrl = this.Provider.BaseUrl.Substring(0,this.Provider.BaseUrl.IndexOf("?"));
+                } else {
+                    providerUrl = this.Provider.BaseUrl;
+                }
+            }
+
+            Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
+                                          "&request=GetCapabilities");
+            Uri describeUri = new Uri(providerUrl + "?service=WPS" +
+                                      "&request=DescribeProcess" +
+                                      "&version=" + this.Version +
+                                      "&identifier=" + this.Identifier);
+            Uri executeUri = new Uri(providerUrl + "?service=WPS" +
+                                     "&request=Execute" +
+                                     "&version=" + this.Version +
+                                     "&identifier=" + this.Identifier);
+
+            operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
+            operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
+            operations.Add(new OwcOperation{ Method = "GET",Code = "Execute", Href = executeUri});
+
+            offering.Operations = operations.ToArray();
+            entry.Offering = offering;
+            entry.Publisher = this.Provider.Name;
+            entry.Categories.Add(new SyndicationCategory("WpsOffering"));
+
+            entry.Summary = new TextSyndicationContent(name);
+            entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
+
+            return new AtomItem(entry);
+        }
+
+        #endregion
+
+    }
+}
+

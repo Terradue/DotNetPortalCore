@@ -1,0 +1,340 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Web;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using MySql.Data.MySqlClient;
+using Terradue.Metadata.OpenSearch;
+using Terradue.Util;
+
+
+/*!
+\defgroup core_UserGroupACL Users, Groups and ACL
+@{
+The core has the ability to restrict the entities through an internal mechanism of ACL. Henceforth an entity inherits the \ref Terradue.Portal#RestrictableEntity class, the ACL applies to it according to the user or the groups it belongs to.
+\ref Terradue.Portal#RestrictableEntity class stores persistently in a specific table in database the privileges.
+ 
+\ingroup core
+ 
+\section sec_core_UserGroupACLDependencies Dependencies
+ 
+- \ref core_DataModelAccess, used to read and write the privileges
+
+\section sec_core_ContextInterfaces Abstract Interfaces
+
+Here all the interfaces that this components implements in abstract way. It means that the interfaces is not (yet) implemented as such but represent an interface for a dedicated function in the system.
+
+| Interface ID | Type | Description |
+| ------------ | ---- | ----------- |
+| \ref IAuthorization "IAuthorization" | Sub-system internal | provides with ACL for a given user and entity |
+
+\image latex "graphics/activity/acl.eps" "ACL activity" width=7cm
+
+@}
+ */
+
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+namespace Terradue.Portal {
+
+    
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+    
+    
+    /// <summary>Abstract base class of entity types that represent resources that can be restricted according to users or user groups.</summary>
+    /// <remarks>
+    ///     <p>The class provides generic methods for determining whether a set of items can be used by the current user and for displaying an list of items owned by the current user.</p>
+    ///     <p>The restrictions do not apply if the Restrict property is set to false.</p>
+    /// </remarks>
+    /// \ingroup core_UserGroupACL
+    [Obsolete("Obsolete, the functionality of RestrictableEntity has been integrated in Entity.")]
+    public abstract class RestrictableEntity : Entity {
+        
+        private int userId;
+        private bool accessible;
+        private bool gotAccessibility;
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [Obsolete("Obsolete, please use IfyContext.RestrictedMode instead (with the inverse boolean value).")]
+        public bool NoRestriction { 
+            get { return !context.RestrictedMode; }
+            set { context.RestrictedMode = !value; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the restrictions are applied.</summary>
+        /// <remarks>This property in the administration area to which usually only adminstrators have access. In other areas the administrators do not see the other users' items in item lists but they can see and use them when using the correct URL for the single item.</remarks>
+        /// \ingroup core_UserGroupACL
+        [Obsolete("Obsolete, please use IfyContext.RestrictedMode instead.")]
+        public virtual bool Restricted {
+            get { return context.RestrictedMode; }
+            set { context.RestrictedMode = value; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>In a dervived class, indicates whether the items of the restrictable entity type are assigned to user groups.</summary>
+        /// <remarks>
+        ///     <p>If this property is <c>true</c>, items of the entity type are restricted in a way that users with the <i>manager</i> user level are allowed to configure items of this entity type only if they have the appropriate privilege on the domain.</p>
+        ///     <p>CanHaveOwner and CanHaveDomain, can be both <c>true</c> (e.g. for publish servers), but usually items defined with a domain (by an administrator) do not have a user as owner.</p>
+        ///     <p>Examples are processing services or data set series.</p>
+        /// </remarks>
+        /// \ingroup core_UserGroupACL
+        [Obsolete("Obsolete, please use EntityType.TopTable.HasDomainReference instead.")]
+        public bool CanHaveDomain {
+            get {
+                EntityType entityType = IfyContext.GetEntityType(this.GetType());
+                return (entityType == null ? false : entityType.TopTable.HasDomainReference); 
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>In a dervived class, indicates whether the items of the restrictable entity type belong to a user.</summary>
+        /// <remarks>
+        ///     <p>If this property is <c>true</c>, items of the entity type are restricted in a way that only the user who owns the item (usually the user who created it) can see or use it.</p>
+        ///     <p>The life cycle of a user-owned item is normally determined exclusively by its owner or an administrator. It may also be used by other users if CanBeAssigned is <c>true</c> and user groups are assigned.</p>
+        ///     <p>Examples are tasks or publish servers. Publish servers are also assignable to groups.</p>
+        /// </remarks>
+        /// \ingroup core_UserGroupACL
+        [Obsolete("Obsolete, please use EntityType.TopTable.HasOwnerReference instead.")]
+        public bool CanHaveOwner { 
+            get {
+                EntityType entityType = IfyContext.GetEntityType(this.GetType());
+                return (entityType == null ? false : entityType.TopTable.HasOwnerReference); 
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>In a dervived class, indicates whether the items of the restrictable entity type are assigned to user groups.</summary>
+        /// <remarks>
+        ///     <p>If this property is <c>true</c>, items of the entity type are restricted in a way that only users of certain groups can see or use them. The groups allowed to use an are usually defined by an administrator.</p>
+        ///     <p>Examples are processing services or data set series.</p>
+        /// </remarks>
+        /// \ingroup core_UserGroupACL
+        [Obsolete("Obsolete, please use EntityType.TopTable.HasPrivilegeManagement instead.")]
+        public bool CanBeAssigned {
+            get {
+                EntityType entityType = IfyContext.GetEntityType(this.GetType());
+                return (entityType == null ? false : entityType.TopTable.HasPrivilegeManagement); 
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether items that belong to all users are to be included.</summary>
+        /// \ingroup core_UserGroupACL
+        [Obsolete()]
+        public bool IncludePublic { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the ID of the user who is the subject to the restrictions.</summary>
+        /// \ingroup core_UserGroupACL
+        public override int UserId { 
+            get { return userId; } 
+            set { 
+                userId = value;
+                gotAccessibility = false;
+            }
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [Obsolete("Obsolete, use CanView instead.")]
+        public virtual bool Accessible {
+            get {
+                if (!gotAccessibility) {
+                    accessible = IsAccessible();
+                    gotAccessibility = true;
+                }
+                return accessible;
+            }
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new RestrictableEntity instance.</summary>
+        /// \ingroup core_UserGroupACL
+        /*!
+        /// <param name="context">the execution environment context</param>
+        */
+        public RestrictableEntity(IfyContext context) : base(context) {
+            this.UserId = context.UserId;
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>Returns a list query for the entity taking into account the user privileges.</summary>
+        [Obsolete("Obsolete, use EntityType.GetListQuery")]
+        public virtual string GetRestrictedListQuery(string join, string condition, string fields) {
+            return String.Format("SELECT {2} FROM {0} WHERE {1};", join, condition == null ? "true" : condition, fields);
+
+/*
+            string tableName;
+
+            int spaceIndex = join.IndexOf(' ');
+            if (spaceIndex == -1) {
+                tableName = join; 
+                join += " AS t";
+            } else {
+                tableName = join.Substring(0, spaceIndex);
+            }
+            
+            string aggregation = String.Empty;
+            
+            if (context.AdminMode) {
+                if (context.UserLevel != UserLevel.Administrator) {
+                    join += String.Format(" INNER JOIN priv AS r ON r.id_type={0} INNER JOIN role_priv AS r1 ON r.id=r1.id_priv INNER JOIN usr_role AS r2 ON r1.id_role=r2.id_role",
+                            IfyContext.GetEntityType(this.GetType()).TopTypeId
+                    );
+                    if (condition == null) condition = String.Empty; else condition += " AND ";
+                    condition += String.Format("r2.id_usr={0}", context.UserId);
+                    
+                    if (CanHaveDomain) join += " INNER JOIN role AS r3 ON r1.id_role=r3.id AND (t.conf_deleg OR r3.id_domain=t.id_domain) AND r.operation!='A'";
+                }
+                
+            } else if (UserId != 0) {
+                if (CanHaveOwner) {
+                    if (IncludePublic) {
+                        FilterCondition = String.Format("(t.id_usr IS NULL{0})", UserId == 0 ? String.Empty : " OR t.id_usr=" + UserId);
+                        CustomSorting = "t.id_usr IS NOT NULL";
+                    }
+                }
+    
+                if (CanBeAssigned && context.RestrictedMode) {
+                    string pjoin = String.Format(" INNER JOIN {0}_priv AS p ON t.id=p.id_{0}", tableName);
+                    string ujoin = String.Format(" LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0}", UserId);
+                    join += pjoin + ujoin;
+                    fields += ", MAX(CASE WHEN p.id_grp IS NOT NULL THEN 1 END) AS _grp_allow, MAX(CASE WHEN p.id_usr IS NOT NULL THEN 1 END) AS _usr_allow"; 
+                    aggregation = " GROUP BY t.id HAVING (_grp_allow=1 AND (_usr_allow=1 OR _usr_allow IS NULL)) OR _usr_allow=1";
+                }
+            }
+            
+            return String.Format("SELECT {0} FROM {1}{2}{3};",
+                    fields,
+                    join,
+                    condition == null ? String.Empty : " WHERE " + condition,
+                    aggregation
+             );*/
+
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>
+        /// Gets the allowed operations.
+        /// </summary>
+        /// <param name="tableName">Table name.</param>
+        /// \ingroup core_UserGroupACL
+        public virtual void GetAllowedOperations(string tableName) {
+            GetAllowedOperations (tableName, null);
+        }
+
+        public virtual void GetAllowedOperations(string tableName, int userId) {
+            GetAllowedOperations (tableName, null, userId);
+        }
+
+        public virtual void GetAllowedOperations(string tableName, string condition) {
+            GetAllowedOperations (tableName, condition, context.UserId);
+        }
+
+        public virtual void GetAllowedOperations(string tableName, string condition, int userId) {
+            if (context.UserLevel == UserLevel.Administrator){
+                CanCreate = true;
+                CanModify = true;
+                CanDelete = true;
+                CanView = true;
+                return;
+            }
+
+            CanCreate = false;
+            CanModify = false;
+            CanDelete = false;
+            CanView = false;
+
+            if (context.UserLevel == UserLevel.Manager) {
+                GetAllowedAdministratorOperations();
+            }
+
+/*            if (CanViewItem == false) {
+                string ujoin = String.Format("LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={2}",
+                            tableName, // TODO: use entityType.TopTable.PrivilegeTable,
+                            tableName, // TODO: use entityType.TopTable.Name,
+                            UserId
+                )
+                string ujoin = String.Format("INNER JOIN {0}_priv AS p ON t.id=p.id_{1} AND (p.id_usr IS NULL OR p.id_usr={2}) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={2}"
+                string ujoin = String.Format("LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0}", userId);
+                IDataReader reader = context.GetQueryResult(String.Format("SELECT * FROM {0}_priv as p {2} WHERE p.id_{0}={1}{3};", tableName, Id, ujoin, (condition == null ? String.Empty : " AND " + condition)));
+                if (reader.Read()) {
+                    CanViewItem = true;
+                }
+                reader.Close ();
+            }*/
+            
+            CanModify |= context.AdminMode || Id != 0 && UserId != 0 && UserId == OwnerId;
+            CanDelete |= context.AdminMode || Id != 0 && UserId != 0 && UserId == OwnerId;
+
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [Obsolete("Obsolete, use CanView instead.")]
+        public virtual bool IsAccessible() {
+            // If no restriction applies, the item is accessible
+            if (context.AdminMode || !context.RestrictedMode) return true;
+            return true; // TODO rewrite
+/*
+            if (Data == null) GetStructure();
+            
+            // If restrictions apply, check whether the item is 
+            int aliasIndex = 0;
+            string join = Data.Join;
+            string condition = "t." + Data.IdField + "=" + Id + (FilterCondition == null ? String.Empty : " AND " + FilterCondition); 
+            ExpandQuery(ref join, ref condition, ref aliasIndex);
+            
+            string countFields = null;
+            string groupBy = CustomAggregation;
+            string orderBy = null;
+            ExpandSortingClause(ref countFields, ref groupBy, ref orderBy);
+            
+            string select = "t." + Data.IdField;
+            int columnIndex = 1;
+            ExpandSelectClause(ref columnIndex, ref select, "t", FieldFlags.List);
+
+            return context.GetQueryIntegerValue(
+                    String.Format("SELECT {0} FROM {1} WHERE {2}{3}",
+                            select,
+                            join,
+                            condition,
+                            (groupBy == null ? "" : " GROUP BY " + groupBy)
+                    )
+            ) != 0; */
+            
+        }
+    }
+
+}
