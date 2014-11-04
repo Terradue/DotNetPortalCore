@@ -264,7 +264,7 @@ namespace Terradue.Portal {
         public static int GetUserId(IfyContext context, string username, AuthenticationType authenticationType) {
             return context.GetQueryIntegerValue(String.Format(authenticationType == null ? "SELECT id FROM usr WHERE username={0};" : "SELECT id_usr FROM usr_auth WHERE id_auth={1} AND username={0};", 
                     StringUtils.EscapeSql(username), 
-                    authenticationType.Id
+                    authenticationType == null ? 0 : authenticationType.Id
             ));
         }
 
