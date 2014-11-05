@@ -266,8 +266,14 @@ namespace Terradue.Portal {
             //string sql = String.Format("SELECT {3} FROM {0} WHERE {1}{2};", join, condition, aggregation, select);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
+            IDataReader reader;
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0}", sql);
+                throw;
+            }
             
             if (!reader.Read()) {
                 context.CloseQueryResult(reader, dbConnection);

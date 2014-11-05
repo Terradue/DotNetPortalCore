@@ -196,7 +196,6 @@ namespace Terradue.Portal {
                     break;
                 }
             }
-//            if(!url.Contains("request=GetCapabilities")) url += "?service=wps&request=getCapabilities";
 
             foreach(ProcessBriefType process in capabilities.ProcessOfferings.Process){
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
@@ -215,6 +214,14 @@ namespace Terradue.Portal {
             }
         }
 
+        public void UpdateProcessOfferings(){
+            //delete all + store all ??? be sure of what it implies (any link in db)
+
+        }
+//
+//        public List<ProcessBriefType> GetProcessFromUrl(){
+//        }
+
         //TODO: maj des ProcessOfferings (ajout news + delete non presents)
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -226,7 +233,7 @@ namespace Terradue.Portal {
         public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url){
 
             if (url == null) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
-            if(!url.Contains("request=GetCapabilities")) url += "?service=wps&request=getCapabilities";
+            if(!url.ToLower().Contains("request=getcapabilities")) url += "?service=wps&request=GetCapabilities";
 
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
             request.Method = "GET";

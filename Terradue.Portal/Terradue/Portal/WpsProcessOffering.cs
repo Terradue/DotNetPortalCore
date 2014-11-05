@@ -96,7 +96,21 @@ namespace Terradue.Portal {
 
         public new AtomItem ToAtomItem(NameValueCollection parameters) {
 
-            string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
+            string providerUrl = null;
+            string identifier = null;
+
+            if (this.Provider.Proxy) {
+                providerUrl = context.BaseUrl + "/wps/WebProcessingService";
+                identifier = this.Identifier;
+            } else {
+                identifier = this.RemoteIdentifier;
+                if (this.Provider.BaseUrl.Contains("request=")) {
+                    providerUrl = this.Provider.BaseUrl.Substring(0,this.Provider.BaseUrl.IndexOf("?"));
+                } else {
+                    providerUrl = this.Provider.BaseUrl;
+                }
+            }
+
             string name = (this.Name != null ? this.Name : identifier);
             string description = this.Description;
             string text = (this.TextContent != null ? this.TextContent : "");
@@ -116,28 +130,16 @@ namespace Terradue.Portal {
             var offering = new OwcOffering();
             List<OwcOperation> operations = new List<OwcOperation>();
 
-            string providerUrl = null;
-
-            if (this.Provider.Proxy) {
-                providerUrl = context.BaseUrl + "/wps/WebProcessingService";
-            } else {
-                if (this.Provider.BaseUrl.Contains("request=")) {
-                    providerUrl = this.Provider.BaseUrl.Substring(0,this.Provider.BaseUrl.IndexOf("?"));
-                } else {
-                    providerUrl = this.Provider.BaseUrl;
-                }
-            }
-
             Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
                                           "&request=GetCapabilities");
             Uri describeUri = new Uri(providerUrl + "?service=WPS" +
                                       "&request=DescribeProcess" +
                                       "&version=" + this.Version +
-                                      "&identifier=" + this.Identifier);
+                                      "&identifier=" + identifier);
             Uri executeUri = new Uri(providerUrl + "?service=WPS" +
                                      "&request=Execute" +
                                      "&version=" + this.Version +
-                                     "&identifier=" + this.Identifier);
+                                     "&identifier=" + identifier);
 
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
