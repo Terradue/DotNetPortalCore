@@ -44,7 +44,7 @@ namespace Terradue.Portal.Test {
             WpsProcessOffering process = CreateProcess(true);
             var entry = process.ToAtomItem(new NameValueCollection());
             OwsContextAtomEntry result = new OwsContextAtomEntry(entry);
-            Assert.That(result.Offering != null);
+            Assert.That(result != null);
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace Terradue.Portal.Test {
             WpsProcessOffering process = CreateProcess(false);
             var entry = process.ToAtomItem(new NameValueCollection());
             OwsContextAtomEntry result = new OwsContextAtomEntry(entry);
-            Assert.That(result.Offering != null);
+            Assert.That(result != null);
         }
 
     }
