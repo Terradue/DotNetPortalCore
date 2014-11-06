@@ -4,3 +4,7 @@ Terradue.Portal.AdminTool/bin
 Terradue.Portal.Test/bin
 Terradue.Portal/bin
 Terradue.Portal.Agent/bin
+Terradue.Portal/obj
+Terradue.Portal.AdminTool/obj
+Terradue.Portal.Agent/obj
+Terradue.Portal.Test/obj
