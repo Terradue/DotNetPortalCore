@@ -12,7 +12,6 @@
 
 
 
-
 namespace Terradue.Portal {
 
     
