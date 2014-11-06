@@ -23,6 +23,7 @@
     <file src="Terradue.Portal/bin/Terradue.Portal.dll" target="lib/net40/Terradue.Portal.dll" />
     <file src="Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe" target="lib/net40/Terradue.Portal.AdminTool.exe" />
     <file src="Terradue.Portal.Agent/bin/Terradue.Portal.Agent.exe" target="lib/net40/Terradue.Portal.Agent.exe" />
+    <file src="core/**/*" target="core" />
   </files>
 
 </package>
