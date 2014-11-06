@@ -151,7 +151,7 @@ namespace Terradue.Portal {
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
 
             entry.Summary = new TextSyndicationContent(name);
-            entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
+            entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
             return new AtomItem(entry);
         }

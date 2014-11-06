@@ -17,25 +17,34 @@ namespace Terradue.Portal.Test {
             context.BaseUrl = "http://localhost:8080/api";
         }
 
-        private WpsProcessOffering CreateProcess(bool proxy){
+        private WpsProvider CreateProvider(string name, string url, bool proxy){
             WpsProvider provider;
             provider = new WpsProvider(context);
-            provider.Name = "test provider" + (proxy ? "proxy" : "no proxy");
-            provider.BaseUrl = "http://dem.terradue.int:8080/wps/WebProcessingService";
+            provider.Name = name;
+            provider.BaseUrl = url;
             provider.Proxy = proxy;
             try{
                 provider.Store();
             }catch(Exception e){
                 throw e;
             }
+            return provider;
+        }
 
+        private WpsProcessOffering CreateProcess(WpsProvider provider, string identifier, string name){
             WpsProcessOffering process = new WpsProcessOffering(context);
-            process.RemoteIdentifier = "com.test.provider";
+            process.Name = name;
+            process.RemoteIdentifier = identifier;
             process.Identifier = Guid.NewGuid().ToString();
-            process.Url = "http://dem.terradue.int:8080/wps/WebProcessingService";
+            process.Url = provider.BaseUrl;
             process.Version = "1.0.0";
             process.Provider = provider;
+            return process;
+        }
 
+        private WpsProcessOffering CreateProcess(bool proxy){
+            WpsProvider provider = CreateProvider("test provider " + (proxy ? "p" : "np"), "http://dem.terradue.int:8080/wps/WebProcessingService", proxy);
+            WpsProcessOffering process = CreateProcess(provider, "com.test.provider", "test provider " + (proxy ? "p" : "np"));
             return process;
         }
 
@@ -53,6 +62,19 @@ namespace Terradue.Portal.Test {
             var entry = process.ToAtomItem(new NameValueCollection());
             OwsContextAtomEntry result = new OwsContextAtomEntry(entry);
             Assert.That(result != null);
+        }
+
+        [Test]
+        public void GetProcessOfferingEntityList(){
+            WpsProvider provider = CreateProvider("test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            WpsProcessOffering process = CreateProcess(provider, "com.test.provider.1", "test provider 1");
+            process.Store();
+            WpsProvider provider2 = CreateProvider("test provider 2", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            WpsProcessOffering process2 = CreateProcess(provider2, "com.test.provider.2", "test provider 2");
+            process2.Store();
+
+            EntityList<WpsProcessOffering> processes = provider.GetWpsProcessOfferings();
+            Assert.That(processes.Count == 1);
         }
 
     }

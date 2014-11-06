@@ -206,10 +206,19 @@ namespace Terradue.Portal {
                 wpsProcess.Description = process.Abstract.Value;
                 wpsProcess.Version = process.processVersion;
                 wpsProcess.Url = url;
+
+                //get more infos (if necessary)
+                if (wpsProcess.Name == null || wpsProcess.Description == null) {
+                    string describeUrl = this.BaseUrl + "?service=wps&request=DescribeProcess";
+                    describeUrl += "&version=" + process.processVersion;
+                    describeUrl += "&identifier=" + process.Identifier.Value;
+                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(describeUrl);
+                    wpsProcess.Description = describeProcess.Abstract.Value;
+                }
                 try{
                     wpsProcess.Store();
                 }catch(Exception e){
-                    //do nothing, process already in db, skipe it
+                    //do nothing, process already in db, skip it
                 }
             }
         }
@@ -249,11 +258,44 @@ namespace Terradue.Portal {
 
         }
 
+        /// <summary>
+        /// Gets the WPS describe process from URL.
+        /// </summary>
+        /// <returns>The WPS describe process from URL.</returns>
+        /// <param name="url">URL.</param>
+        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url){
+
+            if (url == null) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
+
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            request.Method = "GET";
+            ProcessDescriptions response = null;
+
+            try{
+                var httpResponse = (HttpWebResponse)request.GetResponse();
+                response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(httpResponse.GetResponseStream());
+            }catch(Exception e){
+                throw e;
+            }
+            return response.ProcessDescription[0];
+
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityList<WpsProcessOffering> GetWpsProcessOfferings() {
+            EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
+            wpsProcessList.Template.Provider = this;
+            wpsProcessList.Load();
+            return wpsProcessList;
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public List<ProcessBriefType> GetProcessOfferings() {
             List<ProcessBriefType> result = new List<ProcessBriefType>();
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
+            wpsProcessList.Template.Provider = this;
             wpsProcessList.Load();
             foreach (WpsProcessOffering wpsProcess in wpsProcessList) {
                 if (wpsProcess.ProviderId == this.Id) {
