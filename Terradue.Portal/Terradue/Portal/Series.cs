@@ -519,15 +519,15 @@ namespace Terradue.Portal {
 
         #region IOpenSearchable implementation
 
-        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
+        public virtual void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
 
         }
 
-		public OpenSearchRequest Create(string type, NameValueCollection parameters) {
+        public virtual OpenSearchRequest Create(string type, NameValueCollection parameters) {
 			return OpenSearchRequest.Create(this, type, parameters);
 		}
 
-        public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
+        public virtual QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
             if (osee == null)
                 return null;
@@ -535,7 +535,7 @@ namespace Terradue.Portal {
         }
 
         [EntityDataField("default_mime_type")]
-        public string DefaultMimeType { get; set; }
+        public virtual string DefaultMimeType { get; set; }
 
         /// <summary>
         /// Opensearch parameters.
@@ -543,7 +543,7 @@ namespace Terradue.Portal {
         /// <returns>The search parameters.</returns>
         /// <param name="mimeType">MIME type.</param>
         /// \ingroup core_Series
-        public NameValueCollection GetOpenSearchParameters(string mimeType) {
+        public virtual NameValueCollection GetOpenSearchParameters(string mimeType) {
 			NameValueCollection nvc = new NameValueCollection ();
 			OpenSearchDescription osd = this.GetOpenSearchDescription ();
 
@@ -575,13 +575,11 @@ namespace Terradue.Portal {
             return Name;
         }
 
-        public OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl (string.Format("{0}/series/{1}/search", context.BaseUrl, this.Identifier));
-        }
-
-        public long TotalResults { 
+        public virtual long TotalResults { 
             get { return this.GetTotalResults(); } 
         }
+
+        #endregion
 
         /// <summary>
         /// Get the OpenSearch field TotalResults.
@@ -591,18 +589,15 @@ namespace Terradue.Portal {
         /// \ingroup core_Series
 		public long GetTotalResults() {
 			long result = 0;
-            int seriesInfoValidityTime = StringUtils.StringToSeconds(context.GetConfigValue("SeriesInfoValidityTime"));
 
 			OpenSearchEngine ose = new OpenSearchEngine();
 			AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
             ose.RegisterExtension(aosee);
-            DateTime outdatedEndTime = DateTime.UtcNow.AddSeconds(- seriesInfoValidityTime);
 
-            IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(String.Format("SELECT dataset_count FROM series WHERE id={0} AND last_update_time>'{1}';", Id, outdatedEndTime.ToString ("yyyy-MM-dd HH:mm:ss"), seriesInfoValidityTime), dbConnection);
-            if (!reader.Read ()){
-                // the value is not up to date
-                context.CloseQueryResult(reader, dbConnection);
+            try {
+                // Let's try to get the cache count value
+                result = (long)CountCache(true);
+            } catch (ResourceNotFoundException) {
 
                 // update the series table with data retrieved by the acs catalog
                 try{
@@ -622,16 +617,12 @@ namespace Terradue.Portal {
                 // update series table with new value
                 this.UpdateCountCache(result);
 
-            } else {
-                // the value is up to date
-                result = Int64.Parse(context.GetValue (reader, 0));
-                context.CloseQueryResult(reader, dbConnection);
             }
 
             return result;
         }
 
-        #endregion
+
 
     }
 
