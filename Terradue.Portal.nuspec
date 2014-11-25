@@ -1,4 +1,4 @@
-﻿<?xml version="1.0"?>
+<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Terradue.Portal</id>
@@ -11,7 +11,7 @@
     <description>Terradue.Portal is a library targeting .NET 4.0 and above with base for all Terradue Portal</description>
     <summary>Portal library for .Net</summary>
     <dependencies>
-      <dependency id="Terradue.ServiceModel.Syndication" version="1.0.0" />" />
+      <dependency id="Terradue.ServiceModel.Syndication" version="1.0.0" />
       <dependency id="Terradue.OpenSearch" version="[1.7.5,1.8)" />
       <dependency id="Terradue.ServiceModel.Ogc.OwsContext" version="[1.0.0,1.1)" />
       <dependency id="Terradue.Util" version="[1.4.0,1.5)" />

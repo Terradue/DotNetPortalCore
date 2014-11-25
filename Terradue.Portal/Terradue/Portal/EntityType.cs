@@ -585,8 +585,9 @@ namespace Terradue.Portal {
 
         private string GetQuery(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
 
+            bool restrictedList = list && context.RestrictedMode;
             bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
-            bool excludeUnaccessibleItems = list && !context.AdminMode && context.RestrictedMode && TopTable.HasPrivilegeManagement;
+            bool excludeUnaccessibleItems = restrictedList && includePrivileges;
             bool distinct = false;
             
             // Build join
@@ -608,12 +609,13 @@ namespace Terradue.Portal {
                 }
                 if (includePrivileges && table == PrivilegeSubjectTable) {
                     privilegeSubjectTableIndex = i;
-                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3} AND (p.id_usr IS NULL OR p.id_usr={4}) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={4}",
-                            context.RestrictedMode && list ? "INNER" : "LEFT",
+                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3} AND (p.id_usr IS NULL{5} OR p.id_usr={4}) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={4}",
+                            restrictedList ? "INNER" : "LEFT",
                             table.PrivilegeTable,
                             i == 0 ? String.Empty : i.ToString(),
                             table.Name,
-                            userId
+                            userId,
+                            restrictedList ? String.Empty : " AND p.id_grp IS NULL"
                     );
                 }
                 for (int j = 0; j < ForeignTables.Count; j++) {
