@@ -1478,7 +1478,7 @@ CREATE TABLE service (
     id_domain int unsigned COMMENT 'FK: Owning domain',
     id_class int unsigned COMMENT 'FK: Service class',
     conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, service can be configured by other domains',
-    available boolean COMMENT 'If true, service is available',
+    available boolean NOT NULL DEFAULT true COMMENT 'If true, service is available',
     identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
     name varchar(100) NOT NULL COMMENT 'Name',
     description text NOT NULL COMMENT 'Description',
