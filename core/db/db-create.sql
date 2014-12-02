@@ -1,4 +1,4 @@
--- VERSION 2.5
+-- VERSION 2.5.13
 
 USE $MAIN$;
 
@@ -20,6 +20,7 @@ CREATE TABLE type (
     CONSTRAINT fk_type_module FOREIGN KEY (id_module) REFERENCES module(id) ON DELETE CASCADE,
     CONSTRAINT fk_type_super FOREIGN KEY (id_super) REFERENCES type(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Entity types';
+-- CHECKPOINT C-01a
 
 -- Initializing basic entity types ... \
 INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword) VALUES
@@ -51,6 +52,7 @@ INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword
     (26, 26, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects')
 ;
 -- RESULT
+-- CHECKPOINT C-01b
 
 -- Initializing standard extended entity types ... \
 INSERT INTO type (id_super, pos, class, caption_sg, caption_pl) VALUES
@@ -63,6 +65,7 @@ INSERT INTO type (id_super, pos, class, caption_sg, caption_pl) VALUES
     (21, 2, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations')
 ;
 -- RESULT
+-- CHECKPOINT C-01c
 
 CREATE PROCEDURE add_type(IN p_module_id int unsigned, IN p_class varchar(100), IN p_super_class varchar(100), IN p_caption_sg varchar(100), IN p_caption_pl varchar(100), IN p_keyword varchar(100))
 COMMENT 'Inserts or updates a basic entity type'
@@ -77,6 +80,7 @@ BEGIN
     END IF;
     INSERT INTO type (id_module, id_super, pos, class, caption_sg, caption_pl, keyword) VALUES (p_module_id, type_id, type_pos, p_class, p_caption_sg, p_caption_pl, p_keyword);
 END;
+-- CHECKPOINT C-01d
 
 /*****************************************************************************/
 
@@ -90,6 +94,7 @@ CREATE TABLE priv (
     CONSTRAINT fk_priv_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'Manager privileges';
+-- CHECKPOINT C-02a
 
 -- Initializing manager privileges ... \
 INSERT INTO priv (id_type, operation, pos, name) VALUES
@@ -169,6 +174,7 @@ INSERT INTO priv (id_type, operation, pos, name) VALUES
     (25, 'd', 74, 'Project: delete')
 ;
 -- RESULT
+-- CHECKPOINT C-02b
 
 /*****************************************************************************/
 
@@ -178,6 +184,7 @@ CREATE TABLE configsection (
     pos smallint unsigned COMMENT 'Position for ordering',
     CONSTRAINT pk_configsection PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Sections of global configuration settings';
+-- CHECKPOINT C-03a
 
 -- Initializing sections of global configuration settings ... \
 /*!40000 ALTER TABLE configsection DISABLE KEYS */;
@@ -191,6 +198,7 @@ INSERT INTO configsection (id, name, pos) VALUES
 ;
 /*!40000 ALTER TABLE configsection DISABLE KEYS */;
 -- RESULT
+-- CHECKPOINT C-03b
 
 /*****************************************************************************/
 
@@ -208,6 +216,7 @@ CREATE TABLE config (
     CONSTRAINT pk_config PRIMARY KEY (name),
     CONSTRAINT fk_config_section FOREIGN KEY (id_section) REFERENCES configsection(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Global configuration settings';
+-- CHECKPOINT C-03c
 
 -- Initializing global configuration settings ... \
 INSERT INTO config (id_section, pos, name, type, source, caption, hint, value, optional) VALUES
@@ -281,6 +290,7 @@ INSERT INTO config (id_section, pos, name, type, source, caption, hint, value, o
     (6, 4, 'AgentUser', 'string', NULL, 'Agent Username', 'Enter the username of the user on whose behalf the agent is running', 'admin', true)
 ;
 -- RESULT
+-- CHECKPOINT C-03d
 
 /*****************************************************************************/
 
@@ -298,6 +308,7 @@ CREATE TABLE auth (
     CONSTRAINT pk_auth PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'User authentication types';
+-- CHECKPOINT C-04a
 
 -- Initializing basic user authentication types ... \
 INSERT INTO auth (pos, identifier, name, description, type, enabled, rule) VALUES
@@ -306,6 +317,7 @@ INSERT INTO auth (pos, identifier, name, description, type, enabled, rule) VALUE
     (3, 'certificate', 'Certificate authentication', 'Certificate authentication allows users to identify themselves by presenting a client certificate. The client certificate subject must match the subject configured for the user account. The certificate authenticity must be guaranteed by the web server configuration.', 'Terradue.Portal.CertificateAuthenticationType, Terradue.Portal', true, 2)
 ;
 -- RESULT
+-- CHECKPOINT C-04b
 
 /*****************************************************************************/
 
@@ -324,6 +336,7 @@ CREATE TABLE action (
     CONSTRAINT pk_action PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Actions for automatic periodical execution';
+-- CHECKPOINT C-05a
 
 -- Initializing actions for automatic periodical execution ... \
 /*!40000 ALTER TABLE action DISABLE KEYS */;
@@ -338,6 +351,7 @@ INSERT INTO action (pos, identifier, name, description, class, method) VALUES
 ;
 /*!40000 ALTER TABLE action ENABLE KEYS */;
 -- RESULT
+-- CHECKPOINT C-05b
 
 /*****************************************************************************/
 
@@ -350,6 +364,7 @@ CREATE TABLE application (
     CONSTRAINT pk_application PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'External client applications, such as web services';
+-- CHECKPOINT C-06
 
 /*****************************************************************************/
 
@@ -360,6 +375,7 @@ CREATE TABLE domain (
     CONSTRAINT pk_domain PRIMARY KEY (id),
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'Domains';
+-- CHECKPOINT C-07
 
 /*****************************************************************************/
 
@@ -373,6 +389,7 @@ CREATE TABLE role (
     CONSTRAINT fk_role_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL,
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'Manager roles';
+-- CHECKPOINT C-08
 
 /*****************************************************************************/
 
@@ -383,6 +400,7 @@ CREATE TABLE role_priv (
     CONSTRAINT fk_role_priv_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_priv_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of manager privileges to roles';
+-- CHECKPOINT C-09
 
 /*****************************************************************************/
 
@@ -396,6 +414,7 @@ CREATE TABLE openidprovider (
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     CONSTRAINT pk_openidprovider PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'OpenID providers';
+-- CHECKPOINT C-10
 
 /*****************************************************************************/
 
@@ -406,6 +425,7 @@ CREATE TABLE lookuplist (
     max_length smallint COMMENT 'Maximum string length of contained values',
     CONSTRAINT pk_lookuplist PRIMARY KEY (id, system)
 ) Engine=InnoDB COMMENT 'Configurable lookup lists';
+-- CHECKPOINT C-11a
 
 -- Initializing lookup lists ... \
 INSERT INTO lookuplist (id, system, name) VALUES
@@ -427,6 +447,7 @@ INSERT INTO lookuplist (id, system, name) VALUES
     (16, true, 'clientCertVerifyRule')
 ;
 -- RESULT
+-- CHECKPOINT C-11b
 
 /*****************************************************************************/
 
@@ -437,6 +458,7 @@ CREATE TABLE lookup (
     value text NOT NULL COMMENT 'Value',
     CONSTRAINT fk_lookup_list FOREIGN KEY (id_list) REFERENCES lookuplist(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Values in lookup lists';
+-- CHECKPOINT C-12a
 
 -- Initializing lookup values ... \
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
@@ -458,6 +480,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (4, 2, 'French (not supported yet)', 'fr'),
     (4, 3, 'German (not supported yet)', 'de')
 ;
+-- CHECKPOINT C-12b
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 0, '[+00:00] Coordinated Universal Time (UTC)', 'UTC'),
@@ -511,6 +534,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 48, '[-07:00] US/Arizona', 'US/Arizona'),
     (5, 49, '[-07:00] US/Mountain', 'US/Mountain')
 ;
+-- CHECKPOINT C-12c
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 50, '[-06:00] America/Belize', 'America/Belize'),
@@ -564,6 +588,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 98, '[-05:00] America/Resolute', 'America/Resolute'),
     (5, 99, '[-05:00] America/Thunder_Bay', 'America/Thunder_Bay')
 ;
+-- CHECKPOINT C-12d
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 100, '[-05:00] America/Toronto', 'America/Toronto'),
@@ -617,6 +642,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 148, '[-04:00] Brazil/Acre', 'Brazil/Acre'),
     (5, 149, '[-04:00] Brazil/West', 'Brazil/West')
 ;
+-- CHECKPOINT C-12e
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 150, '[-04:00] Canada/Atlantic', 'Canada/Atlantic'),
@@ -670,6 +696,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 198, '[+00:00] Atlantic/Canary', 'Atlantic/Canary'),
     (5, 199, '[+00:00] Atlantic/Faeroe', 'Atlantic/Faeroe')
 ;
+-- CHECKPOINT C-12f
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 200, '[+00:00] Atlantic/Faroe', 'Atlantic/Faroe'),
@@ -723,6 +750,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 248, '[+01:00] Europe/Sarajevo', 'Europe/Sarajevo'),
     (5, 249, '[+01:00] Europe/Skopje', 'Europe/Skopje')
 ;
+-- CHECKPOINT C-12g
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 250, '[+01:00] Europe/Stockholm', 'Europe/Stockholm'),
@@ -776,6 +804,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 298, '[+03:00] Africa/Asmara', 'Africa/Asmara'),
     (5, 299, '[+03:00] Africa/Asmera', 'Africa/Asmera')
 ;
+-- CHECKPOINT C-12h
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 300, '[+03:00] Africa/Dar_es_Salaam', 'Africa/Dar_es_Salaam'),
@@ -829,6 +858,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 348, '[+06:00] Asia/Almaty', 'Asia/Almaty'),
     (5, 349, '[+06:00] Asia/Bishkek', 'Asia/Bishkek')
 ;
+-- CHECKPOINT C-12i
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 350, '[+06:00] Asia/Dacca', 'Asia/Dacca'),
@@ -882,6 +912,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 398, '[+09:00] Asia/Yakutsk', 'Asia/Yakutsk'),
     (5, 399, '[+09:00] Pacific/Palau', 'Pacific/Palau')
 ;
+-- CHECKPOINT C-12j
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 400, '[+10:00] Antarctica/DumontDUrville', 'Antarctica/DumontDUrville'),
@@ -917,6 +948,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (5, 430, '[+13:00] Pacific/Tongatapu', 'Pacific/Tongatapu'),
     (5, 431, '[+14:00] Pacific/Kiritimati', 'Pacific/Kiritimati')
 ;
+-- CHECKPOINT C-12k
 
 INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (6, 1, 'Logging disabled', '0'),
@@ -962,6 +994,7 @@ INSERT INTO lookup (id_list, pos, caption, value) VALUES
     (16, 2, 'Check certificate subject', 'CERT_SUBJECT'),
     (16, 3, 'Compare PEM-formatted certificate', 'PROXY_SSL_CLIENT_CERT')
 ;
+-- CHECKPOINT C-12l
 -- RESULT
 
 /*****************************************************************************/
@@ -973,6 +1006,7 @@ CREATE TABLE serviceclass (
     CONSTRAINT pk_serviceclass PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Classes of processing services';
+-- CHECKPOINT C-13
 
 /*****************************************************************************/
 
@@ -983,6 +1017,7 @@ CREATE TABLE servicecategory (
     CONSTRAINT pk_servicecategory PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Categories of processing services';
+-- CHECKPOINT C-14a
 
 CREATE PROCEDURE add_servicecategory(IN p_identifier varchar(50), IN p_name varchar(100))
 COMMENT 'Inserts or updates a service category'
@@ -995,6 +1030,7 @@ BEGIN
         UPDATE servicecategory SET name = p_name WHERE id = category_id;
     END IF;
 END;
+-- CHECKPOINT C-14b
 
 /*****************************************************************************/
 
@@ -1005,6 +1041,7 @@ CREATE TABLE schedulerclass (
     CONSTRAINT pk_schedulerclass PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Classes of task schedulers';
+-- CHECKPOINT C-15
 
 /*****************************************************************************/
 
@@ -1040,12 +1077,14 @@ CREATE TABLE usr (
     CONSTRAINT pk_usr PRIMARY KEY (id),
     UNIQUE INDEX (username)
 ) Engine=InnoDB COMMENT 'User accounts';
+-- CHECKPOINT C-16a
 
 -- Adding initial administrator user (username admin, password changeme) ... \
 INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
     (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
 ;
 -- RESULT
+-- CHECKPOINT C-16b
 
 /*****************************************************************************/
 
@@ -1058,6 +1097,7 @@ CREATE TABLE usr_auth (
     CONSTRAINT fk_usr_auth_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_usr_auth_auth FOREIGN KEY (id_auth) REFERENCES auth(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Recognised user accounts';
+-- CHECKPOINT C-17
 
 /*****************************************************************************/
 
@@ -1067,11 +1107,12 @@ CREATE TABLE usrcert (
     key_password varchar(50) COMMENT 'Password for private key and download',
     cert_subject varchar(255) COMMENT 'Certificate subject',
     cert_content_pem varchar(10000) COMMENT 'Certificate content (PEM)',
-	cert_content_pub varchar(1000) COMMENT 'Certificate content (PUB)',
+    cert_content_pub varchar(1000) COMMENT 'Certificate content (PUB)',
     cert_content_base64 varchar(10000) COMMENT 'Certificate content (Base64-encoded P12)',
     CONSTRAINT pk_usrcert PRIMARY KEY (id_usr),
     CONSTRAINT fk_usrcert_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User proxy certificates';
+-- CHECKPOINT C-18
 
 /*****************************************************************************/
 
@@ -1085,6 +1126,7 @@ CREATE TABLE usropenid (
     CONSTRAINT fk_usropenid_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_usropenid_provider FOREIGN KEY (id_provider) REFERENCES openidprovider(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Open ID identifiers for users';
+-- CHECKPOINT C-19
 
 /*****************************************************************************/
 
@@ -1092,6 +1134,7 @@ CREATE TABLE openidnonce (
     time_part datetime NOT NULL COMMENT 'Nonce UTC time',
     random_part varchar(50) COMMENT 'Random characters after time part'
 ) Engine=InnoDB COMMENT 'Open ID nonces';
+-- CHECKPOINT C-20
 
 /*****************************************************************************/
 
@@ -1102,6 +1145,7 @@ CREATE TABLE usrreg (
     CONSTRAINT pk_usr PRIMARY KEY (id_usr),
     CONSTRAINT fk_usrreg_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User registration or password reset requests';
+-- CHECKPOINT C-21
 
 /*****************************************************************************/
 
@@ -1110,6 +1154,7 @@ CREATE TABLE usrsession (
     log_time datetime NOT NULL COMMENT 'Login time',
     CONSTRAINT fk_usrsession_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User sessions';
+-- CHECKPOINT C-22
 
 /*****************************************************************************/
 
@@ -1125,6 +1170,7 @@ CREATE TABLE filter (
     CONSTRAINT fk_filter_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_filter_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User-defined filters on entities';
+-- CHECKPOINT C-23
 
 /*****************************************************************************/
 
@@ -1135,6 +1181,7 @@ CREATE TABLE usr_role (
     CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of users to manager roles';
+-- CHECKPOINT C-24
 
 /*****************************************************************************/
 
@@ -1150,10 +1197,12 @@ CREATE TABLE grp (
     CONSTRAINT pk_grp PRIMARY KEY (id),
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'User groups';
+-- CHECKPOINT C-25a
 
 -- Adding initial administrator group ... \
 INSERT INTO grp (name, description, all_resources) VALUES ('Administrators', 'Portal administrators', true);
 -- RESULT
+-- CHECKPOINT C-25b
 
 /*****************************************************************************/
 
@@ -1165,10 +1214,12 @@ CREATE TABLE usr_grp (
     CONSTRAINT fk_usr_grp_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_usr_grp_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of users to groups';
+-- CHECKPOINT C-26a
 
 -- Assigning administror user the administrator group ... \
 INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN grp AS t1 WHERE t.username='admin' AND t1.name='Administrators';
 -- RESULT
+-- CHECKPOINT C-26b
 
 /*****************************************************************************/
 
@@ -1184,6 +1235,7 @@ CREATE TABLE lge (
     conf_file varchar(100) COMMENT 'Location of configuration file',
     CONSTRAINT pk_ce PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'LGE instances for Globus Computing Elements';
+-- CHECKPOINT C-27
 
 /*****************************************************************************/
 
@@ -1202,6 +1254,7 @@ CREATE TABLE cr (
     CONSTRAINT pk_cr PRIMARY KEY (id),
     CONSTRAINT fk_cr_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Computing resources';
+-- CHECKPOINT C-28
 
 /*****************************************************************************/
 
@@ -1214,6 +1267,7 @@ CREATE TABLE cr_priv (
     CONSTRAINT fk_cr_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_cr_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on computing resources';
+-- CHECKPOINT C-29
 
 /*****************************************************************************/
 
@@ -1225,16 +1279,19 @@ CREATE TABLE crstate (
     CONSTRAINT pk_crstate PRIMARY KEY (id_cr),
     CONSTRAINT fk_crstate_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Computing resource state information';
+-- CHECKPOINT C-30a
 
 CREATE TRIGGER crstate_insert BEFORE INSERT ON crstate FOR EACH ROW
 BEGIN
     SET NEW.modified = utc_timestamp();
 END;
+-- CHECKPOINT C-30b
 
 CREATE TRIGGER crstate_update BEFORE UPDATE ON crstate FOR EACH ROW
 BEGIN
     SET NEW.modified = utc_timestamp();
 END;
+-- CHECKPOINT C-30c
 
 /*****************************************************************************/
 
@@ -1253,6 +1310,7 @@ CREATE TABLE ce (
     CONSTRAINT fk_ce_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE,
     CONSTRAINT fk_ce_lge FOREIGN KEY (id_lge) REFERENCES lge(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Globus Computing Elements';
+-- CHECKPOINT C-31
 
 /*****************************************************************************/
 
@@ -1265,6 +1323,7 @@ CREATE TABLE cedir (
     CONSTRAINT pk_cedir PRIMARY KEY (id),
     CONSTRAINT fk_cedir_ce FOREIGN KEY (id_ce) REFERENCES ce(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Globus Computing Element special directories';
+-- CHECKPOINT C-32
 
 /*****************************************************************************/
 
@@ -1275,6 +1334,7 @@ CREATE TABLE wpsprovider (
     CONSTRAINT pk_wpsprovider PRIMARY KEY (id),
     CONSTRAINT fk_wpsprovider_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Web Processing Service (WPS) providers';
+-- CHECKPOINT C-33
 
 /*****************************************************************************/
 
@@ -1291,6 +1351,7 @@ CREATE TABLE catalogue (
     CONSTRAINT pk_catalogue PRIMARY KEY (id),
     CONSTRAINT fk_catalogue_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Catalogues';
+-- CHECKPOINT C-34
 
 /*****************************************************************************/
 
@@ -1317,6 +1378,7 @@ CREATE TABLE series (
     CONSTRAINT fk_series_catalogue FOREIGN KEY (id_catalogue) REFERENCES catalogue(id) ON DELETE CASCADE,
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Dataset series';
+-- CHECKPOINT C-35a
 
 CREATE PROCEDURE add_series(IN p_type_id int unsigned, IN p_identifier varchar(50), IN p_name varchar(200), IN p_description text, IN p_cat_description varchar(200))
 COMMENT 'Inserts or updates a series'
@@ -1327,6 +1389,7 @@ BEGIN
         INSERT INTO series (id_type, identifier, name, description, cat_description) VALUES (p_type_id, p_identifier, p_name, p_description, p_cat_description);
     END IF;
 END;
+-- CHECKPOINT C-35b
 
 /*****************************************************************************/
 
@@ -1338,6 +1401,7 @@ CREATE TABLE series_priv (
     CONSTRAINT fk_series_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_series_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on series';
+-- CHECKPOINT C-36
 
 /*****************************************************************************/
 
@@ -1360,6 +1424,7 @@ CREATE TABLE producttype (
     CONSTRAINT fk_producttype_catalogue FOREIGN KEY (id_catalogue) REFERENCES catalogue(id) ON DELETE CASCADE,
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Product types';
+-- CHECKPOINT C-37
 
 /*****************************************************************************/
 
@@ -1371,6 +1436,7 @@ CREATE TABLE producttype_priv (
     CONSTRAINT fk_producttype_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_producttype_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on product types';
+-- CHECKPOINT C-38
 
 /*****************************************************************************/
 
@@ -1387,6 +1453,7 @@ CREATE TABLE product (
     CONSTRAINT fk_product_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
     CONSTRAINT fk_product_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Products';
+-- CHECKPOINT C-39
 
 /*****************************************************************************/
 
@@ -1396,6 +1463,7 @@ CREATE TABLE productdata (
     value longtext COMMENT 'Value',
     CONSTRAINT fk_productdata_product FOREIGN KEY (id_product) REFERENCES product(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Product metadata';
+-- CHECKPOINT C-40
 
 /*****************************************************************************/
 
@@ -1410,6 +1478,7 @@ CREATE TABLE resourceset (
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_resourceset_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Sets of remote resources';
+-- CHECKPOINT C-41
 
 /*****************************************************************************/
 
@@ -1421,6 +1490,7 @@ CREATE TABLE resourceset_priv (
     CONSTRAINT fk_resourceset_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_resourceset_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on resource sets';
+-- CHECKPOINT C-42
 
 /*****************************************************************************/
 
@@ -1432,6 +1502,7 @@ CREATE TABLE resource (
     CONSTRAINT pk_resource PRIMARY KEY (id),
     CONSTRAINT fk_resource_set FOREIGN KEY (id_set) REFERENCES resourceset(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Remote resources';
+-- CHECKPOINT C-43
 
 /*****************************************************************************/
 
@@ -1458,6 +1529,7 @@ CREATE TABLE pubserver (
     CONSTRAINT pk_pubserver PRIMARY KEY (id),
     CONSTRAINT fk_pubserver_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Publish servers';
+-- CHECKPOINT C-44
 
 /*****************************************************************************/
 
@@ -1469,6 +1541,7 @@ CREATE TABLE pubserver_priv (
     CONSTRAINT fk_pubserver_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_pubserver_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on publish servers';
+-- CHECKPOINT C-45
 
 /*****************************************************************************/
 
@@ -1483,6 +1556,7 @@ CREATE TABLE service (
     name varchar(100) NOT NULL COMMENT 'Name',
     description text NOT NULL COMMENT 'Description',
     version varchar(10) COMMENT 'Version',
+    c_version varchar(10) COMMENT 'Cleanup version (in case of interrupted upgrade)',
     url varchar(200) NOT NULL COMMENT 'Access point of service (relative URL)',
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     view_url varchar(200) COMMENT 'View URL',
@@ -1495,16 +1569,19 @@ CREATE TABLE service (
     CONSTRAINT fk_service_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_class FOREIGN KEY (id_class) REFERENCES serviceclass(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Processing services';
+-- CHECKPOINT C-46a
 
 CREATE TRIGGER service_insert BEFORE INSERT ON service FOR EACH ROW
 BEGIN
     SET NEW.created=utc_timestamp(), NEW.modified=utc_timestamp();
 END;
+-- CHECKPOINT C-46b
 
 CREATE TRIGGER service_update BEFORE UPDATE ON service FOR EACH ROW
 BEGIN
     SET NEW.modified=utc_timestamp();
 END;
+-- CHECKPOINT C-46c
 
 /*****************************************************************************/
 
@@ -1517,6 +1594,7 @@ CREATE TABLE service_priv (
     CONSTRAINT fk_service_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group privileges on services';
+-- CHECKPOINT C-47
 
 /*****************************************************************************/
 
@@ -1528,6 +1606,7 @@ CREATE TABLE service_series (
     CONSTRAINT fk_service_series_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_series_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Compatibility map of services and dataset series';
+-- CHECKPOINT C-48a
 
 CREATE PROCEDURE link_service_series(IN service_identifier varchar(50), IN series_identifier varchar(50), IN is_default_series boolean)
 COMMENT 'Links an input series to a service'
@@ -1550,12 +1629,14 @@ BEGIN
         END IF;
     END IF;
 END;
+-- CHECKPOINT C-48b
 
 CREATE PROCEDURE unlink_service_series(IN service_identifier varchar(50), IN series_identifier varchar(50))
 COMMENT 'Unlinks an input series from a service'
 BEGIN
     DELETE FROM service_series WHERE id_service = (SELECT id FROM service WHERE identifier = service_identifier) AND id_series = (SELECT id FROM series WHERE identifier = series_identifier);
 END;
+-- CHECKPOINT C-48c
 
 /*****************************************************************************/
 
@@ -1567,6 +1648,7 @@ CREATE TABLE service_cr (
     CONSTRAINT fk_service_cr_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_cr_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Compatibility map of services and computing resources';
+-- CHECKPOINT C-49
 
 /*****************************************************************************/
 
@@ -1577,6 +1659,7 @@ CREATE TABLE service_category (
     CONSTRAINT fk_service_category_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_category_category FOREIGN KEY (id_category) REFERENCES servicecategory(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of services to service categories';
+-- CHECKPOINT C-50a
 
 CREATE PROCEDURE link_service_category(IN service_identifier varchar(50), IN category_identifier varchar(50))
 COMMENT 'Adds a service/category assignment'
@@ -1587,12 +1670,14 @@ BEGIN
         INSERT INTO service_category (id_service, id_category) SELECT t1.id, t2.id FROM service AS t1 INNER JOIN servicecategory AS t2 WHERE t1.identifier = service_identifier AND t2.identifier = category_identifier;
     END IF;
 END;
+-- CHECKPOINT C-50b
 
 CREATE PROCEDURE unlink_service_category(IN service_identifier varchar(50), IN category_identifier varchar(50))
 COMMENT 'Removes a service/category assignment'
 BEGIN
     DELETE FROM service_category WHERE id_service = (SELECT id FROM service WHERE identifier = service_identifier) AND id_category = (SELECT id FROM servicecategory WHERE identifier = category_identifier);
 END;
+-- CHECKPOINT C-50c
 
 /*****************************************************************************/
 
@@ -1608,6 +1693,7 @@ CREATE TABLE serviceconfig (
     CONSTRAINT fk_serviceconfig_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_serviceconfig_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Service configuration settings for users and groups';
+-- CHECKPOINT C-51
 
 /*****************************************************************************/
 
@@ -1617,6 +1703,7 @@ CREATE TABLE scriptservice (
     CONSTRAINT pk_scriptservice PRIMARY KEY (id),
     CONSTRAINT fk_scriptservice_service FOREIGN KEY (id) REFERENCES service(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Task schedulers';
+-- CHECKPOINT C-52
 
 /*****************************************************************************/
 
@@ -1628,6 +1715,7 @@ CREATE TABLE wpsproc (
     CONSTRAINT fk_wpsproc_service FOREIGN KEY (id) REFERENCES service(id) ON DELETE CASCADE,
     CONSTRAINT fk_wpsproc_provider FOREIGN KEY (id_provider) REFERENCES wpsprovider(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'WPS process offerings';
+-- CHECKPOINT C-53
 
 /*****************************************************************************/
 
@@ -1649,6 +1737,7 @@ CREATE TABLE scheduler (
     CONSTRAINT fk_scheduler_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_scheduler_class FOREIGN KEY (id_class) REFERENCES schedulerclass(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Schedulers';
+-- CHECKPOINT C-54
 
 /*****************************************************************************/
 
@@ -1668,6 +1757,7 @@ CREATE TABLE schedulertaskconf (
     CONSTRAINT fk_schedulertaskconf_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE SET NULL,
     CONSTRAINT fk_schedulertaskconf_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Task configurations for schedulers';
+-- CHECKPOINT C-55
 
 /*****************************************************************************/
 
@@ -1678,6 +1768,7 @@ CREATE TABLE schedulerrunconf (
     CONSTRAINT fk_schedulerrunconf_scheduler FOREIGN KEY (id) REFERENCES scheduler(id) ON DELETE CASCADE,
     CONSTRAINT fk_schedulerrunconf_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Run configurations for schedulers';
+-- CHECKPOINT C-56
 
 /*****************************************************************************/
 
@@ -1692,6 +1783,7 @@ CREATE TABLE timeschedulerrunconf (
     CONSTRAINT pk_timeschedulerrunconf PRIMARY KEY (id),
     CONSTRAINT fk_timeschedulerrunconf_schedulerrunconf FOREIGN KEY (id) REFERENCES schedulerrunconf(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Time-driven run configurations';
+-- CHECKPOINT C-57
 
 /*****************************************************************************/
 
@@ -1708,6 +1800,7 @@ CREATE TABLE dataschedulerrunconf (
     CONSTRAINT pk_dataschedulerrunconf PRIMARY KEY (id),
     CONSTRAINT fk_dataschedulerrunconf_schedulerrunconf FOREIGN KEY (id) REFERENCES schedulerrunconf(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Data-driven run configurations';
+-- CHECKPOINT C-58
 
 /*****************************************************************************/
 
@@ -1719,6 +1812,7 @@ CREATE TABLE schedulerparam (
     INDEX (id_scheduler, name),
     CONSTRAINT fk_schedulerparam_scheduler FOREIGN KEY (id_scheduler) REFERENCES scheduler(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Parameters of task schedulers';
+-- CHECKPOINT C-59
 
 /*****************************************************************************/
 
@@ -1733,6 +1827,7 @@ CREATE TABLE taskgroup (
     UNIQUE INDEX (token),
     CONSTRAINT fk_taskgroup_application FOREIGN KEY (id_application) REFERENCES application(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Groups of externally related tasks';
+-- CHECKPOINT C-60
 
 /*****************************************************************************/
 
@@ -1772,6 +1867,7 @@ CREATE TABLE task (
     CONSTRAINT fk_task_scheduler FOREIGN KEY (id_scheduler) REFERENCES scheduler(id) ON DELETE SET NULL,
     CONSTRAINT fk_task_taskgroup FOREIGN KEY (id_taskgroup) REFERENCES taskgroup(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Processing tasks';
+-- CHECKPOINT C-61
 
 /*****************************************************************************/
 
@@ -1782,6 +1878,7 @@ CREATE TABLE temporaltask (
     CONSTRAINT pk_temporaltask PRIMARY KEY (id_task),
     CONSTRAINT fk_temporaltask_task FOREIGN KEY (id_task) REFERENCES task(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Temporal parameters of processing tasks';
+-- CHECKPOINT C-62
 
 /*****************************************************************************/
 
@@ -1792,6 +1889,7 @@ CREATE TABLE taskpart (
     CONSTRAINT pk_taskpart PRIMARY KEY (id),
     CONSTRAINT fk_taskpart_task FOREIGN KEY (id_task) REFERENCES task(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Externally related task parts';
+-- CHECKPOINT C-63
 
 /*****************************************************************************/
 
@@ -1812,6 +1910,7 @@ CREATE TABLE job (
     CONSTRAINT pk_job PRIMARY KEY (id),
     CONSTRAINT fk_job_task FOREIGN KEY (id_task) REFERENCES task(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Processing jobs';
+-- CHECKPOINT C-64
 
 /*****************************************************************************/
 
@@ -1829,6 +1928,7 @@ CREATE TABLE jobnode (
     CONSTRAINT pk_jobnode PRIMARY KEY (id_job, pid),
     CONSTRAINT fk_jobnode_job FOREIGN KEY (id_job) REFERENCES job(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Job processings on a computing resource node';
+-- CHECKPOINT C-65
 
 /*****************************************************************************/
 
@@ -1840,6 +1940,7 @@ CREATE TABLE jobdependency (
     CONSTRAINT fk_jobdependency_job FOREIGN KEY (id_job) REFERENCES job(id) ON DELETE CASCADE,
     CONSTRAINT fk_jobdependency_job_input FOREIGN KEY (id_job_input) REFERENCES job(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Processing job dependencies';
+-- CHECKPOINT C-66
 
 /*****************************************************************************/
 
@@ -1855,6 +1956,7 @@ CREATE TABLE taskparam (
     CONSTRAINT fk_taskparam_task FOREIGN KEY (id_task) REFERENCES task(id) ON DELETE CASCADE,
     CONSTRAINT fk_taskparam_job FOREIGN KEY (id_job) REFERENCES job(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Parameters of processing tasks and jobs';
+-- CHECKPOINT C-67
 
 /*****************************************************************************/
 
@@ -1871,6 +1973,7 @@ CREATE TABLE wpstask (
     CONSTRAINT fk_wpstask_task FOREIGN KEY (id_task) REFERENCES task(id) ON DELETE CASCADE,
     CONSTRAINT fk_wpstask_application FOREIGN KEY (id_application) REFERENCES application(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Additional fields for tasks created by a WPS';
+-- CHECKPOINT C-68
 
 /*****************************************************************************/
 
@@ -1888,6 +1991,7 @@ CREATE TABLE log (
     action varchar(255),
     CONSTRAINT pk_log PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'System log entries';
+-- CHECKPOINT C-69
 
 /*****************************************************************************/
 
@@ -1900,11 +2004,12 @@ CREATE TABLE feature (
     title varchar(25) NOT NULL,
     description varchar(100),
     image_url varchar(100),
-	image_style varchar(100),
+    image_style varchar(100),
     button_text varchar(15),
     button_link varchar(200),
     PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Web portal featured content';
+-- CHECKPOINT C-70
 
 /*****************************************************************************/
 
@@ -1918,9 +2023,10 @@ CREATE TABLE article (
     url varchar(200) COMMENT 'External URL',
     author varchar(100) COMMENT 'Author name',
     tags varchar(100) COMMENT 'Descriptive tags',
-	id_type int unsigned COMMENT 'FK: Entity type',
+    id_type int unsigned COMMENT 'FK: Entity type',
     CONSTRAINT pk_article PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'News articles';
+-- CHECKPOINT C-71
 
 /*****************************************************************************/
 
@@ -1936,6 +2042,7 @@ CREATE TABLE articlecomment (
     CONSTRAINT pk_articlecomment PRIMARY KEY (id),
     CONSTRAINT fk_articlecomment_article FOREIGN KEY (id_article) REFERENCES article(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Comments on news articles';
+-- CHECKPOINT C-72
 
 /*****************************************************************************/
 
@@ -1947,6 +2054,7 @@ CREATE TABLE image (
     small_url varchar(200) COMMENT 'Image preview URL',
     CONSTRAINT pk_image PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Images';
+-- CHECKPOINT C-73
 
 /*****************************************************************************/
 
@@ -1956,6 +2064,7 @@ CREATE TABLE faq (
     answer text COMMENT 'Answer to question',
     CONSTRAINT pk_faq PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Frequently asked questions';
+-- CHECKPOINT C-74
 
 /*****************************************************************************/
 
@@ -1968,5 +2077,6 @@ CREATE TABLE project (
     status tinyint NOT NULL DEFAULT 0 COMMENT 'Project status (1 to 4)',
     CONSTRAINT pk_project PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Projects';
+-- CHECKPOINT C-75
 
 /*****************************************************************************/
