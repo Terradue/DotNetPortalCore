@@ -478,7 +478,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void CreateSchemas() {
+        protected void CreateSchemas() {
         // Create main portal database schema (drop first if exists)
             if (schemaExists) Execute("DROP DATABASE $MAIN$;");
             
@@ -1227,6 +1227,10 @@ namespace Terradue.Portal {
         }
 
         public static int Compare(string x, string y) {
+            if (x == null && y == null) return 0;
+            if (x == null) return -1;
+            if (y == null) return 1;
+
             Match match;
             match = regex.Match(x);
             if (!match.Success) return 0;

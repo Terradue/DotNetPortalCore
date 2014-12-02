@@ -169,6 +169,8 @@ namespace Terradue.Portal {
             Tool.ExecuteSqlScript(file, this);
 
             Version = NewVersion;
+            CleanupVersion = Version;
+
             RegisterVersion();
         }
 
