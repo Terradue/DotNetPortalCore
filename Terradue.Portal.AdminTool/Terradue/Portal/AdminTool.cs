@@ -117,9 +117,7 @@ namespace Terradue.Portal {
 
         public static void Main(string[] args) {
 
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            //FileVersionInfo fvi = Assembly.GetAssembly(Terradue.Portal.Module). FileVersionInfo.GetVersionInfo(assembly.Location);
-            toolVersion = "X.X.X";//fvi.FileVersion;
+            toolVersion = FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(Terradue.Portal.IfyContext)).Location).FileVersion;
 
             Console.WriteLine("portal-admin-tool (v{0}) - Tool for portal database maintenance - (c) Terradue S.r.l.", toolVersion);
             Console.WriteLine();
