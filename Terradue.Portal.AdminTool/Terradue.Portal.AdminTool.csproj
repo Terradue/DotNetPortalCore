@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Terradue\Portal\AdminTool.cs" />
+    <Compile Include="Terradue\Portal\SoftwareItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

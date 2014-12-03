@@ -262,13 +262,15 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new Service instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public Service(IfyContext context) : base(context) {}
+        public Service(IfyContext context) : base(context) {
+            this.Available = true;
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Returns a new Service instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public static new Service GetInstance(IfyContext context) {
+        public static Service GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(Service));
             return (Service)entityType.GetEntityInstance(context); 
         }

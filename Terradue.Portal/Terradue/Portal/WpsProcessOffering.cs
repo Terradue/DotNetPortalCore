@@ -143,7 +143,7 @@ namespace Terradue.Portal {
 
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
-            operations.Add(new OwcOperation{ Method = "GET",Code = "Execute", Href = executeUri});
+            operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri});
 
             offering.Operations = operations.ToArray();
             entry.Offering = offering;
