@@ -34,7 +34,6 @@ namespace Terradue.Portal.Test {
                 throw e;
             }
 
-            Site site;
             CoreModule core = new CoreModule(this, "../../core");
             core.Install();
 

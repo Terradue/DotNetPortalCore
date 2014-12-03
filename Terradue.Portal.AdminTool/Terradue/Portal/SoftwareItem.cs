@@ -162,6 +162,7 @@ namespace Terradue.Portal {
             bool isFailureItem = Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && this == Tool.LastFailureItem;
 
             string file = String.Format("{0}{1}db{1}db-create.sql", BaseDir, Path.DirectorySeparatorChar);
+            Console.WriteLine("INSTALL FILE: {0}, CURRENT: {1}", file, Directory.GetCurrentDirectory());
             if (!File.Exists(file)) return;
 
             AdminTool.WriteSeparator();
