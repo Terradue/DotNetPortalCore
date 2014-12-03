@@ -15,7 +15,7 @@ namespace Terradue.Portal.Test {
 
             dbMainSchema = "TerraduePortalTest";
             currentSchema = dbMainSchema;
-            Verbose = false;
+            Verbose = true;
             siteRootDir = "../..";
 
             try {
