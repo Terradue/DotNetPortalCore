@@ -31,7 +31,7 @@ namespace Terradue.Portal.Test {
         public void StoreProcessOffering() {
             provider.Store();
             provider.StoreProcessOfferings();
-            List<ProcessBriefType> process = provider.GetProcessOfferings();
+            List<ProcessBriefType> process = provider.GetProcessBriefTypes();
             Assert.That(process.Count == 1);
             Assert.That(process[0].Title != null);
         }
