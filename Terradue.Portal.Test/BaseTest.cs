@@ -12,6 +12,7 @@ namespace Terradue.Portal.Test {
         public virtual void FixtureSetup() {
 
             create = true;
+            AfterFailureCheckpoint = true;
 
             dbMainSchema = "TerraduePortalTest";
             currentSchema = dbMainSchema;
