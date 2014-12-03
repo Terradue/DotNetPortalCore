@@ -9,7 +9,7 @@
     <RootNamespace>Terradue.Portal</RootNamespace>
     <AssemblyName>Terradue.Portal</AssemblyName>
     <UseMSBuildEngine>False</UseMSBuildEngine>
-    <ReleaseVersion>2.5</ReleaseVersion>
+    <ReleaseVersion>2.5.14</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>

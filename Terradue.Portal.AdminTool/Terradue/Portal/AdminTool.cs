@@ -115,6 +115,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public AdminTool() {
+            AfterFailureCheckpoint = true;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public static void Main(string[] args) {
 
             toolVersion = FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(Terradue.Portal.IfyContext)).Location).FileVersion;
@@ -352,7 +358,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void CheckState() {
+        protected void CheckState() {
             bool moduleOk = false;
             bool i;
             try {
@@ -1256,5 +1262,6 @@ namespace Terradue.Portal {
         }
 
     }
+
 }
 

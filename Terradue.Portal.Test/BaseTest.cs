@@ -28,13 +28,13 @@ namespace Terradue.Portal.Test {
 
             try {
                 CreateSchemas();
+                CheckState();
             } catch (Exception e) {
                 Console.Error.WriteLine(e.Message);
                 throw e;
             }
 
-            Site site;
-            CoreModule core = new CoreModule(this, "../../core");
+            CoreModule core = new CoreModule(this, String.Format("{0}/../../core", Directory.GetCurrentDirectory()));
             core.Install();
 
             CloseConnection();
