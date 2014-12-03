@@ -28,6 +28,7 @@ namespace Terradue.Portal.Test {
 
             try {
                 CreateSchemas();
+                CheckState();
             } catch (Exception e) {
                 Console.Error.WriteLine(e.Message);
                 throw e;

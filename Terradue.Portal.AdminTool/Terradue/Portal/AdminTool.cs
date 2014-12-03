@@ -352,7 +352,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void CheckState() {
+        protected void CheckState() {
             bool moduleOk = false;
             bool i;
             try {
