@@ -19,6 +19,9 @@ using Terradue.OpenSearch;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using Terradue.OpenSearch.Schema;
+using Terradue.OpenSearch.Engine;
+using System.Web;
 
 
 
@@ -57,9 +60,23 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        protected OpenSearchEngine ose;
+        public OpenSearchEngine OpenSearchEngine {
+            get {
+                return ose;
+            }
+            set {
+                ose = value;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new WpsProvider instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public WpsProvider(IfyContext context) : base(context) {}
+        public WpsProvider(IfyContext context) : base(context) {
+            ose = new OpenSearchEngine();
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -187,36 +204,11 @@ namespace Terradue.Portal {
         /// Get and stores the process offerings from GetCapabilities url
         /// </summary>
         public void StoreProcessOfferings(){
-            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(this.BaseUrl);
-            List<Operation> operations = capabilities.OperationsMetadata.Operation;
-            string url = "";
-            foreach(Operation operation in operations){
-                if (operation.name == "DescribeProcess") {
-                    url = operation.DCP[0].Item.Items[0].href;
-                    break;
-                }
-            }
 
-            foreach(ProcessBriefType process in capabilities.ProcessOfferings.Process){
-                WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
-                wpsProcess.Provider = this;
-                wpsProcess.Identifier = Guid.NewGuid().ToString();
-                wpsProcess.RemoteIdentifier = process.Identifier.Value;
-                wpsProcess.Name = process.Title.Value;
-                wpsProcess.Description = process.Abstract.Value;
-                wpsProcess.Version = process.processVersion;
-                wpsProcess.Url = url;
-
-                //get more infos (if necessary)
-                if (wpsProcess.Name == null || wpsProcess.Description == null) {
-                    string describeUrl = this.BaseUrl + "?service=wps&request=DescribeProcess";
-                    describeUrl += "&version=" + process.processVersion;
-                    describeUrl += "&identifier=" + process.Identifier.Value;
-                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(describeUrl);
-                    wpsProcess.Description = describeProcess.Abstract.Value;
-                }
+            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            foreach (WpsProcessOffering process in processes) {
                 try{
-                    wpsProcess.Store();
+                    process.Store();
                 }catch(Exception e){
                     //do nothing, process already in db, skip it
                 }
@@ -226,10 +218,24 @@ namespace Terradue.Portal {
         public void UpdateProcessOfferings(){
             //delete all + store all ??? be sure of what it implies (any link in db)
 
+            /*
+             * get old list (l1)
+             * get new list (l2)
+             * 
+             * in l1 - in l2
+             *  - do nothing
+             * in l1 - not in l2
+             *  -> remove from db
+             *  -> remove also wpsjobs ?
+             * not in l1 - in l2
+             *  -> add in db
+             */ 
+
+
         }
-//
-//        public List<ProcessBriefType> GetProcessFromUrl(){
-//        }
+        //
+        //        public List<ProcessBriefType> GetProcessFromUrl(){
+        //        }
 
         //TODO: maj des ProcessOfferings (ajout news + delete non presents)
 
@@ -283,6 +289,43 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl) {
+            List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
+            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
+            List<Operation> operations = capabilities.OperationsMetadata.Operation;
+            string url = "";
+            foreach(Operation operation in operations){
+                if (operation.name == "DescribeProcess") {
+                    url = operation.DCP[0].Item.Items[0].href;
+                    break;
+                }
+            }
+
+            foreach(ProcessBriefType process in capabilities.ProcessOfferings.Process){
+                WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
+                wpsProcess.Provider = this;
+                wpsProcess.Identifier = Guid.NewGuid().ToString();
+                wpsProcess.RemoteIdentifier = process.Identifier.Value;
+                wpsProcess.Name = process.Title.Value;
+                wpsProcess.Description = process.Abstract.Value;
+                wpsProcess.Version = process.processVersion;
+                wpsProcess.Url = url;
+
+                //get more infos (if necessary)
+                if (wpsProcess.Name == null || wpsProcess.Description == null) {
+                    string describeUrl = this.BaseUrl + "?service=wps&request=DescribeProcess";
+                    describeUrl += "&version=" + process.processVersion;
+                    describeUrl += "&identifier=" + process.Identifier.Value;
+                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(describeUrl);
+                    wpsProcess.Description = describeProcess.Abstract.Value;
+                }
+                wpsProcessList.Add(wpsProcess);
+            }
+            return wpsProcessList;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityList<WpsProcessOffering> GetWpsProcessOfferings() {
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
             wpsProcessList.Template.Provider = this;
@@ -292,7 +335,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public List<ProcessBriefType> GetProcessOfferings() {
+        public List<ProcessBriefType> GetWpsProcessOfferings() {
             List<ProcessBriefType> result = new List<ProcessBriefType>();
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
             wpsProcessList.Template.Provider = this;
@@ -652,6 +695,75 @@ namespace Terradue.Portal {
         }
 
         #endregion
+
+        public virtual OpenSearchUrl GetSearchBaseUrl(string mimeType) {
+            return new OpenSearchUrl (string.Format("{0}/wps/{1}/search", context.BaseUrl, this.Identifier));
+        }
+
+        public virtual OpenSearchUrl GetDescriptionBaseUrl() {
+            return new OpenSearchUrl (string.Format("{0}/wps/{1}/description", context.BaseUrl, this.Identifier));
+        }
+
+        public NameValueCollection GetOpenSearchParameters(string mimeType) {
+            NameValueCollection nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
+            return nvc;
+        }
+
+        /// <summary>
+        /// Gets the local open search description.
+        /// </summary>
+        /// <returns>The local open search description.</returns>
+        public OpenSearchDescription GetLocalOpenSearchDescription() {
+
+            OpenSearchDescription osd = new OpenSearchDescription();
+            osd.ShortName = this.Identifier;
+            osd.Contact = context.GetConfigValue("CompanyEmail");
+            osd.SyndicationRight = "open";
+            osd.AdultContent = "false";
+            osd.Language = "en-us";
+            osd.OutputEncoding = "UTF-8";
+            osd.InputEncoding = "UTF-8";
+            osd.Developer = "Terradue OpenSearch Development Team";
+            osd.Attribution = context.GetConfigValue("CompanyName");
+
+            List<OpenSearchDescriptionUrl> urls = new List<OpenSearchDescriptionUrl>();
+
+            UriBuilder urlb = new UriBuilder(GetDescriptionBaseUrl());
+
+            OpenSearchDescriptionUrl urlxml = new OpenSearchDescriptionUrl("application/opensearchdescription+xml", urlb.ToString(), "self");
+            urls.Add(urlxml);
+
+            urlb = new UriBuilder(GetSearchBaseUrl("application/atom+xml"));
+            NameValueCollection query = GetOpenSearchParameters("application/atom+xml");
+
+            NameValueCollection nvc = HttpUtility.ParseQueryString(urlb.Query);
+            foreach (var key in nvc.AllKeys) {
+                query.Set(key, nvc[key]);
+            }
+
+            foreach (var osee in OpenSearchEngine.Extensions.Values) {
+                query.Set("format", osee.Identifier);
+
+                string[] queryString = Array.ConvertAll(query.AllKeys, key => string.Format("{0}={1}", key, query[key]));
+                urlb.Query = string.Join("&", queryString);
+                urlxml = new OpenSearchDescriptionUrl(osee.DiscoveryContentType, urlb.ToString(), "search");
+                urls.Add(urlxml);
+            }
+
+            osd.Url = urls.ToArray();
+
+
+            OpenSearchDescriptionUrl urld = osd.Url[0];
+
+            query.Set("format", "json");
+            urlb.Query = query.ToString();
+            OpenSearchDescriptionUrl urljson = new OpenSearchDescriptionUrl("application/json",urlb.ToString(),"search");
+            urls.Add(urljson);
+            osd.Url = urls.ToArray();
+
+            return osd;
+
+        }
     }
 }
 
