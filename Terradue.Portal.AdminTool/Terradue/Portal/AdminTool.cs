@@ -1262,5 +1262,6 @@ namespace Terradue.Portal {
         }
 
     }
+
 }
 
