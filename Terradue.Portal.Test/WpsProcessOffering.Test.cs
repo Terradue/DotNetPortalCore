@@ -21,6 +21,7 @@ namespace Terradue.Portal.Test {
             WpsProvider provider;
             provider = new WpsProvider(context);
             provider.Name = name;
+            provider.Description = name;
             provider.BaseUrl = url;
             provider.Proxy = proxy;
             try{
@@ -34,6 +35,7 @@ namespace Terradue.Portal.Test {
         private WpsProcessOffering CreateProcess(WpsProvider provider, string identifier, string name){
             WpsProcessOffering process = new WpsProcessOffering(context);
             process.Name = name;
+            process.Description = name;
             process.RemoteIdentifier = identifier;
             process.Identifier = Guid.NewGuid().ToString();
             process.Url = provider.BaseUrl;
