@@ -146,7 +146,7 @@ namespace Terradue.Portal {
             operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri});
 
             offering.Operations = operations.ToArray();
-            entry.Offering = offering;
+            entry.Offerings = new List<OwcOffering>{ offering };
             entry.Publisher = this.Provider.Name;
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
 
