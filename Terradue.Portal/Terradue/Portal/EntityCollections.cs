@@ -581,6 +581,10 @@ namespace Terradue.Portal {
 
         }
 
+
+        public ParametersResult DescribeParameters() {
+            return OpenSearchFactory.GetDefaultParametersResult();
+        }
         #endregion
     }
     

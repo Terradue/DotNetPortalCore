@@ -78,6 +78,10 @@ namespace Terradue.Portal {
             return new OpenSearchUrl (string.Format("{0}/dataset/{1}/search", context.BaseUrl, this.Identifier));
         }
 
+
+        public ParametersResult DescribeParameters() {
+            return OpenSearchFactory.GetDefaultParametersResult();
+        }
 		#endregion
 
 	}
