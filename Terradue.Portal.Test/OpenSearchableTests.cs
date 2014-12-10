@@ -27,7 +27,6 @@ namespace Terradue.Portal.Test {
             context.BaseUrl = "http://loacalhost:8877/sID";
         }
 
-        [Test]
         public void RemoteResourceIProxiedOpenSearchable() {
 
             RemoteResourceSet set = new RemoteResourceSet(context);
