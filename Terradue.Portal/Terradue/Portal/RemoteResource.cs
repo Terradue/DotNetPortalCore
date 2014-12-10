@@ -196,6 +196,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
 
+
+        public ParametersResult DescribeParameters() {
+            return OpenSearchFactory.GetDefaultParametersResult();
+        }
 		#endregion
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimeType) {
