@@ -93,7 +93,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool AfterFailureCheckpoint { get; private set; }
+        public bool AfterFailureCheckpoint { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
