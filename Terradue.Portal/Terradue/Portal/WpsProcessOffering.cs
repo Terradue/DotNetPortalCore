@@ -100,7 +100,7 @@ namespace Terradue.Portal {
             string providerUrl = null;
             string identifier = null;
 
-            if (this.Provider == null || this.Provider.Proxy) {
+            if (this.ProviderId == 0 || this.Provider.Proxy) {
                 providerUrl = context.BaseUrl + "/wps/WebProcessingService";
                 identifier = this.Identifier;
             } else {
