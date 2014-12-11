@@ -150,7 +150,12 @@ namespace Terradue.Portal {
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
-            entry.Publisher = (this.Provider != null ? this.Provider.Name : this.Name);
+            if (string.IsNullOrEmpty(this.provider.Description))
+                entry.Publisher = (this.Provider != null ? this.Provider.Name : "Unknown");
+            else
+                entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
+            if ( this.Provider.Id == 0 )
+                entry.Categories.Add(new SyndicationCategory("Discovered"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
