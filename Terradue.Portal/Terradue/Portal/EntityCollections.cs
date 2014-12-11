@@ -423,6 +423,11 @@ namespace Terradue.Portal {
 
             foreach (T s in pds.GetCurrentPage()) {
 
+                if (!string.IsNullOrEmpty(parameters["id"])) { 
+                    if ( s.Identifier != parameters["id"] )
+                        continue;
+                }
+
                 if (s is IAtomizable) {
                     AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
                     if(item != null) items.Add(item);
@@ -432,7 +437,7 @@ namespace Terradue.Portal {
                     string fName = (s.Name != null ? s.Name : fIdentifier);
                     string fText = (s.TextContent != null ? s.TextContent : "");
 
-                    if (parameters["q"] != null) {  
+                    if (!string.IsNullOrEmpty(parameters["q"])) {  
                         string q = parameters["q"];
                         if (!(fName.Contains(q) || fIdentifier.Contains(q) || fText.Contains(q)))
                             continue;
