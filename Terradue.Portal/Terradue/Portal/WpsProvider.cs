@@ -301,11 +301,17 @@ namespace Terradue.Portal {
                 }
             }
 
+            Uri uri = new Uri(url);
+
             foreach(ProcessBriefType process in capabilities.ProcessOfferings.Process){
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
                 wpsProcess.Provider = this;
-                wpsProcess.Identifier = Guid.NewGuid().ToString();
                 wpsProcess.RemoteIdentifier = process.Identifier.Value;
+                if (this.Id == 0) {
+                    wpsProcess.Identifier = this.Identifier + "-" + wpsProcess.RemoteIdentifier;
+                } else {
+                    wpsProcess.Identifier = Guid.NewGuid().ToString();
+                }
                 wpsProcess.Name = process.Title.Value;
                 wpsProcess.Description = process.Abstract.Value;
                 wpsProcess.Version = process.processVersion;
