@@ -100,7 +100,7 @@ namespace Terradue.Portal {
             string providerUrl = null;
             string identifier = null;
 
-            if (this.ProviderId == 0 || this.Provider.Proxy) {
+            if (this.Provider == null || this.Provider.Proxy) {
                 providerUrl = context.BaseUrl + "/wps/WebProcessingService";
                 identifier = this.Identifier;
             } else {
@@ -150,7 +150,7 @@ namespace Terradue.Portal {
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
-            entry.Publisher = this.Provider.Name;
+            entry.Publisher = (this.Provider != null ? this.Provider.Name : this.Name);
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
