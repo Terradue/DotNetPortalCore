@@ -54,8 +54,9 @@ namespace Terradue.Portal {
         /// <summary>Gets or sets the WPS provider to which the WPS process offering belongs.</summary>
         public WpsProvider Provider {
             get {
-                if (ProviderId == 0) provider = null;
-                else if (provider == null || provider.Id != ProviderId) provider = ComputingResource.FromId(context, ProviderId) as WpsProvider;
+                if (provider != null)
+                    return provider;
+                if (provider == null || provider.Id != ProviderId) provider = ComputingResource.FromId(context, ProviderId) as WpsProvider;
                 return provider;
             }
             set {
@@ -120,9 +121,12 @@ namespace Terradue.Portal {
                 if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
             }
                 
+            Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
+                                          "&request=GetCapabilities");
+
             AtomItem atomEntry = null;
             try{
-                atomEntry = new AtomItem(name, description, null, this.Id.ToString(), DateTime.UtcNow);
+                atomEntry = new AtomItem(name, description, capabilitiesUri, this.Id.ToString(), DateTime.UtcNow);
             }catch(Exception e){
                 atomEntry = new AtomItem();
             }
@@ -130,8 +134,7 @@ namespace Terradue.Portal {
             var offering = new OwcOffering();
             List<OwcOperation> operations = new List<OwcOperation>();
 
-            Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
-                                          "&request=GetCapabilities");
+
             Uri describeUri = new Uri(providerUrl + "?service=WPS" +
                                       "&request=DescribeProcess" +
                                       "&version=" + this.Version +
@@ -147,11 +150,18 @@ namespace Terradue.Portal {
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
-            entry.Publisher = (this.Provider != null ? this.Provider.Name : this.Name);
+            if (string.IsNullOrEmpty(this.provider.Description))
+                entry.Publisher = (this.Provider != null ? this.Provider.Name : "Unknown");
+            else
+                entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
+            if ( this.Provider.Id == 0 )
+                entry.Categories.Add(new SyndicationCategory("Discovered"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
-
-            entry.Summary = new TextSyndicationContent(name);
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+
+            if (!string.IsNullOrEmpty(this.IconUrl)) {
+                entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
+            }
 
             return new AtomItem(entry);
         }
