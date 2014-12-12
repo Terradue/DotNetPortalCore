@@ -3,6 +3,9 @@ using NUnit.Framework;
 using System.Linq;
 using Mono.Addins;
 using Terradue.OpenSearch.Engine;
+using System.Collections.Specialized;
+using Terradue.ServiceModel.Syndication;
+using System.Xml;
 
 namespace Terradue.Portal.Test {
 
@@ -38,6 +41,55 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual("http://loacalhost:8877/sID/test/search?count={count?}&startPage={startPage?}&startIndex={startIndex?}&q={searchTerms?}&lang={language?}&format=atom", osd.Url.FirstOrDefault(p => p.Relation == "search" && p.Type == "application/atom+xml").Template);
 
             Assert.AreEqual(context.GetConfigValue("CompanyName"), osd.Attribution);
+
+        }
+
+        [Test]
+        public void CheckEntityListPaginated() {
+
+            EntityList<Job> list = new EntityList<Job>(context);
+            list.OpenSearchEngine = ose;
+            list.Identifier = "test";
+
+            for ( int i = 1 ; i <=10; i++){
+                list.Include(new Job(context){ Name = "" + i });
+            }
+
+            var nvc = new NameValueCollection();
+           
+            var request = list.Create("application/atom+xml", nvc);
+
+            var sw = XmlReader.Create(request.GetResponse().GetResponseStream());
+            Atom10FeedFormatter atomFormatter = new Atom10FeedFormatter();
+            atomFormatter.ReadFrom(sw);
+
+            SyndicationFeed feed = atomFormatter.Feed;
+
+            Assert.That(feed.Items.First().Title.Text == "1");
+            Assert.That(feed.Items.Last().Title.Text == "10");
+
+            nvc.Add("startIndex", "2");
+            request = list.Create("application/atom+xml", nvc);
+
+            sw = XmlReader.Create(request.GetResponse().GetResponseStream());
+            atomFormatter = new Atom10FeedFormatter();
+            atomFormatter.ReadFrom(sw);
+
+            feed = atomFormatter.Feed;
+            Assert.That(feed.Items.First().Title.Text == "2");
+            Assert.That(feed.Items.Last().Title.Text == "10");
+
+            nvc.Remove("startIndex");
+            nvc.Add("q", "4");
+            request = list.Create("application/atom+xml", nvc);
+
+            sw = XmlReader.Create(request.GetResponse().GetResponseStream());
+            atomFormatter = new Atom10FeedFormatter();
+            atomFormatter.ReadFrom(sw);
+
+            feed = atomFormatter.Feed;
+            Assert.That(feed.Items.First().Title.Text == "4");
+            Assert.That(feed.Items.Last().Title.Text == "4");
 
         }
     }
