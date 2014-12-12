@@ -402,26 +402,7 @@ namespace Terradue.Portal {
 
             List<AtomItem> items = new List<AtomItem>();
 
-            // Load all avaialable Datasets according to the context
-
-            PaginatedList<T> pds = new PaginatedList<T>();
-
-            int startIndex = 0;
-            if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);
-
-            pds.AddRange(Items);
-
-            pds.PageNo = 1;
-            if (parameters["startPage"] != null) pds.PageNo = int.Parse(parameters["startPage"]);
-
-            pds.PageSize = 20;
-            if (parameters["count"] != null) pds.PageSize = int.Parse(parameters["count"]);
-
-            pds.StartIndex = startIndex;
-
-            if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
-
-            foreach (T s in pds.GetCurrentPage()) {
+            foreach (T s in Items) {
 
                 if (!string.IsNullOrEmpty(parameters["id"])) { 
                     if ( s.Identifier != parameters["id"] )
@@ -433,30 +414,50 @@ namespace Terradue.Portal {
                     if(item != null) items.Add(item);
                 } else {
 
-                    string fIdentifier = (s.Identifier != null ? s.Identifier : this.Identifier + "_" + s.Id);
-                    string fName = (s.Name != null ? s.Name : fIdentifier);
-                    string fText = (s.TextContent != null ? s.TextContent : "");
+                    var name = s.Name == null ? "" : s.Name;
+                    var identifier = s.Identifier == null ? "" : s.Identifier;
+                    var content = s.TextContent == null ? "" : s.TextContent;
 
                     if (!string.IsNullOrEmpty(parameters["q"])) {  
                         string q = parameters["q"];
-                        if (!(fName.Contains(q) || fIdentifier.Contains(q) || fText.Contains(q)))
+                        if (!(name.Contains(q) || identifier.Contains(q) || content.Contains(q)))
                             continue;
                     }
 
-                    Uri alternate = new Uri(context.BaseUrl + "/" + this.Identifier + "/" + fIdentifier + "/search?count=0");
-                    Uri id = new Uri(context.BaseUrl + "/" + this.Identifier + "/" + fIdentifier);
+                    if (identifier == "")
+                        identifier = Guid.NewGuid().ToString();
 
-                    AtomItem entry = new AtomItem(fIdentifier, fName, alternate, id.ToString(), DateTime.UtcNow);
-                    entry.Categories.Add(new SyndicationCategory(this.Identifier));
+                    Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
-                    entry.Summary = new TextSyndicationContent(fName);
-                    entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", fIdentifier);
+                    AtomItem entry = new AtomItem(name, content, id, id.ToString(), DateTime.UtcNow);
+                    entry.Categories.Add(new SyndicationCategory(entityType.Keyword));
+
+                    entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
                     items.Add(entry);
                 }
             }
 
-            feed.Items = items;
+            // Load all avaialable Datasets according to the context
+
+            PaginatedList<AtomItem> pds = new PaginatedList<AtomItem>();
+
+            int startIndex = 1;
+            if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);
+
+            pds.PageNo = 1;
+            if (parameters["startPage"] != null) pds.PageNo = int.Parse(parameters["startPage"]);
+
+            pds.PageSize = 20;
+            if (parameters["count"] != null) pds.PageSize = int.Parse(parameters["count"]);
+
+            pds.StartIndex = startIndex - 1;
+
+            if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+
+            pds.AddRange(items);
+
+            feed.Items = pds.GetCurrentPage();
 
             //Atomizable.SerializeToStream ( res, stream.OutputStream );
             var sw = XmlWriter.Create(stream);
