@@ -117,8 +117,8 @@ namespace Terradue.Portal {
             string text = (this.TextContent != null ? this.TextContent : "");
 
             if (parameters["q"] != null) {
-                string q = parameters["q"];
-                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
+                string q = parameters["q"].ToLower();
+                if (!(name.ToLower().Contains(q) || identifier.ToLower().Contains(q) || text.ToLower().Contains(q))) return null;
             }
                 
             Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
