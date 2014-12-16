@@ -609,7 +609,7 @@ namespace Terradue.Portal {
                 }
                 if (includePrivileges && table == PrivilegeSubjectTable) {
                     privilegeSubjectTableIndex = i;
-                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3} AND (p.id_usr IS NULL{5} OR p.id_usr={4}) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={4}",
+                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3} AND (p.id_usr IS NULL{5} OR p.id_usr={4} OR p.id_grp IS NOT NULL) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={4}",
                             restrictedList ? "INNER" : "LEFT",
                             table.PrivilegeTable,
                             i == 0 ? String.Empty : i.ToString(),
