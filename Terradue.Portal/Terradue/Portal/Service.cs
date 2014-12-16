@@ -342,9 +342,6 @@ namespace Terradue.Portal {
             reader.Close();
             Categories = (categories == null ? new Category[0] : categories);
 
-            if (!Available && context.UserLevel != UserLevel.Administrator && !context.AdminMode) {
-                throw new EntityNotAvailableException("This service is currently not available");
-            }
             context.CloseQueryResult(reader, dbConnection);
         }
 
