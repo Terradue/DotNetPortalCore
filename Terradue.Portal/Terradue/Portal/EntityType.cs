@@ -557,7 +557,7 @@ namespace Terradue.Portal {
             // Add entity-specific fields to SELECT clause 
             foreach (FieldInfo field in Fields) {
                 if (field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
-                    select += String.Format(", MAX(p.{0}) AS _{0}", field.FieldName);
+                    select += String.Format(", MAX(CASE WHEN p.id_usr IS NOT NULL OR ug.id_grp IS NOT NULL OR p.id_{1} AND p.id_usr IS NULL AND p.id_grp IS NULL THEN p.{0} ELSE NULL END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
                 } else if (field.FieldType == EntityFieldType.DataField) {
                     if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
                     else select += String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
@@ -657,7 +657,7 @@ namespace Terradue.Portal {
             // Add entity-specific fields to SELECT clause 
             foreach (FieldInfo field in Fields) {
                 if (includePrivileges && field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
-                    select += String.Format(", MAX(p.{0}) AS _{0}", field.FieldName);
+                    select += String.Format(", MAX(CASE WHEN p.id_usr IS NOT NULL OR ug.id_grp IS NOT NULL OR p.id_{1} AND p.id_usr IS NULL AND p.id_grp IS NULL THEN p.{0} ELSE NULL END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
                 } else if (field.FieldType == EntityFieldType.DataField) {
                     if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
                     else select += String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
