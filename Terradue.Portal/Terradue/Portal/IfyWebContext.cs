@@ -292,6 +292,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string XslFilename {
+            get { return xslFilename; }
+            set { xslFilename = value; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public MonoXmlWriter XmlWriter {
             get { return xmlWriter; }
         }
