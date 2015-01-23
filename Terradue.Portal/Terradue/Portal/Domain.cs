@@ -26,6 +26,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents a domain.</summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("domain", EntityTableConfiguration.Custom, NameField = "name")]
     public class Domain : Entity {
         

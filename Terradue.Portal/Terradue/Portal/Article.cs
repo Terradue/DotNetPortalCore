@@ -26,6 +26,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents a news article published on the portal.</summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("article", EntityTableConfiguration.Custom, NameField = "title", IdentifierField = "identifier", HasExtensions = true)]
     public class Article : Entity {
 
@@ -41,6 +42,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the title of the article.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public string Title { 
             get { return Name; }
             set { Name = value; }
@@ -49,36 +51,42 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the abstract of the article.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("abstract")]
         public string Abstract { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the article content.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("content")]
         public string Content { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the publication time.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("time")]
         public DateTime Time { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the URL at which the article can be accessed.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("url")]
         public string Url { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the article author.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("author")]
         public string Author { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the tags for the article.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("tags")]
         public string Tags { get; set; }
 

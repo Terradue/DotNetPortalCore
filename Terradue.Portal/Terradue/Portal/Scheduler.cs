@@ -68,6 +68,7 @@ namespace Terradue.Portal {
     /// In order to work automatically, the background agent must be running and the Scheduler action must be enabled.
     /// 
     /// Alternatively, for debug purposes, the scheduler can be advanced manually and the resulting tasks can be submitted manually.
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("scheduler", EntityTableConfiguration.Full, HasExtensions = true, HasOwnerReference = true)]
     [EntityReferenceTable("usr", USER_TABLE)]
     public abstract class Scheduler : Entity {
@@ -107,12 +108,22 @@ namespace Terradue.Portal {
         public int SchedulerClassId { get; set; } //TODO:modif engue set was protected
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>
+        /// Gets or sets the status.
+        /// </summary>
+        /// <value>The status.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("status")]
         public SchedulingStatus Status { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the run configuration.
+        /// </summary>
+        /// <value>The run configuration.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public SchedulerRunConfiguration RunConfiguration {
             get {
                 if (schedulerRunConfiguration == null && Id != 0) {
@@ -131,6 +142,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the maximum number of runs per cycle of the scheduler daemon.</summary>
         /// <remarks>If the value is 0 it means that the scheduler tries to run until the end at the first cycle.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("max_runs")]
         public int MaxSubmissions { get; set; }
         
@@ -169,6 +181,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the inputs.
+        /// </summary>
+        /// <value>The inputs.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public List<ProcessingInputSet> Inputs { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -408,7 +425,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Executes the scheduler-related part of the background agent action <b>%Task&nbsp;and&nbsp;scheduler&nbsp;cleanup</b>.</summary>
-        /*!
+        /*
             This method is called periodically if the action is active and the background agent is running according to the action's execution interval specified in the portal configuration.
 
             The background agent action <b>%Task&nbsp;cleanup</b> deletes the tasks that have been marked for deletion and no longer consume Grid engine resources, together with all data related to these tasks (jobs, node information etc.), from the database.
@@ -416,6 +433,7 @@ namespace Terradue.Portal {
             %Tasks deletions are pending if they were requested while the portal configuration variable <i>SynchronousTaskOperations</i> was set to <i>false</i>.
             
         /// <param name="context">The execution environment context.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         */
         public static void ExecuteCleanup(IfyContext context) {
             IDataReader reader;
@@ -578,6 +596,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the task list.
+        /// </summary>
+        /// <returns>The task list.</returns>
+        /// <param name="context">Context.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public List<Task> GetTaskList(IfyContext context) {
             List<int> taskIds = new List<int>();
             IDbConnection dbConnection = context.GetDbConnection();
@@ -613,6 +637,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+
+        /// <summary>
+        /// Gets the active tasks.
+        /// </summary>
+        /// <returns>The active tasks.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public EntityList<Task> GetActiveTasks() {
             List<int> taskIds = new List<int>();
             string sql = String.Format("SELECT id FROM task WHERE id_scheduler={0} AND status>={1} AND status<{2};", this.Id, ProcessingStatus.Active, ProcessingStatus.Failed);
@@ -636,6 +666,9 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
 
+    /// <summary>
+    /// Scheduler run action.
+    /// </summary>
     public delegate void SchedulerRunAction(string result);
     
 

@@ -36,6 +36,7 @@ namespace Terradue.Portal {
     /// User.
     /// </summary>
     /// \ingroup core_UserGroupACL
+    /// \xrefitem uml "UML" "UML Diagram" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {
 
@@ -69,6 +70,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the activation status of the user account.</summary>
+        /// \xrefitem uml "UML" "UML Diagram" 
         [EntityDataField("status")]
         public int AccountStatus { get; set; }
 

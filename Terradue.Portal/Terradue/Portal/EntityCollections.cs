@@ -603,18 +603,29 @@ namespace Terradue.Portal {
 
 
     /// <summary>A list of entities of a specific type.</summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     public class EntityList<T> : EntityCollection<T>, IOpenSearchable where T : Entity {
 
         private List<T> items;
         
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>
+        /// Gets the items.
+        /// </summary>
+        /// <value>The items.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public override IEnumerable<T> Items {
             get { return items; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the number of items in the collection.
+        /// </summary>
+        /// <value>The count.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public override int Count {
             get { return items.Count; }
         }
@@ -636,6 +647,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Removes all items from the list.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public override void Clear() {
             items.Clear();
         }
@@ -644,6 +656,7 @@ namespace Terradue.Portal {
         
         /// <summary>Includes an item in the list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
+        /// \xrefitem uml "UML" "UML Diagram"
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
             items.Add(item);

@@ -16,6 +16,10 @@ using Terradue.OpenSearch.Schema;
 
 namespace Terradue.Portal {
 
+    /// <summary>
+    /// Remote resource set.
+    /// </summary>
+    /// \xrefitem uml "UML" "UML Diagram"
 	[EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
     public class RemoteResourceSet : Entity, IOpenSearchable, IProxiedOpenSearchable {
 
@@ -32,14 +36,25 @@ namespace Terradue.Portal {
         /// Gets or sets the key.
         /// </summary>
         /// <value>The key.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("access_key")]
         public string AccessKey { get; set; }
 
 		//---------------------------------------------------------------------------------------------------------------------
 		
         //[EntityComplexField(ReferenceField = "id_set", AutoLoad = true)]
+        /// <summary>
+        /// Gets or sets the resources.
+        /// </summary>
+        /// <value>The resources.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
 		public virtual EntityList<RemoteResource> Resources { get; set; }
 
+        /// <summary>
+        /// Gets or sets the open search engine.
+        /// </summary>
+        /// <value>The open search engine.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public OpenSearchEngine OpenSearchEngine {
             get {
                 return ose;
@@ -225,6 +240,10 @@ namespace Terradue.Portal {
 
 	}
 
+    /// <summary>
+    /// Remote resource.
+    /// </summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("resource", EntityTableConfiguration.Custom, NameField = "name")]
     public class RemoteResource : Entity {
 		private RemoteResourceSet resourceSet;
@@ -237,6 +256,11 @@ namespace Terradue.Portal {
 		//---------------------------------------------------------------------------------------------------------------------
 
 		[EntityEntityField("id_set")]
+        /// <summary>
+        /// Gets or sets the resource set.
+        /// </summary>
+        /// <value>The resource set.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public RemoteResourceSet ResourceSet { 
 			get {
 				if (this.resourceSet == null) resourceSet = RemoteResourceSet.FromId(context, ResourceSetId);
@@ -251,6 +275,11 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         [EntityDataField("location")]
+        /// <summary>
+        /// Gets or sets the location.
+        /// </summary>
+        /// <value>The location.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public string Location { get; set; }
 
 		//---------------------------------------------------------------------------------------------------------------------

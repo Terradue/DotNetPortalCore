@@ -91,6 +91,7 @@ namespace Terradue.Portal {
 
     /// <summary>Abstract base class for processing services.</summary>
     /// \ingroup core_Service
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
     public abstract class Service : Entity, IAtomizable {
@@ -119,22 +120,34 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service description.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("description")]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service version.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("version")]
         public string Version { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the URL.
+        /// </summary>
+        /// <value>The URL.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("url")]
         public string Url { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the icon URL.
+        /// </summary>
+        /// <value>The icon URL.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("icon_url")]
         public string IconUrl { get; set; }
 
@@ -146,12 +159,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service rating.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("rating")]
         public int Rating { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service class ID.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityForeignField("id", CLASS_TABLE)]
         public int ClassId { get; protected set; }
 
@@ -176,6 +191,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service categories.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public Category[] Categories { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -201,6 +217,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the callback method that is called for building a task from the given parameter values, which should include the creation of jobs and the calculation of required resources.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public BuildTaskCallbackType OnBuildTask { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -400,10 +417,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the parameters.
+        /// </summary>
+        /// <returns>The parameters.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract ServiceParameterSet GetParameters();
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Checks the parameters.
+        /// </summary>
+        /// <param name="parameters">Parameters.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual void CheckParameters(ServiceParameterSet parameters) {
             parameters.Check();
         }
@@ -565,6 +592,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Builds the task.
+        /// </summary>
+        /// <param name="task">Task.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract void BuildTask(Task task);
 
         //---------------------------------------------------------------------------------------------------------------------

@@ -163,6 +163,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents the execution environment context and manages the client connection, database access and other resources.</summary>
     /// \ingroup core_Context
+    /// \xrefitem uml "UML" "UML Diagram"
     public abstract partial class IfyContext {
 
         private object lockObject = new Object();
@@ -249,7 +250,12 @@ namespace Terradue.Portal {
         public bool ConsoleDebug { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is interactive.
+        /// </summary>
+        /// <value><c>true</c> if this instance is interactive; otherwise, <c>false</c>.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual bool IsInteractive {
             get { return false; }
         }
@@ -301,6 +307,11 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the log level.
+        /// </summary>
+        /// <value>The log level.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual int LogLevel {
             get { return logLevel; }
             set {
@@ -316,6 +327,11 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the debug level.
+        /// </summary>
+        /// <value>The debug level.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual int DebugLevel {
             get { return debugLevel; }
             set {
@@ -377,11 +393,13 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the ID of the logged or impersonated user.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public int UserId { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the user for whom new items are created.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public int OwnerId { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -412,6 +430,7 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates whether the request originates from a registered user.</summary>
         /// \ingroup core_Context
+        /// \xrefitem uml "UML" "UML Diagram"
         public bool IsUserIdentified {
             get {
                 return isUserIdentified || IsUserAuthenticated;
@@ -426,6 +445,7 @@ namespace Terradue.Portal {
         /// <summary>Indicates whether the request originates from a registered user.</summary>
         /// <remarks>Being <c>IsUserAuthenticated</c> true implies that also <c>IsUserIdentified</c> is true.</remarks>
         /// \ingroup core_Context
+        /// \xrefitem uml "UML" "UML Diagram"
         public bool IsUserAuthenticated { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -435,21 +455,25 @@ namespace Terradue.Portal {
         /// </summary>
         /// <value>The authentication method.</value>
         /// \ingroup core_Context
+        /// \xrefitem uml "UML" "UML Diagram"
         public AuthenticationMethod AuthenticationMethod { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the level of the logged or impersonated user.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public int UserLevel { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the displayed name of the logged or impersonated user.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public string UserCaption { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the login name of the logged or impersonated user.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public string Username {
             get {
                 if (username == null) username = GetQueryStringValue("SELECT username FROM usr WHERE id=" + UserId + ";");
@@ -860,6 +884,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Opens the database connection.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual void Open() {
             dynamicDbConnections = dynamicDbConnectionsGlobal;
             if (!dynamicDbConnections || !ConfigurationLoaded) {
@@ -887,6 +912,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Closes all open database connection and releases other resources.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual void Close() {
             foreach (IDbConnection dbConnection in dbConnections) {
                 dbConnection.Close();
@@ -902,6 +928,7 @@ namespace Terradue.Portal {
         /// Loads the configuration.
         /// </summary>
         /// \ingroup core_Context
+        /// \xrefitem uml "UML" "UML Diagram"
         public void LoadConfiguration() {
             bool newConnection = (mainDbConnection == null);
             if (newConnection) mainDbConnection = GetNewDbConnection();
@@ -1326,6 +1353,10 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Determines whether this instance is database available.
+        /// </summary>
+        /// <returns><c>true</c> if this instance is database available; otherwise, <c>false</c>.</returns>
         public bool IsDatabaseAvailable() {
             try {
                 mainDbConnection.Open();
@@ -1342,6 +1373,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the db connection.
+        /// </summary>
+        /// <returns>The db connection.</returns>
         public IDbConnection GetDbConnection() {
             IDbConnection result;
             if (DynamicDbConnections) {
@@ -1393,6 +1428,7 @@ namespace Terradue.Portal {
         ///     </list>
         ///     Note: if a transaction is active, IfyContext.DynamicDbTransactions returns always <c>false</c>, even if it has been set to <c>true</c> originally.
         /// </remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void StartTransaction() {
             bool exit = (InTransaction && !nestedTransactions);
             if (!exit && DynamicDbConnections) mainDbConnection = GetNewDbConnection();
@@ -1409,6 +1445,7 @@ namespace Terradue.Portal {
         ///     After committing, the behaviour of dynamic database connections returns to normal.
         /// </remarks>
         /// <seealso cref="Terradue.Portal.IfyContext.StartTransaction"/>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void Commit() {
             if (InTransaction && (nestedTransactions || TransactionLevel == 1)) Execute("COMMIT;");
             TransactionLevel--;
@@ -1427,6 +1464,7 @@ namespace Terradue.Portal {
         ///     After rolling back the transaction, the behaviour of dynamic database connections returns to normal.
         /// </remarks>
         /// <seealso cref="Terradue.Portal.IfyContext.StartTransaction"/>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void Rollback() {
             while (InTransaction) {
                 if (InTransaction && (nestedTransactions || TransactionLevel == 1)) Execute("ROLLBACK;");
@@ -1445,6 +1483,7 @@ namespace Terradue.Portal {
         /// <param name="name">The name of the configuration variable.</param>
         /// <returns>The value of the configuration variable.</returns>
         /// \ingroup core_Context
+        /// \xrefitem uml "UML" "UML Diagram"
         public string GetConfigValue(string name) {
             string result = null;
             IDbConnection dbConnection = GetDbConnection();
@@ -1665,6 +1704,7 @@ namespace Terradue.Portal {
 
         /// <summary>Changes the current HTTP session information in order to impersonate another user.</summary>
         /// <param name="userId">the ID of the user to be impersonated</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void StartImpersonation(int userId) {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
@@ -1675,6 +1715,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Returns to the HTTP session information of the original user account.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void EndImpersonation() {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
@@ -2050,6 +2091,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sends a mail alert to an administrator.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public bool SendMailAlert() {
             /*bool result = false;*/
             string subject = (mailMessageSubject == null ? "No subject" : mailMessageSubject.Replace("$(IDENTIFIER)", applicationName));
