@@ -83,7 +83,6 @@
     <Compile Include="Terradue\Portal\DataSet.cs" />
     <Compile Include="Terradue\Portal\Entity.cs" />
     <Compile Include="Terradue\Portal\EntityCollections.cs" />
-    <Compile Include="Terradue\Portal\EntityData.cs" />
     <Compile Include="Terradue\Portal\Faq.cs" />
     <Compile Include="Terradue\Portal\Filter.cs" />
     <Compile Include="Terradue\Portal\GlobusComputingElement.cs" />
@@ -118,7 +117,6 @@
     <Compile Include="Terradue\Portal\Catalogue.cs" />
     <Compile Include="Terradue\Portal\Domain.cs" />
     <Compile Include="Terradue\Portal\EntityOperation.cs" />
-    <Compile Include="Terradue\Portal\FieldExpression.cs" />
     <Compile Include="Terradue\Portal\ManagerRole.cs" />
     <Compile Include="Terradue\Portal\Mailer.cs" />
     <Compile Include="Terradue\Portal\RemoteResource.cs" />
@@ -133,7 +131,6 @@
     <Compile Include="Terradue\Portal\WpsProvider.cs" />
     <Compile Include="Terradue\Portal\MultiSeries.cs" />
     <Compile Include="Terradue\Portal\ProcessingParameter.cs" />
-    <Compile Include="Terradue\Portal\EntityData.Subclasses.cs" />
     <Compile Include="Terradue\Portal\Feature.cs" />
     <Compile Include="Terradue\Portal\TaskScheduler.cs" />
     <Compile Include="Terradue\Portal\SchedulerRunConfiguration.cs" />
