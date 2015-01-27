@@ -22,6 +22,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents an action that is executed by the background agent.</summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("action", EntityTableConfiguration.Full)]
     public class Action : Entity {
         

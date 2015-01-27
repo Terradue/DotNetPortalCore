@@ -57,10 +57,13 @@
       <HintPath>..\packages\Terradue.ServiceModel.Syndication.1.0.0.0\lib\net40\Terradue.ServiceModel.Syndication.dll</HintPath>
     </Reference>
     <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.8.2\lib\net40\Terradue.OpenSearch.dll</HintPath>
+      <HintPath>..\packages\Terradue.OpenSearch.1.8.5\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
     <Reference Include="Terradue.ServiceModel.Ogc.OwsContext">
       <HintPath>..\packages\Terradue.ServiceModel.Ogc.OwsContext.1.0.4\lib\net40\Terradue.ServiceModel.Ogc.OwsContext.dll</HintPath>
+    </Reference>
+    <Reference Include="Doxygen.XMLParser">
+      <HintPath>..\..\..\..\..\..\Downloads\Doxygen.XMLParser.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -80,7 +83,6 @@
     <Compile Include="Terradue\Portal\DataSet.cs" />
     <Compile Include="Terradue\Portal\Entity.cs" />
     <Compile Include="Terradue\Portal\EntityCollections.cs" />
-    <Compile Include="Terradue\Portal\EntityData.cs" />
     <Compile Include="Terradue\Portal\Faq.cs" />
     <Compile Include="Terradue\Portal\Filter.cs" />
     <Compile Include="Terradue\Portal\GlobusComputingElement.cs" />
@@ -115,7 +117,6 @@
     <Compile Include="Terradue\Portal\Catalogue.cs" />
     <Compile Include="Terradue\Portal\Domain.cs" />
     <Compile Include="Terradue\Portal\EntityOperation.cs" />
-    <Compile Include="Terradue\Portal\FieldExpression.cs" />
     <Compile Include="Terradue\Portal\ManagerRole.cs" />
     <Compile Include="Terradue\Portal\Mailer.cs" />
     <Compile Include="Terradue\Portal\RemoteResource.cs" />
@@ -130,7 +131,6 @@
     <Compile Include="Terradue\Portal\WpsProvider.cs" />
     <Compile Include="Terradue\Portal\MultiSeries.cs" />
     <Compile Include="Terradue\Portal\ProcessingParameter.cs" />
-    <Compile Include="Terradue\Portal\EntityData.Subclasses.cs" />
     <Compile Include="Terradue\Portal\Feature.cs" />
     <Compile Include="Terradue\Portal\TaskScheduler.cs" />
     <Compile Include="Terradue\Portal\SchedulerRunConfiguration.cs" />

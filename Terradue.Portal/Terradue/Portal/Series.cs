@@ -136,6 +136,7 @@ namespace Terradue.Portal {
     
     /// <summary>Represents a series of data sets that are available from a catalogue.</summary>
     /// \ingroup core_Series
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
     public class Series : Entity, IOpenSearchable {
@@ -148,7 +149,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \ingroup core_Series
         [Obsolete("Obsolete, please use Name instead.")]
         public string Caption { 
             get { return Name; }
@@ -159,11 +159,16 @@ namespace Terradue.Portal {
         
         /// <summary>Gets the detailed description of the series.</summary>
         /// \ingroup core_Series
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("description")]
         public string Description { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>
+        /// Gets or sets the raw catalogue description URL.
+        /// </summary>
+        /// <value>The raw catalogue description URL.</value>
         [EntityDataField("cat_description")]
         public string RawCatalogueDescriptionUrl { get; set; }
         
@@ -176,6 +181,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the OpenSearch description URL of the series.</summary>
         /// \ingroup core_Series
+        /// \xrefitem uml "UML" "UML Diagram"
         public string CatalogueDescriptionUrl { 
             get {
                 if (RawCatalogueDescriptionUrl == null) throw new Exception("Missing catalogue description URL");
@@ -224,7 +230,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the Download Manager that handles the Data Access Request.</summary>
+        /// <summary>
+        /// Gets or sets the catalogue.
+        /// </summary>
+        /// <value>The catalogue.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public Catalogue Catalogue {
             get {
                 if (catalogue == null && catalogueId != 0) catalogue = Catalogue.FromId(context, catalogueId);
@@ -339,6 +349,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// From the open search URL.
+        /// </summary>
+        /// <returns>The open search URL.</returns>
+        /// <param name="osUrl">Os URL.</param>
+        /// <param name="context">Context.</param>
+        /// <param name="exists">If set to <c>true</c> exists.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public static Series FromOpenSearchUrl (OpenSearchUrl osUrl, IfyContext context, Boolean exists = true)
         {
             Series result = new Series (context);
@@ -478,6 +496,7 @@ namespace Terradue.Portal {
         /// <summary>Generates the corresponding OpenSearch description.</summary>
         /// <returns>An OpenSearch description document.</returns>
         /// \ingroup core_Series
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual OpenSearchDescription GetLocalOpenSearchDescription(string basePath) {
 
             OpenSearchDescription osd = GetOpenSearchDescription();

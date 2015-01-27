@@ -498,6 +498,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Closes all open database connection and releases other resources taking also into account the specified exception.</summary>
+        /// <param name="e">The exception to take into account.</param>
+        /// <remarks>The exception parameter is ignored in this class; derived classes, however, may have a different behaviour.</remarks>
+        public virtual void Close(Exception e) {
+            Close();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public static AuthenticationType GetAuthenticationType(Type type) {
             foreach (AuthenticationType authenticationType in authenticationTypes) {
                 if (type.IsAssignableFrom(authenticationType.GetType())) return authenticationType;

@@ -1241,6 +1241,7 @@ CREATE TABLE lge (
 
 CREATE TABLE cr (
     id int unsigned NOT NULL auto_increment,
+    identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
     id_type int unsigned NOT NULL COMMENT 'FK: Entity type extension',
     id_domain int unsigned COMMENT 'FK: Owning domain',
     conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, computing resource can be configured by other domains',
@@ -1252,7 +1253,8 @@ CREATE TABLE cr (
     capacity int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum processing capacity',
     credit_control boolean NOT NULL DEFAULT false COMMENT 'If true, computing resource controls user credits',
     CONSTRAINT pk_cr PRIMARY KEY (id),
-    CONSTRAINT fk_cr_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
+    CONSTRAINT fk_cr_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
+    UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Computing resources';
 -- CHECKPOINT C-28
 

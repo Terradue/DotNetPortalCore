@@ -41,6 +41,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents a remote provider of a Web Processing Service.</summary>
     /// <remarks>This class is used as the computing resource on which WPS processes, which are equivalent to tasks, run.</remarks>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("wpsprovider", EntityTableConfiguration.Custom)]
     public class WpsProvider : ComputingResource, IAtomizable {
 
@@ -55,6 +56,7 @@ namespace Terradue.Portal {
         /// Define if the provider is to be proxied or not
         /// </summary>
         /// <value>The proxy.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("proxy")]
         public bool Proxy { get; set; }
 
@@ -203,6 +205,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// Get and stores the process offerings from GetCapabilities url
         /// </summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public void StoreProcessOfferings(){
 
             List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
@@ -245,6 +248,7 @@ namespace Terradue.Portal {
         /// Return a GetCapabilities object from GetCapabilities url
         /// </summary>
         /// <returns>GetCapabilities.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url){
 
             if (url == null) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
@@ -269,6 +273,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url){
 
             if (url == null) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
@@ -288,7 +293,12 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
+        /// <summary>
+        /// Gets the wps process offerings from URL.
+        /// </summary>
+        /// <returns>The wps process offerings from URL.</returns>
+        /// <param name="baseurl">Baseurl.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
@@ -361,6 +371,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Executes the task.
+        /// </summary>
+        /// <returns><c>true</c>, if task was executed, <c>false</c> otherwise.</returns>
+        /// <param name="task">Task.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         public bool ExecuteTask(Task task){
             WpsProcessOffering processOffering = GetProcessOffering(task);
 
@@ -552,6 +568,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the task result.
+        /// </summary>
+        /// <returns><c>true</c>, if task result was gotten, <c>false</c> otherwise.</returns>
+        /// <param name="task">Task.</param>
+        /// <param name="doc">Document.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         protected bool GetTaskResult(Task task, XmlDocument doc) {
             XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
@@ -624,6 +647,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the process offering.
+        /// </summary>
+        /// <returns>The process offering.</returns>
+        /// <param name="task">Task.</param>
+        /// \xrefitem uml "UML" "UML Diagram"
         private WpsProcessOffering GetProcessOffering(Task task) {
             WpsProcessOffering result = task.Service as WpsProcessOffering;
             if (result == null || result.Provider != this) throw new InvalidOperationException("The service used by this task is not offered by this WPS provider");
@@ -687,17 +716,35 @@ namespace Terradue.Portal {
                 if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
             }
 
+            if (parameters["url"] != null) {
+                if (this.BaseUrl != parameters["url"]) return null;
+            }
+
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
-            //OwsContextAtomEntry
+            AtomItem atomEntry = null;
+            var entityType = EntityType.GetEntityType(typeof(WpsProvider));
+            Uri id = null;
+            if(this.Id == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + HttpUtility.UrlEncode(this.BaseUrl));
+            else id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
-            AtomItem entry = new AtomItem(identifier, name, alternate, this.Id.ToString(), DateTime.UtcNow);
+            AtomItem entry = new AtomItem(identifier, name, alternate, id.ToString(), DateTime.UtcNow);
             entry.Categories.Add(new SyndicationCategory("service"));
+
+            entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             entry.Summary = new TextSyndicationContent(name);
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
             return entry;
+        }
+
+
+        public NameValueCollection GetOpenSearchParameters() {
+            var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
+            parameters.Add("id", "{geo:uid?}");
+            parameters.Add("url", "{ows:url?}");
+            return parameters;
         }
 
         #endregion

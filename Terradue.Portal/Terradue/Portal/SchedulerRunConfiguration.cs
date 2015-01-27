@@ -30,7 +30,10 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
 
-
+    /// <summary>
+    /// I scheduler run configuration.
+    /// </summary>
+    /// \xrefitem uml "UML" "UML Diagram"
     public interface ISchedulerRunConfiguration {
         void Reset();
         NameValueCollection GetNextParameters();
@@ -47,6 +50,7 @@ namespace Terradue.Portal {
 
     /// <summary>Abstract class representing a collection of scheduler parameters and settings for generating subsequent runs of the scheduler.</summary>
     /// <remarks>All schedulers require a run configuration to manage the advancing of its parameters.</remarks>
+    /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("schedulerrunconf", EntityTableConfiguration.Custom, HasAutomaticIds = false, HasExtensions = true)]
     public abstract class SchedulerRunConfiguration : Entity, ISchedulerRunConfiguration {
 
@@ -54,6 +58,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the scheduler.
+        /// </summary>
+        /// <value>The scheduler.</value>
+        /// \xrefitem uml "UML" "UML Diagram"
         public Scheduler Scheduler {
             get {
                 if (scheduler == null && Id != 0) {
@@ -105,13 +114,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public abstract void Reset();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         public virtual bool IsCompleted() {
             return Scheduler.Status == SchedulingStatus.Completed;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        #region ISchedulerRunConfiguration
+
+        public abstract void Reset();
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -126,6 +137,8 @@ namespace Terradue.Portal {
         public abstract void SetParameters(NameValueCollection parameters);
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        #endregion
 
         public abstract string GetExecutionLogMessage();
 

@@ -52,7 +52,8 @@ namespace Terradue.Portal {
     ///     <p>The most important part of the defined members regard task- and job-related operations. Members of derived classes are usually not called directly by custom code, but by the core classes that the operation is performed on (e.g. <see cref="Terradue.Portal.Task"/> Task and <see cref="Terradue.Portal.Job"/>).</p>
     /// </remarks>
     /// \ingroup core_ComputingResource
-    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    /// \xrefitem uml "UML" "UML Diagram"
+    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 
@@ -74,6 +75,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the computing resource is available to common users.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public bool IsAvailable { 
             get { return Availability == IfyContext.MaxUserLevel; } 
         }
@@ -81,12 +83,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the description of the computing resource.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("description")]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the fully qualified DNS hostname for the computing resource.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("hostname")]
         public string Hostname { get; set; }
         
@@ -111,6 +115,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the maximum processing capacity of the computing resource.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("capacity")]
         public int MaxCapacity { get; set; }
 
@@ -118,6 +123,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the current total processing capacity of the computing resource.</summary>
         /// <remarks>The current capacity is usually the same as the total capacity</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityForeignField("total_nodes", STATE_TABLE)]
         public int TotalCapacity {
             get {
@@ -132,6 +138,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the free processing capacity of the computing resource.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityForeignField("free_nodes", STATE_TABLE)]
         public int FreeCapacity { 
             get {
@@ -162,6 +169,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the computing resource has a credit control where credits are configured for each user.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("credit_control")]
         public bool UserCreditControl { get; set; }
         
@@ -277,6 +285,7 @@ namespace Terradue.Portal {
         /// <summary>Returns the number of computing resource nodes used by the specified scheduler.</summary>
         /// <param name="scheduler">The scheduler for which the load is to be checked.</returns>
         /// <returns>The number of nodes occupied by the scheduler's active tasks.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public int GetUsedCapacity(Scheduler scheduler) {
             return context.GetQueryIntegerValue(
                     String.Format("SELECT COUNT(DISTINCT id_job, pid) FROM task AS t INNER JOIN job AS t1 ON t.id=t1.id_task INNER JOIN jobnode AS t2 ON t1.id=t2.id_job WHERE t.id_cr={0} AND t.id_scheduler={1} AND (t1.status>{2} AND t1.status<{3} OR t1.async_op={4} OR t1.async_op={5});",
@@ -293,6 +302,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>In a derived class, obtains the status information for the computing resource.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
         public virtual void GetStatus() {
             if (ForceRefresh) return; 
 
@@ -316,6 +326,7 @@ namespace Terradue.Portal {
         /// <summary>In a derived class, creates a representation of the specified task on the computing resource.</summary>
         /// <param name="task">The task to be created.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool CreateTask(Task task);
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -341,6 +352,7 @@ namespace Terradue.Portal {
         /// <summary>In a derived class, requests the the execution of the specified task on the computing resource.</summary>
         /// <param name="task">The task to be started.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool StartTask(Task task);
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -348,6 +360,7 @@ namespace Terradue.Portal {
         /// <summary>In a derived class, stops the execution of the specified task on the computing resource.</summary>
         /// <param name="task">The task to be stopped.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool StopTask(Task task);
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -356,6 +369,7 @@ namespace Terradue.Portal {
         /// <param name="task">The task to be queried.</param>
         /// <returns><c>true</c> if the status information was received correctly, <c>false</c> otherwise.</returns>
         /// <remarks>The status information must contain not only the status value, but also information such as results as soon as they are available.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool GetTaskStatus(Task task);
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -363,6 +377,7 @@ namespace Terradue.Portal {
         /// <summary>In a derived class, destroys the representation of the specified task on the computing resource.</summary>
         /// <param name="task">The task to be destroyed.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
+        /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool DestroyTask(Task task);
 
         //---------------------------------------------------------------------------------------------------------------------

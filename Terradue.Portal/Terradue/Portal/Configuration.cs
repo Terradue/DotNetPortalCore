@@ -40,6 +40,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents the set of portal configuration variables.</summary>
     /// \ingroup core_Configuration
+    /// \xrefitem uml "UML" "UML Diagram"
     public class Configuration : Entity {
         
         //---------------------------------------------------------------------------------------------------------------------
