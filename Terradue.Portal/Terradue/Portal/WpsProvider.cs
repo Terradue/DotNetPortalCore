@@ -718,9 +718,11 @@ namespace Terradue.Portal {
 
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
-            //OwsContextAtomEntry
+            AtomItem atomEntry = null;
+            var entityType = EntityType.GetEntityType(typeof(WpsProvider));
+            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
-            AtomItem entry = new AtomItem(identifier, name, alternate, this.Id.ToString(), DateTime.UtcNow);
+            AtomItem entry = new AtomItem(identifier, name, alternate, id.ToString(), DateTime.UtcNow);
             entry.Categories.Add(new SyndicationCategory("service"));
 
             entry.Summary = new TextSyndicationContent(name);

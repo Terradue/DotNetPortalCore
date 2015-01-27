@@ -133,7 +133,7 @@ namespace Terradue.Portal {
 
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
-            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
+            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
             try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
             }catch(Exception e){
