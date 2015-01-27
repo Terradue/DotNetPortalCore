@@ -190,14 +190,7 @@ namespace Terradue.Portal {
         public virtual bool ProvidesFullTaskStatus {
             get { return false; }
         }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override string Name {
-            get { return Identifier; }
-            set { Identifier = value; }
-        }
-
+       
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Constructor that allows derived classes of ComputingResource to inherit from its superclasses.</summary>
