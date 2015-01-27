@@ -175,6 +175,13 @@ namespace Terradue.Portal {
             return new AtomItem(entry);
         }
 
+        public NameValueCollection GetOpenSearchParameters() {
+            var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
+            parameters.Add("id", "{geo:uid?}");
+            parameters.Add("wpsUrl", "{ows:url?}");
+            return parameters;
+        }
+
         #endregion
 
     }

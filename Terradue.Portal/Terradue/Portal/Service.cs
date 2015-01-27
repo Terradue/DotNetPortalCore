@@ -681,6 +681,10 @@ namespace Terradue.Portal {
             return entry;
         }
 
+        public NameValueCollection GetOpenSearchParameters() {
+            return OpenSearchFactory.GetBaseOpenSearchParameter();
+        }
+
         #endregion
     }
 
