@@ -53,7 +53,7 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup core_ComputingResource
     /// \xrefitem uml "UML" "UML Diagram"
-    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 
