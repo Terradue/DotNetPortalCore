@@ -55,14 +55,14 @@ INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword
 -- CHECKPOINT C-01b
 
 -- Initializing standard extended entity types ... \
-INSERT INTO type (id_super, pos, class, caption_sg, caption_pl) VALUES
-    (14, 1, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements'),
-    (14, 2, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers'),
-    (19, 1, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Script-based service', 'Script-based services'),
-    (19, 2, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'WPS process offering', 'WPS process offerings'),
-    (20, 1, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers'),
-    (21, 1, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations'),
-    (21, 2, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations')
+INSERT INTO type (id_super, pos, class, caption_sg, caption_pl, keyword) VALUES
+    (14, 1, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements', ''),
+    (14, 2, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers', 'cr/wps'),
+    (19, 1, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Script-based service', 'Script-based services', ''),
+    (19, 2, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'WPS process offering', 'WPS process offerings', 'service/wps'),
+    (20, 1, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers', ''),
+    (21, 1, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations', ''),
+    (21, 2, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations', '')
 ;
 -- RESULT
 -- CHECKPOINT C-01c
