@@ -725,11 +725,13 @@ namespace Terradue.Portal {
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
             Uri id = null;
-            if(this.Id == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + this.BaseUrl);
+            if(this.Id == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + HttpUtility.UrlEncode(this.BaseUrl));
             else id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
             AtomItem entry = new AtomItem(identifier, name, alternate, id.ToString(), DateTime.UtcNow);
             entry.Categories.Add(new SyndicationCategory("service"));
+
+            entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             entry.Summary = new TextSyndicationContent(name);
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);

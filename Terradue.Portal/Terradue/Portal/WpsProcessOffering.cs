@@ -11,6 +11,7 @@ using System.Collections.Generic;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using System.Web;
 
 
 
@@ -138,7 +139,7 @@ namespace Terradue.Portal {
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
             Uri id = null;
-            if(this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + this.Provider.BaseUrl + "&pId=" + this.RemoteIdentifier);
+            if(this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier);
             else  id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
             try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
@@ -173,6 +174,8 @@ namespace Terradue.Portal {
                 entry.Categories.Add(new SyndicationCategory("Discovered"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+
+            entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             if (!string.IsNullOrEmpty(this.IconUrl)) {
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
