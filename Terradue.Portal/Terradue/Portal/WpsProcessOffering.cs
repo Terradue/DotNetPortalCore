@@ -127,13 +127,19 @@ namespace Terradue.Portal {
                 string q = parameters["q"].ToLower();
                 if (!(name.ToLower().Contains(q) || identifier.ToLower().Contains(q) || text.ToLower().Contains(q))) return null;
             }
+
+            if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
+                if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
+            }
                 
             Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
                                           "&request=GetCapabilities");
 
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
-            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
+            Uri id = null;
+            if(this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + this.Provider.BaseUrl + "&pId=" + this.RemoteIdentifier);
+            else  id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
             try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
             }catch(Exception e){

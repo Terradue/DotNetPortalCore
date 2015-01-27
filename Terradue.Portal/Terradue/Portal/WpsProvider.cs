@@ -716,11 +716,17 @@ namespace Terradue.Portal {
                 if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
             }
 
+            if (parameters["url"] != null) {
+                if (this.BaseUrl != parameters["url"]) return null;
+            }
+
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
-            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
+            Uri id = null;
+            if(this.Id == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + this.BaseUrl);
+            else id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
             AtomItem entry = new AtomItem(identifier, name, alternate, id.ToString(), DateTime.UtcNow);
             entry.Categories.Add(new SyndicationCategory("service"));
