@@ -731,6 +731,14 @@ namespace Terradue.Portal {
             return entry;
         }
 
+
+        public NameValueCollection GetOpenSearchParameters() {
+            var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
+            parameters.Add("id", "{geo:uid?}");
+            parameters.Add("url", "{ows:url?}");
+            return parameters;
+        }
+
         #endregion
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimeType) {
