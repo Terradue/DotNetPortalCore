@@ -63,6 +63,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         protected OpenSearchEngine ose;
+
         public OpenSearchEngine OpenSearchEngine {
             get {
                 return ose;
@@ -92,7 +93,8 @@ namespace Terradue.Portal {
 
         /// <summary>Overrides abstract method of ComputingResource; does nothing.</summary>
         /// <remarks>There is no status monitoring for WPS providers; therefore this method is not implemented.</remarks>
-        public override void GetStatus() {}
+        public override void GetStatus() {
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -127,7 +129,8 @@ namespace Terradue.Portal {
             writer.WriteElementString("ows:Identifier", processOffering.RemoteIdentifier);
             writer.WriteStartElement("wps:DataInputs");
             foreach (ExecutionParameter param in task.ExecutionParameters) {
-                if (param.Value == null) continue;
+                if (param.Value == null)
+                    continue;
                 if (param.Values == null) {
                     writer.WriteStartElement("wps:Input");
                     writer.WriteElementString("ows:Identifier", param.Name);
@@ -188,14 +191,17 @@ namespace Terradue.Portal {
             XmlNamespaceManager nsm = new XmlNamespaceManager(executeResponseDoc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
             XmlNode xmlNode = executeResponseDoc.SelectSingleNode("wps:ExecuteResponse/@statusLocation", nsm);
-            if (xmlNode != null) task.StatusUrl = xmlNode.Value;
+            if (xmlNode != null)
+                task.StatusUrl = xmlNode.Value;
 
             xmlNode = executeResponseDoc.SelectSingleNode("wps:ExecuteResponse/wps:Status/*[1]", nsm);
-            if (xmlNode == null) return false;
+            if (xmlNode == null)
+                return false;
 
             task.ActualStatus = GetStatusFromExecuteResponse(xmlNode.LocalName);
 
-            if (task.Finished) GetTaskResult(task, executeResponseDoc); // task may be synchronous processing
+            if (task.Finished)
+                GetTaskResult(task, executeResponseDoc); // task may be synchronous processing
 
             return true;
         }
@@ -206,19 +212,19 @@ namespace Terradue.Portal {
         /// Get and stores the process offerings from GetCapabilities url
         /// </summary>
         /// \xrefitem uml "UML" "UML Diagram"
-        public void StoreProcessOfferings(){
+        public void StoreProcessOfferings() {
 
             List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
             foreach (WpsProcessOffering process in processes) {
-                try{
+                try {
                     process.Store();
-                }catch(Exception e){
+                } catch (Exception e) {
                     //do nothing, process already in db, skip it
                 }
             }
         }
 
-        public void UpdateProcessOfferings(){
+        public void UpdateProcessOfferings() {
             //delete all + store all ??? be sure of what it implies (any link in db)
 
             /*
@@ -249,19 +255,26 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>GetCapabilities.</returns>
         /// \xrefitem uml "UML" "UML Diagram"
-        public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url){
+        public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url) {
 
-            if (url == null) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
-            if(!url.ToLower().Contains("request=getcapabilities")) url += "?service=wps&request=GetCapabilities";
+            if (url == null)
+                throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
+            if (!url.ToLower().Contains("request=getcapabilities"))
+                url += "?service=wps&request=GetCapabilities";
 
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
             request.Method = "GET";
+
+            if (url.Contains("gpod.eo.esa.int")) {
+                request.Headers.Add("X-UserID", "tepqwwps");
+            }
+
             WPSCapabilitiesType response = null;
 
-            try{
+            try {
                 var httpResponse = (HttpWebResponse)request.GetResponse();
                 response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer(typeof(WPSCapabilitiesType)).Deserialize(httpResponse.GetResponseStream());
-            }catch(Exception e){
+            } catch (Exception e) {
                 throw e;
             }
             return response;
@@ -274,18 +287,23 @@ namespace Terradue.Portal {
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem uml "UML" "UML Diagram"
-        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url){
+        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url) {
 
-            if (url == null) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
+            if (url == null)
+                throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
             request.Method = "GET";
             ProcessDescriptions response = null;
 
-            try{
+            if (url.Contains("gpod.eo.esa.int")) {
+                request.Headers.Add("X-UserID", "tepqwwps");
+            }
+
+            try {
                 var httpResponse = (HttpWebResponse)request.GetResponse();
                 response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(httpResponse.GetResponseStream());
-            }catch(Exception e){
+            } catch (Exception e) {
                 throw e;
             }
             return response.ProcessDescription[0];
@@ -304,7 +322,7 @@ namespace Terradue.Portal {
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
             string url = "";
-            foreach(Operation operation in operations){
+            foreach (Operation operation in operations) {
                 if (operation.name == "DescribeProcess") {
                     url = operation.DCP[0].Item.Items[0].href;
                     break;
@@ -313,7 +331,7 @@ namespace Terradue.Portal {
 
             Uri uri = new Uri(url);
 
-            foreach(ProcessBriefType process in capabilities.ProcessOfferings.Process){
+            foreach (ProcessBriefType process in capabilities.ProcessOfferings.Process) {
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
                 wpsProcess.Provider = this;
                 wpsProcess.RemoteIdentifier = process.Identifier.Value;
@@ -377,7 +395,7 @@ namespace Terradue.Portal {
         /// <returns><c>true</c>, if task was executed, <c>false</c> otherwise.</returns>
         /// <param name="task">Task.</param>
         /// \xrefitem uml "UML" "UML Diagram"
-        public bool ExecuteTask(Task task){
+        public bool ExecuteTask(Task task) {
             WpsProcessOffering processOffering = GetProcessOffering(task);
 
             Execute exec = new Execute();
@@ -386,26 +404,34 @@ namespace Terradue.Portal {
             exec.Identifier = new CodeType{ Value = processOffering.RemoteIdentifier };
             exec.DataInputs = new List<InputType>();
             foreach (ExecutionParameter param in task.ExecutionParameters) {
-                if (param.Value == null) continue;
+                if (param.Value == null)
+                    continue;
                 if (param.Values == null) {
                     InputType input = new InputType();
-                    input.Identifier = new CodeType{ Value = param.Name};
-                    input.Data = new DataType{ Item = new LiteralDataType{ Value = param.Value }};
+                    input.Identifier = new CodeType{ Value = param.Name };
+                    input.Data = new DataType{ Item = new LiteralDataType{ Value = param.Value } };
                     exec.DataInputs.Add(input);
                     continue;
                 }
                 foreach (string value in param.Values) {
                     InputType input = new InputType();
-                    input.Identifier = new CodeType{ Value = param.Name};
-                    input.Data = new DataType{ Item = new LiteralDataType{ Value = value }};
+                    input.Identifier = new CodeType{ Value = param.Name };
+                    input.Data = new DataType{ Item = new LiteralDataType{ Value = value } };
                     exec.DataInputs.Add(input);
                 }
             }
             exec.ResponseForm = new ResponseFormType();
             List<DocumentOutputDefinitionType> outputs = new List<DocumentOutputDefinitionType>();
-            DocumentOutputDefinitionType output = new DocumentOutputDefinitionType{ asReference = true, Identifier = new CodeType{ Value = "Metalink"} };
+            DocumentOutputDefinitionType output = new DocumentOutputDefinitionType {
+                asReference = true,
+                Identifier = new CodeType{ Value = "Metalink" }
+            };
             outputs.Add(output);
-            exec.ResponseForm.Item = new ResponseDocumentType{ storeExecuteResponse = true, status = true, Output = outputs};
+            exec.ResponseForm.Item = new ResponseDocumentType {
+                storeExecuteResponse = true,
+                status = true,
+                Output = outputs
+            };
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(BaseUrl);
             request.Method = "POST";
@@ -418,11 +444,14 @@ namespace Terradue.Portal {
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             ExecuteResponse execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(response.GetResponseStream());
 
-            if(execResponse.statusLocation != null) task.StatusUrl = execResponse.statusLocation;
-            if (execResponse.Status.Item == null) return false;
+            if (execResponse.statusLocation != null)
+                task.StatusUrl = execResponse.statusLocation;
+            if (execResponse.Status.Item == null)
+                return false;
 
             task.ActualStatus = GetStatusFromExecuteResponse(execResponse.Status.Item);
-            if (task.Finished) GetTaskResult(task, execResponse); // task may be synchronous processing
+            if (task.Finished)
+                GetTaskResult(task, execResponse); // task may be synchronous processing
 
             return true;
         }
@@ -467,11 +496,13 @@ namespace Terradue.Portal {
             XmlNamespaceManager nsm = new XmlNamespaceManager(statusDoc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
             XmlNode xmlNode = statusDoc.SelectSingleNode("wps:ExecuteResponse/wps:Status/*[1]", nsm);
-            if (xmlNode == null) return false;
+            if (xmlNode == null)
+                return false;
 
             task.ActualStatus = GetStatusFromExecuteResponse(xmlNode.LocalName);
 
-            if (task.Finished) GetTaskResult(task, statusDoc);
+            if (task.Finished)
+                GetTaskResult(task, statusDoc);
 
             return true;
         }
@@ -584,11 +615,13 @@ namespace Terradue.Portal {
             string metalinkUrl = null;
             foreach (XmlNode xmlNode in xmlNodes) {
                 XmlNode identifierNode = xmlNode.ParentNode.ParentNode.SelectSingleNode("ows:Identifier", nsm);
-                if (identifierNode == null || identifierNode.InnerText != "Metalink") continue;
+                if (identifierNode == null || identifierNode.InnerText != "Metalink")
+                    continue;
                 metalinkUrl = xmlNode.InnerText;
                 break;
             }
-            if (metalinkUrl == null) return false;
+            if (metalinkUrl == null)
+                return false;
             task.ResultMetadataFiles.Add(metalinkUrl);
 
             XmlDocument metalinkDoc = new XmlDocument();
@@ -602,7 +635,8 @@ namespace Terradue.Portal {
                 string identifier = (fileElem != null && fileElem.HasAttribute("name") ? fileElem.Attributes["name"].Value : null);
                 XmlElement sizeElem = fileElem.SelectSingleNode("m:size", nsm) as XmlElement;
                 long size = 0;
-                if (sizeElem != null) Int64.TryParse(sizeElem.InnerText, out size);
+                if (sizeElem != null)
+                    Int64.TryParse(sizeElem.InnerText, out size);
                 task.OutputFiles.Add(new DataSetInfo(resource, identifier, size, context.Now));
             }
 
@@ -613,11 +647,13 @@ namespace Terradue.Portal {
             string metalinkUrl = null;
             foreach (OutputDataType output in exec.ProcessOutputs) {
                 string literal = ((LiteralDataType)((DataType)output.Item).Item).Value;
-                if (literal == null || literal != "Metalink") continue;
+                if (literal == null || literal != "Metalink")
+                    continue;
                 metalinkUrl = literal;
             }
 
-            if (metalinkUrl == null) return false;
+            if (metalinkUrl == null)
+                return false;
             task.ResultMetadataFiles.Add(metalinkUrl);
 
             XmlDocument metalinkDoc = new XmlDocument();
@@ -643,7 +679,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Overrides abstract method of ComputingResource; does nothing.</summary>
-        public override void WriteTaskResultRdf(Task task, XmlWriter output) {}
+        public override void WriteTaskResultRdf(Task task, XmlWriter output) {
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -655,7 +692,8 @@ namespace Terradue.Portal {
         /// \xrefitem uml "UML" "UML Diagram"
         private WpsProcessOffering GetProcessOffering(Task task) {
             WpsProcessOffering result = task.Service as WpsProcessOffering;
-            if (result == null || result.Provider != this) throw new InvalidOperationException("The service used by this task is not offered by this WPS provider");
+            if (result == null || result.Provider != this)
+                throw new InvalidOperationException("The service used by this task is not offered by this WPS provider");
             return result;
         }
 
@@ -663,15 +701,15 @@ namespace Terradue.Portal {
 
         private int GetStatusFromExecuteResponse(string elementName) {
             switch (elementName) {
-                case "ProcessAccepted" :
+                case "ProcessAccepted":
                     return ProcessingStatus.Queued;
-                case "ProcessStarted" :
+                case "ProcessStarted":
                     return ProcessingStatus.Active;
-                case "ProcessPaused" :
+                case "ProcessPaused":
                     return ProcessingStatus.Paused;
-                case "ProcessFailed" :
+                case "ProcessFailed":
                     return ProcessingStatus.Failed;
-                case "ProcessSucceeded" :
+                case "ProcessSucceeded":
                     return ProcessingStatus.Completed;
                 default :
                     return ProcessingStatus.Created;
@@ -683,20 +721,22 @@ namespace Terradue.Portal {
             if (status is string) {
                 statusName = status as string;
             } else {
-                if (status is ProcessFailedType) statusName = "ProcessFailed";
-                else if (status is ProcessStartedType) statusName = (status as ProcessStartedType).Value;
+                if (status is ProcessFailedType)
+                    statusName = "ProcessFailed";
+                else if (status is ProcessStartedType)
+                    statusName = (status as ProcessStartedType).Value;
             }
 
             switch (statusName) {
-                case "ProcessAccepted" :
+                case "ProcessAccepted":
                     return ProcessingStatus.Queued;
-                case "ProcessStarted" :
+                case "ProcessStarted":
                     return ProcessingStatus.Active;
-                case "ProcessPaused" :
+                case "ProcessPaused":
                     return ProcessingStatus.Paused;
-                case "ProcessFailed" :
+                case "ProcessFailed":
                     return ProcessingStatus.Failed;
-                case "ProcessSucceeded" :
+                case "ProcessSucceeded":
                     return ProcessingStatus.Completed;
                 default :
                     return ProcessingStatus.Created;
@@ -713,11 +753,13 @@ namespace Terradue.Portal {
 
             if (parameters["q"] != null) {
                 string q = parameters["q"];
-                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
+                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q)))
+                    return null;
             }
 
             if (parameters["url"] != null) {
-                if (this.BaseUrl != parameters["url"]) return null;
+                if (this.BaseUrl != parameters["url"])
+                    return null;
             }
 
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
@@ -725,8 +767,10 @@ namespace Terradue.Portal {
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
             Uri id = null;
-            if(this.Id == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + HttpUtility.UrlEncode(this.BaseUrl));
-            else id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
+            if (this.Id == 0)
+                id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?url=" + HttpUtility.UrlEncode(this.BaseUrl));
+            else
+                id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + identifier);
 
             AtomItem entry = new AtomItem(identifier, name, alternate, id.ToString(), DateTime.UtcNow);
             entry.Categories.Add(new SyndicationCategory("service"));
@@ -750,11 +794,11 @@ namespace Terradue.Portal {
         #endregion
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimeType) {
-            return new OpenSearchUrl (string.Format("{0}/wps/{1}/search", context.BaseUrl, this.Identifier));
+            return new OpenSearchUrl(string.Format("{0}/wps/{1}/search", context.BaseUrl, this.Identifier));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl (string.Format("{0}/wps/{1}/description", context.BaseUrl, this.Identifier));
+            return new OpenSearchUrl(string.Format("{0}/wps/{1}/description", context.BaseUrl, this.Identifier));
         }
 
         public NameValueCollection GetOpenSearchParameters(string mimeType) {
@@ -810,7 +854,7 @@ namespace Terradue.Portal {
 
             query.Set("format", "json");
             urlb.Query = query.ToString();
-            OpenSearchDescriptionUrl urljson = new OpenSearchDescriptionUrl("application/json",urlb.ToString(),"search");
+            OpenSearchDescriptionUrl urljson = new OpenSearchDescriptionUrl("application/json", urlb.ToString(), "search");
             urls.Add(urljson);
             osd.Url = urls.ToArray();
 
