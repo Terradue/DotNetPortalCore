@@ -259,10 +259,11 @@ namespace Terradue.Portal {
 
             if (url == null)
                 throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
-            if (!url.ToLower().Contains("request=getcapabilities"))
-                url += "?service=wps&request=GetCapabilities";
 
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+            var uriB = new UriBuilder(url);
+            uriB.Query = "service=WPS&request=GetCapabilities";
+
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
             request.Method = "GET";
 
             if (url.Contains("gpod.eo.esa.int")) {
@@ -329,8 +330,6 @@ namespace Terradue.Portal {
                 }
             }
 
-            Uri uri = new Uri(url);
-
             foreach (ProcessBriefType process in capabilities.ProcessOfferings.Process) {
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
                 wpsProcess.Provider = this;
@@ -347,10 +346,12 @@ namespace Terradue.Portal {
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
-                    string describeUrl = this.BaseUrl + "?service=wps&request=DescribeProcess";
-                    describeUrl += "&version=" + process.processVersion;
-                    describeUrl += "&identifier=" + process.Identifier.Value;
-                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(describeUrl);
+                    var uri = new UriBuilder(this.BaseUrl);
+                    uri.Query = "service=WPS&request=DescribeProcess";
+                    uri.Query += "&version=" + process.processVersion;
+                    uri.Query += "&identifier=" + process.Identifier.Value;
+
+                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(uri.Uri.AbsoluteUri);
                     wpsProcess.Description = describeProcess.Abstract.Value;
                 }
                 wpsProcessList.Add(wpsProcess);
