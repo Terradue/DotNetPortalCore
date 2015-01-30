@@ -347,9 +347,7 @@ namespace Terradue.Portal {
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
                     var uri = new UriBuilder(this.BaseUrl);
-                    uri.Query = "service=WPS&request=DescribeProcess";
-                    uri.Query += "&version=" + process.processVersion;
-                    uri.Query += "&identifier=" + process.Identifier.Value;
+                    uri.Query = "service=WPS&request=DescribeProcess&version=" + process.processVersion + "&identifier=" + process.Identifier.Value;
 
                     ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(uri.Uri.AbsoluteUri);
                     wpsProcess.Description = describeProcess.Abstract.Value;
