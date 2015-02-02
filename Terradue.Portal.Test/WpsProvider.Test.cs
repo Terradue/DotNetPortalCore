@@ -16,6 +16,7 @@ namespace Terradue.Portal.Test {
             context.BaseUrl = "http://localhost:8080/api";
 
             provider = new WpsProvider(context);
+            provider.Identifier = "wpsprovider";
             provider.Name = "test-wpsprovider";
             provider.BaseUrl = "http://dem.terradue.int:8080/wps/WebProcessingService";
             provider.Proxy = false;

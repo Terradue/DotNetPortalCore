@@ -33,12 +33,12 @@ namespace Terradue.Portal.Test {
 
             EntityList<Service> list = new EntityList<Service>(context);
             list.OpenSearchEngine = ose;
-            list.Identifier = "test";
+            list.Identifier = "services";
 
             var osd = list.GetOpenSearchDescription();
 
-            Assert.AreEqual("http://loacalhost:8877/sID/test/description", osd.Url.FirstOrDefault(p => p.Relation == "self").Template);
-            Assert.AreEqual("http://loacalhost:8877/sID/test/search?count={count?}&startPage={startPage?}&startIndex={startIndex?}&q={searchTerms?}&lang={language?}&format=atom", osd.Url.FirstOrDefault(p => p.Relation == "search" && p.Type == "application/atom+xml").Template);
+            Assert.AreEqual("http://loacalhost:8877/sID/services/description", osd.Url.FirstOrDefault(p => p.Relation == "self").Template);
+            Assert.AreEqual("http://loacalhost:8877/sID/services/search?count={count?}&startPage={startPage?}&startIndex={startIndex?}&q={searchTerms?}&lang={language?}&format=atom", osd.Url.FirstOrDefault(p => p.Relation == "search" && p.Type == "application/atom+xml").Template);
 
             Assert.AreEqual(context.GetConfigValue("CompanyName"), osd.Attribution);
 

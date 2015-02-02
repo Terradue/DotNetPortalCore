@@ -17,9 +17,10 @@ namespace Terradue.Portal.Test {
             context.BaseUrl = "http://localhost:8080/api";
         }
 
-        private WpsProvider CreateProvider(string name, string url, bool proxy){
+        private WpsProvider CreateProvider(string identifier, string name, string url, bool proxy){
             WpsProvider provider;
             provider = new WpsProvider(context);
+            provider.Identifier = identifier;
             provider.Name = name;
             provider.Description = name;
             provider.BaseUrl = url;
@@ -45,7 +46,7 @@ namespace Terradue.Portal.Test {
         }
 
         private WpsProcessOffering CreateProcess(bool proxy){
-            WpsProvider provider = CreateProvider("test provider " + (proxy ? "p" : "np"), "http://dem.terradue.int:8080/wps/WebProcessingService", proxy);
+            WpsProvider provider = CreateProvider("test-wps-"+proxy.ToString(), "test provider " + (proxy ? "p" : "np"), "http://dem.terradue.int:8080/wps/WebProcessingService", proxy);
             WpsProcessOffering process = CreateProcess(provider, "com.test.provider", "test provider " + (proxy ? "p" : "np"));
             return process;
         }
@@ -68,10 +69,10 @@ namespace Terradue.Portal.Test {
 
         [Test]
         public void GetProcessOfferingEntityList(){
-            WpsProvider provider = CreateProvider("test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            WpsProvider provider = CreateProvider("test-wps-1","test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process = CreateProcess(provider, "com.test.provider.1", "test provider 1");
             process.Store();
-            WpsProvider provider2 = CreateProvider("test provider 2", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            WpsProvider provider2 = CreateProvider("test-wps-2","test provider 2", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process2 = CreateProcess(provider2, "com.test.provider.2", "test provider 2");
             process2.Store();
 

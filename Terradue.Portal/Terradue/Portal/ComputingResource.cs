@@ -51,7 +51,7 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup ComputingResource
     /// \xrefitem uml "UML" "UML Diagram"
-    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 
@@ -188,14 +188,7 @@ namespace Terradue.Portal {
         public virtual bool ProvidesFullTaskStatus {
             get { return false; }
         }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override string Name {
-            get { return Identifier; }
-            set { Identifier = value; }
-        }
-
+       
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Constructor that allows derived classes of ComputingResource to inherit from its superclasses.</summary>
