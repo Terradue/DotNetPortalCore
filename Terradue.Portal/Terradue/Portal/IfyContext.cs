@@ -547,6 +547,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool NeedsEmailConfirmation {
+            get { return (UserInformation != null && UserInformation.NeedsEmailConfirmation); }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool AutomaticUserMails {
+            get { return true; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public bool TextOutput {
             get { return textOutput; }
             set { textOutput = value; } // !!! problem if response already started
@@ -2338,7 +2350,11 @@ namespace Terradue.Portal {
         public const int Enabled = 4;
     }
     
-    
+    public class AccountFlags {
+        public const int NeedsEmailConfirmation = 8;
+    }
+
+
     public class SubmissionRetryingType {
         public const int Never = 1;
         public const int AskUser = 2;

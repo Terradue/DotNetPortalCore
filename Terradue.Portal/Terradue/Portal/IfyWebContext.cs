@@ -76,7 +76,7 @@ namespace Terradue.Portal {
         public override bool IsInteractive {
             get { return false; }
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
         
         public virtual bool IsWebSiteAvailable {
@@ -430,7 +430,10 @@ namespace Terradue.Portal {
 
             if (!IsUserAuthenticated) {
                 User user = AuthenticateAutomatically();
-                if (user != null) IsUserAuthenticated = true;
+                if (user != null) {
+                    IsUserAuthenticated = true;
+                    if (AutomaticUserMails && user.AccountStatus == AccountStatusType.PendingActivation) user.SendMail(UserMailType.Registration, true);
+                }
             }
             
             if (!SkipChecks) {
