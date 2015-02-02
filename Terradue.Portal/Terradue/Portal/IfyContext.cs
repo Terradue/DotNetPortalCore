@@ -20,26 +20,20 @@ using Terradue.Util;
 
 
 /*!
-\defgroup core_Context Context
+\defgroup Context Context
 @{
 This component manages the general context for the entire system for a given session. It manages the authentication of the user with a generic username/password scheme or with an external authentication mechanism (e.g. SSO) based on HTTP headers.
 It interacts with the database to store and read the persistent configuration data.
 When the system is a web application, it provides an HTTP context (\ref Terradue.Portal#IfyWebContext with session, request, content-type) extended with application specific information (e.g. current user information)
- 
-\ingroup core
- 
-\section sec_core_ContextDependencies Dependencies
- 
-- \ref core_UserGroupACL, used to load/store users information
-- \ref core_Configuration, used to manage configuration data
- 
-\section sec_core_ContextInterfaces Abstract Interfaces
+This component also manages the configuration data for the system. Basically, it saves and loads key/value pairs in the database on the behalf of all other components of the system.
 
-Here all the interfaces that this components implements in abstract way. It means that the interfaces is not (yet) implemented as such but represent an interface for a dedicated function in the system.
+\xrefitem mvc_c "Controller" "Controller components"
 
-| Interface ID | Type | Description |
-| ------------ | ---- | ----------- |
-| \ref IExternalAuthentication "IExternalAuthentication" | Sub-system internal | Provides an interface to plug a trusted external authentication system that maps on internal user representation |
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence loads/stores data from/to the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access to objects
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authentication authenticates a user
 
 @}
  */
@@ -55,10 +49,6 @@ Here all the interfaces that this components implements in abstract way. It mean
 //-----------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-/// \ingroup core
 namespace Terradue.Portal {
 
     
@@ -109,7 +99,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Levels of web portal users</summary>
-    /// \ingroup core_Context
+    /// \ingroup Context
     public class UserLevel {
         
         /// <summary>Unregistered or unauthenticated users</summary>
@@ -137,7 +127,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Options for the configuration of self-defined user accounts</summary>
-    /// \ingroup core_Context
+    /// \ingroup Context
     public class AccountActivationRuleType {
         
         /// <summary>Unauthenticated users cannot create their own user accounts</summary>
@@ -162,7 +152,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents the execution environment context and manages the client connection, database access and other resources.</summary>
-    /// \ingroup core_Context
+    /// \ingroup Context
     /// \xrefitem uml "UML" "UML Diagram"
     public abstract partial class IfyContext {
 
@@ -429,7 +419,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the request originates from a registered user.</summary>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public bool IsUserIdentified {
             get {
@@ -444,7 +434,7 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates whether the request originates from a registered user.</summary>
         /// <remarks>Being <c>IsUserAuthenticated</c> true implies that also <c>IsUserIdentified</c> is true.</remarks>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public bool IsUserAuthenticated { get; protected set; }
         
@@ -454,7 +444,7 @@ namespace Terradue.Portal {
         /// Gets or sets the authentication method.
         /// </summary>
         /// <value>The authentication method.</value>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public AuthenticationMethod AuthenticationMethod { get; protected set; }
 
@@ -927,7 +917,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// Loads the configuration.
         /// </summary>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public void LoadConfiguration() {
             bool newConnection = (mainDbConnection == null);
@@ -1482,7 +1472,7 @@ namespace Terradue.Portal {
         /// <summary>Returns the value of the specified configuration variable.</summary>
         /// <param name="name">The name of the configuration variable.</param>
         /// <returns>The value of the configuration variable.</returns>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public string GetConfigValue(string name) {
             string result = null;
@@ -2198,7 +2188,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Ends a session on the Ify web portal.</summary>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /*!
             This method is only needed for external applications that need to maintain a session state.
             /param the session token

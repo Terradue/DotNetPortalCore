@@ -7,20 +7,18 @@ using Terradue.Util;
 
 
 /*!
-\defgroup core_ComputingResource Computing Resource
+\defgroup ComputingResource Computing Resource
 @{
-The component represents an abstract Computing Resource available for processing \ref Terradue.Portal#DataSet and therefore enables the "remote" or "hosted" processing. Practically, a class that implements \ref Terradue.Portal#ComputingResource is assigned to each \ref Terradue.Portal#Task (\ref core_Task) and is in charge of achieving its job workflow until the completion and the output of the results. 
+The component represents an abstract Computing Resource available for processing \ref Terradue.Portal#DataSet and therefore enables the "remote" or "hosted" processing. Practically, a class that implements \ref Terradue.Portal#ComputingResource is assigned to each \ref Terradue.Portal#Task (\ref Task) and is in charge of achieving its job workflow until the completion and the output of the results. 
 Diagram \ref task-cr depicts the role of the computing resource in a task processing.
- 
- 
-\ingroup core
- 
-\section sec_core_ComputingResourceDependencies Dependencies
 
-- \ref core_Task, used to manage the data request lifecycle
-- \ref core_DataModelAccess, used to store persistently the computing resource information in the database
-- \ref core_UserGroupACL, used to check the access on the resource
-- \ref core_Configuration, used to store generic configuration data item for computing resources
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Dependencies" "Dependencies" \ref processes Task
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the computing resource in the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access on the resource
 
 @}
  */
@@ -51,7 +49,7 @@ namespace Terradue.Portal {
     ///     <p>This is an abstract class that defines properties and methods to provide a common interface for all types of computing resources.</p>
     ///     <p>The most important part of the defined members regard task- and job-related operations. Members of derived classes are usually not called directly by custom code, but by the core classes that the operation is performed on (e.g. <see cref="Terradue.Portal.Task"/> Task and <see cref="Terradue.Portal.Job"/>).</p>
     /// </remarks>
-    /// \ingroup core_ComputingResource
+    /// \ingroup ComputingResource
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
@@ -557,7 +555,7 @@ namespace Terradue.Portal {
     ///     <p>This class is only used when a generic instance derived from the abstract ComputingResource class is needed in order to combine different types of computing resources (e.g. for producing an item list).</p>
     ///     <p>It provides only the functionality inherited from the superclasses of ComputingResource (e.g. Entity) but no functionality of a real computing resource.</p>
     /// </remarks>
-    /// \ingroup core_ComputingResource
+    /// \ingroup ComputingResource
     public class GenericComputingResource : ComputingResource {
         
         public override bool CanMonitorStatus {

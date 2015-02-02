@@ -35,7 +35,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// User.
     /// </summary>
-    /// \ingroup core_UserGroupACL
+    /// \ingroup Authorisation
     /// \xrefitem uml "UML" "UML Diagram" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {
@@ -61,7 +61,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the username.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public string Username {
             get { return Identifier; }
             set { Identifier = value; }
@@ -208,7 +208,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created User object.</returns>
         public static new User GetInstance(IfyContext context) {
@@ -402,7 +402,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sends a mail to a user.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public bool SendMail(UserMailType type, bool forAuthenticatedUser) {
             string smtpHostname = context.GetConfigValue("SmtpHostname");
             string smtpUsername = context.GetConfigValue("SmtpUsername");
@@ -503,7 +503,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Starts the new session.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public virtual void StartNewSession() {
             context.Execute(String.Format("INSERT INTO usrsession (id_usr, log_time) VALUES ({0}, '{1}');", Id, context.Now.ToString(@"yyyy\-MM\-dd HH\:mm\:ss")));
         }
@@ -516,7 +516,7 @@ namespace Terradue.Portal {
         /// <returns>The user accessible resources string.</returns>
         /// <param name="resource">Resource.</param>
         /// <param name="html">If set to <c>true</c> html.</param>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public string GetUserAccessibleResourcesString(Entity resource, bool html) {
             return null;
 
