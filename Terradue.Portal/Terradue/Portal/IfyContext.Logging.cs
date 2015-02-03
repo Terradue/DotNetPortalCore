@@ -13,7 +13,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Configures the logging object.</summary>
-        /// \ingroup core_Context
+        /// \ingroup Context
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual void CreateLogger() {
             log = LogManager.GetLogger(this.GetType().FullName);

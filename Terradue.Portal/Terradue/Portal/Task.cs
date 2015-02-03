@@ -13,26 +13,101 @@ using Terradue.Util;
 
 
 /*!
-\defgroup core_Task Task
+\defgroup Task Task
 @{
 This component is quite generic and represent any kind of data access requests from 
 its most simple form (simple download) to the most complex processing workflow ("hosted" or "remote" processing).
-A task is always created by a \ref core_Service so there is always a service that is associated to the task.
+A task is always created by a \ref Service so there is always a service that is associated to the task.
 A task is manageable individually in the user’s space. A task is always submitted to a 
-\ref core_ComputingResource to process it and then when completed, returns results to user.
+\ref ComputingResource to process it and then when completed, returns results to user.
 The Diagram \ref task-cr details the interactions between the involved entities.
- 
-\anchor task-cr
-\image latex "graphics/sequence/task-cr.eps" "Task submission top a Computing Resource for a Service Sequence" width=12cm
- 
-\ingroup core
- 
-\section sec_core_ComputingResourceDependencies Dependencies
 
-- \ref core_DataModelAccess, used to store persistently the task information in the database
-- \ref core_UserGroupACL, used to store the owner
-- \ref core_Configuration, used to store generic configuration data item for task
-- \ref core_ComputingResource, used to process the task
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the task information in the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access
+
+\xrefitem dep "Dependencies" "Dependencies" \ref ComputingResource processes task
+
+\anchor task-cr
+
+@startuml
+
+!define DIAG_NAME Service - Task - Computing Resource sequence Diagram
+
+skinparam backgroundColor #FFFFFF
+
+participant "Service" as S
+participant "Task" as T
+participant "Computing Resources" as C
+
+autonumber
+
+== Data Request Creation ==
+
+S -> T: Create task\n(parameters, computing resource)
+activate T
+
+T -> T: Create and store Task
+
+T --> S: Return Task ID
+deactivate T
+
+== Data Request Submission ==
+
+S -> T: Submit Task\n(Task ID)
+activate T
+
+T -> C: Start Task
+activate C
+
+C -> C: Process Task
+activate C #DarkSalmon
+
+C --> T: Task started\n(Process id)
+
+T --> S: Task submitted
+deactivate T
+
+== Data Request Status ==
+
+S -> T: Get Task status\n(Task id)
+activate T
+
+alt case status 'in progress'
+
+T -> C: Get Task status\n(Process id)
+
+C --> T: Task status
+
+T --> S: Task status
+deactivate T
+
+else case status 'paused', 'completed', 'cancelled'
+
+deactivate C
+deactivate C
+
+T -> C: Get Task status\n(Process id)
+activate T
+activate C
+C --> T: Task status
+
+deactivate C
+T --> S: Task status
+deactivate T
+
+end
+
+footer 
+DIAG_NAME
+(c) Terradue Srl
+endfooter
+
+@enduml
+
+
 
 @}
  */
@@ -80,7 +155,7 @@ namespace Terradue.Portal {
     ///         <b>Data storage:</b> The tasks are stored in the database table <c>task</c>.
     ///     </para>
     /// </remarks>
-    /// \ingroup core_Task
+    /// \ingroup Task
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("task", EntityTableConfiguration.Full, HasOwnerReference = true)]
     [EntityReferenceTable("usr", USER_TABLE)]
@@ -296,7 +371,7 @@ namespace Terradue.Portal {
         ///     <para>The logical status differs from the actual status if an asynchronous task operation is pending.</para>
         ///     <para>For example an aborted task is presented as <i>Created</i> to the user even if the actual abortion has not yet taken place on the Grid engine.</para>
         /// </remarks>
-        /// \ingroup core_Task
+        /// \ingroup Task
         public int Status { 
             get {
                 switch (AsynchronousOperation) {
@@ -377,14 +452,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the UTC date and time of the task submission.</summary>
-        /// \ingroup core_Task
+        /// \ingroup Task
         [EntityDataField("start_time")]
         public DateTime StartTime { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the UTC date and time of the task completion or failure.</summary>
-        /// \ingroup core_Task
+        /// \ingroup Task
         [EntityDataField("end_time")]
         public DateTime EndTime { get; set; }
         

@@ -43,7 +43,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Ify local context.
     /// </summary>
-    /// \ingroup core_Context
+    /// \ingroup Context
     public class IfyLocalContext : IfyContext {
 
         private int logLevel = -1, debugLevel = -1;

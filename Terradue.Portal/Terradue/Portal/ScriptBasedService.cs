@@ -41,7 +41,7 @@ namespace Terradue.Portal {
     ///     <item>Additional files (optional), such as additional XSL and Javascript.</item>
     /// </list>
     /// </remarks>
-    /// \ingroup core_Service
+    /// \ingroup Service
     [EntityTable("scriptservice", EntityTableConfiguration.Custom)]
     public class ScriptBasedService : Service {
 

@@ -46,7 +46,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Ify web context.
     /// </summary>
-    /// \ingroup core_Context
+    /// \ingroup Context
     public class IfyWebContext : IfyContext, IInputSource, IResponseNonceStorage {
         private static EntityDictionary<AuthenticationType> authenticationTypes;
         public static PasswordAuthenticationType passwordAuthenticationType; // TODO: protected
