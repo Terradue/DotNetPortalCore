@@ -677,10 +677,12 @@ namespace Terradue.Portal {
 */
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool CanStartSession(User user) {
+        /// <summary>Checks whether an HTTP session for the specified user can be started according to the user's account status.</summary>
+        /// <exception cref="UnauthorizedAccessException">If the account is deactivated or disabled.</exception>
+        /// <exception cref="UnauthorizedAccessException">If the account is waiting for an activation  </exception>
+        /// <param name="user">The user for whom the session is to be started.</param>
+        public void CheckCanStartSession(User user) {
             switch (user.AccountStatus) {
-                case AccountStatusType.Enabled:
-                    return true;
                 case AccountStatusType.Disabled :
                     throw new UnauthorizedAccessException("The user account has been disabled");
                 case AccountStatusType.Deactivated :
@@ -688,9 +690,7 @@ namespace Terradue.Portal {
                 case AccountStatusType.PendingActivation:
                     throw new PendingActivationException("The user account has not yet been activated");
                 case AccountStatusType.PasswordReset :
-                    throw new UnauthorizedAccessException("The user account has to be reactivated after a password reset");
-                default :
-                    return false;
+                    throw new PendingActivationException("The user account has to be reactivated after a password reset");
             }
         }
 
@@ -699,20 +699,19 @@ namespace Terradue.Portal {
         /// <summary>Starts an HTTP session for the specified user who has been authenticated with the specified authentication type.</summary>
         /// <param name="authenticationType">The used authentication type.</param>
         /// <param name="user">The user for whom the session is to be started.</param>
-        public void StartSession(AuthenticationType authenticationType, User user) {
+        /// <param name="check">Decides whether a check is performed. This parameter can be omitted, the default setting is <c>true</c>.</param>
+        public void StartSession(AuthenticationType authenticationType, User user, bool check = true) {
             if (!authenticationType.SupportsSessions) throw new InvalidOperationException(String.Format("{0} does not support sessions", authenticationType.Name));
 
             SetUserInformation(authenticationType, user);
 
-            if (CanStartSession(user)) {
-                user.StartNewSession();
-                if (HttpContext.Current != null) {
-                    if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
-                    HttpContext.Current.Session["user"] = UserInformation;
-                    HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
-                }
-            } else {
-                throw new UnauthorizedAccessException(String.Format("Session cannot be started for user {0}; please contact administrator", user.Username));
+            if (check) CheckCanStartSession(user);
+
+            user.StartNewSession();
+            if (HttpContext.Current != null) {
+                if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
+                HttpContext.Current.Session["user"] = UserInformation;
+                HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
             }
         }
 
