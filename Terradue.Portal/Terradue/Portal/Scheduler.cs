@@ -8,17 +8,17 @@ using Terradue.Util;
 
 
 /*!
-\defgroup core_Scheduler Scheduler
+\defgroup Scheduler Scheduler
 @{
 This class is quite generic and represent any kind of scheduled task from its most simple form (simple download) to the most complex processing workflow ("hosted" or "remote" processing). As per \ref core_Task, a scheduler is always created by a \ref core_Service so there is always a service that creates the scheduled task. The schedulers may be simply managed in the simple user’s space. Practically, a scheduler is linked to a reference task that contains all the reference parameters for all the future tasks that will be created in data-driven or time-driven mode. In fact, in each loop the scheduler is triggered and there is at least a new product available, the system creates a new task to manage this request.
- 
-\ingroup core
- 
-\section sec_core_SchedulerDependencies Dependencies
- 
-- \ref core_DataModelAccess, used to store persistently the scheduler information in the database
-- \ref core_UserGroupACL, used to store the owner
-- \ref core_Task, used to create new instance
+
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the scheduler information in the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls owner and access
+
+\xrefitem dep "Dependencies" "Dependencies" creates new \ref Task
 
 
 
@@ -48,7 +48,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Abstract class that represents an operation that is repeated at regular intervals.</summary>
-    /// \ingroup core_Scheduler
+    /// \ingroup Scheduler
     /// A task scheduler creates tasks according to variable and fixed parameters and the scheduling mode.
     ///    
     /// There are two scheduling modes:

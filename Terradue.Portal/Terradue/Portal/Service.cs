@@ -10,40 +10,32 @@ using Terradue.Util;
 using System.Linq;
 
 /*!
- * \defgroup core_Service Service
- * @{
- * \ingroup core
- * 
- * This component is a wrapper for all users’ application level functionalities. It implements an open framework to plug services that then creates \ref core_Task or \ref core_Scheduler. 
- * This framework controls common service functionalities:
- * - \ref core_UserGroupACL on the service
- * - Service definition parsing and template build
- * - \ref core_Task creation
- * Practically, every service implements \ref IService "IService" that defines all the parameters the service must or may include in the task or scheduler and several functions that
- * - prepares the data access request view template for the web client;
- * - reviews the parameters’ correctness;
- * - builds the task with parameterized jobs composition.
- * Once the task created by the service, the assigned \ref core_ComputingResource handles it for submission.
- * 
- * \section sec_core_ServiceDependencies Dependencies
- 
-- \ref core_DataModelAccess, used to store persistently the service reference in the database
-- \ref core_UserGroupACL, used to apply ACL on the services
-- \ref core_Task, used to create new instance of it
-- \ref core_ComputingResource, used to associate the task to the resource
- 
-\section sec_core_ServiceInterfaces Abstract Interfaces
- 
-Here all the interfaces that this components implements in abstract way. It means that the interfaces is not (yet) implemented as such but represent an interface for a dedicated function in the system.
- 
-| Interface ID | Type | Description |
-| ------------ | ---- | ----------- |
-| \ref IService "IService" | Sub-system internal | Framework for pluging a service |
+\defgroup Service Service
+@{
 
+This component is a wrapper for all users’ application level functionalities. It implements an open framework to plug services that then creates \ref core_Task or \ref core_Scheduler. 
+This framework controls common service functionalities:
+- \ref Persistence on the service
+- Service definition parsing and template build
+- \ref Task creation
+Practically, every service implements \ref IService "IService" that defines all the parameters the service must or may include in the task or scheduler and several functions that
+- prepares the data access request view template for the web client;
+- reviews the parameters’ correctness;
+- builds the task with parameterized jobs composition.
+Once the task created by the service, the assigned \ref ComputingResource handles it for submission.
 
- * 
- * @}
- */
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the service reference in the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access on the services
+
+\xrefitem dep "Dependencies" "Dependencies" creates new \ref Task
+
+\xrefitem dep "Dependencies" "Dependencies" is available on \ref ComputingResource
+
+@}
+*/
 
 
 
@@ -90,7 +82,7 @@ namespace Terradue.Portal {
 
 
     /// <summary>Abstract base class for processing services.</summary>
-    /// \ingroup core_Service
+    /// \ingroup Service
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]

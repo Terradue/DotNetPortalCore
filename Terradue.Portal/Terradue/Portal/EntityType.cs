@@ -7,25 +7,16 @@ using Terradue.Util;
 
 
 /*!
-\defgroup core_DataModelAccess Data Model Access
+\defgroup Persistence Persistence of Data
 @{
 The component provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the classes that implement an entity and which represent real-world entities.
-\ingroup core
- 
-\section sec_core_DataModelAccessDependencies Dependencies
 
-- Underlying SQL interface
+\xrefitem mvc_m "Model" "Model components"
 
-\section sec_core_DataModelAccessInterfaces Abstract Interfaces
-
-Here all the interfaces that this components implements in abstract way. It means that the interfaces is not (yet) implemented as such but represent an interface for a dedicated function in the system.
-
-| Interface ID | Type | Description |
-| ------------ | ---- | ----------- |
-| SQL Connector | Sub-system internal | Link to the underlying SQL database. |
+\xrefitem int_int "Internal Interfaces" "Internal Interfaces" Database SQL interface
 
 @}
- */
+*/
 
 
 
@@ -61,7 +52,7 @@ namespace Terradue.Portal {
     ///         <li>Delete items of a specific type, by database ID or unique identifier (if applicable). This has the advantage that the item does not have to be instantiated before deleting it.</li>
     ///     </ul>
     /// </remarks>
-    /// \ingroup core_DataModelAccess
+    /// \ingroup Persistence
     public class EntityType : Entity {
         
         private static Dictionary<Type, EntityType> entityTypes = new Dictionary<Type, EntityType>();
@@ -75,7 +66,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the class name.</summary>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public string ClassName {
             get; protected set;
         }
@@ -98,7 +89,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the singular caption of the entity type.</summary>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public string SingularCaption {
             get {
                 if (singularCaption == null) return ClassType.Name;
@@ -112,7 +103,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the plural caption of the entity type.</summary>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public string PluralCaption {
             get {
                 if (pluralCaption == null) return String.Format("{0}*", ClassType.Name);
@@ -192,7 +183,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Creates a new EntityType instance.</summary>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         /// <param name="context">The execution environment context.</param>
         public EntityType(IfyContext context) : base(context) {}
 
@@ -787,7 +778,7 @@ namespace Terradue.Portal {
         /// <returns>The entity instance.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">The entity item's ID.</param>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public Entity GetEntityInstanceFromId(IfyContext context, int id) {
             if (TopTable.HasExtensions) {
                 Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdField, id));
@@ -804,7 +795,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="identifier">The entity item's unique identifier.</param>
         /// <returns>The entity instance.</returns>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public Entity GetEntityInstanceFromIdentifier(IfyContext context, string identifier) {
             if (TopTable.HasExtensions) {
                 Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdentifierField, StringUtils.EscapeSql(identifier)));
@@ -822,7 +813,7 @@ namespace Terradue.Portal {
         /// <param name="condition">An SQL conditional expression (without the <c>WHERE</c> keyword identifying the desired item.</param>
         /// <param name="sort">An optional SQL sort expression (without the <c>ORDER BY</c> keyword) to make the preferred item appear first in case of multiple matches.</param>
         /// <returns>The entity instance.</returns>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public Entity GetEntityInstanceFromCondition(IfyContext context, string condition, string sort) {
             if (TopTable.HasExtensions) {
                 Entity result = GetEntityInstance(context, String.Format("{0}{1}", condition, sort == null ? String.Empty : " ORDER BY " + sort));
@@ -869,7 +860,7 @@ namespace Terradue.Portal {
         /// <summary>Gets an empty entity instance of the represented type.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The entity instance.</returns>
-        /// \ingroup core_DataModelAccess
+        /// \ingroup Persistence
         public Entity GetEntityInstance(IfyContext context) {
             System.Reflection.ConstructorInfo constructorInfo = null;
             if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});

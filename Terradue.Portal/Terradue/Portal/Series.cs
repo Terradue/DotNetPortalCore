@@ -11,16 +11,20 @@ using Terradue.OpenSearch;
 
 
 /*!
-\defgroup core_Series Series
+\defgroup Series Series
 @{
 This component represents a dataset series. Practically it is a non-final component that can be extended to implement other collections.
 
+\xrefitem mvc_c "Controller" "Controller elements"
+
+\xrefitem ext_int "External Interfaces" "External Interfaces" queries \ref OpenSearch data series items
+
+\xrefitem dep "Dependencies" "Dependencies" \ref core_DataModelAccess stores persistently the series information in the database
+
+\xrefitem dep "Dependencies" "Dependencies" \ref core_UserGroupACL controls the access on the series
+
 \ingroup core
 
-\section sec_core_ComputingResourceDependencies Dependencies
-
-- \ref core_DataModelAccess, used to store persistently the series information in the database
-- \ref core_UserGroupACL, used to check the access on the series
 
 @}
  */
@@ -135,7 +139,7 @@ namespace Terradue.Portal {
     
     
     /// <summary>Represents a series of data sets that are available from a catalogue.</summary>
-    /// \ingroup core_Series
+    /// \ingroup Series
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
@@ -158,7 +162,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the detailed description of the series.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("description")]
         public string Description { get; set; }
@@ -180,7 +184,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the OpenSearch description URL of the series.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// \xrefitem uml "UML" "UML Diagram"
         public string CatalogueDescriptionUrl { 
             get {
@@ -196,7 +200,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the OpenSearch URL templete of the series.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// The corresponding database field is filled by the background agent action <b>Catalogue&nbsp;series&nbsp;refresh</b>.
         public string CatalogueUrlTemplate { 
             get {
@@ -216,7 +220,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the catalogue hosting the series.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         [EntityDataField("id_catalogue", IsForeignKey = true)]
         public int CatalogueId {
             get {
@@ -249,14 +253,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the catalogue base URL.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         [EntityForeignField("name", CATALOGUE_TABLE)]
         public string CatalogueIdentifier { get; protected set; } 
 
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the catalogue base URL.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         [EntityForeignField("base_url", CATALOGUE_TABLE)]
         public string CatalogueBaseUrl { get; protected set; } 
         
@@ -298,7 +302,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Creates a new Series instance representing the series with the specified ID.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">the series ID</param>
         /// <returns>the created Series object</returns>
@@ -313,7 +317,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Creates a new Series instance representing the series with the specified unique identifier.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// <param name="context">The execution environment context.</param>
         /// <param name="name">The unique series identifier.</param>
         /// <returns>The created Series object.</returns>
@@ -333,7 +337,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Returns a Series instance representing the series with the specified ID or name.</summary>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// <param name="context">The execution environment context.</param>
         /// <param name="s">a search value that must match the series ID (preferred) or name</param>
         public static Series FromString(IfyContext context, string s) {
@@ -495,7 +499,7 @@ namespace Terradue.Portal {
 */        
         /// <summary>Generates the corresponding OpenSearch description.</summary>
         /// <returns>An OpenSearch description document.</returns>
-        /// \ingroup core_Series
+        /// \ingroup Series
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual OpenSearchDescription GetLocalOpenSearchDescription(string basePath) {
 
@@ -515,7 +519,7 @@ namespace Terradue.Portal {
 
         /// <summary>Updates the count cache.</summary>
         /// <param name="count">Count.</param>
-        /// \ingroup core_Series
+        /// \ingroup Series
 		public void UpdateCountCache(long count) {
             context.Execute(String.Format("UPDATE series SET dataset_count={1}, last_update_time='{2}' WHERE id={0};", Id, count, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")));
         }
@@ -523,7 +527,7 @@ namespace Terradue.Portal {
         /// <summary>Try to get the Count cache.</summary>
         /// <returns>The cache count if up to date</returns>
         /// <param name="throwException">If set to <c>true</c>, it throws exception if the value is missing or not up to date.</param>
-        /// \ingroup core_Series
+        /// \ingroup Series
 		public ulong CountCache (bool throwException) {
             int seriesInfoValidityTime = StringUtils.StringToSeconds(context.GetConfigValue("SeriesInfoValidityTime"));
             DateTime outdatedEndTime = DateTime.UtcNow.AddSeconds(- seriesInfoValidityTime);
@@ -561,7 +565,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The search parameters.</returns>
         /// <param name="mimeType">MIME type.</param>
-        /// \ingroup core_Series
+        /// \ingroup Series
         public virtual NameValueCollection GetOpenSearchParameters(string mimeType) {
 			NameValueCollection nvc = new NameValueCollection ();
 			OpenSearchDescription osd = this.GetOpenSearchDescription ();
@@ -582,7 +586,7 @@ namespace Terradue.Portal {
         /// <returns>
         /// an open search description.
         /// </returns>
-        /// \ingroup core_Series
+        /// \ingroup Series
         public virtual OpenSearchDescription GetOpenSearchDescription(){
             if ( osd == null )  
                 osd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(new OpenSearchUrl(CatalogueDescriptionUrl));
@@ -609,7 +613,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The results.</returns>
         /// <param name="ose">Ose.</param>
-        /// \ingroup core_Series
+        /// \ingroup Series
 		public long GetTotalResults() {
 			long result = 0;
 

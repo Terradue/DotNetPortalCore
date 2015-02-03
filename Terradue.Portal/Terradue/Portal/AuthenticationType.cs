@@ -363,8 +363,10 @@ namespace Terradue.Portal {
 
             if (user.AccountStatus == AccountStatusType.PendingActivation || user.AccountStatus == AccountStatusType.PasswordReset || user.FailedLogins != 0) {
                 user.AccountStatus = AccountStatusType.Enabled;
+                user.NeedsEmailConfirmation = false;
                 user.FailedLogins = 0;
                 user.Store();
+                context.SetUserInformation(this, user);
             }
 
             context.StartSession(this, user);

@@ -12,43 +12,46 @@ using MySql.Data.MySqlClient;
 using Terradue.Metadata.OpenSearch;
 using Terradue.Util;
 
-
-
-
-
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-
-
-
 
 
 /*!
-\defgroup core_UserGroupACL Users, Groups and ACL
+\defgroup Authorisation Authorisation
 @{
-The core provides the possibility to define privileges for users or groups on certain types of entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.). 
-The of the Entity class and related supporting classes (including attribute classes) provide the necessary functionality to perform the restrictions according to user or group privileges.
+It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
 
-\ref Terradue.Portal#Entity class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
+\xrefitem mvc_c "Controller" "Controller components"
 
-\ingroup core
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
 
-\section sec_core_UserGroupACLDependencies Dependencies
+\startuml
+!define DIAG_NAME Authorisation mechanism Activity Diagram
 
-- \ref core_DataModelAccess, used to read and write the privileges
+(*)  --> "read entity privilege"
+If "restriction applies to" then
+--> [User] "check user id"
+--> "apply id to restriction"
+else
+--> [Group] "check group id"
+--> "apply id to restriction"
+Endif
+If "OK?" then
+--> [Yes] "access granted"
+-->(*) 
+else
+--> [No] "access refused"
+-->(*) 
+Endif
 
-\section sec_core_ContextInterfaces Abstract Interfaces
-
-Here all the interfaces that this components implements in abstract way. It means that the interfaces is not (yet) implemented as such but represent an interface for a dedicated function in the system.
-
-| Interface ID | Type | Description |
-| ------------ | ---- | ----------- |
-| \ref IAuthorization "IAuthorization" | Sub-system internal | provides with ACL for a given user and entity |
-
-\image latex "graphics/activity/acl.eps" "ACL activity" width=7cm
+footer
+DIAG_NAME
+(c) Terradue Srl
+endfooter
+\enduml
 
 @}
  */
@@ -66,6 +69,7 @@ namespace Terradue.Portal {
     /// <remarks> 
     ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.</p>
     /// </remarks>
+    /// Derived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
     /// \xrefitem uml "UML" "UML Diagram"
 	public abstract class Entity : IValueSet {
 

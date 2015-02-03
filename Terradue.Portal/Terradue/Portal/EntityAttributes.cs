@@ -12,7 +12,7 @@ namespace Terradue.Portal {
 
     /// <summary>Attribute that allows to link a subclass of Entity to a database table.</summary>
     /// <remarks>This attribute is used in combination with the EntityDataFieldAttribute attributes at property level.</remarks>
-    /// \ingroup core_DataModelAccess
+    /// \ingroup Persistence
     /// \xrefitem uml "UML" "UML Diagram"
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class EntityTableAttribute : System.Attribute {

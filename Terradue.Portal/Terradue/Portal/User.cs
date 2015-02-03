@@ -35,13 +35,14 @@ namespace Terradue.Portal {
     /// <summary>
     /// User.
     /// </summary>
-    /// \ingroup core_UserGroupACL
+    /// \ingroup Authorisation
     /// \xrefitem uml "UML" "UML Diagram" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {
 
         private string password;
         private string activationToken;
+        private bool emailChanged;
         
         private string accessibleResourcesString;
 
@@ -61,7 +62,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the username.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public string Username {
             get { return Identifier; }
             set { Identifier = value; }
@@ -73,6 +74,11 @@ namespace Terradue.Portal {
         /// \xrefitem uml "UML" "UML Diagram" 
         [EntityDataField("status")]
         public int AccountStatus { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the user of this account needs to confirm his email address.</summary>
+        public bool NeedsEmailConfirmation { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -208,7 +214,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created User object.</returns>
         public static new User GetInstance(IfyContext context) {
@@ -346,6 +352,16 @@ namespace Terradue.Portal {
             else context.WriteWarning("No user account has been " + (accountStatus == AccountStatusType.Enabled ? "enabled" : "disabled"));
             //OnItemProcessed(OperationType.Other, 0); // TODO
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void Load() {
+            base.Load();
+            if (AccountStatus > AccountStatusType.Enabled) {
+                NeedsEmailConfirmation = ((AccountStatus & AccountFlags.NeedsEmailConfirmation) != 0);
+                AccountStatus = (AccountStatus & 7);
+            }
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -355,7 +371,13 @@ namespace Terradue.Portal {
                 if (isNew) ProfileExtension.OnCreating(context, this); ProfileExtension.OnChanging(context, this);
             }
             int appendix = 0;
+            if (emailChanged) {
+                NeedsEmailConfirmation = true;
+                if (context.AutomaticUserMails) SendMail(UserMailType.EmailChanged, true);
+            }
+            if (NeedsEmailConfirmation) AccountStatus = AccountStatus | AccountFlags.NeedsEmailConfirmation;
             base.Store();
+            AccountStatus = (AccountStatus & 7);
             if (ProfileExtension != null && !IgnoreExtensions) {
                 if (isNew) ProfileExtension.OnCreated(context, this); ProfileExtension.OnChanged(context, this);
             }
@@ -374,6 +396,13 @@ namespace Terradue.Portal {
             if (ProfileExtension != null && !IgnoreExtensions) ProfileExtension.OnPasswordChanging(context, this, newPassword);
             context.Execute(String.Format("UPDATE usr SET password=PASSWORD({1}) WHERE id={0}", Id, StringUtils.EscapeSql(password)));
             if (ProfileExtension != null && !IgnoreExtensions) ProfileExtension.OnPasswordChanged(context, this, newPassword);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ChangeEmail(string newEmail) {
+            emailChanged = true;
+            Email = newEmail;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -402,7 +431,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sends a mail to a user.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public bool SendMail(UserMailType type, bool forAuthenticatedUser) {
             string smtpHostname = context.GetConfigValue("SmtpHostname");
             string smtpUsername = context.GetConfigValue("SmtpUsername");
@@ -438,6 +467,14 @@ namespace Terradue.Portal {
                     html = context.GetConfigBooleanValue("PasswordResetMailHtml");
                     if (subject == null) subject = "Password reset"; 
                     if (body == null) body = String.Format("Dear sir/madam,\n\nYour password for your user account on {0} has been changed.\n\nYour username is: {1}\nYour password is: {2}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your password has changed.", context.GetConfigValue("SiteName"), Username, password);
+                    break;
+
+                case UserMailType.EmailChanged :
+                    subject = context.GetConfigValue("EmailChangedMailSubject");
+                    body = context.GetConfigValue("EmailChangedMailBody");
+                    html = context.GetConfigBooleanValue("EmailChangedMailHtml");
+                    if (subject == null) subject = "E-mail changed"; 
+                    if (body == null) body = String.Format("Dear sir/madam,\n\nYou changed your e-mail address linked to your user account on {0}.\n\nPlease confirm the email by clicking on the following link:\n{1}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your e-mail address has changed.", context.GetConfigValue("SiteName"), activationToken);
                     break;
             }
             
@@ -503,7 +540,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Starts the new session.</summary>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public virtual void StartNewSession() {
             context.Execute(String.Format("INSERT INTO usrsession (id_usr, log_time) VALUES ({0}, '{1}');", Id, context.Now.ToString(@"yyyy\-MM\-dd HH\:mm\:ss")));
         }
@@ -516,7 +553,7 @@ namespace Terradue.Portal {
         /// <returns>The user accessible resources string.</returns>
         /// <param name="resource">Resource.</param>
         /// <param name="html">If set to <c>true</c> html.</param>
-        /// \ingroup core_UserGroupACL
+        /// \ingroup Authorisation
         public string GetUserAccessibleResourcesString(Entity resource, bool html) {
             return null;
 
@@ -592,7 +629,8 @@ namespace Terradue.Portal {
 
     public enum UserMailType {
         Registration,
-        PasswordReset
+        PasswordReset,
+        EmailChanged
     }
 
 
@@ -602,6 +640,7 @@ namespace Terradue.Portal {
         public AuthenticationType AuthenticationType { get; protected set; }
         public DateTime NextSessionRefreshTime { get; protected set; }
         public string ExternalUsername { get; protected set; }
+        public bool NeedsEmailConfirmation { get; protected set; }
 
         public int OriginalUserId { get; protected set; }
         public int UserId { get; protected set; }
@@ -630,6 +669,7 @@ namespace Terradue.Portal {
             UserTimeZone = user.TimeZone;
             PasswordExpired = user.PasswordExpired;
             ExternalUsername = user.Username;
+            NeedsEmailConfirmation = user.NeedsEmailConfirmation;
         }
 
 /*        public void SetNewSessionRefreshTime(IfyContext context, HttpRequest request) {
