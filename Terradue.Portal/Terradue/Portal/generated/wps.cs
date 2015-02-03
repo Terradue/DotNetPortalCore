@@ -7741,10 +7741,25 @@ namespace OpenGis.Wps
 
         private string textField;
 
+        private object referenceField;
+
         private static System.Xml.Serialization.XmlSerializer serializer;
 
         public ComplexDataType()
         {
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("Reference", typeof(OutputReferenceType))]
+        public object Reference
+        {
+            get
+            {
+                return this.referenceField;
+            }
+            set
+            {
+                this.referenceField = value;
+            }
         }
 
         [System.Xml.Serialization.XmlAttributeAttribute()]

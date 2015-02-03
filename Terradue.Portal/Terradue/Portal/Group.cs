@@ -27,7 +27,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents a user group</summary>
-    /// \ingroup core_UserGroupACL
+    /// \ingroup Authorisation
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("grp", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "name")]
     public class Group : Entity {
