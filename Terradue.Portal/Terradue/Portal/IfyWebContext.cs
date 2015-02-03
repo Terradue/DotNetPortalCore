@@ -430,10 +430,7 @@ namespace Terradue.Portal {
 
             if (!IsUserAuthenticated) {
                 User user = AuthenticateAutomatically();
-                if (user != null) {
-                    IsUserAuthenticated = true;
-                    if (AutomaticUserMails && user.AccountStatus == AccountStatusType.PendingActivation) user.SendMail(UserMailType.Registration, true);
-                }
+                if (user != null) IsUserAuthenticated = true;
             }
             
             if (!SkipChecks) {
@@ -564,6 +561,7 @@ namespace Terradue.Portal {
                     if (groupCount == 0) Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) SELECT {0}, t.id FROM grp AS t WHERE is_default;", identifiedUser.Id));
                 }
 
+                if (AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
                 StartSession(selectedAuthenticationType, identifiedUser);
             }
 
@@ -688,7 +686,7 @@ namespace Terradue.Portal {
                 case AccountStatusType.Deactivated :
                     throw new UnauthorizedAccessException("The user account has been deactivated, most likely because of too many failed login attempts");
                 case AccountStatusType.PendingActivation:
-                    throw new UnauthorizedAccessException("The user account has not yet been activated");
+                    throw new PendingActivationException("The user account has not yet been activated");
                 case AccountStatusType.PasswordReset :
                     throw new UnauthorizedAccessException("The user account has to be reactivated after a password reset");
                 default :
@@ -1689,6 +1687,19 @@ namespace Terradue.Portal {
     public class SiteNotAvailableException : Exception { 
         public SiteNotAvailableException(string message) : base(message) {}
     }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    public class PendingActivationException : UnauthorizedAccessException {
+        public PendingActivationException(string message) : base(message) {}
+    }
+
 
 
 
