@@ -433,11 +433,25 @@ namespace Terradue.Portal {
         /// <summary>Sends a mail to a user.</summary>
         /// \ingroup Authorisation
         public bool SendMail(UserMailType type, bool forAuthenticatedUser) {
+            IfyWebContext webContext = context as IfyWebContext; // TODO: replace
+
             string smtpHostname = context.GetConfigValue("SmtpHostname");
             string smtpUsername = context.GetConfigValue("SmtpUsername");
             string smtpPassword = context.GetConfigValue("SmtpPassword");
             string mailSenderAddress = context.GetConfigValue("MailSenderAddress");
             string mailSender = context.GetConfigValue("MailSender");
+            string emailConfirmationUrl = context.GetConfigValue("EmailConfirmationUrl");
+            if (String.IsNullOrEmpty(emailConfirmationUrl)) {
+                emailConfirmationUrl = String.Format(webContext.AccountRootUrl == null ? "{4}?_request={2}&key={3}" : "{0}{1}/{2}?key={3}",
+                    webContext.HostUrl,
+                    webContext.AccountRootUrl,
+                    type == UserMailType.Registration ? "activate" : "recover",
+                    activationToken,
+                    webContext.ScriptUrl
+                );
+            }
+
+
             if (mailSender == null) mailSender = mailSenderAddress;
             
             if (smtpHostname == null || mailSenderAddress == null) {
@@ -483,8 +497,6 @@ namespace Terradue.Portal {
                 if (activationToken == null) CreateActivationToken();
             }
 
-            IfyWebContext webContext = context as IfyWebContext; // TODO: replace
-            
             // activationToken also used here to avoid endless nested replacements
             body = body.Replace(@"\n", Environment.NewLine);
             body = body.Replace("$(", "$" + activationToken + "(");
@@ -493,15 +505,7 @@ namespace Terradue.Portal {
             body = body.Replace("$" + activationToken + "(PASSWORD)", password);
             body = body.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
             body = body.Replace("$" + activationToken + "(SITEURL)", context.HostUrl);
-            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)",
-                    String.Format(webContext.AccountRootUrl == null ? "{4}?_request={2}&key={3}" : "{0}{1}/{2}?key={3}",
-                            webContext.HostUrl,
-                            webContext.AccountRootUrl,
-                            type == UserMailType.Registration ? "activate" : "recover",
-                            activationToken,
-                            webContext.ScriptUrl
-                    )
-            );
+            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.HostUrl).Replace("$(TOKEN)", activationToken));
             if (body.Contains("$" + activationToken + "(SERVICES)")) {
                 body = body.Replace("$" + activationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
             }

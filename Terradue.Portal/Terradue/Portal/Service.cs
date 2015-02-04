@@ -230,7 +230,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the ID of the computing resource that must be compatible with the service.</summary>
         /// <remarks>This value is used for listing only services that are compatible with the specific computing resource.</remarks>
-        public int ComputingResourceId { get; set; }
+        public EntityList<ComputingResource> CompatibleComputingResources { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
