@@ -8,6 +8,7 @@ using Terradue.ServiceModel.Syndication;
 using Terradue.OpenSearch.Response;
 using System.Xml;
 using Terradue.OpenSearch.Request;
+using Terradue.OpenSearch.Result;
 
 namespace Terradue.Portal.Test {
 
@@ -59,14 +60,14 @@ namespace Terradue.Portal.Test {
 
             var nvc = new NameValueCollection();
             var request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
-            SyndicationFeed feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
+            AtomFeed feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "1");
             Assert.That(feed.Items.Last().Title.Text == "10");
 
             nvc.Add("startIndex", "2");
             request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
-            feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
+            feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "2");
             Assert.That(feed.Items.Last().Title.Text == "10");
@@ -74,7 +75,7 @@ namespace Terradue.Portal.Test {
             nvc.Remove("startIndex");
             nvc.Add("q", "4");
             request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
-            feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
+            feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "4");
             Assert.That(feed.Items.Last().Title.Text == "4");
