@@ -306,6 +306,42 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Attribute that allows to link a subclass of Entity to a database table.</summary>
+    /// <remarks>This attribute is used in combination with the EntityDataFieldAttribute attributes at property level.</remarks>
+    /// \ingroup Persistence
+    /// \xrefitem uml "UML" "UML Diagram"
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class EntityRelationshipTableAttribute : System.Attribute {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string ReferringIdField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string ReferencedIdField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipTableAttribute(string name, EntityTableConfiguration config) {
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
     /// <summary>Attribute that allows to link a referenced table to the entity's main table or a subtable.</summary>
     /// <remarks>This attribute is used in combination with the EntityForeignFieldAttribute attributes at property level.</remarks>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]

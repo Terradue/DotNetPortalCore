@@ -367,7 +367,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void GetEntityStructure(Type type) {
+        protected virtual void GetEntityStructure(Type type) {
             if (type == null || type == typeof(Entity)) return;
             
             GetEntityStructure(type.BaseType);
@@ -895,6 +895,62 @@ namespace Terradue.Portal {
         public void DeleteItem(IfyContext context, string identifier) {
             context.Execute(String.Format("DELETE FROM {1} WHERE {2}={0};", StringUtils.EscapeSql(identifier), TopTable.Name, TopTable.IdentifierField));
         }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    public class EntityRelationshipType : EntityType {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipType(Type type, PropertyInfo referencingProperty) : base(type) {
+            AddRelationship(referencingProperty);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        protected override void GetEntityStructure(Type type) {
+            if (type == null || type == typeof(Entity)) return;
+
+            EntityType baseType = GetOrAddEntityType(type);
+            foreach (EntityTableAttribute table in baseType.Tables) Tables.Add(table);
+            foreach (ForeignTableInfo foreignTable in baseType.ForeignTables) ForeignTables.Add(foreignTable);
+            foreach (FieldInfo field in baseType.Fields) Fields.Add(field);
+
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void AddRelationship(PropertyInfo referencingProperty) {
+            string tableName;
+            string referencedField;
+
+            foreach (System.Attribute attribute in referencingProperty.GetCustomAttributes(true)) {
+                if (attribute is EntityRelationshipAttribute) {
+                    //if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [P] {0,-20} {1}", (attribute as EntityPrivilegeFieldAttribute).Name, " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
+                    //Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityPrivilegeFieldAttribute));
+                }
+            }
+
+
+            EntityTableAttribute table;
+            if (Tables.Count != 0 && Tables[Tables.Count - 1].Name == tableName){
+                table = Tables[Tables.Count - 1];
+            } else {
+                table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);
+                table.IdField = referencedItemFieldName;
+                table.ReferencedItemField = referencedItemField;
+                Tables.Add(table);
+            }
+        }
+
 
     }
 

@@ -18,6 +18,7 @@ using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
+using Terradue.ServiceModel.Syndication;
 using Terradue.Util;
 
 
@@ -27,7 +28,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.ServiceModel.Syndication;
 
 
 
