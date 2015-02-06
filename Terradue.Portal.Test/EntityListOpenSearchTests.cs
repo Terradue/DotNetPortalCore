@@ -5,7 +5,9 @@ using Mono.Addins;
 using Terradue.OpenSearch.Engine;
 using System.Collections.Specialized;
 using Terradue.ServiceModel.Syndication;
+using Terradue.OpenSearch.Response;
 using System.Xml;
+using Terradue.OpenSearch.Request;
 
 namespace Terradue.Portal.Test {
 
@@ -56,38 +58,24 @@ namespace Terradue.Portal.Test {
             }
 
             var nvc = new NameValueCollection();
-           
-            var request = list.Create("application/atom+xml", nvc);
-
-            var sw = XmlReader.Create(request.GetResponse().GetResponseStream());
-            Atom10FeedFormatter atomFormatter = new Atom10FeedFormatter();
-            atomFormatter.ReadFrom(sw);
-
-            SyndicationFeed feed = atomFormatter.Feed;
+            var request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            SyndicationFeed feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "1");
             Assert.That(feed.Items.Last().Title.Text == "10");
 
             nvc.Add("startIndex", "2");
-            request = list.Create("application/atom+xml", nvc);
+            request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
 
-            sw = XmlReader.Create(request.GetResponse().GetResponseStream());
-            atomFormatter = new Atom10FeedFormatter();
-            atomFormatter.ReadFrom(sw);
-
-            feed = atomFormatter.Feed;
             Assert.That(feed.Items.First().Title.Text == "2");
             Assert.That(feed.Items.Last().Title.Text == "10");
 
             nvc.Remove("startIndex");
             nvc.Add("q", "4");
-            request = list.Create("application/atom+xml", nvc);
+            request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            feed = (SyndicationFeed)request.GetResponse().GetResponseObject();
 
-            sw = XmlReader.Create(request.GetResponse().GetResponseStream());
-            atomFormatter = new Atom10FeedFormatter();
-            atomFormatter.ReadFrom(sw);
-
-            feed = atomFormatter.Feed;
             Assert.That(feed.Items.First().Title.Text == "4");
             Assert.That(feed.Items.Last().Title.Text == "4");
 
