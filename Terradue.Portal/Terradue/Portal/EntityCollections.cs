@@ -388,7 +388,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void GenerateSyndicationFeed(Stream stream, NameValueCollection parameters) {
+        private AtomFeed GenerateSyndicationFeed(NameValueCollection parameters) {
             UriBuilder myUrl = new UriBuilder(context.BaseUrl + "/" + this.Identifier);
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
             myUrl.Query = string.Join("&", queryString);
@@ -459,12 +459,8 @@ namespace Terradue.Portal {
 
             feed.Items = pds.GetCurrentPage();
 
-            //Atomizable.SerializeToStream ( res, stream.OutputStream );
-            var sw = XmlWriter.Create(stream);
-            Atom10FeedFormatter atomFormatter = new Atom10FeedFormatter(feed.Feed);
-            atomFormatter.WriteTo(sw);
-            sw.Flush();
-            sw.Close();
+            return feed;
+
         }
 
         public OpenSearchEngine OpenSearchEngine {
@@ -518,11 +514,7 @@ namespace Terradue.Portal {
                 .ToArray();
             url.Query = string.Join("&", array);
 
-            MemoryOpenSearchRequest request = new MemoryOpenSearchRequest(new OpenSearchUrl(url.ToString()), type);
-
-            Stream input = request.MemoryInputStream;
-
-            GenerateSyndicationFeed(input, parameters);
+            var request = new AtomOpenSearchRequest(new OpenSearchUrl(url.Uri), GenerateSyndicationFeed);
 
             return request;
         }
