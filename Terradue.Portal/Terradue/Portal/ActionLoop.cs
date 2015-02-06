@@ -186,13 +186,16 @@ namespace Terradue.Portal {
                         context.WriteInfo(String.Format("Next planned execution: {0}", exec.NextExecutionTime.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\Z")));
                         context.WriteSeparator();
                     } catch (Exception e) {
-                        context.WriteError(e.Message + " " + e.StackTrace);
+                        context.WriteError(String.Format("{0} - {1}", e.Message, e.StackTrace));
+                        if (e.InnerException != null) context.WriteError(String.Format("{0} - {1}", e.InnerException.Message, e.InnerException.StackTrace));
                         context.WriteSeparator();
                     }
                 }
     
             } catch (Exception e) {
                 context.WriteError(e.Message + " " + e.StackTrace);
+                context.WriteError(String.Format("{0} - {1}", e.Message, e.StackTrace));
+                if (e.InnerException != null) context.WriteError(String.Format("Caused by: {0} - {1}", e.InnerException.Message, e.InnerException.StackTrace));
                 context.WriteSeparator();
                 if (dbReader != null && !dbReader.IsClosed) dbReader.Close();
                 running = false;
