@@ -413,7 +413,14 @@ namespace Terradue.Portal {
                     if (IfyContext.DefaultConsoleDebug) Console.WriteLine("FOREIGN TABLE {0}", foreignTableInfo.Name);
                 }
             }
+
+            AppendProperties(type, tableIndex);
             
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        protected void AppendProperties(Type type, int tableIndex) {
             foreach (PropertyInfo pi in type.GetProperties()) {
                 if (pi.DeclaringType != type) continue;
                 foreach (System.Attribute attribute in pi.GetCustomAttributes(true)) {
@@ -429,14 +436,17 @@ namespace Terradue.Portal {
                     } else if (attribute is EntityEntityFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [E] {0,-20} {1}", (attribute as EntityEntityFieldAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityEntityFieldAttribute));
-                    } else if (attribute is EntityComplexFieldAttribute) {
+                    } else if (attribute is EntityRelationshipAttribute) {
+                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [R] {0,-20} {1}", (attribute as EntityRelationshipAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
+                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityRelationshipAttribute));
+                    }/* else if (attribute is EntityComplexFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [C] {0,-20} {1}", "[no name]",  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityComplexFieldAttribute));
-                    }
+                    }*/
                 }
             }
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Checks whether the item with the specified database ID exists in the database.</summary>
@@ -929,28 +939,32 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public void AddRelationship(PropertyInfo referencingProperty) {
-            string tableName;
-            string referencedField;
+            string tableName = null;
+            string referringItemField = null;
+            string referencedItemField = null;
 
             foreach (System.Attribute attribute in referencingProperty.GetCustomAttributes(true)) {
                 if (attribute is EntityRelationshipAttribute) {
-                    //if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [P] {0,-20} {1}", (attribute as EntityPrivilegeFieldAttribute).Name, " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
-                    //Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityPrivilegeFieldAttribute));
+                    tableName = (attribute as EntityRelationshipAttribute).Name;
+                    referringItemField = (attribute as EntityRelationshipAttribute).ReferencedItemField;
+                    referencedItemField = (attribute as EntityRelationshipAttribute).ReferencedItemField;
                 }
             }
 
+            if (referringItemField == null) referringItemField = String.Format("id_{0}", TopTable.Name);
+            if (referencedItemField == null) referencedItemField = String.Format("id_{0}", Name);
 
             EntityTableAttribute table;
-            if (Tables.Count != 0 && Tables[Tables.Count - 1].Name == tableName){
+            if (Tables.Count != 0 && Tables[Tables.Count - 1].Name == tableName) {
                 table = Tables[Tables.Count - 1];
             } else {
                 table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);
-                table.IdField = referencedItemFieldName;
-                table.ReferencedItemField = referencedItemField;
+                table.ReferringItemField = referringItemField;
+                table.IdField = referencedItemField;
                 Tables.Add(table);
             }
+        
         }
-
 
     }
 
@@ -1086,6 +1100,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public FieldInfo(PropertyInfo @property, int tableIndex, EntityRelationshipAttribute attribute) : this(@property, tableIndex, attribute.Name) {
+            this.FieldType = EntityFieldType.RelationshipField;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+/*
         public FieldInfo(PropertyInfo @property, int tableIndex, EntityComplexFieldAttribute attribute) : this(@property, tableIndex, null as string) {
             this.FieldType = EntityFieldType.ComplexField;
             this.ReferenceField = attribute.ReferenceField;
@@ -1103,7 +1123,7 @@ namespace Terradue.Portal {
                 this.UnderlyingType = Property.PropertyType;
             }
         }
-
+*/
         //---------------------------------------------------------------------------------------------------------------------
 
         public void SetIgnoreValue(Type type) {
@@ -1128,7 +1148,8 @@ namespace Terradue.Portal {
         DataField,
         ForeignField,
         EntityField,
-        ComplexField
+        //ComplexField,
+        RelationshipField
     }
     
 

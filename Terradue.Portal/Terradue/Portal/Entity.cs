@@ -227,14 +227,31 @@ namespace Terradue.Portal {
         protected Entity(IfyContext context) {
             this.context = context;
             if (!(this is EntityType)) this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
+            Console.WriteLine("ET {0} {1}", this.GetType().FullName, this.EntityType == null ? "NULL" : this.EntityType.ClassType.FullName);
             if (context != null) {
                 this.UserId = context.UserId;
 				this.OwnerId = UserId;
+                InitializeRelationships(context);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void InitializeRelationships(IfyContext context) {
+            EntityType entityType = this.EntityType;
+            Console.WriteLine("IR-0 {0}", entityType.ClassType.FullName);
+            foreach (FieldInfo field in entityType.Fields) {
+                Console.WriteLine("FIELD: {0}", field.FieldName);
+                if (field.FieldType == EntityFieldType.RelationshipField) {
+                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[]{ typeof(IfyContext), typeof(Entity) });
+                    object o = ci.Invoke(new object[] { context, this });
+                    field.Property.SetValue(this, o, null);
+                }
             }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Reads the information of the item with the specified ID from the database.</summary>
         public virtual void Load(int id) {
             Id = id;
@@ -303,9 +320,9 @@ namespace Terradue.Portal {
             
             context.CloseQueryResult(reader, dbConnection);
 
-            if (context.ConsoleDebug) Console.WriteLine("BEFORE LCF");
+            /*if (context.ConsoleDebug) Console.WriteLine("BEFORE LCF");
             if (hasAutoLoadFields) LoadComplexFields(false);
-            if (context.ConsoleDebug) Console.WriteLine("AFTER LCF");
+            if (context.ConsoleDebug) Console.WriteLine("AFTER LCF");*/
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -520,10 +537,10 @@ namespace Terradue.Portal {
                     }
                     
                     foreach (FieldInfo field in entityType.Fields) {
-                        if (field.FieldType == EntityFieldType.ComplexField && field.AutoStore) {
+                        /*if (field.FieldType == EntityFieldType.ComplexField && field.AutoStore) {
                             hasAutoStoreFields = true;
                             continue;
-                        }
+                        }*/
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
                         object value = field.Property.GetValue(this, null);
                         if (value == null) continue;
@@ -802,7 +819,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual void LoadComplexFields(bool all) {
-            if (context.ConsoleDebug) Console.WriteLine("LCF " + all);
+/*            if (context.ConsoleDebug) Console.WriteLine("LCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
                 if (field.FieldType != EntityFieldType.ComplexField || !field.AutoLoad && !all) continue;
                 if (field.IsList) {
@@ -839,13 +856,13 @@ namespace Terradue.Portal {
                     //constructorInfo = field.Property.PropertyType.GetConstructor(new Type[]{typeof(IfyContext)}); 
                     //if (constructorInfo == null) continue;
                 }
-            }
+            }*/
         }
                 
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual void StoreComplexFields(bool all) {
-            if (context.ConsoleDebug) Console.WriteLine("SCF " + all);
+/*            if (context.ConsoleDebug) Console.WriteLine("SCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
                 if (field.FieldType != EntityFieldType.ComplexField || !field.AutoLoad && !all) continue;
                 if (field.IsList) {
@@ -884,7 +901,7 @@ namespace Terradue.Portal {
                     //constructorInfo = field.Property.PropertyType.GetConstructor(new Type[]{typeof(IfyContext)}); 
                     //if (constructorInfo == null) continue;
                 }
-            }
+            }*/
         }
                 
         //---------------------------------------------------------------------------------------------------------------------
