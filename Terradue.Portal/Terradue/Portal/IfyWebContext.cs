@@ -561,7 +561,7 @@ namespace Terradue.Portal {
                     if (groupCount == 0) Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) SELECT {0}, t.id FROM grp AS t WHERE is_default;", identifiedUser.Id));
                 }
 
-                if (AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
+                if (isNewUser && AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
                 if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) StartSession(selectedAuthenticationType, identifiedUser);
             }
 
