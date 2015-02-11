@@ -226,6 +226,34 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
+
+
+    /// <summary>Attribute that allows to link a subclass of Entity to a database table.</summary>
+    /// <remarks>This attribute is used in combination with the EntityDataFieldAttribute attributes at property level.</remarks>
+    /// \ingroup Persistence
+    /// \xrefitem uml "UML" "UML Diagram"
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class EntityRelationshipTableAttribute : EntityTableAttribute {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipTableAttribute(string name, string referringItemField, string referencedItemField) : base(name, EntityTableConfiguration.Custom) {
+            this.Name = name;
+            this.ReferringItemField = referringItemField;
+            this.IdField = referencedItemField;
+            this.HasAutomaticIds = false;
+            this.Storage = EntityTableStorage.Here;
+            this.IsRequired = true;
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
     
 
     /// <summary>Attribute that allows to link a referenced table to the entity's main table or a subtable.</summary>

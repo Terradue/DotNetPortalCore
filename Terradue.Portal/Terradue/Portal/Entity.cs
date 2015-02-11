@@ -227,7 +227,6 @@ namespace Terradue.Portal {
         protected Entity(IfyContext context) {
             this.context = context;
             if (!(this is EntityType)) this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
-            Console.WriteLine("ET {0} {1}", this.GetType().FullName, this.EntityType == null ? "NULL" : this.EntityType.ClassType.FullName);
             if (context != null) {
                 this.UserId = context.UserId;
 				this.OwnerId = UserId;
@@ -239,12 +238,11 @@ namespace Terradue.Portal {
 
         public void InitializeRelationships(IfyContext context) {
             EntityType entityType = this.EntityType;
-            Console.WriteLine("IR-0 {0}", entityType.ClassType.FullName);
             foreach (FieldInfo field in entityType.Fields) {
-                Console.WriteLine("FIELD: {0}", field.FieldName);
                 if (field.FieldType == EntityFieldType.RelationshipField) {
-                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[]{ typeof(IfyContext), typeof(Entity) });
-                    object o = ci.Invoke(new object[] { context, this });
+                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[]{ typeof(IfyContext), typeof(EntityType), typeof(Entity) });
+                    EntityRelationshipType entityRelationshipType = EntityRelationshipType.GetOrAddEntityRelationshipType(field.Property);
+                    object o = ci.Invoke(new object[] { context, entityRelationshipType, this });
                     field.Property.SetValue(this, o, null);
                 }
             }
@@ -430,11 +428,17 @@ namespace Terradue.Portal {
         /// </remarks>
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual void Store() {
-            EntityType entityType = this.EntityType;
+            Store(null, null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {
+            EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
             
             // Check whether identifier or name already exists
-            if (entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
+            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
                 if (!Exists && entityType.TopTable.AutoCorrectDuplicateIdentifiers) {
                     bool finding = true;
                     int suffix = 0;
@@ -452,8 +456,8 @@ namespace Terradue.Portal {
             
             // Do the INSERT if the item does not yet exist (1), or an UPDATE if it exists (2)
             // Note: the domain is only stored when the item is created
-            if (!Exists) { // (1) - INSERT
-                for (int i = 0; i < entityType.Tables.Count; i++) {
+            if (!Exists || entityRelationshipType != null && referringItem != null) { // (1) - INSERT
+                for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string names = null;
                     string values = null;
                     if (i == 0) {
@@ -558,6 +562,11 @@ namespace Terradue.Portal {
                         values += value;
                     }
 
+                    if (entityRelationshipType != null && referringItem != null && i == entityRelationshipType.TopStoreTableIndex) {
+                        names = String.Format("{0}, {1}", entityRelationshipType.TopStoreTable.ReferringItemField, names);
+                        values = String.Format("{0}, {1}", referringItem.Id, values);
+                    }
+
                     string sql = String.Format("INSERT INTO {0} ({1}) VALUES ({2});", entityType.Tables[i].Name, names, values);
                     if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
                     IDbConnection dbConnection = context.GetDbConnection();
@@ -578,42 +587,28 @@ namespace Terradue.Portal {
                 Exists = true;
                 
             } else { // (2) - UPDATE
-                for (int i = 0; i < entityType.Tables.Count; i++) {
+                Console.WriteLine("UPDATE {0} {1} {2}", entityType.GetType().FullName, entityType.TopStoreTableIndex, entityType.Tables.Count);
+
+                for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string assignments = null;
                     if (i == 0) {
                         if (entityType.TopTable.HasIdentifierField) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
                         }
                         if (entityType.TopTable.HasNameField) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.NameField, StringUtils.EscapeSql(Name));
                         }
                         if (entityType.TopTable.HasOwnerReference) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.OwnerReferenceField, OwnerId == 0 ? "NULL" : OwnerId.ToString());
                         }
                     }
                     
                     foreach (FieldInfo field in entityType.Fields) {
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
-                        if (assignments == null) {
-                            assignments = String.Empty;
-                        } else {
-                            assignments += ", ";
-                        }
+                        if (assignments == null) assignments = String.Empty; else assignments += ", ";
                         object value = field.Property.GetValue(this, null);
                         value = (field.IsForeignKey && value != null && value.Equals(0) || field.NullValue != null && field.NullValue.Equals(value) ? "NULL" : StringUtils.ToSqlString(value)); 
                         assignments += String.Format("{0}={1}", field.FieldName, value); 
