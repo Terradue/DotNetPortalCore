@@ -18,6 +18,7 @@ using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
+using Terradue.ServiceModel.Syndication;
 using Terradue.Util;
 
 
@@ -27,7 +28,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.ServiceModel.Syndication;
 
 
 
@@ -127,6 +127,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        protected Entity ReferringItem { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public int UserId { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -152,10 +156,17 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityCollection(IfyContext context) {
+        public EntityCollection(IfyContext context) : this(context, null, null) {
+            this.entityType = GetEntityStructure();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
             this.context = context;
             if (context != null) this.UserId = context.UserId;
-            entityType = GetEntityStructure();
+            this.entityType = entityType;
+            this.ReferringItem = referringItem;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -177,13 +188,13 @@ namespace Terradue.Portal {
             Identifier = entityType.Keyword;
 
             if (!entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
-                LoadList(entityType);
+                LoadList();
                 return;
             }
 
             Clear();
 
-            string sql = (OwnedItemsOnly ? entityType.GetListQuery(context, UserId, true, true) : entityType.GetListQuery(context, UserId, template, true));
+            string sql = (OwnedItemsOnly ? entityType.GetListQueryForOwnedItems(context, UserId, true) : entityType.GetListQueryWithTemplate(context, UserId, template, true));
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -209,20 +220,25 @@ namespace Terradue.Portal {
         /// <remarks>If the collections's entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
         public virtual void LoadReadOnly() {
             IsReadOnly = true;
-            LoadList(entityType);
+            LoadList();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected virtual void LoadList(EntityType entityType) {
+        protected virtual void LoadList() {
             Clear();
 
-            string sql = (OwnedItemsOnly ? entityType.GetListQuery(context, UserId, true, false) : entityType.GetListQuery(context, UserId, template, false));
+            string sql;
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false);
+            else sql = entityType.GetListQueryWithTemplate(context, UserId, template, false);
+
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
+                Console.WriteLine("LOAD {0}", entityType.TopStoreTable.Name);
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Load(entityType, reader);
                 if (template != null) AlignWithTemplate(item, false);
@@ -276,46 +292,55 @@ namespace Terradue.Portal {
 
         /// <summary>Stores the entity list.</summary>
         /// <remarks></remearks>
-        protected void StoreList(bool removeOthers, bool onlyNewItems) {
+        protected virtual void StoreList(bool removeOthers, bool onlyNewItems) {
+
             if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity list");
 
+            EntityTableAttribute storeTable = entityType.TopStoreTable;
             string sql = null;
-            if (removeOthers) {
-                // Remove items that are not or no longer contained in the collection
-                string keepIds = null;
-                foreach (T item in Items) {
-                    if (!item.IsInCollection) continue;
-                    if (keepIds == null) keepIds = String.Empty; else keepIds += ", ";
-                    keepIds += item.Id;
-                }
-                if (keepIds != null) {
-                    sql = String.Format("{0} NOT IN ({1})", entityType.TopTable.IdField, keepIds);
-                    if (template != null) {
-                        string condition = entityType.GetTemplateCondition(template, true);
-                        if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
-                        //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, entityType.TopTable.ParentReferenceField);
-                    }
-                }
+
+            if (entityType is EntityRelationshipType) {
+                sql = String.Format("{1}={0}", ReferringItem.Id, entityType.TopStoreTable.ReferringItemField);
+
             } else {
-                // Remove items that are no longer in the collection (unlinked)
-                string deleteIds = null;
-                foreach (T item in Items) {
-                    if (item.IsInCollection) continue;
-                    if (deleteIds == null) deleteIds = String.Empty; else deleteIds += ", ";
-                    deleteIds += item.Id;
+                if (removeOthers) {
+                    // Remove items that are not or no longer contained in the collection
+                    string keepIds = null;
+                    foreach (T item in Items) {
+                        if (!item.IsInCollection) continue;
+                        if (keepIds == null) keepIds = String.Empty; else keepIds += ", ";
+                        keepIds += item.Id;
+                    }
+                    if (keepIds != null) {
+                        sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
+                        if (template != null) {
+                            string condition = entityType.GetTemplateCondition(template, true);
+                            if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
+                            //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
+                        }
+                    }
+                } else {
+                    // Remove items that are no longer in the collection (unlinked)
+                    string deleteIds = null;
+                    foreach (T item in Items) {
+                        if (item.IsInCollection) continue;
+                        if (deleteIds == null) deleteIds = String.Empty;
+                        else deleteIds += ", ";
+                        deleteIds += item.Id;
+                    }
+                    if (deleteIds != null) sql = String.Format("{0} IN ({1})", storeTable.IdField, deleteIds);
                 }
-                if (deleteIds != null) sql = String.Format("{0} IN ({1})", entityType.TopTable.IdField, deleteIds);
             }
 
             if (sql != null) {
-                sql = String.Format("DELETE FROM {0} WHERE {1};", entityType.TopTable.Name, sql);
+                sql = String.Format("DELETE FROM {0} WHERE {1};", storeTable.Name, sql);
                 if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
                 context.Execute(sql);
             }
 
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                item.Store();
+                item.Store(entityType as EntityRelationshipType, ReferringItem);
             }
         }
 
@@ -629,6 +654,12 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityList(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
+            this.items = new List<T>();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         public static EntityList<T> ForUser(IfyContext context, int userId) {
             EntityList<T> result = new EntityList<T>(context);
@@ -698,6 +729,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public EntityDictionary(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
+            this.items = new Dictionary<string, T>();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Removes all items from the list.</summary>
         public override void Clear() {
             items.Clear();
@@ -756,6 +793,12 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         public EntityIdDictionary(IfyContext context) : base(context) {
+            this.items = new Dictionary<int, T>();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityIdDictionary(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
             this.items = new Dictionary<int, T>();
         }
 

@@ -230,11 +230,26 @@ namespace Terradue.Portal {
             if (context != null) {
                 this.UserId = context.UserId;
 				this.OwnerId = UserId;
+                InitializeRelationships(context);
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void InitializeRelationships(IfyContext context) {
+            EntityType entityType = this.EntityType;
+            foreach (FieldInfo field in entityType.Fields) {
+                if (field.FieldType == EntityFieldType.RelationshipField) {
+                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[]{ typeof(IfyContext), typeof(EntityType), typeof(Entity) });
+                    EntityRelationshipType entityRelationshipType = EntityRelationshipType.GetOrAddEntityRelationshipType(field.Property);
+                    object o = ci.Invoke(new object[] { context, entityRelationshipType, this });
+                    field.Property.SetValue(this, o, null);
+                }
             }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Reads the information of the item with the specified ID from the database.</summary>
         public virtual void Load(int id) {
             Id = id;
@@ -303,9 +318,9 @@ namespace Terradue.Portal {
             
             context.CloseQueryResult(reader, dbConnection);
 
-            if (context.ConsoleDebug) Console.WriteLine("BEFORE LCF");
+            /*if (context.ConsoleDebug) Console.WriteLine("BEFORE LCF");
             if (hasAutoLoadFields) LoadComplexFields(false);
-            if (context.ConsoleDebug) Console.WriteLine("AFTER LCF");
+            if (context.ConsoleDebug) Console.WriteLine("AFTER LCF");*/
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -413,11 +428,17 @@ namespace Terradue.Portal {
         /// </remarks>
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual void Store() {
-            EntityType entityType = this.EntityType;
+            Store(null, null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {
+            EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
             
             // Check whether identifier or name already exists
-            if (entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
+            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
                 if (!Exists && entityType.TopTable.AutoCorrectDuplicateIdentifiers) {
                     bool finding = true;
                     int suffix = 0;
@@ -435,8 +456,8 @@ namespace Terradue.Portal {
             
             // Do the INSERT if the item does not yet exist (1), or an UPDATE if it exists (2)
             // Note: the domain is only stored when the item is created
-            if (!Exists) { // (1) - INSERT
-                for (int i = 0; i < entityType.Tables.Count; i++) {
+            if (!Exists || entityRelationshipType != null && referringItem != null) { // (1) - INSERT
+                for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string names = null;
                     string values = null;
                     if (i == 0) {
@@ -520,10 +541,10 @@ namespace Terradue.Portal {
                     }
                     
                     foreach (FieldInfo field in entityType.Fields) {
-                        if (field.FieldType == EntityFieldType.ComplexField && field.AutoStore) {
+                        /*if (field.FieldType == EntityFieldType.ComplexField && field.AutoStore) {
                             hasAutoStoreFields = true;
                             continue;
-                        }
+                        }*/
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
                         object value = field.Property.GetValue(this, null);
                         if (value == null) continue;
@@ -539,6 +560,11 @@ namespace Terradue.Portal {
                         names += field.FieldName;
                         value = (field.IsForeignKey && value != null && value.Equals(0) || field.NullValue != null && field.NullValue.Equals(value) ? "NULL" : StringUtils.ToSqlString(value));
                         values += value;
+                    }
+
+                    if (entityRelationshipType != null && referringItem != null && i == entityRelationshipType.TopStoreTableIndex) {
+                        names = String.Format("{0}, {1}", entityRelationshipType.TopStoreTable.ReferringItemField, names);
+                        values = String.Format("{0}, {1}", referringItem.Id, values);
                     }
 
                     string sql = String.Format("INSERT INTO {0} ({1}) VALUES ({2});", entityType.Tables[i].Name, names, values);
@@ -561,42 +587,28 @@ namespace Terradue.Portal {
                 Exists = true;
                 
             } else { // (2) - UPDATE
-                for (int i = 0; i < entityType.Tables.Count; i++) {
+                Console.WriteLine("UPDATE {0} {1} {2}", entityType.GetType().FullName, entityType.TopStoreTableIndex, entityType.Tables.Count);
+
+                for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string assignments = null;
                     if (i == 0) {
                         if (entityType.TopTable.HasIdentifierField) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
                         }
                         if (entityType.TopTable.HasNameField) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.NameField, StringUtils.EscapeSql(Name));
                         }
                         if (entityType.TopTable.HasOwnerReference) {
-                            if (assignments == null) {
-                                assignments = String.Empty;
-                            } else {
-                                assignments += ", ";
-                            }
+                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.OwnerReferenceField, OwnerId == 0 ? "NULL" : OwnerId.ToString());
                         }
                     }
                     
                     foreach (FieldInfo field in entityType.Fields) {
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
-                        if (assignments == null) {
-                            assignments = String.Empty;
-                        } else {
-                            assignments += ", ";
-                        }
+                        if (assignments == null) assignments = String.Empty; else assignments += ", ";
                         object value = field.Property.GetValue(this, null);
                         value = (field.IsForeignKey && value != null && value.Equals(0) || field.NullValue != null && field.NullValue.Equals(value) ? "NULL" : StringUtils.ToSqlString(value)); 
                         assignments += String.Format("{0}={1}", field.FieldName, value); 
@@ -802,7 +814,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual void LoadComplexFields(bool all) {
-            if (context.ConsoleDebug) Console.WriteLine("LCF " + all);
+/*            if (context.ConsoleDebug) Console.WriteLine("LCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
                 if (field.FieldType != EntityFieldType.ComplexField || !field.AutoLoad && !all) continue;
                 if (field.IsList) {
@@ -839,13 +851,13 @@ namespace Terradue.Portal {
                     //constructorInfo = field.Property.PropertyType.GetConstructor(new Type[]{typeof(IfyContext)}); 
                     //if (constructorInfo == null) continue;
                 }
-            }
+            }*/
         }
                 
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual void StoreComplexFields(bool all) {
-            if (context.ConsoleDebug) Console.WriteLine("SCF " + all);
+/*            if (context.ConsoleDebug) Console.WriteLine("SCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
                 if (field.FieldType != EntityFieldType.ComplexField || !field.AutoLoad && !all) continue;
                 if (field.IsList) {
@@ -884,7 +896,7 @@ namespace Terradue.Portal {
                     //constructorInfo = field.Property.PropertyType.GetConstructor(new Type[]{typeof(IfyContext)}); 
                     //if (constructorInfo == null) continue;
                 }
-            }
+            }*/
         }
                 
         //---------------------------------------------------------------------------------------------------------------------
