@@ -267,9 +267,9 @@ namespace Terradue.Portal {
             foreach (ForeignTableInfo foreignTable in source.ForeignTables) ForeignTables.Add(foreignTable);
             foreach (FieldInfo field in source.Fields) Fields.Add(field);
             TopTypeId = source.TopTypeId;
-            ClassName = source.ClassName;
-            GenericClassType = source.ClassType;
-            CustomClassType = source.CustomClassType;
+            /*ClassName = source.ClassName;
+            GenericClassType = source.GenericClassType;
+            CustomClassType = source.CustomClassType;*/
             TopTable = source.TopTable;
             PrivilegeSubjectTable = source.PrivilegeSubjectTable;
         }
@@ -431,7 +431,12 @@ namespace Terradue.Portal {
         protected virtual void GetEntityStructure(Type type) {
             if (type == null || type == typeof(Entity)) return;
             
-            GetEntityStructure(type.BaseType);
+            EntityType baseEntityType = GetEntityType(type.BaseType);
+            if (baseEntityType == null) {
+                GetEntityStructure(type.BaseType);
+            } else {
+                CopyFrom(baseEntityType);
+            }
             
             EntityTableAttribute tableInfo = null;
             
@@ -1026,15 +1031,6 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-/*        protected override void GetEntityStructure(Type type) {
-            if (type == null || type == typeof(Entity)) return;
-
-            EntityType baseType = GetEntityType(type);
-            CopyFrom(baseType);
-        }
-*/
-        //---------------------------------------------------------------------------------------------------------------------
-
         public void AddRelationship(PropertyInfo referencingProperty) {
             string tableName = null;
             string referringItemField = null;
@@ -1062,6 +1058,209 @@ namespace Terradue.Portal {
                 Tables.Add(table);
             }
         
+        }
+
+    }
+
+
+
+    public class TableInfo {
+
+        private bool autoCheckIdentifiers = true;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the database table that holds the items of the entity.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string Name { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string IdField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the primary key values are generated automatically by the underlying database management system.</summary>
+        /// <remarks>
+        ///     By default, the value is <c>true</c>, which normally means that the primary key value increases automatically with every new inserted record (through a sequence or auto_increment flag).
+        ///     Otherwise, an item's Id (<see cref="Terradue.Portal.Entity.Id"/>) must be set to a value different from 0 before the item is stored.
+        /// </remarks>
+        public bool HasAutomaticIds { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of an alternative unique key field for the table.</summary>
+        /// <remarks>By default, it is assumed that the alternative key field is named <c>identifier</c> and of a character type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string IdentifierField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the table has an alternative unique key.</summary>
+        public bool HasIdentifierField {
+            get { return IdentifierField != null; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the identifier of an item is checked for uniqueness among the items of the entity type.</summary>
+        public bool AutoCheckIdentifiers {
+            get {
+                return autoCheckIdentifiers || AutoCorrectDuplicateIdentifiers;
+            }
+            set {
+                autoCheckIdentifiers = value;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the identifier of a new item is automatically made unique if the chosen identifier already exists for an existing item.</summary>
+        /// <remarks>
+        ///     If this is false (the default case), a <see cref="DuplicateEntityIdentifierException"/> is thrown in case of a duplicate. 
+        ///     The property value applies only to new items. If an item is changed and its identifier conflicts with another one, the exception is always thrown.
+        /// </remarks>
+        public bool AutoCorrectDuplicateIdentifiers { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table field containing the human-readable name of an item.</summary>
+        /// <remarks>By default, it is assumed that this field is named <c>name</c> and of a character type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string NameField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the table has a field containing human-readable names.</summary>
+        public bool HasNameField {
+            get { return NameField != null; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field containing the fully qualified extension type name.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>type</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string TypeField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the extension type.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_type</c>.</remarks>
+        public string TypeReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the entity is designed to have specialized extensions.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public bool HasExtensions {
+            get { return TypeReferenceField != null || TypeField != null; }
+            set { 
+                if (value) {
+                    if (TypeReferenceField == null) TypeReferenceField = "id_type";
+                } else {
+                    TypeReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the domain of an item.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_domain</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string DomainReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasDomainReference {
+            get { return DomainReferenceField != null; }  
+            set { 
+                if (value) {
+                    if (DomainReferenceField == null) DomainReferenceField = "id_domain";
+                } else {
+                    DomainReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the user owning an item.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_usr</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string OwnerReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasOwnerReference {
+            get { return OwnerReferenceField != null; }
+            set { 
+                if (value) {
+                    if (OwnerReferenceField == null) OwnerReferenceField = "id_usr";
+                } else {
+                    OwnerReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table containing the privileges on the entity items for users and groups.</summary>
+        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string PrivilegeTable { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasPrivilegeManagement {
+            get { return PrivilegeTable != null; }
+            set { 
+                if (value) {
+                    if (PrivilegeTable == null) PrivilegeTable = Name + "_priv";
+                } else {
+                    PrivilegeTable = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool HasNestedData { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the information in the database table is required for the entity.</summary>
+        /// <remarks>If the value is <c>true</c> (the default value) the selecting SQL query uses an <c>INNER JOIN</c>; otherweise a <c>LEFT JOIN</c>. This setting has only effect on tables that come after the first (or top) table in the join.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public bool IsRequired { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityTableStorage Storage { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string ReferringItemField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public TableInfo(EntityTableAttribute attribute) {
+            /*this.Name = name;
+            this.IdField = DefaultIdFieldName;
+            this.HasAutomaticIds = true;
+            if (config == EntityTableConfiguration.Full) {
+                this.IdentifierField = DefaultIdentifierFieldName;
+                this.NameField = DefaultNameFieldName;
+            }
+            this.Storage = EntityTableStorage.Here;
+            this.IsRequired = true;*/
         }
 
     }

@@ -238,7 +238,6 @@ namespace Terradue.Portal {
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
-                Console.WriteLine("LOAD {0}", entityType.TopStoreTable.Name);
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Load(entityType, reader);
                 if (template != null) AlignWithTemplate(item, false);
