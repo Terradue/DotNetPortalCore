@@ -37,6 +37,7 @@ namespace Terradue.Portal {
 
     
 
+    [Obsolete("This class will be removed (operations on entities are done by method calls, usually from the web server code)")]
     public class EntityOperation {
         
         //---------------------------------------------------------------------------------------------------------------------
