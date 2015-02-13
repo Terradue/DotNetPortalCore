@@ -331,16 +331,24 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public static EntityType AddEntityType(Type type) {
+            Type actualType = type;
             EntityType entityType = null;
-            foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
-                if (attribute is EntityRelationshipTableAttribute) entityType = new EntityRelationshipType(type);
-                else if (attribute is EntityTableAttribute) entityType = new EntityType(type);
-                else continue;
-                break;
+
+            while (type != null && type != typeof(Entity)) {
+                foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
+                    if (attribute is EntityRelationshipTableAttribute) entityType = new EntityRelationshipType(actualType);
+                    else if (attribute is EntityTableAttribute) entityType = new EntityType(actualType);
+                    else {
+                        Console.WriteLine("A {0} - {1}", actualType.FullName, type.FullName);
+                        continue;
+                    }
+                    entityTypes[actualType] = entityType;
+                    return entityType;
+                }
+                type = type.BaseType;
+                Console.WriteLine("B {0} - {1}", actualType.FullName, type.FullName);
             }
-            if (entityType == null) throw new InvalidOperationException(String.Format("Entity information not available: {0}", type.FullName));
-            entityTypes[type] = entityType;
-            return entityType;
+            throw new InvalidOperationException(String.Format("Entity information not available: {0}", actualType.FullName));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
