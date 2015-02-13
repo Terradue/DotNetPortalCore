@@ -199,6 +199,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public EntityTableStorage Storage { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string ReferringItemField { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -214,6 +218,34 @@ namespace Terradue.Portal {
             this.IsRequired = true;
         }
         
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Attribute that allows to link a subclass of Entity to a database table.</summary>
+    /// <remarks>This attribute is used in combination with the EntityDataFieldAttribute attributes at property level.</remarks>
+    /// \ingroup Persistence
+    /// \xrefitem uml "UML" "UML Diagram"
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    public class EntityRelationshipTableAttribute : EntityTableAttribute {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipTableAttribute(string name, string referringItemField, string referencedItemField) : base(name, EntityTableConfiguration.Custom) {
+            this.Name = name;
+            this.ReferringItemField = referringItemField;
+            this.IdField = referencedItemField;
+            this.HasAutomaticIds = false;
+            this.Storage = EntityTableStorage.Here;
+            this.IsRequired = true;
+        }
+
     }
 
 
@@ -294,6 +326,45 @@ namespace Terradue.Portal {
             this.SubIndex = subIndex;
             this.IdField = EntityTableAttribute.DefaultIdFieldName;
             this.ReferenceField = EntityTableAttribute.DefaultIdFieldName;
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Attribute that represents a relationships.</summary>
+    /// <remarks>This attribute is used on properties that are  combination with the EntityDataFieldAttribute attributes at property level.</remarks>
+    /// \ingroup Persistence
+    /// \xrefitem uml "UML" "UML Diagram"
+    [AttributeUsage(AttributeTargets.Property, Inherited = false)]
+    public class EntityRelationshipAttribute : System.Attribute {
+
+        public string Name { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string ReferringItemField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string ReferencedItemField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipAttribute(string name) {
+            this.Name = name;
         }
 
     }
@@ -533,7 +604,7 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
     
-
+/*
     /// <summary>Attribute that allows to link a multiple field in a foreign table to an instance property.</summary>
     /// <remarks>The property on which the attribute is applied should be of a type using the EntityTable attribute, or a List&lt;T&gt; (with T being such a type).</remarks>
     [AttributeUsage(AttributeTargets.Property)]
@@ -566,7 +637,7 @@ namespace Terradue.Portal {
         }
         
     }
-
+*/
 
 
     //-------------------------------------------------------------------------------------------------------------------------

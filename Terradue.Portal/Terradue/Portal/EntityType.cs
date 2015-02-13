@@ -56,6 +56,7 @@ namespace Terradue.Portal {
     public class EntityType : Entity {
         
         private static Dictionary<Type, EntityType> entityTypes = new Dictionary<Type, EntityType>();
+        private static Dictionary<PropertyInfo, EntityRelationshipType> entityRelationshipTypes = new Dictionary<PropertyInfo, EntityRelationshipType>();
 
         private string singularCaption, pluralCaption;
 
@@ -166,6 +167,18 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        public virtual EntityTableAttribute TopStoreTable {
+            get { return TopTable; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual int TopStoreTableIndex {
+            get { return 0; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityTableAttribute PrivilegeSubjectTable { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -248,6 +261,20 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        protected void CopyFrom(EntityType source) {
+            foreach (EntityTableAttribute table in source.Tables) Tables.Add(table);
+            foreach (ForeignTableInfo foreignTable in source.ForeignTables) ForeignTables.Add(foreignTable);
+            foreach (FieldInfo field in source.Fields) Fields.Add(field);
+            TopTypeId = source.TopTypeId;
+            /*ClassName = source.ClassName;
+            GenericClassType = source.GenericClassType;
+            CustomClassType = source.CustomClassType;*/
+            TopTable = source.TopTable;
+            PrivilegeSubjectTable = source.PrivilegeSubjectTable;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Creates a new EntityType instance.</summary>
         /// <param name="context">The execution environment context.</param>
@@ -304,9 +331,24 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public static EntityType AddEntityType(Type type) {
-            EntityType entityType = new EntityType(type);
-            entityTypes[type] = entityType;
-            return entityType;
+            Type actualType = type;
+            EntityType entityType = null;
+
+            while (type != null && type != typeof(Entity)) {
+                foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
+                    if (attribute is EntityRelationshipTableAttribute) entityType = new EntityRelationshipType(actualType);
+                    else if (attribute is EntityTableAttribute) entityType = new EntityType(actualType);
+                    else {
+                        Console.WriteLine("A {0} - {1}", actualType.FullName, type.FullName);
+                        continue;
+                    }
+                    entityTypes[actualType] = entityType;
+                    return entityType;
+                }
+                type = type.BaseType;
+                Console.WriteLine("B {0} - {1}", actualType.FullName, type.FullName);
+            }
+            throw new InvalidOperationException(String.Format("Entity information not available: {0}", actualType.FullName));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -325,6 +367,33 @@ namespace Terradue.Portal {
                 if (result == null || result.Tables.Count == 0) throw new InvalidOperationException(String.Format("Entity information not available: {0}", type.FullName));
             }
             return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static EntityRelationshipType AddEntityRelationshipType(PropertyInfo referencingProperty, Type type) {
+            EntityRelationshipType entityRelationshipType = new EntityRelationshipType(type, referencingProperty);
+            entityRelationshipTypes[referencingProperty] = entityRelationshipType;
+            return entityRelationshipType;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static EntityRelationshipType GetOrAddEntityRelationshipType(PropertyInfo propertyInfo) {
+            Type actualType = (propertyInfo.PropertyType.GetGenericArguments().Length == 1 ? propertyInfo.PropertyType.GetGenericArguments()[0] : null);
+            if (actualType == null) throw new InvalidOperationException("Entity information not available because property type has no type parameter");
+
+            EntityRelationshipType result = (entityTypes.ContainsKey(actualType) ? entityTypes[actualType] as EntityRelationshipType : null);
+            if (result != null) return result;
+
+            result = (entityRelationshipTypes.ContainsKey(propertyInfo) ? entityRelationshipTypes[propertyInfo] : null);
+            if (result == null) {
+                result = AddEntityRelationshipType(propertyInfo, actualType);
+                if (result == null || result.Tables.Count == 0) throw new InvalidOperationException(String.Format("Entity information not available: {0}", actualType.FullName));
+                return result;
+            }
+
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -367,15 +436,23 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private void GetEntityStructure(Type type) {
+        protected virtual void GetEntityStructure(Type type) {
             if (type == null || type == typeof(Entity)) return;
             
-            GetEntityStructure(type.BaseType);
+            EntityType baseEntityType = GetEntityType(type.BaseType);
+            if (baseEntityType == null) {
+                GetEntityStructure(type.BaseType);
+            } else {
+                CopyFrom(baseEntityType);
+            }
             
             EntityTableAttribute tableInfo = null;
             
             foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
-                if (attribute is EntityTableAttribute) tableInfo = attribute as EntityTableAttribute;
+                if (attribute is EntityRelationshipTableAttribute) tableInfo = attribute as EntityRelationshipTableAttribute;
+                else if (attribute is EntityTableAttribute) tableInfo = attribute as EntityTableAttribute;
+                else continue;
+                break;
             }
             
             if (tableInfo == null) return;
@@ -413,7 +490,14 @@ namespace Terradue.Portal {
                     if (IfyContext.DefaultConsoleDebug) Console.WriteLine("FOREIGN TABLE {0}", foreignTableInfo.Name);
                 }
             }
+
+            AppendProperties(type, tableIndex);
             
+        }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        protected void AppendProperties(Type type, int tableIndex) {
             foreach (PropertyInfo pi in type.GetProperties()) {
                 if (pi.DeclaringType != type) continue;
                 foreach (System.Attribute attribute in pi.GetCustomAttributes(true)) {
@@ -429,14 +513,17 @@ namespace Terradue.Portal {
                     } else if (attribute is EntityEntityFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [E] {0,-20} {1}", (attribute as EntityEntityFieldAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityEntityFieldAttribute));
-                    } else if (attribute is EntityComplexFieldAttribute) {
+                    } else if (attribute is EntityRelationshipAttribute) {
+                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [R] {0,-20} {1}", (attribute as EntityRelationshipAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
+                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityRelationshipAttribute));
+                    }/* else if (attribute is EntityComplexFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [C] {0,-20} {1}", "[no name]",  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityComplexFieldAttribute));
-                    }
+                    }*/
                 }
             }
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Checks whether the item with the specified database ID exists in the database.</summary>
@@ -459,28 +546,46 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets the SQL query for selecting a single item on behalf of the user with the specified ID.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
+        /// <param name="condition">Additional SQL condition.</param>
+        /// <returns>The SQL query.</returns>
         public string GetItemQuery(IfyContext context, int userId, string condition) {
             return GetQuery(context, userId, null, condition, false, false);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets the full or IDs-only SQL query for selecting a single item on behalf of the user with the specified ID.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
+        /// <param name="condition">Additional SQL condition.</param>
+        /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <returns>The SQL query.</returns>
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly) {
             return GetQuery(context, userId, null, condition, true, idsOnly);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetListQuery(IfyContext context, int userId, Entity template, bool idsOnly) {
+        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
             string condition = (template == null ? null : GetTemplateCondition(template, false));
             return GetQuery(context, userId, template, condition, true, idsOnly);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetListQuery(IfyContext context, int userId, bool ownedOnly, bool idsOnly) {
+        public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
+            string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex, TopStoreTable.ReferringItemField, referringItem.Id);
+            return GetQuery(context, userId, null, condition, true, idsOnly);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string GetListQueryForOwnedItems(IfyContext context, int userId, bool idsOnly) {
             string condition = null;
-            if (userId != 0 && ownedOnly && TopTable.HasOwnerReference) {
+            if (userId != 0 && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
@@ -630,6 +735,7 @@ namespace Terradue.Portal {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("(p.id_usr={0} OR ug.id_usr={0} OR p.id_usr IS NULL AND p.id_grp IS NULL)", userId);
             }
+
             if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
 
             // Add GROUP BY aggregation if necessary
@@ -906,6 +1012,275 @@ namespace Terradue.Portal {
 
 
 
+    public class EntityRelationshipType : EntityType {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override EntityTableAttribute TopStoreTable {
+            get { return Tables[Tables.Count - 1]; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override int TopStoreTableIndex {
+            get { return Tables.Count - 1; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipType(Type type) : base(type) {
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityRelationshipType(Type type, PropertyInfo referencingProperty) : base(type) {
+            AddRelationship(referencingProperty);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void AddRelationship(PropertyInfo referencingProperty) {
+            string tableName = null;
+            string referringItemField = null;
+            string referencedItemField = null;
+
+            foreach (System.Attribute attribute in referencingProperty.GetCustomAttributes(true)) {
+                if (attribute is EntityRelationshipAttribute) {
+                    tableName = (attribute as EntityRelationshipAttribute).Name;
+                    referringItemField = (attribute as EntityRelationshipAttribute).ReferringItemField;
+                    referencedItemField = (attribute as EntityRelationshipAttribute).ReferencedItemField;
+                }
+            }
+
+            if (referringItemField == null) referringItemField = String.Format("id_{0}", GetOrAddEntityType(referencingProperty.DeclaringType).TopTable.Name);
+            if (referencedItemField == null) referencedItemField = String.Format("id_{0}", TopTable.Name);
+
+            EntityTableAttribute table;
+            if (Tables.Count != 0 && Tables[Tables.Count - 1].Name == tableName) {
+                table = Tables[Tables.Count - 1];
+            } else {
+                table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);
+                table.ReferringItemField = referringItemField;
+                table.IdField = referencedItemField;
+                Console.WriteLine("REFERING {0}, REFERENCED {1}", referringItemField, referencedItemField);
+                Tables.Add(table);
+            }
+        
+        }
+
+    }
+
+
+
+    public class TableInfo {
+
+        private bool autoCheckIdentifiers = true;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the database table that holds the items of the entity.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string Name { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table's primary key field.</summary>
+        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string IdField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the primary key values are generated automatically by the underlying database management system.</summary>
+        /// <remarks>
+        ///     By default, the value is <c>true</c>, which normally means that the primary key value increases automatically with every new inserted record (through a sequence or auto_increment flag).
+        ///     Otherwise, an item's Id (<see cref="Terradue.Portal.Entity.Id"/>) must be set to a value different from 0 before the item is stored.
+        /// </remarks>
+        public bool HasAutomaticIds { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of an alternative unique key field for the table.</summary>
+        /// <remarks>By default, it is assumed that the alternative key field is named <c>identifier</c> and of a character type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string IdentifierField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the table has an alternative unique key.</summary>
+        public bool HasIdentifierField {
+            get { return IdentifierField != null; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the identifier of an item is checked for uniqueness among the items of the entity type.</summary>
+        public bool AutoCheckIdentifiers {
+            get {
+                return autoCheckIdentifiers || AutoCorrectDuplicateIdentifiers;
+            }
+            set {
+                autoCheckIdentifiers = value;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the identifier of a new item is automatically made unique if the chosen identifier already exists for an existing item.</summary>
+        /// <remarks>
+        ///     If this is false (the default case), a <see cref="DuplicateEntityIdentifierException"/> is thrown in case of a duplicate. 
+        ///     The property value applies only to new items. If an item is changed and its identifier conflicts with another one, the exception is always thrown.
+        /// </remarks>
+        public bool AutoCorrectDuplicateIdentifiers { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table field containing the human-readable name of an item.</summary>
+        /// <remarks>By default, it is assumed that this field is named <c>name</c> and of a character type.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string NameField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the table has a field containing human-readable names.</summary>
+        public bool HasNameField {
+            get { return NameField != null; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field containing the fully qualified extension type name.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>type</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string TypeField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the extension type.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_type</c>.</remarks>
+        public string TypeReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the entity is designed to have specialized extensions.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public bool HasExtensions {
+            get { return TypeReferenceField != null || TypeField != null; }
+            set { 
+                if (value) {
+                    if (TypeReferenceField == null) TypeReferenceField = "id_type";
+                } else {
+                    TypeReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the domain of an item.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_domain</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string DomainReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasDomainReference {
+            get { return DomainReferenceField != null; }  
+            set { 
+                if (value) {
+                    if (DomainReferenceField == null) DomainReferenceField = "id_domain";
+                } else {
+                    DomainReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the field referencing the user owning an item.</summary>
+        /// <remarks>By default, it is assumed that the field is named <c>id_usr</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string OwnerReferenceField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasOwnerReference {
+            get { return OwnerReferenceField != null; }
+            set { 
+                if (value) {
+                    if (OwnerReferenceField == null) OwnerReferenceField = "id_usr";
+                } else {
+                    OwnerReferenceField = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the table containing the privileges on the entity items for users and groups.</summary>
+        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public string PrivilegeTable { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the .</summary>
+        public bool HasPrivilegeManagement {
+            get { return PrivilegeTable != null; }
+            set { 
+                if (value) {
+                    if (PrivilegeTable == null) PrivilegeTable = Name + "_priv";
+                } else {
+                    PrivilegeTable = null;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool HasNestedData { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the information in the database table is required for the entity.</summary>
+        /// <remarks>If the value is <c>true</c> (the default value) the selecting SQL query uses an <c>INNER JOIN</c>; otherweise a <c>LEFT JOIN</c>. This setting has only effect on tables that come after the first (or top) table in the join.</remarks>
+        /// \xrefitem uml "UML" "UML Diagram"
+        public bool IsRequired { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityTableStorage Storage { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string ReferringItemField { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public TableInfo(EntityTableAttribute attribute) {
+            /*this.Name = name;
+            this.IdField = DefaultIdFieldName;
+            this.HasAutomaticIds = true;
+            if (config == EntityTableConfiguration.Full) {
+                this.IdentifierField = DefaultIdentifierFieldName;
+                this.NameField = DefaultNameFieldName;
+            }
+            this.Storage = EntityTableStorage.Here;
+            this.IsRequired = true;*/
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
     public class ForeignTableInfo {
         public string Name { get; protected set; }
         public string Join { get; protected set; }
@@ -1030,6 +1405,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public FieldInfo(PropertyInfo @property, int tableIndex, EntityRelationshipAttribute attribute) : this(@property, tableIndex, attribute.Name) {
+            this.FieldType = EntityFieldType.RelationshipField;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+/*
         public FieldInfo(PropertyInfo @property, int tableIndex, EntityComplexFieldAttribute attribute) : this(@property, tableIndex, null as string) {
             this.FieldType = EntityFieldType.ComplexField;
             this.ReferenceField = attribute.ReferenceField;
@@ -1047,7 +1428,7 @@ namespace Terradue.Portal {
                 this.UnderlyingType = Property.PropertyType;
             }
         }
-
+*/
         //---------------------------------------------------------------------------------------------------------------------
 
         public void SetIgnoreValue(Type type) {
@@ -1072,7 +1453,8 @@ namespace Terradue.Portal {
         DataField,
         ForeignField,
         EntityField,
-        ComplexField
+        //ComplexField,
+        RelationshipField
     }
     
 
