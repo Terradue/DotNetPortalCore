@@ -577,7 +577,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
-            string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex, TopStoreTable.ReferringItemField, referringItem.Id);
+            string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
             return GetQuery(context, userId, null, condition, true, idsOnly);
         }
 
@@ -1056,7 +1056,7 @@ namespace Terradue.Portal {
             if (referencedItemField == null) referencedItemField = String.Format("id_{0}", TopTable.Name);
 
             EntityTableAttribute table;
-            if (Tables.Count != 0 && Tables[Tables.Count - 1].Name == tableName) {
+            if (Tables.Count != 0 && (tableName == null || Tables[Tables.Count - 1].Name == tableName)) {
                 table = Tables[Tables.Count - 1];
             } else {
                 table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);

@@ -187,7 +187,7 @@ namespace Terradue.Portal {
         public virtual void Load() {
             Identifier = entityType.Keyword;
 
-            if (!entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
+            if (!(entityType is EntityRelationshipType) && !entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
                 LoadList();
                 return;
             }
