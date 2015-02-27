@@ -337,9 +337,11 @@ namespace Terradue.Portal {
                 context.Execute(sql);
             }
 
+            bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                item.Store(entityType as EntityRelationshipType, ReferringItem);
+                if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
+                else item.Store();
             }
         }
 
