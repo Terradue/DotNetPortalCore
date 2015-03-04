@@ -187,7 +187,7 @@ namespace Terradue.Portal {
         public virtual void Load() {
             Identifier = entityType.Keyword;
 
-            if (!entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
+            if (!(entityType is EntityRelationshipType) && !entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
                 LoadList();
                 return;
             }
@@ -337,9 +337,11 @@ namespace Terradue.Portal {
                 context.Execute(sql);
             }
 
+            bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                item.Store(entityType as EntityRelationshipType, ReferringItem);
+                if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
+                else item.Store();
             }
         }
 

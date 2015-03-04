@@ -41,6 +41,12 @@ namespace Terradue.Portal {
         public string AccessKey { get; set; }
 
 		//---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the UTC date and time of the resourceset's creation.</summary>
+        [EntityDataField("creation_time")]
+        public DateTime CreationTime { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
 		
         //[EntityComplexField(ReferenceField = "id_set", AutoLoad = true)]
         /// <summary>
