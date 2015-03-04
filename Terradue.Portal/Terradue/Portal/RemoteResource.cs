@@ -109,7 +109,15 @@ namespace Terradue.Portal {
 			List<GenericOpenSearchable> osResources = new List<GenericOpenSearchable>(Resources.Count);
 
 			foreach (RemoteResource res in Resources) {
-				osResources.Add(new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose));
+                var entity = new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
+                var eosd = entity.GetOpenSearchDescription();
+                if (eosd.DefaultUrl != null && eosd.DefaultUrl.Type == "application/json") {
+                    var atomUrl = eosd.Url.FirstOrDefault(u => u.Type == "application/atom+xml");
+                    if (atomUrl != null)
+                        eosd.DefaultUrl = atomUrl;
+                }
+
+                osResources.Add(entity);
 			}
 
 			return osResources.ToArray();
