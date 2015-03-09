@@ -140,10 +140,15 @@ namespace Terradue.Portal {
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/remoteresource/" + this.Identifier;
             var array = (from key in parameters.AllKeys
-                from value in parameters.GetValues(key)
-                select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
+                         from value in parameters.GetValues(key)
+                         select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
+
+            if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"]=="true") {
+                return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
+            }
+
             return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
 		}
 
@@ -207,7 +212,9 @@ namespace Terradue.Portal {
 
 		public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 			if (mimeType != "application/atom+xml") return null;
-			return OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
+            var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
+            parameters.Set("os:grouped", "grouped");
+            return parameters;
 		}
 
         //---------------------------------------------------------------------------------------------------------------------
