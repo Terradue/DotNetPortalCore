@@ -41,15 +41,22 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates or decides whether the authentication method is enabled.</summary>
+        /// <summary>Indicates or decides whether this authentication method is enabled.</summary>
         [EntityDataField("enabled")]
         public bool IsEnabled { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets (protected) the rule whether and how the authentication type is applicable to new normal user accounts.</summary>
+        /// <summary>Gets or sets (protected) the rule for the activation of user accounts created by this .</summary>
         /// \xrefitem uml "UML" "UML Diagram"
-        [EntityDataField("rule")]
+        [EntityDataField("activation_rule")]
+        public int AccountActivationRule { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets (protected) the rule whether and how this authentication type is applicable to new normal user accounts.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        [EntityDataField("normal_rule")]
         public RuleApplicationType NormalAccountRule { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -167,6 +174,19 @@ namespace Terradue.Portal {
         /// <param name="response">The current HttpResponse for reference.</param>
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual void EndExternalSession(IfyWebContext context, HttpRequest request, HttpResponse response) {}
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public int GetDefaultAccountStatus() {
+            switch (AccountActivationRule) {
+                case AccountActivationRuleType.ActiveAfterApproval :
+                case AccountActivationRuleType.ActiveAfterMail :
+                    return AccountStatusType.PendingActivation;
+                case AccountActivationRuleType.ActiveImmediately :
+                    return AccountStatusType.Enabled;
+            }
+            return AccountStatusType.Disabled;
+        }
 
     }
     

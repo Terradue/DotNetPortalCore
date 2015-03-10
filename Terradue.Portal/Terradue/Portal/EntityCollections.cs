@@ -466,7 +466,7 @@ namespace Terradue.Portal {
 
             // Load all avaialable Datasets according to the context
 
-            PaginatedList<AtomItem> pds = new PaginatedList<AtomItem>();
+            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem>();
 
             int startIndex = 1;
             if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);
