@@ -435,6 +435,10 @@ namespace Terradue.Portal {
                         continue;
                 }
 
+                if (!string.IsNullOrEmpty(parameters["author"])) {
+                    if (!(User.FromId(context, s.OwnerId)).Username.Equals(parameters["author"])) return null;
+                }
+
                 if (s is IAtomizable) {
                     AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
                     if(item != null) items.Add(item);
@@ -466,7 +470,7 @@ namespace Terradue.Portal {
 
             // Load all avaialable Datasets according to the context
 
-            PaginatedList<AtomItem> pds = new PaginatedList<AtomItem>();
+            var pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem>();
 
             int startIndex = 1;
             if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);
