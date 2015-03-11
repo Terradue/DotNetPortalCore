@@ -36,8 +36,12 @@ namespace Terradue.Portal.Test {
             }
 
             CoreModule core = new CoreModule(this, String.Format("{0}/../../core", Directory.GetCurrentDirectory()));
-            core.Install();
-
+            try{
+                core.Install();
+            } catch (Exception e) {
+                Console.Error.WriteLine(e.Message);
+                throw e;
+            }
             CloseConnection();
 
             try {
