@@ -115,7 +115,15 @@ namespace Terradue.Portal {
 			List<GenericOpenSearchable> osResources = new List<GenericOpenSearchable>(Resources.Count);
 
 			foreach (RemoteResource res in Resources) {
-				osResources.Add(new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose));
+                var entity = new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
+                var eosd = entity.GetOpenSearchDescription();
+                if (eosd.DefaultUrl != null && eosd.DefaultUrl.Type == "application/json") {
+                    var atomUrl = eosd.Url.FirstOrDefault(u => u.Type == "application/atom+xml");
+                    if (atomUrl != null)
+                        eosd.DefaultUrl = atomUrl;
+                }
+
+                osResources.Add(entity);
 			}
 
 			return osResources.ToArray();
@@ -132,10 +140,15 @@ namespace Terradue.Portal {
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/remoteresource/" + this.Identifier;
             var array = (from key in parameters.AllKeys
-                from value in parameters.GetValues(key)
-                select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
+                         from value in parameters.GetValues(key)
+                         select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
+
+            if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"]=="true") {
+                return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
+            }
+
             return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
 		}
 
@@ -199,7 +212,9 @@ namespace Terradue.Portal {
 
 		public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 			if (mimeType != "application/atom+xml") return null;
-			return OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
+            var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
+            parameters.Set("os:grouped", "grouped");
+            return parameters;
 		}
 
         //---------------------------------------------------------------------------------------------------------------------

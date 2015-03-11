@@ -337,9 +337,11 @@ namespace Terradue.Portal {
                 context.Execute(sql);
             }
 
+            bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                item.Store(entityType as EntityRelationshipType, ReferringItem);
+                if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
+                else item.Store();
             }
         }
 
@@ -433,6 +435,10 @@ namespace Terradue.Portal {
                         continue;
                 }
 
+                if (!string.IsNullOrEmpty(parameters["author"])) {
+                    if (!(User.FromId(context, s.OwnerId)).Username.Equals(parameters["author"])) return null;
+                }
+
                 if (s is IAtomizable) {
                     AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
                     if(item != null) items.Add(item);
@@ -464,7 +470,7 @@ namespace Terradue.Portal {
 
             // Load all avaialable Datasets according to the context
 
-            PaginatedList<AtomItem> pds = new PaginatedList<AtomItem>();
+            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem>();
 
             int startIndex = 1;
             if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);

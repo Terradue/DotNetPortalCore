@@ -1,4 +1,4 @@
--- VERSION 2.6.18
+-- VERSION 2.6.19
 
 USE $MAIN$;
 
@@ -303,7 +303,8 @@ CREATE TABLE auth (
     description text COMMENT 'Description of authentication type',
     type varchar(100) NOT NULL COMMENT 'Fully qualified name of class implementing authentication type',
     enabled boolean NOT NULL DEFAULT true COMMENT 'If true, authentication type is enabled',
-    rule int NOT NULL DEFAULT 2 COMMENT 'Rule for normal accounts',
+    activation_rule int NOT NULL DEFAULT 0 COMMENT 'Rule for account activation',
+    normal_rule int NOT NULL DEFAULT 2 COMMENT 'Rule for normal accounts',
     refresh_period int NOT NULL DEFAULT 0 COMMENT 'Refresh period for external authentication',
     config varchar(200) COMMENT 'Path to configuration file',
     CONSTRAINT pk_auth PRIMARY KEY (id),
@@ -312,10 +313,10 @@ CREATE TABLE auth (
 -- CHECKPOINT C-04a
 
 -- Initializing basic user authentication types ... \
-INSERT INTO auth (pos, identifier, name, description, type, enabled, rule) VALUES
-    (1, 'password', 'Password authentication', 'Password authentication allows users to identify themselves by username and password.', 'Terradue.Portal.PasswordAuthenticationType, Terradue.Portal', true, 2),
-    (2, 'token', 'Token authentication', 'With token authentication a user presents an automatically generated random token that is only known to him and can only be used once. This authentication type is used in very specific situations, e.g. for resetting passwords.', 'Terradue.Portal.TokenAuthenticationType, Terradue.Portal', true, 2),
-    (3, 'certificate', 'Certificate authentication', 'Certificate authentication allows users to identify themselves by presenting a client certificate. The client certificate subject must match the subject configured for the user account. The certificate authenticity must be guaranteed by the web server configuration.', 'Terradue.Portal.CertificateAuthenticationType, Terradue.Portal', true, 2)
+INSERT INTO auth (pos, identifier, name, description, type, enabled) VALUES
+    (1, 'password', 'Password authentication', 'Password authentication allows users to identify themselves by username and password.', 'Terradue.Portal.PasswordAuthenticationType, Terradue.Portal', true),
+    (2, 'token', 'Token authentication', 'With token authentication a user presents an automatically generated random token that is only known to him and can only be used once. This authentication type is used in very specific situations, e.g. for resetting passwords.', 'Terradue.Portal.TokenAuthenticationType, Terradue.Portal', true),
+    (3, 'certificate', 'Certificate authentication', 'Certificate authentication allows users to identify themselves by presenting a client certificate. The client certificate subject must match the subject configured for the user account. The certificate authenticity must be guaranteed by the web server configuration.', 'Terradue.Portal.CertificateAuthenticationType, Terradue.Portal', true)
 ;
 -- RESULT
 -- CHECKPOINT C-04b
@@ -1477,7 +1478,7 @@ CREATE TABLE resourceset (
     name varchar(50) COMMENT 'Name',
     is_default boolean DEFAULT false COMMENT 'If true, resource set is selected by default',
     access_key varchar(50) COMMENT 'Access key',
-    creation_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
+    creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
     CONSTRAINT pk_resourceset PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_resourceset_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
