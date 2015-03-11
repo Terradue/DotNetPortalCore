@@ -1,4 +1,4 @@
--- VERSION 2.6.18
+-- VERSION 2.6.19
 
 USE $MAIN$;
 
@@ -303,7 +303,8 @@ CREATE TABLE auth (
     description text COMMENT 'Description of authentication type',
     type varchar(100) NOT NULL COMMENT 'Fully qualified name of class implementing authentication type',
     enabled boolean NOT NULL DEFAULT true COMMENT 'If true, authentication type is enabled',
-    rule int NOT NULL DEFAULT 2 COMMENT 'Rule for normal accounts',
+    activation_rule int NOT NULL DEFAULT 0 COMMENT 'Rule for account activation',
+    normal_rule int NOT NULL DEFAULT 2 COMMENT 'Rule for normal accounts',
     refresh_period int NOT NULL DEFAULT 0 COMMENT 'Refresh period for external authentication',
     config varchar(200) COMMENT 'Path to configuration file',
     CONSTRAINT pk_auth PRIMARY KEY (id),

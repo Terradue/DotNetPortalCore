@@ -248,7 +248,7 @@ namespace Terradue.Portal {
                 IfyWebContext webContext = context as IfyWebContext;
                 User result = User.GetInstance(context);
                 result.Username = username;
-                result.AccountStatus = (webContext == null ? AccountStatusType.Deactivated : webContext.DefaultAccountStatus);
+                result.AccountStatus = (authenticationType == null ? webContext == null ? AccountStatusType.Deactivated : webContext.DefaultAccountStatus : authenticationType.GetDefaultAccountStatus());
                 result.Level = UserLevel.User;
                 result.TimeZone = "UTC";
                 result.IsNormalAccount = true;
