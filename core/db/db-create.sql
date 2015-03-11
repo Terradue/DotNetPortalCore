@@ -313,10 +313,10 @@ CREATE TABLE auth (
 -- CHECKPOINT C-04a
 
 -- Initializing basic user authentication types ... \
-INSERT INTO auth (pos, identifier, name, description, type, enabled, rule) VALUES
-    (1, 'password', 'Password authentication', 'Password authentication allows users to identify themselves by username and password.', 'Terradue.Portal.PasswordAuthenticationType, Terradue.Portal', true, 2),
-    (2, 'token', 'Token authentication', 'With token authentication a user presents an automatically generated random token that is only known to him and can only be used once. This authentication type is used in very specific situations, e.g. for resetting passwords.', 'Terradue.Portal.TokenAuthenticationType, Terradue.Portal', true, 2),
-    (3, 'certificate', 'Certificate authentication', 'Certificate authentication allows users to identify themselves by presenting a client certificate. The client certificate subject must match the subject configured for the user account. The certificate authenticity must be guaranteed by the web server configuration.', 'Terradue.Portal.CertificateAuthenticationType, Terradue.Portal', true, 2)
+INSERT INTO auth (pos, identifier, name, description, type, enabled) VALUES
+    (1, 'password', 'Password authentication', 'Password authentication allows users to identify themselves by username and password.', 'Terradue.Portal.PasswordAuthenticationType, Terradue.Portal', true),
+    (2, 'token', 'Token authentication', 'With token authentication a user presents an automatically generated random token that is only known to him and can only be used once. This authentication type is used in very specific situations, e.g. for resetting passwords.', 'Terradue.Portal.TokenAuthenticationType, Terradue.Portal', true),
+    (3, 'certificate', 'Certificate authentication', 'Certificate authentication allows users to identify themselves by presenting a client certificate. The client certificate subject must match the subject configured for the user account. The certificate authenticity must be guaranteed by the web server configuration.', 'Terradue.Portal.CertificateAuthenticationType, Terradue.Portal', true)
 ;
 -- RESULT
 -- CHECKPOINT C-04b
