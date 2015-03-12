@@ -372,6 +372,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public virtual List<T> GetItemsAsList() {
+            return new List<T>(Items);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Sets the template.</summary>
         /// <param name="item">The item.</param>
         protected void AlignWithTemplate(T item, bool all) {
