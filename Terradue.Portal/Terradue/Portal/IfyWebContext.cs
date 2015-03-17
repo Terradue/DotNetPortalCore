@@ -49,7 +49,7 @@ namespace Terradue.Portal {
     /// \ingroup Context
     public class IfyWebContext : IfyContext, IInputSource, IResponseNonceStorage {
         private static EntityDictionary<AuthenticationType> authenticationTypes;
-        public static PasswordAuthenticationType passwordAuthenticationType; // TODO: protected
+        public static PasswordAuthenticationType passwordAuthenticationType;
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -681,7 +681,7 @@ namespace Terradue.Portal {
         /// <exception cref="UnauthorizedAccessException">If the account is deactivated or disabled.</exception>
         /// <exception cref="UnauthorizedAccessException">If the account is waiting for an activation  </exception>
         /// <param name="user">The user for whom the session is to be started.</param>
-        public void CheckCanStartSession(User user) {
+        public virtual void CheckCanStartSession(User user) {
             switch (user.AccountStatus) {
                 case AccountStatusType.Disabled :
                     throw new UnauthorizedAccessException("The user account has been disabled");
