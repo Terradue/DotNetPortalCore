@@ -1814,7 +1814,6 @@ CREATE TABLE schedulerparam (
     name varchar(50) NOT NULL COMMENT 'Parameter name',
     type varchar(25) COMMENT 'Type identifier',
     value text COMMENT 'Parameter value',
-    INDEX (id_scheduler, name),
     CONSTRAINT fk_schedulerparam_scheduler FOREIGN KEY (id_scheduler) REFERENCES scheduler(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Parameters of task schedulers';
 -- CHECKPOINT C-59

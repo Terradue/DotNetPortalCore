@@ -1707,22 +1707,29 @@ namespace Terradue.Portal {
         /// <summary>Changes the current HTTP session information in order to impersonate another user.</summary>
         /// <param name="userId">the ID of the user to be impersonated</param>
         /// \xrefitem uml "UML" "UML Diagram"
-        public void StartImpersonation(int userId) {
+        public virtual void StartImpersonation(int userId) {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
             User user = User.FromId(this, userId);
             UserInformation.Update(user);
+            UserId = user.Id;
+            UserLevel = user.Level;
+            UserCaption = user.Caption;
+
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Returns to the HTTP session information of the original user account.</summary>
         /// \xrefitem uml "UML" "UML Diagram"
-        public void EndImpersonation() {
+        public virtual void EndImpersonation() {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
             User user = User.FromId(this, UserInformation.OriginalUserId);
             UserInformation.Update(user);
+            UserId = user.Id;
+            UserLevel = user.Level;
+            UserCaption = user.Caption;
 
             // If impersonating user is authenticated through an authentication method different from a session cookie,
             // the current session (using the impersonated user's account) must be closed

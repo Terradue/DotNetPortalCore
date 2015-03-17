@@ -125,7 +125,10 @@ namespace Terradue.Portal {
         public override void Open() {
             base.Open();
             string username = GetConfigValue("AgentUser");
-            if (username != null) UserId = GetQueryIntegerValue(String.Format("SELECT id FROM usr WHERE username={0};", StringUtils.EscapeSql(username)));
+            if (username != null) {
+                UserId = GetQueryIntegerValue(String.Format("SELECT id FROM usr WHERE username={0};", StringUtils.EscapeSql(username)));
+                UserInformation = new UserInformation(null, User.FromUsername(this, username));
+            }
             UserLevel = Terradue.Portal.UserLevel.Administrator;
             RestrictedMode = false;
             //AdminMode = true;
