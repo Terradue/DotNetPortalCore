@@ -132,6 +132,7 @@
     <Compile Include="Terradue\Portal\VirtualEntity.cs" />
     <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
     <Compile Include="Terradue\Portal\generated\wps.cs" />
+    <Compile Include="Terradue\Portal\Safe.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
