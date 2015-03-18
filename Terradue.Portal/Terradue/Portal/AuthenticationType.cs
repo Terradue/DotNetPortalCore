@@ -380,6 +380,7 @@ namespace Terradue.Portal {
             if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
 
             User user = User.FromId(context, userId);
+            if (user.AccountStatus == AccountStatusType.Enabled) throw new InvalidOperationException("Account already enabled");
 
             if (user.AccountStatus == AccountStatusType.PendingActivation || user.AccountStatus == AccountStatusType.PasswordReset || user.FailedLogins != 0) {
                 user.AccountStatus = AccountStatusType.Enabled;
