@@ -587,8 +587,6 @@ namespace Terradue.Portal {
                 Exists = true;
                 
             } else { // (2) - UPDATE
-                Console.WriteLine("UPDATE {0} {1} {2}", entityType.GetType().FullName, entityType.TopStoreTableIndex, entityType.Tables.Count);
-
                 for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string assignments = null;
                     if (i == 0) {

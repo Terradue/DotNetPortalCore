@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -243,15 +244,30 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Loads the scheduler parameters from the database.</summary>
-        protected void LoadParameters() {
-/*            IDbConnection dbConnection = context.GetDbConnection();
+        public NameValueCollection LoadParametersTemp() {
+            NameValueCollection result = new NameValueCollection();
+            IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(String.Format("SELECT name, type, value FROM schedulerparam WHERE id_scheduler={0};", Id), dbConnection);
-            while (reader.Read()) RequestParameters.GetParameter(context, Service, reader.GetString(0), reader.GetString(1), null, reader.GetString(2));
-            context.CloseQueryResult(reader, dbConnection);*/
-
+            while (reader.Read()) result.Add(reader.GetString(0), reader.GetString(2));
+            context.CloseQueryResult(reader, dbConnection);
+            return result;
         }
               
-        
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Loads the scheduler parameters from the database.</summary>
+        public void StoreParametersTemp(NameValueCollection parameters) {
+            IDbConnection dbConnection = context.GetDbConnection();
+            foreach (string name in parameters.Keys) {
+                foreach (string value in parameters.GetValues(name)) {
+                    context.Execute(String.Format("INSERT INTO schedulerparam (id_scheduler, name, value) VALUES ({0}, {1}, {2});", Id, StringUtils.EscapeSql(name), StringUtils.EscapeSql(value)));
+                }
+            }
+            context.CloseDbConnection(dbConnection);
+
+        }
+
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Loads parameters from the specified task.</summary>
@@ -286,7 +302,7 @@ namespace Terradue.Portal {
             if (RunConfiguration != null) RunConfiguration.Store();
             if (HasTaskConfiguration) TaskConfiguration.Store();
 
-            if (existedBefore) context.Execute(String.Format("DELETE FROM schedulerparam WHERE id_scheduler={0};", Id));
+            //if (existedBefore) context.Execute(String.Format("DELETE FROM schedulerparam WHERE id_scheduler={0};", Id));
             CreateParameters();
         }
         

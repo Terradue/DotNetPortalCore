@@ -394,7 +394,7 @@ namespace Terradue.Portal {
 
         public void StorePassword(string newPassword) {
             if (ProfileExtension != null && !IgnoreExtensions) ProfileExtension.OnPasswordChanging(context, this, newPassword);
-            context.Execute(String.Format("UPDATE usr SET password=PASSWORD({1}) WHERE id={0}", Id, StringUtils.EscapeSql(password)));
+            context.Execute(String.Format("UPDATE usr SET password=PASSWORD({1}) WHERE id={0}", Id, StringUtils.EscapeSql(newPassword)));
             if (ProfileExtension != null && !IgnoreExtensions) ProfileExtension.OnPasswordChanged(context, this, newPassword);
         }
 
