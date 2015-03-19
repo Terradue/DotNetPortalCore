@@ -58,7 +58,7 @@
       <HintPath>..\packages\Terradue.ServiceModel.Ogc.OwsContext.1.0.6\lib\net40\Terradue.ServiceModel.Ogc.OwsContext.dll</HintPath>
     </Reference>
     <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.9.5\lib\net40\Terradue.OpenSearch.dll</HintPath>
+      <HintPath>..\packages\Terradue.OpenSearch.1.9.6\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -132,6 +132,7 @@
     <Compile Include="Terradue\Portal\VirtualEntity.cs" />
     <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
     <Compile Include="Terradue\Portal\generated\wps.cs" />
+    <Compile Include="Terradue\Portal\Safe.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
