@@ -260,7 +260,7 @@ namespace Terradue.Portal {
             IDbConnection dbConnection = context.GetDbConnection();
             foreach (string name in parameters.Keys) {
                 foreach (string value in parameters.GetValues(name)) {
-                    context.Execute(String.Format("INSERT INTO schedulerparam (id_scheduler, name, value) VALUES ({0}, {1}, {2});", Id, StringUtils.EscapeSql(name), StringUtils.EscapeSql(value)));
+                    context.Execute(String.Format("INSERT INTO schedulerparam (id_scheduler, name, value) VALUES ({0}, {1}, {2});", Id, StringUtils.EscapeSql(name), StringUtils.EscapeSql(value)), dbConnection);
                 }
             }
             context.CloseDbConnection(dbConnection);
