@@ -8,6 +8,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 
 namespace Terradue.Portal {
@@ -26,7 +28,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the public key</summary>
         [EntityDataField("public_key")]
-        public string PublicKey { get; set; }
+        protected string PublicKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -80,7 +82,12 @@ namespace Terradue.Portal {
             this.PrivateKey = null;
         }
 
-        public string GetPrivateKey(string password){
+        /// <summary>
+        /// Gets the private key in base64.
+        /// </summary>
+        /// <returns>The private key in base64.</returns>
+        /// <param name="password">Password.</param>
+        public string GetBase64SSHPrivateKey(string password){
             if (PrivateKey == null) throw new Exception("Private key has not been generated");
             //decrypt private key
             string decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
@@ -89,33 +96,135 @@ namespace Terradue.Portal {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(decrypted);
 
-            return FromRSAParametersToSSH(rsa.ExportParameters(true));
+            var privateBlob = System.Convert.ToBase64String(PrivateKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(true)));
+
+            var sb = new StringBuilder();
+            var privateLines = SpliceText(privateBlob, 64);
+            sb.AppendLine("-----BEGIN RSA PRIVATE KEY-----");
+            foreach (var line in privateLines)
+            {
+                sb.AppendLine(line);
+            }
+            sb.AppendLine("-----END RSA PRIVATE KEY-----");
+            return sb.ToString();
         }
 
-        public string GetPublicKeyForSSH(){
+        /// <summary>
+        /// Gets the public key for SSH in base64.
+        /// </summary>
+        /// <returns>The public key for SSH in base64.</returns>
+        public string GetBase64SSHPublicKey(){
             if (PublicKey == null) throw new Exception("Public key has not been generated");
+
             //get RSA
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.FromXmlString(this.PublicKey);
 
-            return FromRSAParametersToSSH(rsa.ExportParameters(false));
+            var publicblob = System.Convert.ToBase64String(PublicKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(false)));
+            return "ssh-rsa " + publicblob;
         }
 
-        public string GetPublicKeyForPutty(){
-            if (PublicKey == null) throw new Exception("Public key has not been generated");
+        /// <summary>
+        /// Gets the keys for putty.
+        /// </summary>
+        /// <returns>The keys for putty.</returns>
+        /// <param name="password">Password.</param>
+        public string GetKeysForPutty(string password){
+            if (PrivateKey == null) throw new Exception("Private key has not been generated");
+
+            //decrypt private key
+            string decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
+
             //get RSA
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(this.PublicKey);
+            rsa.FromXmlString(decrypted);
 
-            return FromRSAParametersToPutty(rsa.ExportParameters(false));
+            return FromRSAParametersToPutty(rsa);
         }
 
-        private string FromRSAParametersToSSH(RSAParameters parameters){
-            return "";
+        private byte[] PublicKeyBase64FromRSAParametersToSSH(RSAParameters parameters){
+            byte[] publicBuffer = new byte[3 + 7 + 4 + 1 + parameters.Exponent.Length + 4 + 1 + parameters.Modulus.Length + 1];
+
+            using (var bw = new BinaryWriter(new MemoryStream(publicBuffer)))
+            {
+                bw.Write(new byte[] { 0x00, 0x00, 0x00 });
+                bw.Write("ssh-rsa");
+                PutPrefixed(bw, parameters.Exponent, true);
+                PutPrefixed(bw, parameters.Modulus, true);
+            }
+            return publicBuffer;
         }
 
-        private string FromRSAParametersToPutty(RSAParameters parameters){
-            return "";
+        private byte[] PrivateKeyBase64FromRSAParametersToSSH(RSAParameters parameters){
+            byte[] privateBuffer = new byte[4 + 1 + parameters.D.Length + 4 + 1 + parameters.P.Length + 4 + 1 + parameters.Q.Length + 4 + 1 + parameters.InverseQ.Length];
+
+            using (var bw = new BinaryWriter(new MemoryStream(privateBuffer)))
+            {
+                PutPrefixed(bw, parameters.D, true);
+                PutPrefixed(bw, parameters.P, true);
+                PutPrefixed(bw, parameters.Q, true);
+                PutPrefixed(bw, parameters.InverseQ, true);
+            }
+
+            return privateBuffer;
+        }
+
+        //cf https://gist.github.com/canton7/5670788
+        private string FromRSAParametersToPutty(RSACryptoServiceProvider rsa){
+            
+            var publicBuffer = PublicKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(false));
+            var privateBuffer = PrivateKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(true));
+
+            var publicBlob = System.Convert.ToBase64String(PublicKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(false)));
+            var privateBlob = System.Convert.ToBase64String(PrivateKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(true)));
+
+            HMACSHA1 hmacsha1 = new HMACSHA1(new SHA1CryptoServiceProvider().ComputeHash(Encoding.ASCII.GetBytes("putty-private-key-file-mac-key")));
+            byte[] bytesToHash = new byte[4 + 7 + 4 + 4 + 4 + 4 + publicBuffer.Length + 4 + privateBuffer.Length];
+
+            using (var bw = new BinaryWriter(new MemoryStream(bytesToHash)))
+            {
+                PutPrefixed(bw, Encoding.ASCII.GetBytes("ssh-rsa"));
+                PutPrefixed(bw, Encoding.ASCII.GetBytes("none"));
+                PutPrefixed(bw, publicBuffer);
+                PutPrefixed(bw, privateBuffer);
+            }
+
+            var hash = string.Join("", hmacsha1.ComputeHash(bytesToHash).Select(x => string.Format("{0:x2}", x)));
+
+            var sb = new StringBuilder();
+            sb.AppendLine("PuTTY-User-Key-File-2: ssh-rsa");
+            sb.AppendLine("Encryption: none");
+
+            var publicLines = SpliceText(publicBlob, 64);
+            sb.AppendLine("Public-Lines: " + publicLines.Length);
+            foreach (var line in publicLines)
+            {
+                sb.AppendLine(line);
+            }
+
+            var privateLines = SpliceText(privateBlob, 64);
+            sb.AppendLine("Private-Lines: " + privateLines.Length);
+            foreach (var line in privateLines)
+            {
+                sb.AppendLine(line);
+            }
+
+            sb.AppendLine("Private-MAC: " + hash);
+
+            return sb.ToString();
+        }
+
+        private static void PutPrefixed(BinaryWriter bw, byte[] bytes, bool addLeadingNull = false)
+        {
+            bw.Write(BitConverter.GetBytes(bytes.Length + (addLeadingNull ? 1 : 0)).Reverse().ToArray());
+            if (addLeadingNull)
+                bw.Write(new byte[] { 0x00 });
+            bw.Write(bytes);
+        }
+            
+        private static string[] SpliceText(string text, int lineLength)
+        {
+            return Regex.Matches(text, ".{1," + lineLength + "}").Cast<Match>().Select(m => m.Value).ToArray();
         }
 
     }
