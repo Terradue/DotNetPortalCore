@@ -28,13 +28,13 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the public key</summary>
         [EntityDataField("public_key")]
-        protected string PublicKey { get; set; }
+        public string PublicKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the private key</summary>
         [EntityDataField("private_key")]
-        protected string PrivateKey { get; set; }
+        public string PrivateKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
