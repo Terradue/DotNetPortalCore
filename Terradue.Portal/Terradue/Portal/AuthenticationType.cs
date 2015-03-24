@@ -16,7 +16,51 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 
 
+/*!
+\defgroup Authentication Authentication
+@{
+It provides with the functions to identify a user through a generic interface for implementing multiple authentication mechanism.
 
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the user information
+
+\startuml
+!define DIAG_NAME Authentication mechanism Activity Diagram
+
+start
+:read session information;
+if (valid session) then (yes)
+    :Load user info from session;
+else (No) 
+    repeat
+        if (Authentication successful) then (yes)
+            if (user exists) then (yes)
+                if (user is enabled) then (no)
+                    :Error: User not enabled;
+                    stop
+                endif
+            else 
+                if (authentication method allows user creation) then (yes)
+                    :create user account;
+                endif
+            endif
+         endif
+    repeat while (other authentication methods?)
+    if (user authenticated) then (yes)
+        :Load user info from session;
+    endif
+endif
+stop
+
+footer
+DIAG_NAME
+(c) Terradue Srl
+endfooter
+\enduml
+
+@}
+*/
 
 
 namespace Terradue.Portal {
