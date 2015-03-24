@@ -562,7 +562,8 @@ namespace Terradue.Portal {
                 }
 
                 if (isNewUser && AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
-                if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) StartSession(selectedAuthenticationType, identifiedUser);
+                //if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) StartSession(selectedAuthenticationType, identifiedUser);
+                StartSession(selectedAuthenticationType, identifiedUser);
             }
 
             return identifiedUser;

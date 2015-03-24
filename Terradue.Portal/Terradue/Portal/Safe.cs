@@ -48,7 +48,20 @@ namespace Terradue.Portal {
         [EntityDataField("update_time")]
         public DateTime UpdateTime { get; protected set; }
 
+        //---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Safe(IfyContext context) : base(context) {
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override string AlternativeIdentifyingCondition{
+            get { 
+                if (UserId != 0) return String.Format("t.id_usr={0}",UserId); 
+                return null;
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -59,6 +72,17 @@ namespace Terradue.Portal {
             result.Load();
             return result;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static Safe FromUserId(IfyContext context, int usrid) {
+            Safe result = new Safe(context);
+            result.UserId = usrid;
+            result.Load();
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Generates the private and public keys.
@@ -74,6 +98,8 @@ namespace Terradue.Portal {
             this.PrivateKey = CipherUtility.Encrypt<AesManaged>(rsa.ToXmlString(true), password, SALT);
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Clears the public and private keys.
         /// </summary>
@@ -81,6 +107,8 @@ namespace Terradue.Portal {
             this.PublicKey = null;
             this.PrivateKey = null;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Gets the private key in base64.
@@ -90,7 +118,12 @@ namespace Terradue.Portal {
         public string GetBase64SSHPrivateKey(string password){
             if (PrivateKey == null) throw new Exception("Private key has not been generated");
             //decrypt private key
-            string decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
+            string decrypted = null;
+            try{
+                decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
+            }catch(Exception e){
+                throw new Exception("Wrong password", e);
+            }
 
             //get RSA
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
@@ -109,6 +142,8 @@ namespace Terradue.Portal {
             return sb.ToString();
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Gets the public key for SSH in base64.
         /// </summary>
@@ -123,6 +158,8 @@ namespace Terradue.Portal {
             var publicblob = System.Convert.ToBase64String(PublicKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(false)));
             return "ssh-rsa " + publicblob;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Gets the keys for putty.
@@ -142,6 +179,8 @@ namespace Terradue.Portal {
             return FromRSAParametersToPutty(rsa);
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
         private byte[] PublicKeyBase64FromRSAParametersToSSH(RSAParameters parameters){
             byte[] publicBuffer = new byte[3 + 7 + 4 + 1 + parameters.Exponent.Length + 4 + 1 + parameters.Modulus.Length + 1];
 
@@ -154,6 +193,8 @@ namespace Terradue.Portal {
             }
             return publicBuffer;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         private byte[] PrivateKeyBase64FromRSAParametersToSSH(RSAParameters parameters){
             byte[] privateBuffer = new byte[4 + 1 + parameters.D.Length + 4 + 1 + parameters.P.Length + 4 + 1 + parameters.Q.Length + 4 + 1 + parameters.InverseQ.Length];
@@ -168,6 +209,8 @@ namespace Terradue.Portal {
 
             return privateBuffer;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         //cf https://gist.github.com/canton7/5670788
         private string FromRSAParametersToPutty(RSACryptoServiceProvider rsa){
@@ -214,6 +257,8 @@ namespace Terradue.Portal {
             return sb.ToString();
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
         private static void PutPrefixed(BinaryWriter bw, byte[] bytes, bool addLeadingNull = false)
         {
             bw.Write(BitConverter.GetBytes(bytes.Length + (addLeadingNull ? 1 : 0)).Reverse().ToArray());
@@ -221,6 +266,8 @@ namespace Terradue.Portal {
                 bw.Write(new byte[] { 0x00 });
             bw.Write(bytes);
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
             
         private static string[] SpliceText(string text, int lineLength)
         {
