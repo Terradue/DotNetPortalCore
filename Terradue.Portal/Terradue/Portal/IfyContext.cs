@@ -2157,6 +2157,58 @@ namespace Terradue.Portal {
             }
             return true;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Sends the mail.
+        /// </summary>
+        /// <param name="fromEmail">From email.</param>
+        /// <param name="toEmail">To email.</param>
+        /// <param name="subject">Subject.</param>
+        /// <param name="body">Body.</param>
+        public void SendMail(string fromEmail, string toEmail, string subject, string body){
+            SendMail(fromEmail, toEmail, null, null, subject, body);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Sends the mail.
+        /// </summary>
+        /// <param name="fromEmail">From email.</param>
+        /// <param name="toEmail">To email.</param>
+        /// <param name="bcc">Bcc list.</param>
+        /// <param name="cc">Cc list.</param>
+        /// <param name="subject">Subject.</param>
+        /// <param name="body">Body.</param>
+        public void SendMail(string fromEmail, string toEmail, List<string> bcc, List<string> cc, string subject, string body){
+            MailMessage message = new MailMessage();
+            message.From = new MailAddress(fromEmail);
+            message.To.Add(new MailAddress(toEmail));
+            message.Subject = subject;
+            message.Body = body;
+            if (cc != null && cc.Count > 0) message.CC.Add(string.Join(",", cc));
+            if(cc != null && bcc.Count > 0) message.Bcc.Add(string.Join(",", bcc));
+
+            string smtpHostname = GetConfigValue("SmtpHostname");
+            string smtpUsername = GetConfigValue("SmtpUsername");
+            string smtpPassword = GetConfigValue("SmtpPassword");
+
+            SmtpClient client = new SmtpClient(smtpHostname);
+
+            // Add credentials if the SMTP server requires them.
+            if (smtpUsername == String.Empty) smtpUsername = null;
+            else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
+            if (smtpPassword == String.Empty) smtpPassword = null;
+
+            try {
+                client.Send(message);
+            } catch (Exception e) {
+                if (e.Message.Contains("CDO.Message") || e.Message.Contains("535")) AddError("Mail could not be sent, this is a site administration issue (probably caused by an invalid SMTP hostname or wrong SMTP server credentials)");
+                else AddError("Mail could not be sent, this is a site administration issue: " + e.Message);
+            }
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
         
