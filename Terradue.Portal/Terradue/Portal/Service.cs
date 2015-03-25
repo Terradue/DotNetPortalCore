@@ -13,7 +13,7 @@ using System.Linq;
 \defgroup Service Service
 @{
 
-This component is a wrapper for all users’ application level functionalities. It implements an open framework to plug services that then creates \ref core_Task or \ref core_Scheduler. 
+This component is a wrapper for all users’ application level functionalities. It implements an open framework to plug services that then creates \ref Task or \ref Scheduler. 
 This framework controls common service functionalities:
 - \ref Persistence on the service
 - Service definition parsing and template build

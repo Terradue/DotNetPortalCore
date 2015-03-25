@@ -24,7 +24,25 @@ using Terradue.OpenSearch.Engine;
 using System.Web;
 
 
+/*!
+\defgroup WpsProvider WPS Provider
+@{
 
+This component is an extension of \ref ComputingResource for providing with WPS Server as a processing resource.
+It has to main functions:
+- analyses the GetCapabilities() function of the WPS server to retrieve all the process offered.
+- submits, controls and montiors processing over a WPS Server
+
+\xrefitem mvc_c "Controller" "Controller components"
+\xrefitem mvc_v "View" "View components"
+
+\xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
+
+\xrefitem dep "Interfaces" "Interfaces" implements \ref Atomizable interface to export WPS Server as a computing resource in \ref OWSContext schema.
+\xrefitem dep "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+
+@}
+*/
 
 
 
