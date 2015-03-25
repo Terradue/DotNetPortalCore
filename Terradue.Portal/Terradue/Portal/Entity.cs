@@ -28,24 +28,43 @@ It provides with the functions to define privileges for users or groups on entit
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
 
+The authorisation consists of two phases:
+- a generic phase where the current user's access privileges are compared to the necessary privileges for the accessed resource
+- an optional specific phase where the same check is performed for the requested operation. This phase is specific to the entity subclass in question as the possible operations are entity-specific.
+
+If IfyContext.RestrictedMode is <em>true</em> (the default value) and the user has insufficient privileges to access an item, the item is not loaded and an exception is thrown immediately.
+Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation check needs to be done by the code that loaded the entity item. This code should check the CanView property of the loaded item and if its value is <em>false</em>, it may either continue or throw another, more appropriate, exception.
+The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
+
+
 \startuml
 !define DIAG_NAME Authorisation mechanism Activity Diagram
 
-(*)  --> "read entity privilege"
-If "restriction applies to" then
---> [User] "check user id"
---> "apply id to restriction"
-else
---> [Group] "check group id"
---> "apply id to restriction"
-Endif
-If "OK?" then
---> [Yes] "access granted"
--->(*) 
-else
---> [No] "access refused"
--->(*) 
-Endif
+start
+:Load entity item considering access policies and user/group privileges;
+if (Are view privileges for current user sufficient?) then (yes)
+    :Access granted;
+else (no)
+    if (Is current context set to restricted mode?) then (yes)
+        :Access denied (throw exception);
+        stop
+    else (no)
+        :Item flagged as unaccessible for current user (no exception);
+    endif
+    :Access granted;
+endif
+:Generic authorisation check completed;
+:Speficic authorisation checks for operation (performed by entity subclass);
+if (Is specific privilege required for requested operation) then (yes)
+    if (Does user have this privilege?) then (no)
+        :Operation rejected (throw exception);
+        stop
+    else (yes)
+    endif
+else (no)
+endif
+:Operation allowed;
+stop
 
 footer
 DIAG_NAME

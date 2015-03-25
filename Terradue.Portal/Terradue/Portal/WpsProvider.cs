@@ -377,6 +377,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the wps process offerings from services in DB.
+        /// </summary>
+        /// <returns>The wps process offerings.</returns>
         public EntityList<WpsProcessOffering> GetWpsProcessOfferings() {
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
             wpsProcessList.Template.Provider = this;
@@ -386,6 +390,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the process brief types.
+        /// </summary>
+        /// <returns>The process brief types.</returns>
         public List<ProcessBriefType> GetProcessBriefTypes() {
             List<ProcessBriefType> result = new List<ProcessBriefType>();
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);

@@ -34,6 +34,120 @@ Below, the sequence diagram describes the analaysis process to retrieve WPS serv
 \startuml{wpsprocessoffering.png}
 !define DIAG_NAME WPS Service Analysis Sequence Diagram
 
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "Provider" as P
+participant "Cloud Provider" as C
+participant "DataBase" as DB
+
+autonumber
+
+== Get Capabilities ==
+
+WC -> WS: GetCapabilities request
+activate WS
+WS -> DB: Load all Providers (Proxy=true)
+loop on each provider
+    WS -> DB: load services
+    loop on each service
+        WS -> WS: get service info (identifier, title, abstract)
+    end
+end
+WS -> C: Load all Providers
+loop on each provider
+    WS -> P: GetCapabilities
+    WS -> WS: extract services from GetCapabilities using request identifier
+    loop on each service
+        WS -> WS: get service info (identifier, title, abstract)
+    end
+end
+WS -> WS: aggregate all services info into response offering
+WS -> WC: return aggregated GetCapabilities
+deactivate WS
+
+== Describe Process ==
+
+WC -> WS: DescribeProcess request
+activate WS
+alt case process from db
+    WS -> DB: load service from request identifier
+    WS -> DB: get provider url + service identifier on the provider
+else case process from cloud provider
+    WS -> C: get service provider
+    WS -> P: GetCapabilities
+    WS -> WS: extract describeProcess url from GetCapabilities using request identifier
+end
+WS -> WS: build "real" describeProcess request
+WS -> P: call describeProcess request
+WS -> WC: return result from describeProcess
+deactivate WS
+
+== Execute ==
+
+WC -> WS: Execute request
+activate WS
+alt case process from db
+    WS -> DB: load service from request identifier
+    WS -> DB: get provider url + service identifier on the provider
+else case process 'from cloud provider'
+    WS -> C: get service provider
+    WS -> P: GetCapabilities
+    WS -> WS: extract execute url from GetCapabilities using request identifier
+end
+WS -> WS: build "real" execute request
+WS -> P: call execute request
+alt case error
+    WS -> WC: return error
+else case success
+    WS -> DB: store job
+    WS -> WS: update job RetrieveResultServlet url
+    WS -> WC: return created job
+end
+deactivate WS
+
+== Retrieve Result Servlet ==
+
+WC -> WS: RetrieveResultServlet request
+activate WS
+WS -> DB: load job info from request identifier
+WS -> P: call "real" statusLocation url
+WS -> WS: update href in response to put local server url instead of real provider
+WS -> WC: return updated statusLocation response
+deactivate WS
+
+== Search WPS process ==
+
+WC -> WS: WPS search request
+activate WS
+WS -> DB: Load all Providers
+WS -> C: Load all Providers
+loop on each provider
+    WS -> P: GetCapabilities
+    WS -> WS: get services info
+    loop on each service
+        alt provider is Proxied
+            WS -> WS: create local identifier and save remote identifier
+            WS -> WS: use local server url as baseurl
+        end
+        WS -> WS: add service info to the response
+    end
+end
+deactivate WS
+
+== Integrate WPS provider ==
+
+WC -> WS: POST provider
+activate WS
+WS -> DB: store provider
+WS -> P: GetCapabilities
+WS -> WS: get services info
+loop on each service
+    alt provider is Proxied
+        WS -> WS: create local identifier and save remote identifier
+        WS -> WS: use local server url as baseurl
+    end
+    WS -> DB: store service
+end
 
 
 footer
@@ -154,11 +268,13 @@ namespace Terradue.Portal {
             string description = this.Description;
             string text = (this.TextContent != null ? this.TextContent : "");
 
+            //if query on parameter q we check one of the properties contains q
             if (parameters["q"] != null) {
                 string q = parameters["q"].ToLower();
                 if (!(name.ToLower().Contains(q) || identifier.ToLower().Contains(q) || text.ToLower().Contains(q))) return null;
             }
 
+            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
             if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
                 if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
             }
