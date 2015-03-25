@@ -31,7 +31,7 @@ retrieve the DescribeProcess() function to describe the process with input and o
 
 Below, the sequence diagram describes the analaysis process to retrieve WPS services and parameters.
 
-\startuml{authn.png}
+\startuml{wpsprocessoffering.png}
 !define DIAG_NAME WPS Service Analysis Sequence Diagram
 
 
