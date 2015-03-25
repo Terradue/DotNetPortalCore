@@ -22,9 +22,9 @@ using Terradue.Util;
 /*!
 \defgroup Context Context
 @{
-This component manages the general context for the entire system for a given session. It manages the authentication of the user with a generic username/password scheme or with an external authentication mechanism (e.g. SSO) based on HTTP headers.
+This component manages the general context for the entire system for a given session. It manages the identification of the user with
+a pluggable authentication interface to extend the generic username/password scheme with an external authentication mechanism.
 It interacts with the database to store and read the persistent configuration data.
-When the system is a web application, it provides an HTTP context (\ref Terradue.Portal#IfyWebContext with session, request, content-type) extended with application specific information (e.g. current user information)
 This component also manages the configuration data for the system. Basically, it saves and loads key/value pairs in the database on the behalf of all other components of the system.
 
 \xrefitem mvc_c "Controller" "Controller components"

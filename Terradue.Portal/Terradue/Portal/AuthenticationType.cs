@@ -25,7 +25,7 @@ It provides with the functions to identify a user through a generic interface fo
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the user information
 
-\startuml
+\startuml{authn.png}
 !define DIAG_NAME Authentication mechanism Activity Diagram
 
 start
@@ -33,22 +33,23 @@ start
 if (valid session) then (yes)
     :Load user info from session;
 else (No) 
-    repeat
+    while (user not authenticated & next authentication method ?) is (yes)
         if (Authentication successful) then (yes)
-            if (user exists) then (yes)
-                if (user is enabled) then (no)
-                    :Error: User not enabled;
-                    stop
-                endif
-            else 
+            if (user exists) then (no)
                 if (authentication method allows user creation) then (yes)
                     :create user account;
                 endif
             endif
          endif
-    repeat while (other authentication methods?)
+    endwhile (no)
     if (user authenticated) then (yes)
-        :Load user info from session;
+        if (user is enabled) then (no)
+            if ( configuration needs user activation ) then (yes)
+                :Throw User Activation Exception;
+                stop
+            endif
+        endif
+        :Load user info and create session;
     endif
 endif
 stop

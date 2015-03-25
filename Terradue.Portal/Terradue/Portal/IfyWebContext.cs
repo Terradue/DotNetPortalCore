@@ -27,7 +27,46 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 
 
+/*!
+\defgroup WebContext WebContext
+@{
+This component extends the general context for the entire system in an HTTP context based on a web session. 
+When the system is a web application, it provides an HTTP context (\ref Terradue.Portal#IfyWebContext with session, request, content-type).
+For instance, it allows the general context to provide with the authentication of the user based on HTTP request information (e.g. SSO headers).
 
+\xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem dep "Context" "Context" \ref Context is extended by WebContext for HTTP based system
+
+\section WebControlAccess Web Control Access
+Below, the diagram describes how the Web Context controls the base web access which are defined by a level that the user must have to access the resource.
+Basically, 3 access level are defined
+- Public access: web resource accessible by everyone authenticated or not
+- User access: web resource accessible only to an authenticated user
+- Admin access: web resources accessible only to an administrator
+
+\startuml{WebControlAccess.png}
+!define DIAG_NAME HTTP Web access control mechanism Activity Diagram
+
+start
+:read user information;
+:read web resource information;
+if (Public Resource) then (yes)
+    stop
+elseif (Web Resource access level > user access level) then (yes)
+    :Throw Unauthorised Access Exception;
+    stop
+endif
+stop
+
+footer
+DIAG_NAME
+(c) Terradue Srl
+endfooter
+\enduml
+
+@}
+*/
 
 
 namespace Terradue.Portal {
@@ -1581,7 +1620,9 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
+
+
 
     /// <summary>Represents a set of privileges for accessing entities in relation to the level of the web portal user.</summary>
     public class PagePrivileges {
