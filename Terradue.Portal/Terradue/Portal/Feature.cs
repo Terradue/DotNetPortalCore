@@ -5,7 +5,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Feature.
     /// </summary>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("feature", EntityTableConfiguration.Custom)]
     public class Feature : Entity {
 
@@ -13,7 +13,7 @@ namespace Terradue.Portal {
         /// Gets or sets the title.
         /// </summary>
         /// <value>The title.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("title")]
         public string Title { get; set; }
 
@@ -21,7 +21,7 @@ namespace Terradue.Portal {
         /// Gets or sets the description.
         /// </summary>
         /// <value>The description.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
@@ -29,7 +29,7 @@ namespace Terradue.Portal {
         /// Gets or sets the image.
         /// </summary>
         /// <value>The image.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("image_url")]
         public string Image { get; set; }
 
@@ -37,7 +37,7 @@ namespace Terradue.Portal {
         /// Gets or sets the image style, used to customize the image apperance.
         /// </summary>
         /// <value>The image style.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("image_style")]
         public string ImageStyle { get; set; }
 
@@ -45,7 +45,7 @@ namespace Terradue.Portal {
         /// Gets or sets the button text.
         /// </summary>
         /// <value>The button text.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("button_text")]
         public string ButtonText { get; set; }
 
@@ -53,7 +53,7 @@ namespace Terradue.Portal {
         /// Gets or sets the button link.
         /// </summary>
         /// <value>The button link.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("button_link")]
         public string ButtonLink { get; set; }
 

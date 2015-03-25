@@ -24,7 +24,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Data set.
     /// </summary>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public class DataSet : Entity, IOpenSearchable {
 		//public string Identifier { get; set; }
 		private Dictionary<KeyValuePair<string,string>, object> elementExtensions;
