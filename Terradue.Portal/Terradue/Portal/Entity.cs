@@ -31,21 +31,31 @@ It provides with the functions to define privileges for users or groups on entit
 \startuml
 !define DIAG_NAME Authorisation mechanism Activity Diagram
 
-(*)  --> "read entity privilege"
-If "restriction applies to" then
---> [User] "check user id"
---> "apply id to restriction"
-else
---> [Group] "check group id"
---> "apply id to restriction"
-Endif
-If "OK?" then
---> [Yes] "access granted"
--->(*) 
-else
---> [No] "access refused"
--->(*) 
-Endif
+start
+:Load entity item considering access policies and user/group privileges;
+if (Are view privileges for current user sufficient?) then (yes)
+    :Access granted;
+else (no)
+    if (Is current context set to restricted mode?) then (yes)
+        :Access denied (throw exception);
+        stop
+    else (no)
+        :Item flagged as unaccessible for current user (no exception);
+    endif
+    :Access granted;
+endif
+:Generic authorisation check completed;
+:Speficic authorisation checks for operation (performed by entity subclass);
+if (Is specific privilege required for requested operation) then (yes)
+    if (Does user have this privilege?) then (no)
+        :Operation rejected (throw exception);
+        stop
+    else (yes)
+    endif
+else (no)
+endif
+:Operation allowed;
+stop
 
 footer
 DIAG_NAME
