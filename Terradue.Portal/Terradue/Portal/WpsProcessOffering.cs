@@ -13,7 +13,37 @@ using System.Collections.Generic;
 //-----------------------------------------------------------------------------------------------------------------------------
 using System.Web;
 
+/*!
+\defgroup WpsService WPS Service
+@{
 
+This component is an extension of \ref Service for providing with WPS capabilities as processing offerings.
+Practically, it get services offered in the \ref WpsProvider associated and then for each process exposed,
+retrieve the DescribeProcess() function to describe the process with input and ouput parameters.
+
+\xrefitem mvc_c "Controller" "Controller components"
+\xrefitem mvc_v "View" "View components"
+
+\xrefitem dep "Dependencies" "Dependencies" extends \ref Service for WPS specific offerings
+
+\xrefitem dep "Interfaces" "Interfaces" implements \ref Atomizable interface to export WPS process as offerings in \ref OWSContext schema.
+\xrefitem dep "Interfaces" "Interfaces" implements \ref WPS interface to analyze process offerings retrieved from \WpsProvider.
+
+Below, the sequence diagram describes the analaysis process to retrieve WPS services and parameters.
+
+\startuml{authn.png}
+!define DIAG_NAME WPS Service Analysis Sequence Diagram
+
+
+
+footer
+DIAG_NAME
+(c) Terradue Srl
+endfooter
+\enduml
+
+@}
+*/
 
 
 namespace Terradue.Portal {
