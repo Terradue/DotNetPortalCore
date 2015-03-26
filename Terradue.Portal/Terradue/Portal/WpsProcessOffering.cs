@@ -171,7 +171,7 @@ namespace Terradue.Portal {
 
 
     /// <summary>Represents a WPS process offering on a remote WPS server.</summary>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("wpsproc", EntityTableConfiguration.Custom)]
     public class WpsProcessOffering : Service, IAtomizable {
 
@@ -198,7 +198,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the WPS provider to which the WPS process offering belongs.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public WpsProvider Provider {
             get {
                 if (provider != null)
@@ -216,7 +216,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the computing resource that must be used by the WPS process offering.</summary>
         /// <remarks>The value is always the same as the WPS provider to which the WPS process offering belongs.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override ComputingResource FixedComputingResource {
             get { return Provider; }
         }

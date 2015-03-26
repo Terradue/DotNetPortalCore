@@ -14,7 +14,7 @@ namespace Terradue.Portal {
 
         /// <summary>Configures the logging object.</summary>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void CreateLogger() {
             log = LogManager.GetLogger(this.GetType().FullName);
 			// adding a new log4net level (statistical level)
@@ -73,7 +73,7 @@ namespace Terradue.Portal {
 		}
 
         /// <summary>add a custom property</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         private void SetReporter(string reporter) {
             log4net.GlobalContext.Properties["reporter"] = reporter;
         }
@@ -84,13 +84,13 @@ namespace Terradue.Portal {
         }
 
         /// <summary>add a custom property</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         private void SetOriginator(string originator) {
             log4net.ThreadContext.Properties["originator"] = originator;
         }
 
         /// <summary> Loging Debug level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void LogDebug(object reporter, string message) {
             SetReporter(reporter.GetType().ToString());
             if (isLogActive) log.Debug(message);
@@ -111,7 +111,7 @@ namespace Terradue.Portal {
 
 
         /// <summary> Loging Error level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void LogError(object reporter, string message) {
             SetReporter(reporter.GetType().ToString());
             if (isLogActive) log.Error(message);
@@ -140,7 +140,7 @@ namespace Terradue.Portal {
         }
 
         /// <summary> Loging Fatal level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void LogFatalError(object reporter, string message) {
             SetReporter(reporter.GetType().ToString());
             if (isLogActive) log.Fatal(message);
@@ -160,7 +160,7 @@ namespace Terradue.Portal {
 
 
         /// <summary> Loging Info level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void LogInfo(object reporter, string message) {
             SetReporter(reporter.GetType().ToString());
             if (isLogActive) log.Info(message);
@@ -178,7 +178,7 @@ namespace Terradue.Portal {
         }
 
         /// <summary> Loging Warning level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void LogWarning(object reporter, string message) {
             SetReporter(reporter.GetType().ToString());
             if (isLogActive) log.Warn(message);
@@ -204,7 +204,7 @@ namespace Terradue.Portal {
 
 
 		/// <summary> Loging Statistical level </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
 		public virtual void LogStat(object reporter) {
 			SetReporter(reporter.GetType().ToString());
 			SetUserId();

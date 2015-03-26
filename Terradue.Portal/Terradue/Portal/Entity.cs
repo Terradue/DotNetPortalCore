@@ -86,10 +86,8 @@ namespace Terradue.Portal {
 
     /// <summary>Abstract base class of all entity types that usually correspond to real-world entities.</summary>
     /// <remarks> 
-    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.</p>
-    /// </remarks>
-    /// Derived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
-    /// \xrefitem uml "UML" "UML Diagram"
+    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.<\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"rived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
 	public abstract class Entity : IValueSet {
 
         private string identifier;
@@ -101,7 +99,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets (protected) the database ID, i.e. the numeric key value of an entity item.</summary>
-        /// <remarks>The value is <c>0</c> if the item is not (yet) persistently stored in the database.</remarks>
+        /// <remark\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"em is not (yet) persistently stored in the database.</remarks>
         public int Id { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -117,7 +115,7 @@ namespace Terradue.Portal {
         ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
         ///     Not all entity types require string identifiers, in some cases the numeric <see cref="Id"/> is sufficient. If the corresponding <see cref="EntityTableAttribute.IdentifierField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Identifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -128,7 +126,7 @@ namespace Terradue.Portal {
         ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
         ///     Not all entity types require human-readable names. If the corresponding <see cref="EntityTableAttribute.NameField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual string Name { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -285,9 +283,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Reads the information of an item from the database.</summary>
-        /// <remarks>
-        ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
+        /// <summary>Reads the information of an item from the database.</sum\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"   ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
         ///     The database table(s) and fields to be used must be linked to the corresponding class(es) and its/their properties via the appropriate attributes.
         /// </remarks>
         public virtual void Load() {
@@ -348,7 +344,7 @@ namespace Terradue.Portal {
         /// <remarks>
         ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built according to the Entity.Load() overload.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Load(EntityType entityType, IDataReader reader) {
             bool includePrivileges = !context.AdminMode && entityType.TopTable.HasPrivilegeManagement;
             int index = 0;
@@ -445,7 +441,7 @@ namespace Terradue.Portal {
         ///     The method performs the necessary <c>INSERT</c> or <c>UPDATE</c> command(s) to represent the item in the database.
         ///     The database tables and fields to be used must be linked to the derived class of Entity and its properties via the appropriate attributes.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Store() {
             Store(null, null);
         }
@@ -664,7 +660,7 @@ namespace Terradue.Portal {
         /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several users.</remarks>
         /// <param name="userIds">An array of IDs of the users to which the privilege setting applies.</param>
         /// <param name="removeOthers">Determines whether privilege settings for other users not contained in <c>userIds</c> are removed.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StorePrivilegesForUsers(int[] userIds, bool removeOthers) {
             StorePrivileges(false, 0, userIds, removeOthers);
         }
@@ -674,7 +670,7 @@ namespace Terradue.Portal {
         /// <summary>Sets the privileges on the resource represented by the instance for the specified user groups according to the privilege properties.</summary>
         /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several groups.</remarks>
         /// <param name="groupIds">An array of IDs of the groups to which the privilege setting applies.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StorePrivilegesForGroups(int[] groupIds) {
             StorePrivileges(true, 0, groupIds, false);
         }
@@ -696,7 +692,7 @@ namespace Terradue.Portal {
         ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
         ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreGlobalPrivileges() {
             StorePrivileges(false, 0, null, false);
         }
@@ -810,14 +806,14 @@ namespace Terradue.Portal {
         ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
         ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void RemoveGlobalPrivileges() {
             context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
             //if (CanDelete) // TODO check privileges 
@@ -918,7 +914,7 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void GetAllowedAdministratorOperations() {
             if (context.UserLevel == UserLevel.Administrator) return;
 

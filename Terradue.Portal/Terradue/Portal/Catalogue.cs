@@ -44,7 +44,7 @@ namespace Terradue.Portal {
     ///     <p>A typical CAS provides RESTful interfaces for adding, altering or deleting series and data sets where the URLs are organised as &lt;base-url&gt;[/&lt;series-name&gt;[/&lt;dataset-name&gt;]]/&lt;format&gt;. The Catalogue class follows this model.</p>
     ///     <p>Note that there is ongoing confusion between the terms series (or dataset) on one side and data set (or product) on the other side.</p>
     /// </remarks>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("catalogue", EntityTableConfiguration.Custom, IdentifierField = "name")]
     public class Catalogue : Entity, IOpenSearchable {
 
@@ -59,7 +59,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the URL of the top-level OpenSearch document.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("osd_url")]
         public string OpenSearchDescriptionUrl {
             get { return (OpenSearchDescriptionUri == null ? null : OpenSearchDescriptionUri.AbsoluteUri); }
@@ -69,7 +69,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the base URL part that precedes all relative URLs to series or datasets.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("base_url")]
         public string BaseUrl {
             get { return (BaseUri == null ? null : BaseUri.AbsoluteUri); }
@@ -79,7 +79,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the REST URL at which new series are ingested.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("series_rel_url")]
         public string SeriesIngestionUrl { get; set; }
 
@@ -87,7 +87,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the REST URL at which new data sets are ingested.</summary>
         /// <remarks>Dataset URLs are usually "file nodes" under a series "directory node". The placeholder <c>$(SERIES)</c> represents the name of the series to which the dataset belongs.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("dataset_rel_url")]
         public string DataSetIngestionUrl { get; set; }
 
