@@ -78,7 +78,7 @@ else case process from cloud provider
     WS -> WS: extract describeProcess url from GetCapabilities using request identifier
 end
 WS -> WS: build "real" describeProcess request
-WS -> P: call describeProcess request
+WS -> P: DescribeProcess
 WS -> WC: return result from describeProcess
 deactivate WS
 
@@ -95,7 +95,7 @@ else case process 'from cloud provider'
     WS -> WS: extract execute url from GetCapabilities using request identifier
 end
 WS -> WS: build "real" execute request
-WS -> P: call execute request
+WS -> P: Execute
 alt case error
     WS -> WC: return error
 else case success
