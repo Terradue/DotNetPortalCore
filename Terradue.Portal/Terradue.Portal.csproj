@@ -139,6 +139,5 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Terradue.Portal.csproj" />
-    <None Include="app.config" />
   </ItemGroup>
 </Project>
