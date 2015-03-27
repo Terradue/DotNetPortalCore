@@ -34,9 +34,6 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\packages\MySql.Data.1.0.7.30073\lib\net40\MySql.Data.dll</HintPath>
-    </Reference>
     <Reference Include="Terradue.ServiceModel.Syndication">
       <HintPath>..\packages\Terradue.ServiceModel.Syndication.1.0.0.0\lib\net40\Terradue.ServiceModel.Syndication.dll</HintPath>
     </Reference>
@@ -62,6 +59,9 @@
     <Reference Include="Terradue.OpenSearch">
       <HintPath>..\packages\Terradue.OpenSearch.1.9.6\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
@@ -75,6 +75,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj">
