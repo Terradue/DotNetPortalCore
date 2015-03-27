@@ -31,7 +31,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents a collection of task or job parameters.</summary>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public class ExecutionParameterSet : IEnumerable<ExecutionParameter> {
         private Dictionary<string, ExecutionParameter> dict = new Dictionary<string, ExecutionParameter>();
         private ExecutionParameter[] items = new ExecutionParameter[0];
@@ -70,7 +70,7 @@ namespace Terradue.Portal {
         /// <summary>Adds a task or job parameter to the collection</summary>
         /// <param name="name">the parameter name</param>
         /// <param name="name">the parameter value</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Add(string name, object value) {
             Add(name, null, value, false);
         }
@@ -169,7 +169,7 @@ namespace Terradue.Portal {
 
     
     /// <summary>Represents a task or job parameter.</summary>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public class ExecutionParameter {
         private string name;
         private string type = "string";
@@ -184,7 +184,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the name of the task or job parameter.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Name {
             get { return name; }
         }
@@ -192,7 +192,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the type identifier of the task or job parameter.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Type {
             get { return type; }
         }
@@ -200,7 +200,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the value of the task or job parameter.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Value {
             get { return value; }
             set { this.value = value; }

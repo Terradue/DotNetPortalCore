@@ -156,7 +156,7 @@ namespace Terradue.Portal {
     ///     </para>
     /// </remarks>
     /// \ingroup Task
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("task", EntityTableConfiguration.Full, HasOwnerReference = true)]
     [EntityReferenceTable("usr", USER_TABLE)]
     [EntityReferenceTable("service", SERVICE_TABLE)]
@@ -210,7 +210,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the service that defines the derivate</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Service Service {
             get {
                 if (service == null && ServiceId != 0) service = Service.FromId(context, ServiceId);
@@ -237,7 +237,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the computing resource assigned to the derivate.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual ComputingResource ComputingResource {
             get {
                 if (Service.FixedComputingResource != null) computingResource = Service.FixedComputingResource;
@@ -275,7 +275,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the processing priority value of the service derivate.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("priority")]
         public double Priority { get; set; }
 
@@ -293,7 +293,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Get or sets the scheduler that produced this task.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Scheduler Scheduler {
             get {
                 if (scheduler == null && SchedulerId != 0) scheduler = Terradue.Portal.Scheduler.FromId(context, SchedulerId);
