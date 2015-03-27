@@ -344,7 +344,7 @@ namespace Terradue.Portal {
                 }
 
             } else {
-                connectionString = String.Format("Server={0}{1}{2}{3}; Database={4};",
+                connectionString = String.Format("Server={0}{1}{2}{3}; Database={4}; Allow User Variables=True",
                     dbHostname,
                     dbPort == 0 ? "" : "; Port=" + dbPort,
                     dbUsername == null ? "" : "; User Id=" + dbUsername,

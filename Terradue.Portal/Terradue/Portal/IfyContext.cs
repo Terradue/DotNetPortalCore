@@ -1596,7 +1596,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = dbReader.GetString(0);
+            if (dbReader.Read()) result = GetValue(dbReader, 0);
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
