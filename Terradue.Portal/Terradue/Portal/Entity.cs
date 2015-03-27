@@ -352,8 +352,8 @@ namespace Terradue.Portal {
 
             Id = reader.GetInt32(index++);
             Exists = true;
-            if (entityType.TopTable.HasIdentifierField) Identifier = reader.GetString(index++);
-            if (entityType.TopTable.HasNameField) Name = reader.GetString(index++);
+            if (entityType.TopTable.HasIdentifierField) Identifier = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasNameField) Name = context.GetValue(reader, index++);
             if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
             if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
             else OwnerId = 0;
@@ -786,17 +786,14 @@ namespace Terradue.Portal {
         /// <summary></summary>
         /// <remarks></remarks>
         protected static void StorePrivileges(IfyContext context, bool forGroup, int id, Entity[] items, bool removeOthers) {
-            Type lastType = null;
+            if (removeOthers && items.Length != 0) {
+                context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
+            }
             foreach (Entity item in items) {
+                Console.WriteLine("(X-1) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
                 if (context.ConsoleDebug) Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
-                if (item.GetType() != lastType) {
-                    if (lastType == null && removeOthers) {
-                        context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", item.EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
-                    }
-                    lastType = item.GetType();
-                }
-                
                 item.StorePrivileges(forGroup, id, null, false);
+                Console.WriteLine("(X-5) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
             }
         }
 
