@@ -99,7 +99,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets (protected) the database ID, i.e. the numeric key value of an entity item.</summary>
-        /// <remark\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"em is not (yet) persistently stored in the database.</remarks>
+        /// <remarks>0 is not (yet) persistently stored in the database.</remarks>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int Id { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
