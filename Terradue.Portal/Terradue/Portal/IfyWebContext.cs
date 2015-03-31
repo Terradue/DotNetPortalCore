@@ -36,6 +36,8 @@ For instance, it allows the general context to provide with the authentication o
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Context" "Context" \ref Context is extended by WebContext for HTTP based system
 
 \section WebControlAccess Web Control Access

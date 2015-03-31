@@ -24,6 +24,8 @@ The Diagram \ref task-cr details the interactions between the involved entities.
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the task information in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access

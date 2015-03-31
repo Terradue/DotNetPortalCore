@@ -26,6 +26,8 @@ It provides with the functions to define privileges for users or groups on entit
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
 
 The authorisation consists of two phases:

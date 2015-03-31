@@ -14,6 +14,8 @@ Diagram \ref task-cr depicts the role of the computing resource in a task proces
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref processes Task
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the computing resource in the database

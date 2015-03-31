@@ -24,6 +24,8 @@ retrieve the DescribeProcess() function to describe the process with input and o
 \xrefitem mvc_c "Controller" "Controller components"
 \xrefitem mvc_v "View" "View components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" extends \ref Service for WPS specific offerings
 
 \xrefitem dep "Interfaces" "Interfaces" implements \ref Atomizable interface to export WPS process as offerings in \ref OWSContext schema.

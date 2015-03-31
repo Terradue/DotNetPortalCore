@@ -23,6 +23,8 @@ It provides with the functions to identify a user through a generic interface fo
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the user information
 
 \startuml{authn.png}

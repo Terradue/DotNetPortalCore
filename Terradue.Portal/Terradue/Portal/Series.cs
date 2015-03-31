@@ -17,7 +17,9 @@ This component represents a dataset series. Practically it is a non-final compon
 
 \xrefitem mvc_c "Controller" "Controller elements"
 
-\xrefitem ext_int "External Interfaces" "External Interfaces" queries \ref OpenSearch data series items
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
+\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref OpenSearch 
 
 \xrefitem dep "Dependencies" "Dependencies" \ref core_DataModelAccess stores persistently the series information in the database
 

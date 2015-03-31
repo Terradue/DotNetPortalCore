@@ -29,6 +29,8 @@ This component also manages the configuration data for the system. Basically, it
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence loads/stores data from/to the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access to objects

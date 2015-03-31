@@ -26,6 +26,8 @@ Once the task created by the service, the assigned \ref ComputingResource handle
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the service reference in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access on the services

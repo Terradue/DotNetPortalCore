@@ -36,13 +36,27 @@ It has to main functions:
 \xrefitem mvc_c "Controller" "Controller components"
 \xrefitem mvc_v "View" "View components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
 
-\xrefitem dep "Interfaces" "Interfaces" implements \ref Atomizable interface to export WPS Server as a computing resource in \ref OWSContext schema.
-\xrefitem dep "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+\xrefitem int "Interfaces" "Interfaces" implements \ref OWSCOntext model to export WPS Server as a computing resource.
+\xrefitem int "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+
+@}
+
+\defgroup WPS Web Processing Services Interface
+@{
+This is the interface to Web Processing Service
+
+\xrefitem cptype_int "Interfaces" "Interfaces"
+\xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
 
 @}
 */
+
+
+
 
 
 
