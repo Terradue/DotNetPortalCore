@@ -857,7 +857,7 @@ namespace Terradue.Portal {
             
             if (siteRootDir == null) Console.Error.WriteLine("ERROR: Missing argument for -r");
             //else if (!File.Exists(siteRootDir + Path.DirectorySeparatorChar + "web.config") && dbMainSchema == null) Console.Error.WriteLine("ERROR: No web.config found in root directory, specify database schema name g using -S");
-            else if (dbMainSchema == null) Console.Error.WriteLine("ERROR: Specify database schema name using -S");
+            //else if (dbMainSchema == null) Console.Error.WriteLine("ERROR: Specify database schema name using -S");
             else return true;
             
             return false;
