@@ -1714,6 +1714,7 @@ namespace Terradue.Portal {
 
             User user = User.FromId(this, userId);
             UserInformation.Update(user);
+            OriginalUserId = UserId;
             UserId = user.Id;
             UserLevel = user.Level;
             UserCaption = user.Caption;
