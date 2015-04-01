@@ -15,6 +15,8 @@ This class is quite generic and represent any kind of scheduled task from its mo
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the scheduler information in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls owner and access
@@ -69,7 +71,7 @@ namespace Terradue.Portal {
     /// In order to work automatically, the background agent must be running and the Scheduler action must be enabled.
     /// 
     /// Alternatively, for debug purposes, the scheduler can be advanced manually and the resulting tasks can be submitted manually.
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("scheduler", EntityTableConfiguration.Full, HasExtensions = true, HasOwnerReference = true)]
     [EntityReferenceTable("usr", USER_TABLE)]
     public abstract class Scheduler : Entity {
@@ -114,7 +116,7 @@ namespace Terradue.Portal {
         /// Gets or sets the status.
         /// </summary>
         /// <value>The status.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("status")]
         public SchedulingStatus Status { get; set; }
 
@@ -124,7 +126,7 @@ namespace Terradue.Portal {
         /// Gets or sets the run configuration.
         /// </summary>
         /// <value>The run configuration.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public SchedulerRunConfiguration RunConfiguration {
             get {
                 if (schedulerRunConfiguration == null && Id != 0) {
@@ -143,7 +145,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the maximum number of runs per cycle of the scheduler daemon.</summary>
         /// <remarks>If the value is 0 it means that the scheduler tries to run until the end at the first cycle.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("max_runs")]
         public int MaxSubmissions { get; set; }
         
@@ -186,7 +188,7 @@ namespace Terradue.Portal {
         /// Gets or sets the inputs.
         /// </summary>
         /// <value>The inputs.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public List<ProcessingInputSet> Inputs { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -449,7 +451,7 @@ namespace Terradue.Portal {
             %Tasks deletions are pending if they were requested while the portal configuration variable <i>SynchronousTaskOperations</i> was set to <i>false</i>.
             
         /// <param name="context">The execution environment context.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         */
         public static void ExecuteCleanup(IfyContext context) {
             IDataReader reader;
@@ -617,7 +619,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The task list.</returns>
         /// <param name="context">Context.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public List<Task> GetTaskList(IfyContext context) {
             List<int> taskIds = new List<int>();
             IDbConnection dbConnection = context.GetDbConnection();
@@ -658,7 +660,7 @@ namespace Terradue.Portal {
         /// Gets the active tasks.
         /// </summary>
         /// <returns>The active tasks.</returns>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public EntityList<Task> GetActiveTasks() {
             List<int> taskIds = new List<int>();
             string sql = String.Format("SELECT id FROM task WHERE id_scheduler={0} AND status>={1} AND status<{2};", this.Id, ProcessingStatus.Active, ProcessingStatus.Failed);

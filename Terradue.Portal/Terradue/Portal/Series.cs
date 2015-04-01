@@ -17,7 +17,9 @@ This component represents a dataset series. Practically it is a non-final compon
 
 \xrefitem mvc_c "Controller" "Controller elements"
 
-\xrefitem ext_int "External Interfaces" "External Interfaces" queries \ref OpenSearch data series items
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
+\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref OpenSearch 
 
 \xrefitem dep "Dependencies" "Dependencies" \ref core_DataModelAccess stores persistently the series information in the database
 
@@ -140,7 +142,7 @@ namespace Terradue.Portal {
     
     /// <summary>Represents a series of data sets that are available from a catalogue.</summary>
     /// \ingroup Series
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
     public class Series : Entity, IOpenSearchable {
@@ -163,7 +165,7 @@ namespace Terradue.Portal {
         
         /// <summary>Gets the detailed description of the series.</summary>
         /// \ingroup Series
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
         
@@ -185,7 +187,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the OpenSearch description URL of the series.</summary>
         /// \ingroup Series
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string CatalogueDescriptionUrl { 
             get {
                 if (RawCatalogueDescriptionUrl == null) throw new Exception("Missing catalogue description URL");
@@ -238,7 +240,7 @@ namespace Terradue.Portal {
         /// Gets or sets the catalogue.
         /// </summary>
         /// <value>The catalogue.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Catalogue Catalogue {
             get {
                 if (catalogue == null && catalogueId != 0) catalogue = Catalogue.FromId(context, catalogueId);
@@ -360,7 +362,7 @@ namespace Terradue.Portal {
         /// <param name="osUrl">Os URL.</param>
         /// <param name="context">Context.</param>
         /// <param name="exists">If set to <c>true</c> exists.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public static Series FromOpenSearchUrl (OpenSearchUrl osUrl, IfyContext context, Boolean exists = true)
         {
             Series result = new Series (context);
@@ -500,7 +502,7 @@ namespace Terradue.Portal {
         /// <summary>Generates the corresponding OpenSearch description.</summary>
         /// <returns>An OpenSearch description document.</returns>
         /// \ingroup Series
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual OpenSearchDescription GetLocalOpenSearchDescription(string basePath) {
 
             OpenSearchDescription osd = GetOpenSearchDescription();

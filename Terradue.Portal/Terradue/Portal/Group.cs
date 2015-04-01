@@ -28,14 +28,14 @@ namespace Terradue.Portal {
 
     /// <summary>Represents a user group</summary>
     /// \ingroup Authorisation
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("grp", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "name")]
     public class Group : Entity {
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the name, the unique identifier, of this group.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override string Name {
             get { return Identifier; }
             set { Identifier = value; }
@@ -44,7 +44,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the long description of this group.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
@@ -52,7 +52,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the optional privilege level of this group.</summary>
         /// <remarks>Some applications may use this property to specify a level of privileges for a group, but the meaning of those privileges is defined elsewhere.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("priority")]
         public int Priority { get; set; }
 

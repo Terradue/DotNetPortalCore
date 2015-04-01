@@ -24,6 +24,38 @@ using Terradue.OpenSearch.Engine;
 using System.Web;
 
 
+/*!
+\defgroup WpsProvider WPS Provider
+@{
+
+This component is an extension of \ref ComputingResource for providing with WPS Server as a processing resource.
+It has to main functions:
+- analyses the GetCapabilities() function of the WPS server to retrieve all the process offered.
+- submits, controls and montiors processing over a WPS Server
+
+\xrefitem mvc_c "Controller" "Controller components"
+\xrefitem mvc_v "View" "View components"
+
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
+\xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
+
+\xrefitem int "Interfaces" "Interfaces" implements \ref OWSCOntext model to export WPS Server as a computing resource.
+\xrefitem int "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+
+@}
+
+\defgroup WPS Web Processing Services Interface
+@{
+This is the interface to Web Processing Service
+
+\xrefitem cptype_int "Interfaces" "Interfaces"
+\xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
+
+@}
+*/
+
+
 
 
 
@@ -41,7 +73,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents a remote provider of a Web Processing Service.</summary>
     /// <remarks>This class is used as the computing resource on which WPS processes, which are equivalent to tasks, run.</remarks>
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("wpsprovider", EntityTableConfiguration.Custom)]
     public class WpsProvider : ComputingResource, IAtomizable {
 
@@ -56,7 +88,7 @@ namespace Terradue.Portal {
         /// Define if the provider is to be proxied or not
         /// </summary>
         /// <value>The proxy.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("proxy")]
         public bool Proxy { get; set; }
 
@@ -211,7 +243,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// Get and stores the process offerings from GetCapabilities url
         /// </summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreProcessOfferings() {
 
             List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
@@ -254,7 +286,7 @@ namespace Terradue.Portal {
         /// Return a GetCapabilities object from GetCapabilities url
         /// </summary>
         /// <returns>GetCapabilities.</returns>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url) {
 
             if (url == null)
@@ -287,7 +319,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url) {
 
             if (url == null)
@@ -317,7 +349,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The wps process offerings from URL.</returns>
         /// <param name="baseurl">Baseurl.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
@@ -359,6 +391,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the wps process offerings from services in DB.
+        /// </summary>
+        /// <returns>The wps process offerings.</returns>
         public EntityList<WpsProcessOffering> GetWpsProcessOfferings() {
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
             wpsProcessList.Template.Provider = this;
@@ -368,6 +404,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the process brief types.
+        /// </summary>
+        /// <returns>The process brief types.</returns>
         public List<ProcessBriefType> GetProcessBriefTypes() {
             List<ProcessBriefType> result = new List<ProcessBriefType>();
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
@@ -393,7 +433,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns><c>true</c>, if task was executed, <c>false</c> otherwise.</returns>
         /// <param name="task">Task.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool ExecuteTask(Task task) {
             WpsProcessOffering processOffering = GetProcessOffering(task);
 
@@ -604,7 +644,7 @@ namespace Terradue.Portal {
         /// <returns><c>true</c>, if task result was gotten, <c>false</c> otherwise.</returns>
         /// <param name="task">Task.</param>
         /// <param name="doc">Document.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected bool GetTaskResult(Task task, XmlDocument doc) {
             XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
@@ -688,7 +728,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The process offering.</returns>
         /// <param name="task">Task.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         private WpsProcessOffering GetProcessOffering(Task task) {
             WpsProcessOffering result = task.Service as WpsProcessOffering;
             if (result == null || result.Provider != this)

@@ -24,7 +24,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents the set of portal configuration variables.</summary>
     /// \ingroup Context
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public class Configuration : Entity {
         
         //---------------------------------------------------------------------------------------------------------------------

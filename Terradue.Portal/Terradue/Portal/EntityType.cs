@@ -13,7 +13,17 @@ The component provides generic interaction with data that is persistently stored
 
 \xrefitem mvc_m "Model" "Model components"
 
-\xrefitem int_int "Internal Interfaces" "Internal Interfaces" Database SQL interface
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
+\xrefitem int "Interfaces" "Interfaces" connects to \ref SQLConnector
+
+@}
+
+\defgroup SQLConnector SQL interface to RDBMS
+@{
+This is the interface to the relational Database in SQL
+
+\xrefitem cptype_int "Interfaces" "Interfaces"
 
 @}
 */
@@ -1079,14 +1089,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the name of the database table that holds the items of the entity.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Name { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the name of the table's primary key field.</summary>
         /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string IdField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1102,7 +1112,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of an alternative unique key field for the table.</summary>
         /// <remarks>By default, it is assumed that the alternative key field is named <c>identifier</c> and of a character type.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string IdentifierField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1137,7 +1147,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of the table field containing the human-readable name of an item.</summary>
         /// <remarks>By default, it is assumed that this field is named <c>name</c> and of a character type.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string NameField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1151,7 +1161,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of the field containing the fully qualified extension type name.</summary>
         /// <remarks>By default, it is assumed that the field is named <c>type</c>.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string TypeField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1163,7 +1173,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the entity is designed to have specialized extensions.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool HasExtensions {
             get { return TypeReferenceField != null || TypeField != null; }
             set { 
@@ -1179,7 +1189,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of the field referencing the domain of an item.</summary>
         /// <remarks>By default, it is assumed that the field is named <c>id_domain</c>.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string DomainReferenceField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1200,7 +1210,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of the field referencing the user owning an item.</summary>
         /// <remarks>By default, it is assumed that the field is named <c>id_usr</c>.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string OwnerReferenceField { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1221,7 +1231,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the name of the table containing the privileges on the entity items for users and groups.</summary>
         /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string PrivilegeTable { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1246,7 +1256,7 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates or determines whether the information in the database table is required for the entity.</summary>
         /// <remarks>If the value is <c>true</c> (the default value) the selecting SQL query uses an <c>INNER JOIN</c>; otherweise a <c>LEFT JOIN</c>. This setting has only effect on tables that come after the first (or top) table in the join.</remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool IsRequired { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------

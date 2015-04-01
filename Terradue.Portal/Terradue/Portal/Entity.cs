@@ -26,26 +26,47 @@ It provides with the functions to define privileges for users or groups on entit
 
 \xrefitem mvc_c "Controller" "Controller components"
 
+\xrefitem cpgroup_core "Core" "Core Computational Group"
+
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
+
+The authorisation consists of two phases:
+- a generic phase where the current user's access privileges are compared to the necessary privileges for the accessed resource
+- an optional specific phase where the same check is performed for the requested operation. This phase is specific to the entity subclass in question as the possible operations are entity-specific.
+
+If IfyContext.RestrictedMode is <em>true</em> (the default value) and the user has insufficient privileges to access an item, the item is not loaded and an exception is thrown immediately.
+Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation check needs to be done by the code that loaded the entity item. This code should check the CanView property of the loaded item and if its value is <em>false</em>, it may either continue or throw another, more appropriate, exception.
+The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
+
 
 \startuml
 !define DIAG_NAME Authorisation mechanism Activity Diagram
 
-(*)  --> "read entity privilege"
-If "restriction applies to" then
---> [User] "check user id"
---> "apply id to restriction"
-else
---> [Group] "check group id"
---> "apply id to restriction"
-Endif
-If "OK?" then
---> [Yes] "access granted"
--->(*) 
-else
---> [No] "access refused"
--->(*) 
-Endif
+start
+:Load entity item considering access policies and user/group privileges;
+if (Are view privileges for current user sufficient?) then (yes)
+    :Access granted;
+else (no)
+    if (Is current context set to restricted mode?) then (yes)
+        :Access denied (throw exception);
+        stop
+    else (no)
+        :Item flagged as unaccessible for current user (no exception);
+    endif
+    :Access granted;
+endif
+:Generic authorisation check completed;
+:Speficic authorisation checks for operation (performed by entity subclass);
+if (Is specific privilege required for requested operation) then (yes)
+    if (Does user have this privilege?) then (no)
+        :Operation rejected (throw exception);
+        stop
+    else (yes)
+    endif
+else (no)
+endif
+:Operation allowed;
+stop
 
 footer
 DIAG_NAME
@@ -67,10 +88,8 @@ namespace Terradue.Portal {
 
     /// <summary>Abstract base class of all entity types that usually correspond to real-world entities.</summary>
     /// <remarks> 
-    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.</p>
-    /// </remarks>
-    /// Derived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
-    /// \xrefitem uml "UML" "UML Diagram"
+    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.<\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"rived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
 	public abstract class Entity : IValueSet {
 
         private string identifier;
@@ -82,7 +101,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets (protected) the database ID, i.e. the numeric key value of an entity item.</summary>
-        /// <remarks>The value is <c>0</c> if the item is not (yet) persistently stored in the database.</remarks>
+        /// <remarks>0 is not (yet) persistently stored in the database.</remarks>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int Id { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -98,7 +118,7 @@ namespace Terradue.Portal {
         ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
         ///     Not all entity types require string identifiers, in some cases the numeric <see cref="Id"/> is sufficient. If the corresponding <see cref="EntityTableAttribute.IdentifierField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Identifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -109,7 +129,7 @@ namespace Terradue.Portal {
         ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
         ///     Not all entity types require human-readable names. If the corresponding <see cref="EntityTableAttribute.NameField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual string Name { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -266,9 +286,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Reads the information of an item from the database.</summary>
-        /// <remarks>
-        ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
+        /// <summary>Reads the information of an item from the database.</sum\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"   ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
         ///     The database table(s) and fields to be used must be linked to the corresponding class(es) and its/their properties via the appropriate attributes.
         /// </remarks>
         public virtual void Load() {
@@ -329,15 +347,15 @@ namespace Terradue.Portal {
         /// <remarks>
         ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built according to the Entity.Load() overload.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Load(EntityType entityType, IDataReader reader) {
             bool includePrivileges = !context.AdminMode && entityType.TopTable.HasPrivilegeManagement;
             int index = 0;
 
             Id = reader.GetInt32(index++);
             Exists = true;
-            if (entityType.TopTable.HasIdentifierField) Identifier = reader.GetString(index++);
-            if (entityType.TopTable.HasNameField) Name = reader.GetString(index++);
+            if (entityType.TopTable.HasIdentifierField) Identifier = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasNameField) Name = context.GetValue(reader, index++);
             if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
             if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
             else OwnerId = 0;
@@ -426,7 +444,7 @@ namespace Terradue.Portal {
         ///     The method performs the necessary <c>INSERT</c> or <c>UPDATE</c> command(s) to represent the item in the database.
         ///     The database tables and fields to be used must be linked to the derived class of Entity and its properties via the appropriate attributes.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Store() {
             Store(null, null);
         }
@@ -645,7 +663,7 @@ namespace Terradue.Portal {
         /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several users.</remarks>
         /// <param name="userIds">An array of IDs of the users to which the privilege setting applies.</param>
         /// <param name="removeOthers">Determines whether privilege settings for other users not contained in <c>userIds</c> are removed.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StorePrivilegesForUsers(int[] userIds, bool removeOthers) {
             StorePrivileges(false, 0, userIds, removeOthers);
         }
@@ -655,7 +673,7 @@ namespace Terradue.Portal {
         /// <summary>Sets the privileges on the resource represented by the instance for the specified user groups according to the privilege properties.</summary>
         /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several groups.</remarks>
         /// <param name="groupIds">An array of IDs of the groups to which the privilege setting applies.</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StorePrivilegesForGroups(int[] groupIds) {
             StorePrivileges(true, 0, groupIds, false);
         }
@@ -677,7 +695,7 @@ namespace Terradue.Portal {
         ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
         ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreGlobalPrivileges() {
             StorePrivileges(false, 0, null, false);
         }
@@ -770,17 +788,14 @@ namespace Terradue.Portal {
         /// <summary></summary>
         /// <remarks></remarks>
         protected static void StorePrivileges(IfyContext context, bool forGroup, int id, Entity[] items, bool removeOthers) {
-            Type lastType = null;
+            if (removeOthers && items.Length != 0) {
+                context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
+            }
             foreach (Entity item in items) {
+                Console.WriteLine("(X-1) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
                 if (context.ConsoleDebug) Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
-                if (item.GetType() != lastType) {
-                    if (lastType == null && removeOthers) {
-                        context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", item.EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
-                    }
-                    lastType = item.GetType();
-                }
-                
                 item.StorePrivileges(forGroup, id, null, false);
+                Console.WriteLine("(X-5) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
             }
         }
 
@@ -791,14 +806,14 @@ namespace Terradue.Portal {
         ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
         ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void RemoveGlobalPrivileges() {
             context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
             //if (CanDelete) // TODO check privileges 
@@ -899,7 +914,7 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void GetAllowedAdministratorOperations() {
             if (context.UserLevel == UserLevel.Administrator) return;
 

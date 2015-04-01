@@ -22,12 +22,14 @@ using Terradue.Util;
 /*!
 \defgroup Context Context
 @{
-This component manages the general context for the entire system for a given session. It manages the authentication of the user with a generic username/password scheme or with an external authentication mechanism (e.g. SSO) based on HTTP headers.
+This component manages the general context for the entire system for a given session. It manages the identification of the user with
+a pluggable authentication interface to extend the generic username/password scheme with an external authentication mechanism.
 It interacts with the database to store and read the persistent configuration data.
-When the system is a web application, it provides an HTTP context (\ref Terradue.Portal#IfyWebContext with session, request, content-type) extended with application specific information (e.g. current user information)
 This component also manages the configuration data for the system. Basically, it saves and loads key/value pairs in the database on the behalf of all other components of the system.
 
 \xrefitem mvc_c "Controller" "Controller components"
+
+\xrefitem cpgroup_core "Core" "Core Computational Group"
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence loads/stores data from/to the database
 
@@ -153,7 +155,7 @@ namespace Terradue.Portal {
 
     /// <summary>Represents the execution environment context and manages the client connection, database access and other resources.</summary>
     /// \ingroup Context
-    /// \xrefitem uml "UML" "UML Diagram"
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract partial class IfyContext {
 
         private object lockObject = new Object();
@@ -245,7 +247,7 @@ namespace Terradue.Portal {
         /// Gets a value indicating whether this instance is interactive.
         /// </summary>
         /// <value><c>true</c> if this instance is interactive; otherwise, <c>false</c>.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool IsInteractive {
             get { return false; }
         }
@@ -301,7 +303,7 @@ namespace Terradue.Portal {
         /// Gets or sets the log level.
         /// </summary>
         /// <value>The log level.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual int LogLevel {
             get { return logLevel; }
             set {
@@ -321,7 +323,7 @@ namespace Terradue.Portal {
         /// Gets or sets the debug level.
         /// </summary>
         /// <value>The debug level.</value>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual int DebugLevel {
             get { return debugLevel; }
             set {
@@ -383,13 +385,13 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the ID of the logged or impersonated user.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int UserId { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the user for whom new items are created.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int OwnerId { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -420,7 +422,7 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates whether the request originates from a registered user.</summary>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool IsUserIdentified {
             get {
                 return isUserIdentified || IsUserAuthenticated;
@@ -435,7 +437,7 @@ namespace Terradue.Portal {
         /// <summary>Indicates whether the request originates from a registered user.</summary>
         /// <remarks>Being <c>IsUserAuthenticated</c> true implies that also <c>IsUserIdentified</c> is true.</remarks>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool IsUserAuthenticated { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -445,25 +447,25 @@ namespace Terradue.Portal {
         /// </summary>
         /// <value>The authentication method.</value>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public AuthenticationMethod AuthenticationMethod { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the level of the logged or impersonated user.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int UserLevel { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the displayed name of the logged or impersonated user.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string UserCaption { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the login name of the logged or impersonated user.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Username {
             get {
                 if (username == null) username = GetQueryStringValue("SELECT username FROM usr WHERE id=" + UserId + ";");
@@ -886,7 +888,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Opens the database connection.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Open() {
             dynamicDbConnections = dynamicDbConnectionsGlobal;
             if (!dynamicDbConnections || !ConfigurationLoaded) {
@@ -914,7 +916,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Closes all open database connection and releases other resources.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Close() {
             foreach (IDbConnection dbConnection in dbConnections) {
                 dbConnection.Close();
@@ -930,7 +932,7 @@ namespace Terradue.Portal {
         /// Loads the configuration.
         /// </summary>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void LoadConfiguration() {
             bool newConnection = (mainDbConnection == null);
             if (newConnection) mainDbConnection = GetNewDbConnection();
@@ -1430,7 +1432,7 @@ namespace Terradue.Portal {
         ///     </list>
         ///     Note: if a transaction is active, IfyContext.DynamicDbTransactions returns always <c>false</c>, even if it has been set to <c>true</c> originally.
         /// </remarks>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StartTransaction() {
             bool exit = (InTransaction && !nestedTransactions);
             if (!exit && DynamicDbConnections) mainDbConnection = GetNewDbConnection();
@@ -1447,7 +1449,7 @@ namespace Terradue.Portal {
         ///     After committing, the behaviour of dynamic database connections returns to normal.
         /// </remarks>
         /// <seealso cref="Terradue.Portal.IfyContext.StartTransaction"/>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Commit() {
             if (InTransaction && (nestedTransactions || TransactionLevel == 1)) Execute("COMMIT;");
             TransactionLevel--;
@@ -1466,7 +1468,7 @@ namespace Terradue.Portal {
         ///     After rolling back the transaction, the behaviour of dynamic database connections returns to normal.
         /// </remarks>
         /// <seealso cref="Terradue.Portal.IfyContext.StartTransaction"/>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Rollback() {
             while (InTransaction) {
                 if (InTransaction && (nestedTransactions || TransactionLevel == 1)) Execute("ROLLBACK;");
@@ -1485,7 +1487,7 @@ namespace Terradue.Portal {
         /// <param name="name">The name of the configuration variable.</param>
         /// <returns>The value of the configuration variable.</returns>
         /// \ingroup Context
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string GetConfigValue(string name) {
             string result = null;
             IDbConnection dbConnection = GetDbConnection();
@@ -1596,7 +1598,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = dbReader.GetString(0);
+            if (dbReader.Read()) result = GetValue(dbReader, 0);
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
@@ -1706,12 +1708,13 @@ namespace Terradue.Portal {
 
         /// <summary>Changes the current HTTP session information in order to impersonate another user.</summary>
         /// <param name="userId">the ID of the user to be impersonated</param>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void StartImpersonation(int userId) {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
             User user = User.FromId(this, userId);
             UserInformation.Update(user);
+            OriginalUserId = UserId;
             UserId = user.Id;
             UserLevel = user.Level;
             UserCaption = user.Caption;
@@ -1721,7 +1724,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Returns to the HTTP session information of the original user account.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void EndImpersonation() {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
@@ -2100,7 +2103,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sends a mail alert to an administrator.</summary>
-        /// \xrefitem uml "UML" "UML Diagram"
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool SendMailAlert() {
             /*bool result = false;*/
             string subject = (mailMessageSubject == null ? "No subject" : mailMessageSubject.Replace("$(IDENTIFIER)", applicationName));
