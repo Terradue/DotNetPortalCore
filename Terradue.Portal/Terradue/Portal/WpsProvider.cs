@@ -40,7 +40,8 @@ It has to main functions:
 
 \xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
 
-\xrefitem int "Interfaces" "Interfaces" implements \ref OWSCOntext model to export WPS Server as a computing resource.
+\xrefitem int "Interfaces" "Interfaces" implements \ref OWSContext model to export WPS Server as a computing resource.
+\xrefitem int "Interfaces" "Interfaces" implements \ref OpenSearchable interface to search WPS Server in OpenSearch.
 \xrefitem int "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
 
 @}
