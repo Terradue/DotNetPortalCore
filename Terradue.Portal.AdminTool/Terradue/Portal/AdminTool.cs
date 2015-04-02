@@ -167,7 +167,7 @@ namespace Terradue.Portal {
                 OpenConnection(connectionString);
                 schemaExists = true;
             } catch (Exception e) {
-                if (!e.Message.Contains("Unknown database")) throw e;
+                if (!e.Message.Contains("Unknown database")) throw;
             }
             
             if (schemaExists) {
@@ -955,7 +955,7 @@ namespace Terradue.Portal {
         public void ReopenConnection() {
             if (mainDbConn != null) {
                 mainDbConn.Close();
-                string newConnectionString = Regex.Replace(mainConnectionString, "Database=[^ ]+$", "Database=information_schema");
+                string newConnectionString = Regex.Replace(mainConnectionString, "Database=[^ ;]+;?", "Database=information_schema;");
                 if (type == 1) mainDbConn = new MySqlConnection(newConnectionString);
                 /*else mainDbConn = new NpgsqlConnection(newConnectionString);*/
                 mainDbConn.Open();
