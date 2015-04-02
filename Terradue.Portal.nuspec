@@ -16,7 +16,7 @@
       <dependency id="Terradue.ServiceModel.Ogc.OwsContext" version="[1.0.0,1.1)" />
       <dependency id="Terradue.Util" version="[1.4.0,1.5)" />
       <dependency id="log4net" version="[2.0.0]" />
-      <dependency id="MySql.Data" version="[1.0.7.30073]" />
+      <dependency id="MySql.Data" version="[6.9.6]" />
     </dependencies>
   </metadata>
   <files>
