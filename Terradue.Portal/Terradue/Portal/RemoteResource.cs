@@ -13,6 +13,7 @@ using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
+using Terradue.OpenSearch.Filters;
 
 namespace Terradue.Portal {
 
@@ -21,7 +22,7 @@ namespace Terradue.Portal {
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
 	[EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
-    public class RemoteResourceSet : Entity, IOpenSearchable, IProxiedOpenSearchable {
+    public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;
 
@@ -107,6 +108,7 @@ namespace Terradue.Portal {
             Resources = new EntityList<RemoteResource>(context);
             Resources.Template.ResourceSet = this;
             Resources.Load();
+            Resources.OpenSearchableChange += new OpenSearchableChangeEventHandler(OnOpenSearchableChange);
 		}
 
 		//---------------------------------------------------------------------------------------------------------------------
@@ -259,6 +261,17 @@ namespace Terradue.Portal {
             return GetOpenSearchDescription();
         }
 
+        public event OpenSearchableChangeEventHandler OpenSearchableChange;
+
+        public void OnOpenSearchableChange (object sender,  OnOpenSearchableChangeEventArgs data)
+        {
+            // Check if there are any Subscribers
+            if (OpenSearchableChange != null)
+            {
+                // Call the Event
+                OpenSearchableChange (this, data);
+            }
+        }
 	}
 
     /// <summary>

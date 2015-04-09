@@ -33,7 +33,6 @@ namespace Terradue.Portal {
     /// <summary>
     /// I scheduler run configuration.
     /// </summary>
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public interface ISchedulerRunConfiguration {
         void Reset();
         NameValueCollection GetNextParameters();
@@ -50,7 +49,6 @@ namespace Terradue.Portal {
 
     /// <summary>Abstract class representing a collection of scheduler parameters and settings for generating subsequent runs of the scheduler.</summary>
     /// <remarks>All schedulers require a run configuration to manage the advancing of its parameters.</remarks>
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("schedulerrunconf", EntityTableConfiguration.Custom, HasAutomaticIds = false, HasExtensions = true)]
     public abstract class SchedulerRunConfiguration : Entity, ISchedulerRunConfiguration {
 
@@ -62,7 +60,6 @@ namespace Terradue.Portal {
         /// Gets or sets the scheduler.
         /// </summary>
         /// <value>The scheduler.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Scheduler Scheduler {
             get {
                 if (scheduler == null && Id != 0) {
