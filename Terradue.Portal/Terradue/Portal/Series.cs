@@ -254,6 +254,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        [EntityDataField("dataset_count")]
+        public long DataSetCount { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataField("last_update_time")]
+        public DateTime LastUpdateTime { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Gets the catalogue base URL.</summary>
         /// \ingroup Series
         [EntityForeignField("name", CATALOGUE_TABLE)]
@@ -264,8 +274,8 @@ namespace Terradue.Portal {
         /// <summary>Gets the catalogue base URL.</summary>
         /// \ingroup Series
         [EntityForeignField("base_url", CATALOGUE_TABLE)]
-        public string CatalogueBaseUrl { get; protected set; } 
-        
+        public string CatalogueBaseUrl { get; protected set; }
+
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets or sets a reference to the input files request parameter that depends on the series.</summary>

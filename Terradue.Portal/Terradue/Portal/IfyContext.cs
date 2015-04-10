@@ -1507,6 +1507,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public long GetConfigLongIntegerValue(string name) {
+            return GetQueryLongIntegerValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public bool GetConfigBooleanValue(string name) {
             return GetQueryBooleanValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
         }
@@ -1625,6 +1631,19 @@ namespace Terradue.Portal {
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
             if (dbReader.Read()) result = dbReader.GetInt32(0);
+            CloseQueryResult(dbReader, dbConnection);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public long GetQueryLongIntegerValue(string sql) {
+            long result = 0;
+            IDbConnection dbConnection = GetDbConnection();
+            IDbCommand dbCommand = dbConnection.CreateCommand();
+            dbCommand.CommandText = sql;
+            IDataReader dbReader = dbCommand.ExecuteReader();
+            if (dbReader.Read()) result = dbReader.GetInt64(0);
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
