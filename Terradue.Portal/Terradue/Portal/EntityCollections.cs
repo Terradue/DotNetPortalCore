@@ -616,10 +616,18 @@ namespace Terradue.Portal {
 
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
 
         public ParametersResult DescribeParameters() {
             return OpenSearchFactory.GetDefaultParametersResult();
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual bool CanCache {
+            get { return false; }
+        }
+
         #endregion
 
         public event OpenSearchableChangeEventHandler OpenSearchableChange;

@@ -618,6 +618,10 @@ namespace Terradue.Portal {
             return OpenSearchFactory.GetDefaultParametersResult();
         }
 
+        public virtual bool CanCache {
+            get { return false; }
+        }
+
         #endregion
 
         /// <summary>

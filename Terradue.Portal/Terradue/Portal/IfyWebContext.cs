@@ -747,13 +747,15 @@ namespace Terradue.Portal {
 
             SetUserInformation(authenticationType, user);
 
-            if (check) CheckCanStartSession(user);
+            if (check && Privileges.MinUserLevelView > UserLevel) CheckCanStartSession(user);
 
-            user.StartNewSession();
-            if (HttpContext.Current != null) {
-                if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
-                HttpContext.Current.Session["user"] = UserInformation;
-                HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
+            if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) {
+                user.StartNewSession();
+                if (HttpContext.Current != null) {
+                    if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
+                    HttpContext.Current.Session["user"] = UserInformation;
+                    HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
+                }
             }
         }
 
