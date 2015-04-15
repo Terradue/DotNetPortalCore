@@ -388,28 +388,37 @@ namespace Terradue.Portal {
         }
 
         public void UpdateProcessOfferings() {
-            //delete all + store all ??? be sure of what it implies (any link in db)
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings();
 
-            /*
-             * get old list (l1)
-             * get new list (l2)
-             * 
-             * in l1 - in l2
-             *  - do nothing
-             * in l1 - not in l2
-             *  -> remove from db
-             *  -> remove also wpsjobs ?
-             * not in l1 - in l2
-             *  -> add in db
-             */ 
+            foreach (WpsProcessOffering pR in remoteProcesses) {
+                bool existsPrInDb = false;
+                foreach(WpsProcessOffering pDB in dbProcesses) {
+                    // if pDB in pR -> we update pDB with pR
+                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier)) {
+                        existsPrInDb = true;
+                        pDB.Name = pR.Name;
+                        pDB.Description = pR.Description;
+                        pDB.Store();
+                        break;
+                    }
+                }
+                // if pR not in pDB -> we add pR (store in DB)
+                if (!existsPrInDb) 
+                    pR.Store(); 
+            }
 
-
+            foreach (WpsProcessOffering pDB in dbProcesses) {
+                bool existsPdbInPr = false;
+                foreach (WpsProcessOffering pR in remoteProcesses) {
+                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
+                        existsPdbInPr = true;
+                }
+                // if pDb not in pR -> we remove pDb
+                if (!existsPdbInPr)
+                    pDB.Delete();
+            }
         }
-        //
-        //        public List<ProcessBriefType> GetProcessFromUrl(){
-        //        }
-
-        //TODO: maj des ProcessOfferings (ajout news + delete non presents)
 
         //---------------------------------------------------------------------------------------------------------------------
 
