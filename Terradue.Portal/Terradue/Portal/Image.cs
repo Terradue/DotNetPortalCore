@@ -25,7 +25,6 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents a featured image on the portal</summary>
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("image", EntityTableConfiguration.Custom)]
     public class Image : Entity {
 
@@ -33,7 +32,6 @@ namespace Terradue.Portal {
         /// Gets or sets the caption.
         /// </summary>
         /// <value>The caption.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("caption")]
         public string Caption { get; set; }
 
@@ -41,7 +39,6 @@ namespace Terradue.Portal {
         /// Gets or sets the description.
         /// </summary>
         /// <value>The description.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
@@ -49,7 +46,6 @@ namespace Terradue.Portal {
         /// Gets or sets the URL.
         /// </summary>
         /// <value>The URL.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("url")]
         public string Url { get; set; }
 
@@ -57,7 +53,6 @@ namespace Terradue.Portal {
         /// Gets or sets the small URL.
         /// </summary>
         /// <value>The small URL.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("small_url")]
         public string SmallUrl { get; set; }
 

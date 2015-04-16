@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Terradue.Portal</id>
-    <version>2.6.25</version>
+    <version>2.6.26</version>
     <title>Terradue.Portal</title>
     <authors>Terradue</authors>
     <!--<projectUrl>https://github.com/Terradue/DotNetOpenSearch</projectUrl>
@@ -15,7 +15,7 @@
       <dependency id="Terradue.OpenSearch" version="[1.9,1.10)" />
       <dependency id="Terradue.ServiceModel.Ogc.OwsContext" version="[1.0.0,1.1)" />
       <dependency id="Terradue.Util" version="[1.4.0,1.5)" />
-      <dependency id="log4net" version="[2.0.0]" />
+      <dependency id="log4net" version="[2.0.0,)" />
       <dependency id="MySql.Data" version="[6.9.6]" />
     </dependencies>
   </metadata>

@@ -355,7 +355,7 @@ namespace Terradue.Portal {
             }
             user.PasswordExpired = (PasswordExpireTime > 0 && user.LastPasswordChangeTime.AddSeconds(PasswordExpireTime) < context.Now);
 
-            context.StartSession(this, user);
+            context.StartSession(this, user, false);
             return user;
         }
 
@@ -437,7 +437,7 @@ namespace Terradue.Portal {
                 context.SetUserInformation(this, user);
             }
 
-            context.StartSession(this, user);
+            context.StartSession(this, user, false);
 
             return user;
         }

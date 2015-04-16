@@ -28,6 +28,7 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using Terradue.OpenSearch.Filters;
 
 
 
@@ -106,7 +107,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>A list of entities of a specific type.</summary>
-    public abstract class EntityCollection<T> : IEntityCollection<T>, IEnumerable<T>, IOpenSearchable where T : Entity {
+    public abstract class EntityCollection<T> : IEntityCollection<T>, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
 
         private EntityType entityType;
         private T template;
@@ -615,11 +616,31 @@ namespace Terradue.Portal {
 
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
 
         public ParametersResult DescribeParameters() {
             return OpenSearchFactory.GetDefaultParametersResult();
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual bool CanCache {
+            get { return false; }
+        }
+
         #endregion
+
+        public event OpenSearchableChangeEventHandler OpenSearchableChange;
+
+        public void OnOpenSearchableChange (object sender,  OnOpenSearchableChangeEventArgs data)
+        {
+            // Check if there are any Subscribers
+            if (OpenSearchableChange != null)
+            {
+                // Call the Event
+                OpenSearchableChange (this, data);
+            }
+        }
     }
     
 
@@ -684,6 +705,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override void Clear() {
             items.Clear();
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -694,6 +716,7 @@ namespace Terradue.Portal {
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
             items.Add(item);
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -749,6 +772,7 @@ namespace Terradue.Portal {
         /// <summary>Removes all items from the list.</summary>
         public override void Clear() {
             items.Clear();
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -758,6 +782,7 @@ namespace Terradue.Portal {
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
             items[item.Identifier] = item;
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -818,6 +843,7 @@ namespace Terradue.Portal {
         /// <summary>Removes all items from the list.</summary>
         public override void Clear() {
             items.Clear();
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -827,6 +853,7 @@ namespace Terradue.Portal {
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
             items[item.Id] = item;
+            OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------

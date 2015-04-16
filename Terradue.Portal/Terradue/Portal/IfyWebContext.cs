@@ -604,7 +604,7 @@ namespace Terradue.Portal {
 
                 if (isNewUser && AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
                 //if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) StartSession(selectedAuthenticationType, identifiedUser);
-                StartSession(selectedAuthenticationType, identifiedUser);
+                StartSession(selectedAuthenticationType, identifiedUser, Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody);
             }
 
             return identifiedUser;
@@ -723,17 +723,22 @@ namespace Terradue.Portal {
         /// <exception cref="UnauthorizedAccessException">If the account is deactivated or disabled.</exception>
         /// <exception cref="UnauthorizedAccessException">If the account is waiting for an activation  </exception>
         /// <param name="user">The user for whom the session is to be started.</param>
-        public virtual void CheckCanStartSession(User user) {
+        public virtual bool CheckCanStartSession(User user, bool throwOnError) {
             switch (user.AccountStatus) {
                 case AccountStatusType.Disabled :
-                    throw new UnauthorizedAccessException("The user account has been disabled");
+                    if (throwOnError) throw new UnauthorizedAccessException("The user account has been disabled");
+                    else return false;
                 case AccountStatusType.Deactivated :
-                    throw new UnauthorizedAccessException("The user account has been deactivated, most likely because of too many failed login attempts");
+                    if (throwOnError) throw new UnauthorizedAccessException("The user account has been deactivated, most likely because of too many failed login attempts");
+                    else return false;
                 case AccountStatusType.PendingActivation:
-                    throw new PendingActivationException("The user account has not yet been activated");
+                    if (throwOnError) throw new PendingActivationException("The user account has not yet been activated");
+                    else return false;
                 case AccountStatusType.PasswordReset :
-                    throw new PendingActivationException("The user account has to be reactivated after a password reset");
+                    if (throwOnError) throw new PendingActivationException("The user account has to be reactivated after a password reset");
+                    else return false;
             }
+            return true;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -742,18 +747,20 @@ namespace Terradue.Portal {
         /// <param name="authenticationType">The used authentication type.</param>
         /// <param name="user">The user for whom the session is to be started.</param>
         /// <param name="check">Decides whether a check is performed. This parameter can be omitted, the default setting is <c>true</c>.</param>
-        public void StartSession(AuthenticationType authenticationType, User user, bool check = true) {
+        public void StartSession(AuthenticationType authenticationType, User user, bool strictCheck = true) {
             if (!authenticationType.SupportsSessions) throw new InvalidOperationException(String.Format("{0} does not support sessions", authenticationType.Name));
 
             SetUserInformation(authenticationType, user);
 
-            if (check) CheckCanStartSession(user);
+            bool canStart = CheckCanStartSession(user, strictCheck);
 
-            user.StartNewSession();
-            if (HttpContext.Current != null) {
-                if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
-                HttpContext.Current.Session["user"] = UserInformation;
-                HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
+            if (canStart) {
+                user.StartNewSession();
+                if (HttpContext.Current != null) {
+                    if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
+                    HttpContext.Current.Session["user"] = UserInformation;
+                    HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
+                }
             }
         }
 

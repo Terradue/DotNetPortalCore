@@ -22,7 +22,6 @@ namespace Terradue.Portal {
     
 
     /// <summary>Represents an action that is executed by the background agent.</summary>
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("action", EntityTableConfiguration.Full)]
     public class Action : Entity {
         
