@@ -595,7 +595,7 @@ namespace Terradue.Portal {
                 Message = "Less than {0} values";
             } else if (MaxOccurs != 0 && Values != null && Values.Length > MaxOccurs) {
                 isValid = false;
-                Message = String.Format("More than {0}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length));
+                Message = String.Format("More than {0}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", MaxOccurs));
                 //HandleError(String.Format("More than {0}{1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length), ParameterSet.CollectValidityErrors ? String.Empty : String.Format(" for parameter {0}", Name)), false);
             } else {
                 for (int i = 0; i < valid.Length; i++) {
