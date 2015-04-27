@@ -50,9 +50,6 @@
     <Reference Include="Terradue.Metadata">
       <HintPath>..\packages\Terradue.Metadata.1.4.0\lib\net40\Terradue.Metadata.dll</HintPath>
     </Reference>
-    <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.9.11\lib\net40\Terradue.OpenSearch.dll</HintPath>
-    </Reference>
     <Reference Include="Terradue.ServiceModel.Syndication">
       <HintPath>..\packages\Terradue.ServiceModel.Syndication.1.0.0.0\lib\net40\Terradue.ServiceModel.Syndication.dll</HintPath>
     </Reference>
@@ -61,6 +58,9 @@
     </Reference>
     <Reference Include="MySql.Data">
       <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.OpenSearch">
+      <HintPath>..\packages\Terradue.OpenSearch.1.9.13\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

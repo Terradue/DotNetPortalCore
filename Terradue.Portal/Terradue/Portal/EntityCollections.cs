@@ -332,18 +332,21 @@ namespace Terradue.Portal {
                 }
             }
 
-            if (sql != null) {
-                sql = String.Format("DELETE FROM {0} WHERE {1};", storeTable.Name, sql);
-                if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
-                context.Execute(sql);
-            }
-
             bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
                 if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
                 else item.Store();
             }
+
+            // TODO: This was done before the storage of the contained items (previous block).
+            // TODO: To avoid exceptions with references to non-existing during the store (e.g. native datasets contained in virtual datasets), the deletion is done afterwards now. Check whether there is a better way
+            if (sql != null) {
+                sql = String.Format("DELETE FROM {0} WHERE {1};", storeTable.Name, sql);
+                if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+                context.Execute(sql);
+            }
+
         }
 
         //---------------------------------------------------------------------------------------------------------------------

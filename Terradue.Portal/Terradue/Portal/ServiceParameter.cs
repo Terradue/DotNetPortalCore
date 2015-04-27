@@ -423,7 +423,7 @@ namespace Terradue.Portal {
         public void AddValue(string value) {
             int len = (values == null ? 0 : values.Length);
             if (len != 0 && MaxOccurs != 0 && len >= MaxOccurs && ParameterSet.CollectValidityErrors) {
-                throw new InvalidServiceParameterException(String.Format("More than {0} for parameter {1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length), Name));
+                throw new InvalidServiceParameterException(String.Format("More than {0} for parameter {1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", MaxOccurs), Name));
             }
             if (len == 0) {
                 values = new string[1];
@@ -595,7 +595,7 @@ namespace Terradue.Portal {
                 Message = "Less than {0} values";
             } else if (MaxOccurs != 0 && Values != null && Values.Length > MaxOccurs) {
                 isValid = false;
-                Message = String.Format("More than {0}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length));
+                Message = String.Format("More than {0}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", MaxOccurs));
                 //HandleError(String.Format("More than {0}{1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length), ParameterSet.CollectValidityErrors ? String.Empty : String.Format(" for parameter {0}", Name)), false);
             } else {
                 for (int i = 0; i < valid.Length; i++) {
