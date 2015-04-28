@@ -37,6 +37,10 @@ retrieve the DescribeProcess() from \ref WpsProvider to describe the process wit
 
 @}
 */
+using System.Net;
+using System.IO;
+using OpenGis.Wps;
+using System.Xml;
 
 
 namespace Terradue.Portal {
@@ -54,6 +58,11 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("wpsproc", EntityTableConfiguration.Custom)]
     public class WpsProcessOffering : Service, IAtomizable {
+
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+            (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
+        //---------------------------------------------------------------------------------------------------------------------
 
         private WpsProvider provider;
 
@@ -122,6 +131,161 @@ namespace Terradue.Portal {
         public override void BuildTask(Task task) {
             //this.ComputingResourceId = Provider;
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public object DescribeProcess(){
+            //build describeProcess url
+            var uriDescr = new UriBuilder(Provider.BaseUrl);
+            var query = "service=WPS&request=DescribeProcess";
+
+            var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
+            query += "&identifier=" + identifier;
+            
+            if (Version != null) 
+                query += "&version=" + Version;
+
+            uriDescr.Query = query;
+
+            HttpWebRequest describeHttpRequest = (HttpWebRequest)WebRequest.Create(uriDescr.Uri.AbsoluteUri);
+
+            //if gpod service, we need to add extra infos to the request
+            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
+                describeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
+            }
+
+            MemoryStream memStream = new MemoryStream();
+            //call describe url
+            HttpWebResponse describeResponse = null;
+            try{
+                describeResponse = (HttpWebResponse)describeHttpRequest.GetResponse();
+            }catch(WebException we){
+                throw we;//TODO
+            }
+            describeResponse.GetResponseStream().CopyTo(memStream);
+            memStream.Seek(0, SeekOrigin.Begin);
+            if (describeResponse.StatusCode != HttpStatusCode.OK) {
+                using (StreamReader reader = new StreamReader(memStream)) {
+                    string errormsg = reader.ReadToEnd();
+                    log.Error(errormsg);
+                    throw new Exception(errormsg);//TEMPORARY - 52 North bug
+                }
+            }
+
+            ProcessDescriptions describeProcess = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(memStream);
+            return describeProcess;
+        }
+
+        public object Execute(Execute executeInput){
+            //build "real" execute url
+            var uriExec = new UriBuilder(Provider.BaseUrl);
+            uriExec.Query = "";
+            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
+                uriExec.Query += "_format=xml&_user=" + context.GetConfigIntegerValue("GpodWpsUserId");
+            }
+
+            var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
+            executeInput.Identifier = new CodeType{ Value = identifier };
+
+            log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = (HttpWebRequest)WebRequest.Create(uriExec.Uri.AbsoluteUri);
+
+            executeHttpRequest.Method = "POST";
+            executeHttpRequest.ContentType = "application/xml";
+
+            //if gpod service, we need to add extra infos to the request
+            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
+                executeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
+            }
+
+            using (var writer = XmlWriter.Create(executeHttpRequest.GetRequestStream())) {
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(writer, executeInput);
+                writer.Flush();
+                writer.Close();
+            }
+
+            OpenGis.Wps.ExecuteResponse execResponse = null;
+            OpenGis.Wps.ExceptionReport exceptionReport = null;
+            MemoryStream memStream = new MemoryStream();
+            try {
+                //call the "real" execute url
+                var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
+                executeResponse.GetResponseStream().CopyTo(memStream);
+                memStream.Seek(0, SeekOrigin.Begin);
+
+                if (executeResponse.StatusCode != HttpStatusCode.OK) {
+                    using (StreamReader reader = new StreamReader(memStream)) {
+                        string errormsg = reader.ReadToEnd();
+                        log.Error(errormsg);
+                        throw new Exception(errormsg);//TODO
+                    }
+                }
+                executeResponse.GetResponseStream().CopyTo(memStream);
+                memStream.Seek(0, SeekOrigin.Begin);
+                execResponse = (OpenGis.Wps.ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Deserialize(memStream);
+                return execResponse;
+            } catch (InvalidOperationException ioe) {
+                //bug 52 NORTH - to be removed once AIR updated
+                memStream.Seek(0, SeekOrigin.Begin);
+                try {
+                    exceptionReport = (OpenGis.Wps.ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExceptionReport)).Deserialize(memStream);
+                    return exceptionReport;
+                } catch (Exception e) {
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    using (StreamReader reader = new StreamReader(memStream)) {
+                        string errormsg = reader.ReadToEnd();
+                        log.Error(errormsg);
+                        throw new Exception(errormsg);//TODO
+                    }
+                }
+            } catch (Exception e) {
+                throw e;
+            }
+        }
+
+//        public void StoreTask(ExecuteResponse executeResponse){
+//            Uri uri = new Uri(executeResponse.statusLocation);
+//            string newId = Guid.NewGuid().ToString();
+//
+//            //create task
+//            string identifier = null;
+//            try {
+//                identifier = uri.Query.Substring(uri.Query.IndexOf("id=") + 3);
+//            } catch (Exception e) {
+//                //statusLocation url is different for gpod
+//                if (uri.AbsoluteUri.Contains("gpod.eo.esa.int")) {
+//                    identifier = uri.AbsoluteUri.Substring(uri.AbsoluteUri.LastIndexOf("status") + 7);
+//                } else
+//                    throw e;
+//            }
+//            Task wpsTask = new Task(context);
+//            wpsTask.Name = Name;
+//            wpsTask.RemoteIdentifier = identifier;
+//            wpsTask.Identifier = newId;
+//            wpsTask.OwnerId = context.UserId;
+//            wpsTask.UserId = context.UserId;
+////            wpsjob.ServiceIdentifier = Provider.Identifier;
+//            wpsTask.ServiceIdentifier = Identifier;
+//            wpsTask.StatusUrl = executeResponse.statusLocation;
+//            wpsTask.Store();
+//
+//            wpsTask.J
+//
+//            foreach (var d in executeInput.DataInputs) {
+//                TaskParam
+//                output.Add(new KeyValuePair<string, string>(d.Identifier.Value, ((LiteralDataType)(d.Data.Item)).Value));
+//            }
+//            wpsTask.Parameters = output;
+//            wpsTask.Store();
+//
+//            if (Provider.Proxy) {
+//                uri = new Uri(executeResponse.serviceInstance);
+//                executeResponse.serviceInstance = context.BaseUrl + uri.PathAndQuery;
+//                executeResponse.statusLocation = context.BaseUrl + "/wps/RetrieveResultServlet?id=" + newId;
+//            }
+//            new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Serialize(stream, execResponse);
+//            context.Close();
+//        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
