@@ -498,6 +498,7 @@ namespace Terradue.Portal {
             }
 
             // activationToken also used here to avoid endless nested replacements
+            subject = subject.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
             body = body.Replace(@"\n", Environment.NewLine);
             body = body.Replace("$(", "$" + activationToken + "(");
             body = body.Replace("$" + activationToken + "(USERCAPTION)", Caption);
