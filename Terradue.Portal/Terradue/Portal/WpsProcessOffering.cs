@@ -198,8 +198,16 @@ namespace Terradue.Portal {
                 executeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
             }
 
-            using (var writer = XmlWriter.Create(executeHttpRequest.GetRequestStream())) {
-                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(writer, executeInput);
+            System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+            ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
+            ns.Add("ows", "http://www.opengis.net/ows/1.1");
+
+            XmlWriterSettings settings = new XmlWriterSettings{ 
+                Encoding = new System.Text.UTF8Encoding(false)
+            };
+
+            using (var writer = XmlWriter.Create(executeHttpRequest.GetRequestStream(),settings)) {
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(writer, executeInput, ns);
                 writer.Flush();
                 writer.Close();
             }
