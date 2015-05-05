@@ -7,7 +7,7 @@ namespace Terradue.Portal {
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("feature", EntityTableConfiguration.Custom)]
-    public class Feature : Entity {
+    public class Feature : Entity, IComparable<Feature> {
 
         /// <summary>
         /// Gets or sets the title.
@@ -83,6 +83,17 @@ namespace Terradue.Portal {
             feat.Load();
             return feat;
         }
+
+        #region IComparable implementation
+
+        public int CompareTo(Feature other) {
+            if (other == null || other.Position > this.Position)
+                return 1;
+            else
+                return 0;
+        }
+
+        #endregion
     }
 }
 
