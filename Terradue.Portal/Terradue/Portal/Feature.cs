@@ -87,10 +87,10 @@ namespace Terradue.Portal {
         #region IComparable implementation
 
         public int CompareTo(Feature other) {
-            if (other == null || other.Position > this.Position)
+            if (other == null)
                 return 1;
             else
-                return 0;
+                return this.Position.CompareTo(other.Position);
         }
 
         #endregion

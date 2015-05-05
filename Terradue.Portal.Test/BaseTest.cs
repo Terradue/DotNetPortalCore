@@ -15,6 +15,7 @@ namespace Terradue.Portal.Test {
             AfterFailureCheckpoint = true;
 
             dbMainSchema = "TerraduePortalTest";
+            dbNewsSchema = dbMainSchema;
             currentSchema = dbMainSchema;
             Verbose = false;
             siteRootDir = "../..";
