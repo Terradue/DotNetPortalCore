@@ -58,6 +58,14 @@ namespace Terradue.Portal {
         public string ButtonLink { get; set; }
 
         /// <summary>
+        /// Gets or sets the position.
+        /// </summary>
+        /// <value>The position.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("pos")]
+        public int Position { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Features"/> class.
         /// </summary>
         /// <param name="context">Context.</param>
