@@ -2031,6 +2031,7 @@ USE $NEWS$;
 
 CREATE TABLE feature (
     id int unsigned NOT NULL auto_increment,
+    pos int unsigned COMMENT 'Feature position',
     title varchar(25) NOT NULL,
     description varchar(100),
     image_url varchar(100),

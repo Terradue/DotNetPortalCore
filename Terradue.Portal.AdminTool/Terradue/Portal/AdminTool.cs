@@ -37,7 +37,7 @@ namespace Terradue.Portal {
         private static string dbUsername;
         private static string dbPassword;
         protected static string dbMainSchema;
-        private static string dbNewsSchema;
+        protected static string dbNewsSchema;
 
         protected bool schemaExists;
         protected string currentSchema;
