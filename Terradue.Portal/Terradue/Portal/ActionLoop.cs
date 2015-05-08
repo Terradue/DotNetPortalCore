@@ -155,6 +155,13 @@ namespace Terradue.Portal {
                         )
                 );
                 while (dbReader.Read()) {
+                    DateTime nextExecutionTime = DateTime.MinValue;
+                    // Workaround for MySQL error of 0000-00-00 dates that appear as next_execution_time out of nowhere
+                    try {
+                        if (dbReader.GetValue(6) == DBNull.Value) nextExecutionTime = dbReader.GetDateTime(6);
+                    } catch (Exception e) {
+                        context.AddWarning("Error converting next execution time in DB: {0}", e.Message);
+                    }
                     ActionExecution exec = new ActionExecution(
                             dbReader.GetInt32(0),
                             dbReader.GetString(1),
@@ -162,7 +169,7 @@ namespace Terradue.Portal {
                             dbReader.GetString(3),
                             dbReader.GetString(4),
                             dbReader.GetValue(5) == DBNull.Value ? 300 : StringUtils.StringToSeconds(dbReader.GetString(5)),
-                            dbReader.GetValue(6) == DBNull.Value ? DateTime.MinValue : dbReader.GetDateTime(6),
+                            nextExecutionTime,
                             dbReader.GetValue(7) != DBNull.Value && dbReader.GetBoolean(7)
                     );
                             
