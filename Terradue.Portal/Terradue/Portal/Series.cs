@@ -532,7 +532,7 @@ namespace Terradue.Portal {
         /// <summary>Updates the count cache.</summary>
         /// <param name="count">Count.</param>
         /// \ingroup Series
-		public void UpdateCountCache(long count) {
+        public void UpdateCountCache(long count) {
             context.Execute(String.Format("UPDATE series SET dataset_count={1}, last_update_time='{2}' WHERE id={0};", Id, count, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")));
         }
 
@@ -540,7 +540,7 @@ namespace Terradue.Portal {
         /// <returns>The cache count if up to date</returns>
         /// <param name="throwException">If set to <c>true</c>, it throws exception if the value is missing or not up to date.</param>
         /// \ingroup Series
-		public ulong CountCache (bool throwException) {
+        public ulong CountCache (bool throwException) {
             int seriesInfoValidityTime = StringUtils.StringToSeconds(context.GetConfigValue("SeriesInfoValidityTime"));
             DateTime outdatedEndTime = DateTime.UtcNow.AddSeconds(- seriesInfoValidityTime);
 
@@ -559,8 +559,8 @@ namespace Terradue.Portal {
         }
 
         public virtual OpenSearchRequest Create(string type, NameValueCollection parameters) {
-			return OpenSearchRequest.Create(this, type, parameters);
-		}
+            return OpenSearchRequest.Create(this, type, parameters);
+        }
 
         public virtual QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
@@ -579,16 +579,16 @@ namespace Terradue.Portal {
         /// <param name="mimeType">MIME type.</param>
         /// \ingroup Series
         public virtual NameValueCollection GetOpenSearchParameters(string mimeType) {
-			NameValueCollection nvc = new NameValueCollection ();
-			OpenSearchDescription osd = this.GetOpenSearchDescription ();
+            NameValueCollection nvc = new NameValueCollection ();
+            OpenSearchDescription osd = this.GetOpenSearchDescription ();
 
-			OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
+            OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
 
-			if (osd.Url [0] != null) {
-				nvc = HttpUtility.ParseQueryString(osd.Url [0].Template);
-			}
+            if (osd.Url [0] != null) {
+                nvc = HttpUtility.ParseQueryString(osd.Url [0].Template);
+            }
 
-			return nvc;
+            return nvc;
 
         }
 
@@ -630,11 +630,11 @@ namespace Terradue.Portal {
         /// <returns>The results.</returns>
         /// <param name="ose">Ose.</param>
         /// \ingroup Series
-		public long GetTotalResults() {
-			long result = 0;
+        public long GetTotalResults() {
+            long result = 0;
 
-			OpenSearchEngine ose = new OpenSearchEngine();
-			AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+            OpenSearchEngine ose = new OpenSearchEngine();
+            AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
             ose.RegisterExtension(aosee);
 
             try {

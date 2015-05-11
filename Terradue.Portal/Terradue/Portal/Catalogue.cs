@@ -165,9 +165,9 @@ namespace Terradue.Portal {
 
         #region IOpenSearchable implementation
 
-		public int CompareTo(object obj) {
-			throw new NotImplementedException();
-		}
+        public int CompareTo(object obj) {
+            throw new NotImplementedException();
+        }
 
         public OpenSearchUrl GetSearchBaseUrl(string mimetype) {
             return new OpenSearchUrl (string.Format("{0}/catalogue/{1}/search", context.BaseUrl, this.Identifier));
@@ -190,9 +190,9 @@ namespace Terradue.Portal {
             }
         }
 
-		public OpenSearchRequest Create(string type, NameValueCollection parameters) {
-			return OpenSearchRequest.Create(this, type, parameters);
-		}
+        public OpenSearchRequest Create(string type, NameValueCollection parameters) {
+            return OpenSearchRequest.Create(this, type, parameters);
+        }
 
         public OpenSearchDescription GetOpenSearchDescription() {
 
@@ -226,7 +226,7 @@ namespace Terradue.Portal {
         }
 
         #endregion
-	}
+    }
 
 }
 

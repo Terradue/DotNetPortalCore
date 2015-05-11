@@ -90,7 +90,7 @@ namespace Terradue.Portal {
     /// <remarks> 
     ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.<\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"rived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-	public abstract class Entity : IValueSet {
+    public abstract class Entity : IValueSet {
 
         private string identifier;
         private int ownerId;
@@ -249,7 +249,7 @@ namespace Terradue.Portal {
             if (!(this is EntityType)) this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
             if (context != null) {
                 this.UserId = context.UserId;
-				this.OwnerId = UserId;
+                this.OwnerId = UserId;
                 InitializeRelationships(context);
             }
         }

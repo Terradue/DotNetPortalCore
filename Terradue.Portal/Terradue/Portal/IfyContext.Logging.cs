@@ -9,7 +9,7 @@ namespace Terradue.Portal {
 
         private static ILog log;// = LogManager.GetLogger(typeof(IfyContext));
         private static bool isLogActive;
-		private static readonly log4net.Core.Level statLevel = new log4net.Core.Level(50000, "STAT"); // the first and second values must be unique values
+        private static readonly log4net.Core.Level statLevel = new log4net.Core.Level(50000, "STAT"); // the first and second values must be unique values
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Configures the logging object.</summary>
@@ -17,15 +17,15 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void CreateLogger() {
             log = LogManager.GetLogger(this.GetType().FullName);
-			// adding a new log4net level (statistical level)
-			LogManager.GetRepository().LevelMap.Add(statLevel);
+            // adding a new log4net level (statistical level)
+            LogManager.GetRepository().LevelMap.Add(statLevel);
             this.LoadLogConfig();
         }
 
         /// <summary>Create a new TerradueLog instance reading configuration from the default file </summary>
         public void LoadLogConfig() {
             try {
-				System.Configuration.Configuration rootWebConfig = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration(null);
+                System.Configuration.Configuration rootWebConfig = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration(null);
                 System.IO.FileInfo fi = new System.IO.FileInfo(rootWebConfig.AppSettings.Settings["TerradueLogConfigurationFile"].Value);
                 XmlConfigurator.Configure(fi);
                 isLogActive = true;
@@ -45,32 +45,32 @@ namespace Terradue.Portal {
             }
         }
 
-		/// <summary>add a custom property</summary>
-		private void SetUserId() {
-			log4net.GlobalContext.Properties["user"] = this.Username;
-		}
-		/// <summary>add a custom property</summary>
-		public void SetUrl(string url) {
-			/*
-			 * url (always a string) can be:
-			 * url: user authorization
-			 * search url : search request
-			 * dar url: data access
-			 * standing order url: standing order
-			 * download manager identifier: download manager installation
-			*/
-			log4net.GlobalContext.Properties["url"] = url;
-		}
-		/// <summary>add a custom property</summary>
-		public void SetAction(string action) {
-			/*
-			 * action can be:
-			 * status (string): user authorization/data access/ standig order
-			 * action (string): download manager installation
-			 * # of result (int): search request 
-			*/
-			log4net.GlobalContext.Properties["action"] = action;
-		}
+        /// <summary>add a custom property</summary>
+        private void SetUserId() {
+            log4net.GlobalContext.Properties["user"] = this.Username;
+        }
+        /// <summary>add a custom property</summary>
+        public void SetUrl(string url) {
+            /*
+             * url (always a string) can be:
+             * url: user authorization
+             * search url : search request
+             * dar url: data access
+             * standing order url: standing order
+             * download manager identifier: download manager installation
+            */
+            log4net.GlobalContext.Properties["url"] = url;
+        }
+        /// <summary>add a custom property</summary>
+        public void SetAction(string action) {
+            /*
+             * action can be:
+             * status (string): user authorization/data access/ standig order
+             * action (string): download manager installation
+             * # of result (int): search request 
+            */
+            log4net.GlobalContext.Properties["action"] = action;
+        }
 
         /// <summary>add a custom property</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -203,14 +203,14 @@ namespace Terradue.Portal {
         }
 
 
-		/// <summary> Loging Statistical level </summary>
+        /// <summary> Loging Statistical level </summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-		public virtual void LogStat(object reporter) {
-			SetReporter(reporter.GetType().ToString());
-			SetUserId();
-			//SetAction(action);
-			//SetUrl(HttpContext.Current.Request.Url.AbsoluteUri);
-			log.Logger.Log(this.GetType(), statLevel, "Used for statistical extraction", null);
-		}
+        public virtual void LogStat(object reporter) {
+            SetReporter(reporter.GetType().ToString());
+            SetUserId();
+            //SetAction(action);
+            //SetUrl(HttpContext.Current.Request.Url.AbsoluteUri);
+            log.Logger.Log(this.GetType(), statLevel, "Used for statistical extraction", null);
+        }
     }
 }
