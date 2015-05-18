@@ -408,8 +408,8 @@ namespace Terradue.Portal {
             index = 0;
             if (context.ConsoleDebug) {
                 Console.WriteLine("+ VALUE: {0,-25} = {1}", "Id", reader.GetInt32(index++));
-                if (entityType.TopTable.HasIdentifierField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Identifier", reader.GetString(index++));
-                if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", reader.GetString(index++));
+                if (entityType.TopTable.HasIdentifierField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Identifier", context.GetValue(reader, index++));
+                if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
                 if (!context.AdminMode && entityType.TopTable.HasPrivilegeManagement/* && Restricted*/) { // TODO
