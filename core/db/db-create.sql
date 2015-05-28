@@ -1,4 +1,4 @@
--- VERSION 2.6.29
+-- VERSION 2.6.30
 
 USE $MAIN$;
 
@@ -2005,7 +2005,7 @@ CREATE TABLE safe (
     public_key varchar(10000) COMMENT 'Public key',
     private_key varchar(10000) COMMENT 'Private key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of safe creation',
-    update_time TIMESTAMP NULL COMMENT 'Date/time of safe creation',
+    update_time datetime COMMENT 'Date/time of safe creation',
     CONSTRAINT pk_safe PRIMARY KEY (id),
     CONSTRAINT fk_safe_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Sets of safes';
@@ -2032,12 +2032,12 @@ USE $NEWS$;
 CREATE TABLE feature (
     id int unsigned NOT NULL auto_increment,
     pos int unsigned COMMENT 'Feature position',
-    title varchar(25) NOT NULL,
-    description varchar(100),
+    title varchar(40) NOT NULL,
+    description varchar(150),
     image_url varchar(100),
     image_style varchar(100),
     button_text varchar(15),
-    button_link varchar(200),
+    button_link varchar(1000),
     PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Web portal featured content';
 -- CHECKPOINT C-72
