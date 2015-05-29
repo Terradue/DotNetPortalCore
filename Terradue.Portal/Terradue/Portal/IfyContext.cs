@@ -1112,13 +1112,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-		public byte[] GetCertificatePkcs12Content(int userId) {
+        public byte[] GetCertificatePkcs12Content(int userId) {
             byte[] result = null;
             bool error = false;
             
             //IDataReader reader = GetQueryResult(String.Format("SELECT t.proxy_username, t.proxy_password, LENGTH(t1.cert_content), CAST(t1.cert_content AS BINARY) FROM usr AS t LEFT JOIN usrcert AS t1 ON t.id=t1.id_usr WHERE t.id={0};", UserId));
             IDbConnection dbConnection = GetDbConnection();
-			IDataReader reader = GetQueryResult(String.Format("SELECT t.proxy_username, t.proxy_password, t1.cert_content_base64 FROM usr AS t LEFT JOIN usrcert AS t1 ON t.id=t1.id_usr WHERE t.id={0};", userId), dbConnection);
+            IDataReader reader = GetQueryResult(String.Format("SELECT t.proxy_username, t.proxy_password, t1.cert_content_base64 FROM usr AS t LEFT JOIN usrcert AS t1 ON t.id=t1.id_usr WHERE t.id={0};", userId), dbConnection);
             if (reader.Read()) {
                 if (reader.GetValue(2) == DBNull.Value) {
                     reader.Close();
@@ -1185,28 +1185,28 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-		public virtual HttpWebRequest GetSslRequest(string url, string method, string contentType, int userId) {
-			AddDebug(3, HostCertificateFile);
-			return GetSslRequest(url, method, contentType, HostCertificateFile, userId);
-		}
+        public virtual HttpWebRequest GetSslRequest(string url, string method, string contentType, int userId) {
+            AddDebug(3, HostCertificateFile);
+            return GetSslRequest(url, method, contentType, HostCertificateFile, userId);
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public virtual HttpWebRequest GetSslRequest(string url, string method, string contentType) {
-			AddDebug(3, HostCertificateFile);
-			return GetSslRequest(url, method, contentType, HostCertificateFile, OwnerId == 0 ? UserId : OwnerId);
-		}
+        public virtual HttpWebRequest GetSslRequest(string url, string method, string contentType) {
+            AddDebug(3, HostCertificateFile);
+            return GetSslRequest(url, method, contentType, HostCertificateFile, OwnerId == 0 ? UserId : OwnerId);
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public HttpWebRequest GetSslRequest(string url, string method, string contentType, string certFileName, int userId) {
+        public HttpWebRequest GetSslRequest(string url, string method, string contentType, string certFileName, int userId) {
             HttpWebRequest request = null;
             try {
                 request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = method;
                 if (contentType != null) request.ContentType = contentType;
                 if (certFileName == null) {
-					byte[] certContent = GetCertificatePkcs12Content(userId);
+                    byte[] certContent = GetCertificatePkcs12Content(userId);
                     if (certContent != null) request.ClientCertificates.Add(new X509Certificate2(certContent, String.Empty, X509KeyStorageFlags.DefaultKeySet));
                 } else {
                     string certPassword = GetConfigValue("HostCertPassword");

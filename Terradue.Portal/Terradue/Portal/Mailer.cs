@@ -8,15 +8,15 @@ using System.Net.Mime;
 
 namespace Terradue.Portal {
 
-	public class Mailer {
+    public class Mailer {
 
-		protected IfyContext context;
+        protected IfyContext context;
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public Mailer(IfyContext context) {
-			this.context=context;
-		}
+        public Mailer(IfyContext context) {
+            this.context=context;
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -27,10 +27,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		// subject + body + adressee + ccAdressee + ccnAdressee
-		public bool Send(string subject, string body, List<string> to, List<string> cc, List<string> bcc) {
-			return Send(subject, body, to, cc, bcc, null);
-		}
+        // subject + body + adressee + ccAdressee + ccnAdressee
+        public bool Send(string subject, string body, List<string> to, List<string> cc, List<string> bcc) {
+            return Send(subject, body, to, cc, bcc, null);
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ namespace Terradue.Portal {
                 throw;
             }
         }
-	}
+    }
 
 }
 
