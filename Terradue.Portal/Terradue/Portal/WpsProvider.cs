@@ -680,8 +680,7 @@ namespace Terradue.Portal {
 
             task.ActualStatus = GetStatusFromExecuteResponse(xmlNode.LocalName);
 
-            if (task.Finished)
-                GetTaskResult(task, statusDoc);
+            if (task.Finished) GetTaskResult(task, statusDoc);
 
             return true;
         }
