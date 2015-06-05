@@ -1,4 +1,4 @@
--- VERSION 2.6.30
+-- VERSION 2.6.31
 
 USE $MAIN$;
 
@@ -220,6 +220,7 @@ CREATE TABLE config (
 
 -- Initializing global configuration settings ... \
 INSERT INTO config (id_section, pos, name, type, source, caption, hint, value, optional) VALUES
+    (1, 0, 'ForceReload', 'bool', NULL, 'Force Configuration Reload by Agent', 'If checked, the configuration is reloaded by the agent on its next run', 'true', true),
     (1, 1, 'Available', 'bool', NULL, 'Web Site Available', 'If checked, this web site is available to all users, otherwise only to administrators', 'true', true),
     (1, 2, 'UnavailabilityMessage', 'text', NULL, 'Message for Site Unavailability', 'Enter the message that is displayed in case of site unavailability', NULL, true),
     (1, 3, 'SiteName', 'string', NULL, 'Site Name', 'Enter the main title for this web portal displayed on the home page', NULL, false),

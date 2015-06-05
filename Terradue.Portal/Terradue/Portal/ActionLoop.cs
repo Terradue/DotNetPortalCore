@@ -147,6 +147,12 @@ namespace Terradue.Portal {
             SetInterval();
             if (startup) WriteStartupInfo();
             try {
+                // Force the reload of the configuration if it was changed (by another process, such as the web server component)
+                if (context.GetConfigBooleanValue("ForceReload")) {
+                    context.LoadConfiguration();
+                    context.SetConfigValue("ForceReload", false);
+                }
+
                 List<ActionExecution> executions = new List<ActionExecution>();
                 dbReader = context.GetQueryResult(
                         String.Format(
