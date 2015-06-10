@@ -58,6 +58,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether this group is automatically assigned to new users.</summary>
+        [EntityDataField("is_default")]
+        public bool IsDefault { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether new restricted resources will automatically give access to members of this group.</summary>
+        [EntityDataField("all_resources")]
+        public bool AllResources { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new Group instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Group(IfyContext context) : base(context) {}
@@ -108,7 +120,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Returns the users associated to this group.</summary>
-        public List<User> GetUsers() {
+        public IEnumerable<User> GetUsers() {
             List<User> result = new List<User>();
             List<int> userIds = new List<int>();
 
@@ -127,7 +139,7 @@ namespace Terradue.Portal {
 
         /// <summary>Associates the specified users to this group.</summary>
         /// <param name="users">The users to be associated.</param>
-        public void SetUsers(List<User> users) {
+        public void SetUsers(IEnumerable<User> users) {
             context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0};",this.Id));
             foreach (User user in users) {
                 if (!user.Exists) user.Store();
