@@ -37,12 +37,14 @@ namespace Terradue.Portal {
         public bool Send(string subject, string body, List<string> to, List<string> cc, List<string> bcc, string contentType) {
             string smtpHostname = context.GetConfigValue("SmtpHostname");
             string smtpUsername = context.GetConfigValue("SmtpUsername");
+            if (smtpUsername == String.Empty) smtpUsername = null;
             string smtpPassword = context.GetConfigValue("SmtpPassword");
+            if (smtpPassword == String.Empty) smtpPassword = null;
             string mailSenderAddress = context.GetConfigValue("MailSenderAddress");
             string mailSender = context.GetConfigValue("MailSender");
             if (mailSender == null) mailSender = mailSenderAddress;
 
-            if (smtpHostname == null || smtpUsername == null || mailSenderAddress == null) {
+            if (smtpHostname == null || mailSenderAddress == null) {
                 string message = String.Format("Invalid mailing settings: smtpHostname = {0}\tsmtpUsername = {1}\t,mailSenderAddress = {2}", smtpHostname, smtpUsername, mailSenderAddress);
                 context.LogError(this, message);
                 throw new ArgumentNullException(message);
@@ -70,8 +72,8 @@ namespace Terradue.Portal {
 
             SmtpClient client = new SmtpClient(smtpHostname);
 
-            // Add credentials if the SMTP server requires them.
-            client.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
+            // Add credentials if the SMTP server requires them
+            if (smtpUsername != null || smtpPassword != null) client.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
 
             // Add alternate view if content type is defined
             if (contentType != null) {
