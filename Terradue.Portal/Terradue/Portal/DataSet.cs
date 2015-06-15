@@ -72,8 +72,8 @@ namespace Terradue.Portal {
 
         }
 
-        public long TotalResults { 
-            get { return 1; } 
+        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
+            return 1;
         }
 
         public OpenSearchUrl GetSearchBaseUrl(string mimetype) {
@@ -88,6 +88,7 @@ namespace Terradue.Portal {
         public virtual bool CanCache {
             get { return false; }
         }
+
         #endregion
 
     }

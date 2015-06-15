@@ -13,7 +13,7 @@ The component provides generic interaction with data that is persistently stored
 
 \xrefitem mvc_m "Model" "Model components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem int "Interfaces" "Interfaces" connects to \ref SQLConnector
 

@@ -212,10 +212,9 @@ namespace Terradue.Portal {
             return null;
         }
 
-        public long TotalResults { 
-            get { return 0; } 
+        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
+            return 0;
         }
-
 
         public ParametersResult DescribeParameters() {
             return OpenSearchFactory.GetDefaultParametersResult();

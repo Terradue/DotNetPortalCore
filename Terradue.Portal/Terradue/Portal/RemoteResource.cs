@@ -221,8 +221,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public long TotalResults { 
-            get { return 0; } 
+        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
+            return 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

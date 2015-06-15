@@ -14,7 +14,7 @@ Diagram \ref task-cr depicts the role of the computing resource in a task proces
 
 \xrefitem mvc_c "Controller" "Controller components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" \ref processes Task
 

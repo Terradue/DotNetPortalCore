@@ -15,15 +15,13 @@ using Terradue.OpenSearch;
 @{
 This component represents a dataset series. Practically it is a non-final component that can be extended to implement other collections.
 
-\xrefitem mvc_c "Controller" "Controller elements"
+\ingroup "Core"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref IOpenSearchable
 
-\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref OpenSearch 
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the series information in the database
 
-\xrefitem dep "Dependencies" "Dependencies" \ref core_DataModelAccess stores persistently the series information in the database
-
-\xrefitem dep "Dependencies" "Dependencies" \ref core_UserGroupACL controls the access on the series
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the series
 
 \ingroup core
 
@@ -610,8 +608,37 @@ namespace Terradue.Portal {
             return Name;
         }
 
-        public virtual long TotalResults { 
-            get { return this.GetTotalResults(); } 
+        public long GetTotalResults(string mimetype, NameValueCollection nvc) {
+            long result = 0;
+
+            OpenSearchEngine ose = new OpenSearchEngine();
+            AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+            ose.RegisterExtension(aosee);
+
+            try {
+                // Let's try to get the cache count value
+                result = (long)CountCache(true);
+            } catch (ResourceNotFoundException) {
+
+                // update the series table with data retrieved by the acs catalog
+                try{
+                    
+                    IOpenSearchResult osr = ose.Query(this,nvc,typeof(AtomFeed));
+                    AtomFeed sc = (AtomFeed)osr.Result;
+
+                    result = Int64.Parse(sc.ElementExtensions.ReadElementExtensions<string>("totalResults","http://a9.com/-/spec/opensearch/1.1/").Single());
+
+                } catch (Exception e) {
+                    // no error managment, set the number of product to 0
+                    result = 0;
+                }
+
+                // update series table with new value
+                this.UpdateCountCache(result);
+
+            }
+
+            return result;
         }
 
         public ParametersResult DescribeParameters() {
