@@ -21,11 +21,7 @@ This component is an extension of \ref Service for providing with WPS process as
 Practically, it get services offered in the \ref WpsProvider associated and then for each process exposed,
 retrieve the DescribeProcess() from \ref WpsProvider to describe the process with input and ouput parameters.
 
-\xrefitem mvc_c "Controller" "Controller components"
-
-\xrefitem mvc_v "View" "View components"
-
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" extends \ref Service for WPS specific offerings
 
@@ -64,6 +60,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataFieldAttribute("remote_id")]
         public string RemoteIdentifier { get; set; }
 
@@ -79,6 +77,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the WPS provider to which the WPS process offering belongs.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        /// \return is offered by \ref WpsProvider thats host the service of the offering.
         public WpsProvider Provider {
             get {
                 if (provider != null)
@@ -96,7 +95,6 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the computing resource that must be used by the WPS process offering.</summary>
         /// <remarks>The value is always the same as the WPS provider to which the WPS process offering belongs.</remarks>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override ComputingResource FixedComputingResource {
             get { return Provider; }
         }

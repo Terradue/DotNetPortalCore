@@ -17,13 +17,19 @@ using Terradue.Util;
 
 
 /*!
+\defgroup Security Security
+@{
+
+
+@}
+
 \defgroup Authentication Authentication
 @{
 It provides with the functions to identify a user through a generic interface for implementing multiple authentication mechanism.
 
 \xrefitem mvc_c "Controller" "Controller components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup Security
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the user information
 

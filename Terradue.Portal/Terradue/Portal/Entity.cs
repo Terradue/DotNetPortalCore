@@ -18,6 +18,14 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 
+/*!
+
+\defgroup Core Core
+@{
+
+@}
+
+*/
 
 /*!
 \defgroup Authorisation Authorisation
@@ -26,7 +34,7 @@ It provides with the functions to define privileges for users or groups on entit
 
 \xrefitem mvc_c "Controller" "Controller components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
 
