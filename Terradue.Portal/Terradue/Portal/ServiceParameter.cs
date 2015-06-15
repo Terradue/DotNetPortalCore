@@ -423,7 +423,7 @@ namespace Terradue.Portal {
         public void AddValue(string value) {
             int len = (values == null ? 0 : values.Length);
             if (len != 0 && MaxOccurs != 0 && len >= MaxOccurs && ParameterSet.CollectValidityErrors) {
-                throw new InvalidServiceParameterException(String.Format("More than {0} for parameter {1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", Values.Length), Name));
+                throw new InvalidServiceParameterException(String.Format("More than {0} for parameter {1}", MaxOccurs == 1 ? "one value" : String.Format("{0} values", MaxOccurs), Name));
             }
             if (len == 0) {
                 values = new string[1];

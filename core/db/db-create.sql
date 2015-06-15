@@ -1,4 +1,4 @@
--- VERSION 2.6.19
+-- VERSION 2.6.31
 
 USE $MAIN$;
 
@@ -220,6 +220,7 @@ CREATE TABLE config (
 
 -- Initializing global configuration settings ... \
 INSERT INTO config (id_section, pos, name, type, source, caption, hint, value, optional) VALUES
+    (1, 0, 'ForceReload', 'bool', NULL, 'Force Configuration Reload by Agent', 'If checked, the configuration is reloaded by the agent on its next run', 'true', true),
     (1, 1, 'Available', 'bool', NULL, 'Web Site Available', 'If checked, this web site is available to all users, otherwise only to administrators', 'true', true),
     (1, 2, 'UnavailabilityMessage', 'text', NULL, 'Message for Site Unavailability', 'Enter the message that is displayed in case of site unavailability', NULL, true),
     (1, 3, 'SiteName', 'string', NULL, 'Site Name', 'Enter the main title for this web portal displayed on the home page', NULL, false),
@@ -2005,7 +2006,7 @@ CREATE TABLE safe (
     public_key varchar(10000) COMMENT 'Public key',
     private_key varchar(10000) COMMENT 'Private key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of safe creation',
-    update_time TIMESTAMP NULL COMMENT 'Date/time of safe creation',
+    update_time datetime COMMENT 'Date/time of safe creation',
     CONSTRAINT pk_safe PRIMARY KEY (id),
     CONSTRAINT fk_safe_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Sets of safes';
@@ -2031,12 +2032,13 @@ USE $NEWS$;
 
 CREATE TABLE feature (
     id int unsigned NOT NULL auto_increment,
-    title varchar(25) NOT NULL,
-    description varchar(100),
+    pos int unsigned COMMENT 'Feature position',
+    title varchar(40) NOT NULL,
+    description varchar(150),
     image_url varchar(100),
     image_style varchar(100),
     button_text varchar(15),
-    button_link varchar(200),
+    button_link varchar(1000),
     PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Web portal featured content';
 -- CHECKPOINT C-72

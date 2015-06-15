@@ -505,24 +505,24 @@ namespace Terradue.Portal {
             foreach (ProcessBriefType process in capabilities.ProcessOfferings.Process) {
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
                 wpsProcess.Provider = this;
-                wpsProcess.RemoteIdentifier = process.Identifier.Value;
+                wpsProcess.RemoteIdentifier = (process.Identifier != null ? process.Identifier.Value : null);
                 if (this.Id == 0) {
                     wpsProcess.Identifier = this.Identifier + "-" + wpsProcess.RemoteIdentifier;
                 } else {
                     wpsProcess.Identifier = Guid.NewGuid().ToString();
                 }
-                wpsProcess.Name = process.Title.Value;
-                wpsProcess.Description = process.Abstract.Value;
+                wpsProcess.Name = (process.Title != null ? process.Title.Value : null);
+                wpsProcess.Description = (process.Abstract != null ? process.Abstract.Value : null);
                 wpsProcess.Version = process.processVersion;
                 wpsProcess.Url = url;
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
                     var uri = new UriBuilder(this.BaseUrl);
-                    uri.Query = "service=WPS&request=DescribeProcess&version=" + process.processVersion + "&identifier=" + process.Identifier.Value;
+                    uri.Query = "service=WPS&request=DescribeProcess&version=" + process.processVersion + "&identifier=" + wpsProcess.RemoteIdentifier;
 
                     ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(uri.Uri.AbsoluteUri);
-                    wpsProcess.Description = describeProcess.Abstract.Value;
+                    wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
                 }
                 wpsProcessList.Add(wpsProcess);
             }
@@ -680,8 +680,7 @@ namespace Terradue.Portal {
 
             task.ActualStatus = GetStatusFromExecuteResponse(xmlNode.LocalName);
 
-            if (task.Finished)
-                GetTaskResult(task, statusDoc);
+            if (task.Finished) GetTaskResult(task, statusDoc);
 
             return true;
         }

@@ -30,11 +30,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public DescribeProcess()
-        {
-            this.identifierField = new List<CodeType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Identifier", Namespace = "http://www.opengis.net/ows/1.1")]
         public List<CodeType> Identifier
         {
@@ -1037,11 +1032,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ProcessDescriptions()
-        {
-            this.processDescriptionField = new List<ProcessDescriptionType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("ProcessDescription", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public List<ProcessDescriptionType> ProcessDescription
         {
@@ -1285,14 +1275,6 @@ namespace OpenGis.Wps
         private bool statusSupportedField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ProcessDescriptionType()
-        {
-            this.processOutputsField = new List<OutputDescriptionType>();
-            this.dataInputsField = new List<InputDescriptionType>();
-            this.storeSupportedField = false;
-            this.statusSupportedField = false;
-        }
 
         [System.Xml.Serialization.XmlArrayAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         [System.Xml.Serialization.XmlArrayItemAttribute("Input", Form = System.Xml.Schema.XmlSchemaForm.Unqualified, IsNullable = false)]
@@ -1582,13 +1564,6 @@ namespace OpenGis.Wps
         private string maxOccursField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public InputDescriptionType()
-        {
-            this.boundingBoxDataField = new SupportedCRSsType();
-            this.literalDataField = new LiteralInputType();
-            this.complexDataField = new SupportedComplexDataInputType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public SupportedComplexDataInputType ComplexData
@@ -2120,13 +2095,7 @@ namespace OpenGis.Wps
         private List<ComplexDataDescriptionType> supportedField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public SupportedComplexDataType()
-        {
-            this.supportedField = new List<ComplexDataDescriptionType>();
-            this.defaultField = new ComplexDataCombinationType();
-        }
-
+               
         [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public ComplexDataCombinationType Default
         {
@@ -2378,12 +2347,7 @@ namespace OpenGis.Wps
         private ComplexDataDescriptionType formatField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ComplexDataCombinationType()
-        {
-            this.formatField = new ComplexDataDescriptionType();
-        }
-
+              
         [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public ComplexDataDescriptionType Format
         {
@@ -2896,13 +2860,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public LiteralInputType()
-        {
-            this.valuesReferenceField = new ValuesReferenceType();
-            this.anyValueField = new AnyValue();
-            this.allowedValuesField = new List<object>();
-        }
-
         [System.Xml.Serialization.XmlArrayAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         [System.Xml.Serialization.XmlArrayItemAttribute("Range", typeof(RangeType), IsNullable = false)]
         [System.Xml.Serialization.XmlArrayItemAttribute("Value", typeof(ValueType), IsNullable = false)]
@@ -3188,14 +3145,6 @@ namespace OpenGis.Wps
         private bool rangeClosureFieldSpecified;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public RangeType()
-        {
-            this.spacingField = new ValueType();
-            this.maximumValueField = new ValueType();
-            this.minimumValueField = new ValueType();
-            this.rangeClosureField = RangeTypeRangeClosure.closed;
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public ValueType MinimumValue
@@ -4224,12 +4173,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public LiteralOutputType()
-        {
-            this.uOMsField = new SupportedUOMsType();
-            this.dataTypeField = new DomainMetadataType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public DomainMetadataType DataType
         {
@@ -4735,12 +4678,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public SupportedUOMsType()
-        {
-            this.supportedField = new List<DomainMetadataType>();
-            this.defaultField = new SupportedUOMsTypeDefault();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public SupportedUOMsTypeDefault Default
         {
@@ -4992,11 +4929,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public SupportedUOMsTypeDefault()
-        {
-            this.uOMField = new DomainMetadataType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public DomainMetadataType UOM
         {
@@ -5236,12 +5168,6 @@ namespace OpenGis.Wps
         private List<string> supportedField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public SupportedCRSsType()
-        {
-            this.supportedField = new List<string>();
-            this.defaultField = new SupportedCRSsTypeDefault();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute(Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public SupportedCRSsTypeDefault Default
@@ -5742,14 +5668,6 @@ namespace OpenGis.Wps
         private List<MetadataType> metadataField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public DescriptionType()
-        {
-            this.metadataField = new List<MetadataType>();
-            this.abstractField = new LanguageStringType();
-            this.titleField = new LanguageStringType();
-            this.identifierField = new CodeType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public CodeType Identifier
@@ -6300,11 +6218,6 @@ namespace OpenGis.Wps
         private string aboutField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public MetadataType()
-        {
-            this.typeField = typeType.simple;
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public object AbstractMetaData
@@ -7747,10 +7660,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ComplexDataType()
-        {
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Reference", typeof(OutputReferenceType))]
         public object Reference
         {
@@ -8851,12 +8760,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ProcessBriefType()
-        {
-            this.wSDLField = new WSDL();
-            this.profileField = new List<string>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Profile", DataType = "anyURI")]
         public List<string> Profile
         {
@@ -9399,13 +9302,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public Execute()
-        {
-            this.responseFormField = new ResponseFormType();
-            this.dataInputsField = new List<InputType>();
-            this.identifierField = new CodeType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public CodeType Identifier
         {
@@ -9678,15 +9574,6 @@ namespace OpenGis.Wps
         private DataType dataField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public InputType()
-        {
-            this.dataField = new DataType();
-            this.referenceField = new InputReferenceType();
-            this.abstractField = new LanguageStringType();
-            this.titleField = new LanguageStringType();
-            this.identifierField = new CodeType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public CodeType Identifier
@@ -9989,12 +9876,6 @@ namespace OpenGis.Wps
         private string schemaField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public InputReferenceType()
-        {
-            this.headerField = new List<InputReferenceTypeHeader>();
-            this.methodField = InputReferenceTypeMethod.GET;
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Header")]
         public List<InputReferenceTypeHeader> Header
@@ -11064,11 +10945,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public OutputDefinitionType()
-        {
-            this.identifierField = new CodeType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public CodeType Identifier
         {
@@ -11363,13 +11239,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public DocumentOutputDefinitionType()
-        {
-            this.abstractField = new LanguageStringType();
-            this.titleField = new LanguageStringType();
-            this.asReferenceField = false;
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public LanguageStringType Title
         {
@@ -11640,14 +11509,6 @@ namespace OpenGis.Wps
         private bool statusField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ResponseDocumentType()
-        {
-            this.outputField = new List<DocumentOutputDefinitionType>();
-            this.storeExecuteResponseField = false;
-            this.lineageField = false;
-            this.statusField = false;
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Output")]
         public List<DocumentOutputDefinitionType> Output
@@ -11940,15 +11801,6 @@ namespace OpenGis.Wps
         private string statusLocationField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ExecuteResponse()
-        {
-            this.processOutputsField = new List<OutputDataType>();
-            this.outputDefinitionsField = new List<DocumentOutputDefinitionType>();
-            this.dataInputsField = new List<InputType>();
-            this.statusField = new StatusType();
-            this.processField = new ProcessBriefType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public ProcessBriefType Process
@@ -12543,11 +12395,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ProcessFailedType()
-        {
-            this.exceptionReportField = new ExceptionReport();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute(Namespace = "http://www.opengis.net/ows/1.1")]
         public ExceptionReport ExceptionReport
         {
@@ -12789,11 +12636,6 @@ namespace OpenGis.Wps
         private string langField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ExceptionReport()
-        {
-            this.exceptionField = new List<ExceptionType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Exception")]
         public List<ExceptionType> Exception
@@ -13061,11 +12903,6 @@ namespace OpenGis.Wps
         private string locatorField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ExceptionType()
-        {
-            this.exceptionTextField = new List<string>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("ExceptionText")]
         public List<string> ExceptionText
@@ -14086,12 +13923,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public GetCapabilities()
-        {
-            this.acceptVersionsField = new List<string>();
-            this.serviceField = "WPS";
-        }
-
         [System.Xml.Serialization.XmlArrayAttribute()]
         [System.Xml.Serialization.XmlArrayItemAttribute("Version", Namespace = "http://www.opengis.net/ows/1.1", IsNullable = false)]
         public List<string> AcceptVersions
@@ -14364,14 +14195,6 @@ namespace OpenGis.Wps
         private string langField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public WPSCapabilitiesType()
-        {
-            this.wSDLField = new WSDL();
-            this.languagesField = new Languages();
-            this.processOfferingsField = new ProcessOfferings();
-            this.serviceField = "WPS";
-        }
 
         public ProcessOfferings ProcessOfferings
         {
@@ -14663,12 +14486,6 @@ namespace OpenGis.Wps
         private List<string> supportedField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public Languages()
-        {
-            this.supportedField = new List<string>();
-            this.defaultField = new LanguagesDefault();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public LanguagesDefault Default
@@ -15167,13 +14984,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public CapabilitiesBaseType()
-        {
-            this.operationsMetadataField = new OperationsMetadata();
-            this.serviceProviderField = new ServiceProvider();
-            this.serviceIdentificationField = new ServiceIdentification();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute()]
         public ServiceIdentification ServiceIdentification
         {
@@ -15470,14 +15280,6 @@ namespace OpenGis.Wps
         private List<string> accessConstraintsField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ServiceIdentification()
-        {
-            this.accessConstraintsField = new List<string>();
-            this.profileField = new List<string>();
-            this.serviceTypeVersionField = new List<string>();
-            this.serviceTypeField = new CodeType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public CodeType ServiceType
@@ -15777,13 +15579,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public DescriptionType1()
-        {
-            this.keywordsField = new List<KeywordsType>();
-            this.abstractField = new List<LanguageStringType>();
-            this.titleField = new List<LanguageStringType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Title")]
         public List<LanguageStringType> Title
         {
@@ -16049,12 +15844,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public KeywordsType()
-        {
-            this.typeField = new CodeType();
-            this.keywordField = new List<LanguageStringType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Keyword")]
         public List<LanguageStringType> Keyword
         {
@@ -16312,15 +16101,6 @@ namespace OpenGis.Wps
         private List<DatasetDescriptionSummaryBaseType> datasetDescriptionSummaryField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public DatasetDescriptionSummaryBaseType()
-        {
-            this.datasetDescriptionSummaryField = new List<DatasetDescriptionSummaryBaseType>();
-            this.metadataField = new List<MetadataType>();
-            this.itemsField = new List<BoundingBoxType>();
-            this.identifierField = new CodeType();
-            this.wGS84BoundingBoxField = new List<WGS84BoundingBoxType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("WGS84BoundingBox")]
         public List<WGS84BoundingBoxType> WGS84BoundingBox
@@ -16617,12 +16397,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public BasicIdentificationType()
-        {
-            this.metadataField = new List<MetadataType>();
-            this.identifierField = new CodeType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute()]
         public CodeType Identifier
         {
@@ -16873,11 +16647,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ManifestType()
-        {
-            this.referenceGroupField = new List<ReferenceGroupType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("ReferenceGroup")]
         public List<ReferenceGroupType> ReferenceGroup
         {
@@ -17114,11 +16883,6 @@ namespace OpenGis.Wps
         private List<ReferenceType> itemsField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ReferenceGroupType()
-        {
-            this.itemsField = new List<ReferenceType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Reference")]
         public List<ReferenceType> Items
@@ -17363,13 +17127,6 @@ namespace OpenGis.Wps
         private List<MetadataType> metadataField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ReferenceType()
-        {
-            this.metadataField = new List<MetadataType>();
-            this.abstractField = new List<LanguageStringType>();
-            this.identifierField = new CodeType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public CodeType Identifier
@@ -17664,11 +17421,6 @@ namespace OpenGis.Wps
         private bool actuateFieldSpecified;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public AbstractReferenceBaseType()
-        {
-            this.typeField = "simple";
-        }
 
         [System.Xml.Serialization.XmlAttributeAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified)]
         public string type
@@ -18255,14 +18007,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public IdentificationType()
-        {
-            this.items1ElementNameField = new List<Items1ChoiceType>();
-            this.items1Field = new List<string>();
-            this.outputFormatField = new List<string>();
-            this.itemsField = new List<BoundingBoxType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("BoundingBox", typeof(BoundingBoxType))]
         [System.Xml.Serialization.XmlElementAttribute("WGS84BoundingBox", typeof(WGS84BoundingBoxType))]
         public List<BoundingBoxType> Items
@@ -18560,12 +18304,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ServiceProvider()
-        {
-            this.serviceContactField = new ResponsiblePartySubsetType();
-            this.providerSiteField = new OnlineResourceType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute()]
         public string ProviderName
         {
@@ -18847,11 +18585,6 @@ namespace OpenGis.Wps
         private bool actuateFieldSpecified;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public OnlineResourceType()
-        {
-            this.typeField = typeType.simple;
-        }
 
         [System.Xml.Serialization.XmlAttributeAttribute(Form = System.Xml.Schema.XmlSchemaForm.Qualified, Namespace = "http://www.w3.org/1999/xlink")]
         public typeType type
@@ -19223,11 +18956,6 @@ namespace OpenGis.Wps
         private List<DomainType> constraintField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public RequestMethodType()
-        {
-            this.constraintField = new List<DomainType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Constraint")]
         public List<DomainType> Constraint
@@ -19721,20 +19449,6 @@ namespace OpenGis.Wps
         private List<MetadataType> metadataField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public UnNamedDomainType()
-        {
-            this.metadataField = new List<MetadataType>();
-            this.referenceSystemField = new DomainMetadataType();
-            this.uOMField = new DomainMetadataType();
-            this.dataTypeField = new DomainMetadataType();
-            this.meaningField = new DomainMetadataType();
-            this.defaultValueField = new ValueType();
-            this.valuesReferenceField = new ValuesReference();
-            this.noValuesField = new NoValues();
-            this.anyValueField = new AnyValue();
-            this.allowedValuesField = new List<object>();
-        }
 
         [System.Xml.Serialization.XmlArrayAttribute()]
         [System.Xml.Serialization.XmlArrayItemAttribute("Range", typeof(RangeType), IsNullable = false)]
@@ -20572,12 +20286,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ResponsiblePartySubsetType()
-        {
-            this.roleField = new CodeType();
-            this.contactInfoField = new ContactType();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute()]
         public string IndividualName
         {
@@ -20861,13 +20569,6 @@ namespace OpenGis.Wps
         private string contactInstructionsField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ContactType()
-        {
-            this.onlineResourceField = new OnlineResourceType();
-            this.addressField = new AddressType();
-            this.phoneField = new TelephoneType();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute()]
         public TelephoneType Phone
@@ -21160,12 +20861,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public TelephoneType()
-        {
-            this.facsimileField = new List<string>();
-            this.voiceField = new List<string>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Voice")]
         public List<string> Voice
         {
@@ -21425,12 +21120,6 @@ namespace OpenGis.Wps
         private List<string> electronicMailAddressField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public AddressType()
-        {
-            this.electronicMailAddressField = new List<string>();
-            this.deliveryPointField = new List<string>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("DeliveryPoint")]
         public List<string> DeliveryPoint
@@ -21740,13 +21429,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public OperationsMetadata()
-        {
-            this.constraintField = new List<DomainType>();
-            this.parameterField = new List<DomainType>();
-            this.operationField = new List<Operation>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Operation")]
         public List<Operation> Operation
         {
@@ -22030,14 +21712,6 @@ namespace OpenGis.Wps
         private string nameField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public Operation()
-        {
-            this.metadataField = new List<MetadataType>();
-            this.constraintField = new List<DomainType>();
-            this.parameterField = new List<DomainType>();
-            this.dCPField = new List<DCP>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("DCP")]
         public List<DCP> DCP
@@ -22328,11 +22002,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public DCP()
-        {
-            this.itemField = new HTTP();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("HTTP")]
         public HTTP Item
         {
@@ -22571,12 +22240,6 @@ namespace OpenGis.Wps
         private List<ItemsChoiceType> itemsElementNameField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public HTTP()
-        {
-            this.itemsElementNameField = new List<ItemsChoiceType>();
-            this.itemsField = new List<RequestMethodType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Get", typeof(GetRequestMethodType))]
         [System.Xml.Serialization.XmlElementAttribute("Post", typeof(PostRequestMethodType))]
@@ -22845,11 +22508,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public ProcessOfferings()
-        {
-            this.processField = new List<ProcessBriefType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Process", typeof(ProcessBriefType))]
         public List<ProcessBriefType> Process
         {
@@ -23087,11 +22745,6 @@ namespace OpenGis.Wps
         private List<DomainMetadataType> uOMField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public UOMsType()
-        {
-            this.uOMField = new List<DomainMetadataType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("UOM", Namespace = "http://www.opengis.net/ows/1.1")]
         public List<DomainMetadataType> UOM
@@ -23331,11 +22984,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public CRSsType()
-        {
-            this.cRSField = new List<string>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("CRS", Form = System.Xml.Schema.XmlSchemaForm.Unqualified, DataType = "anyURI")]
         public List<string> CRS
         {
@@ -23573,11 +23221,6 @@ namespace OpenGis.Wps
         private List<ComplexDataDescriptionType> formatField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public ComplexDataCombinationsType()
-        {
-            this.formatField = new List<ComplexDataDescriptionType>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Format", Form = System.Xml.Schema.XmlSchemaForm.Unqualified)]
         public List<ComplexDataDescriptionType> Format
@@ -23817,11 +23460,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public DataInputsType()
-        {
-            this.inputField = new List<InputType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Input")]
         public List<InputType> Input
         {
@@ -24060,11 +23698,6 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        public OutputDefinitionsType()
-        {
-            this.outputField = new List<DocumentOutputDefinitionType>();
-        }
-
         [System.Xml.Serialization.XmlElementAttribute("Output")]
         public List<DocumentOutputDefinitionType> Output
         {
@@ -24302,11 +23935,6 @@ namespace OpenGis.Wps
         private List<string> languageField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
-
-        public LanguagesType()
-        {
-            this.languageField = new List<string>();
-        }
 
         [System.Xml.Serialization.XmlElementAttribute("Language", Namespace = "http://www.opengis.net/ows/1.1", DataType = "language")]
         public List<string> Language
