@@ -146,10 +146,9 @@ namespace Terradue.Portal {
             return this.MergeSeriesOpenSearchParameters();
         }
 
-        public long TotalResults { 
-            get { return 0; } 
+        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
+            return 0;
         }
-
 
         public ParametersResult DescribeParameters() {
             return OpenSearchFactory.GetDefaultParametersResult();

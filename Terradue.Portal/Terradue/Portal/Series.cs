@@ -610,8 +610,37 @@ namespace Terradue.Portal {
             return Name;
         }
 
-        public virtual long TotalResults { 
-            get { return this.GetTotalResults(); } 
+        public long GetTotalResults(string mimetype, NameValueCollection nvc) {
+            long result = 0;
+
+            OpenSearchEngine ose = new OpenSearchEngine();
+            AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+            ose.RegisterExtension(aosee);
+
+            try {
+                // Let's try to get the cache count value
+                result = (long)CountCache(true);
+            } catch (ResourceNotFoundException) {
+
+                // update the series table with data retrieved by the acs catalog
+                try{
+                    
+                    IOpenSearchResult osr = ose.Query(this,nvc,typeof(AtomFeed));
+                    AtomFeed sc = (AtomFeed)osr.Result;
+
+                    result = Int64.Parse(sc.ElementExtensions.ReadElementExtensions<string>("totalResults","http://a9.com/-/spec/opensearch/1.1/").Single());
+
+                } catch (Exception e) {
+                    // no error managment, set the number of product to 0
+                    result = 0;
+                }
+
+                // update series table with new value
+                this.UpdateCountCache(result);
+
+            }
+
+            return result;
         }
 
         public ParametersResult DescribeParameters() {
