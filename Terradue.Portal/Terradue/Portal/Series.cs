@@ -15,15 +15,13 @@ using Terradue.OpenSearch;
 @{
 This component represents a dataset series. Practically it is a non-final component that can be extended to implement other collections.
 
-\xrefitem mvc_c "Controller" "Controller elements"
+\ingroup "Core"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref IOpenSearchable
 
-\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref OpenSearch 
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the series information in the database
 
-\xrefitem dep "Dependencies" "Dependencies" \ref core_DataModelAccess stores persistently the series information in the database
-
-\xrefitem dep "Dependencies" "Dependencies" \ref core_UserGroupACL controls the access on the series
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the series
 
 \ingroup core
 

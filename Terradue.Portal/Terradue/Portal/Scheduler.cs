@@ -15,7 +15,7 @@ This class is quite generic and represent any kind of scheduled task from its mo
 
 \xrefitem mvc_c "Controller" "Controller components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the scheduler information in the database
 

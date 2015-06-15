@@ -164,7 +164,7 @@ endfooter
 
 \xrefitem mvc_v "View" "View components"
 
-\xrefitem cpgroup_core "Core" "Core Computational Group"
+\ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
 
