@@ -52,7 +52,7 @@ namespace Terradue.Portal.Test {
 
             var osr = ose.Query(set, nvc, "rdf");
 
-            Assert.LessOrEqual(osr.Result.Count, 100);
+            Assert.LessOrEqual(osr.Count, 100);
 
 
         }
