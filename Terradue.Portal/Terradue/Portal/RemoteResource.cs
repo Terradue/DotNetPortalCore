@@ -21,15 +21,15 @@ namespace Terradue.Portal {
     /// Remote resource set.
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-	[EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
+    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
     public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 		
         [EntityDataField("is_default")]
-		public bool IsDefault { get; set; }
+        public bool IsDefault { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ namespace Terradue.Portal {
         [EntityDataField("access_key")]
         public string AccessKey { get; set; }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the UTC date and time of the resourceset's creation.</summary>
         [EntityDataField("creation_time")]
@@ -55,7 +55,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <value>The resources.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-		public virtual EntityList<RemoteResource> Resources { get; set; }
+        public virtual EntityList<RemoteResource> Resources { get; set; }
 
         /// <summary>
         /// Gets or sets the open search engine.
@@ -71,93 +71,91 @@ namespace Terradue.Portal {
             }
         }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 		
         public RemoteResourceSet(IfyContext context) : base(context) {
-			ose = new OpenSearchEngine();
-		}
+            ose = new OpenSearchEngine();
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 		
         public static RemoteResourceSet FromId(IfyContext context, int id) {
-			RemoteResourceSet result = new RemoteResourceSet(context);
-			result.Id = id;
-			result.Load();
-			return result;
-		}
+            RemoteResourceSet result = new RemoteResourceSet(context);
+            result.Id = id;
+            result.Load();
+            return result;
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		public static RemoteResourceSet FromIdentifier(IfyContext context, string identifier) {
-			RemoteResourceSet result = new RemoteResourceSet(context);
-			result.Identifier = identifier;
-			result.Load();
-			return result;
-		}
+        public static RemoteResourceSet FromIdentifier(IfyContext context, string identifier) {
+            RemoteResourceSet result = new RemoteResourceSet(context);
+            result.Identifier = identifier;
+            result.Load();
+            return result;
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		public override void Delete() {
-			if (UserId != context.UserId) throw new UnauthorizedAccessException("You are not the owner of the item");
-			base.Delete();
-		}
+        public override void Delete() {
+            if (UserId != context.UserId) throw new UnauthorizedAccessException("You are not the owner of the item");
+            base.Delete();
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		public void LoadResources() {
+        public void LoadResources() {
             Resources = new EntityList<RemoteResource>(context);
             Resources.Template.ResourceSet = this;
             Resources.Load();
             Resources.OpenSearchableChange += new OpenSearchableChangeEventHandler(OnOpenSearchableChange);
-		}
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		public virtual IOpenSearchable[] GetOpenSearchableArray() {
-			List<GenericOpenSearchable> osResources = new List<GenericOpenSearchable>(Resources.Count);
+        public virtual IOpenSearchable[] GetOpenSearchableArray() {
+            List<GenericOpenSearchable> osResources = new List<GenericOpenSearchable>(Resources.Count);
 
-			foreach (RemoteResource res in Resources) {
+            foreach (RemoteResource res in Resources) {
                 var entity = new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
                 var eosd = entity.GetOpenSearchDescription();
                 if (eosd.DefaultUrl != null && eosd.DefaultUrl.Type == "application/json") {
                     var atomUrl = eosd.Url.FirstOrDefault(u => u.Type == "application/atom+xml");
-                    if (atomUrl != null)
-                        eosd.DefaultUrl = atomUrl;
+                    if (atomUrl != null) eosd.DefaultUrl = atomUrl;
                 }
 
                 osResources.Add(entity);
-			}
+            }
 
-			return osResources.ToArray();
-		}
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-		#region IOpenSearchable implementation
+            return osResources.ToArray();
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public OpenSearchRequest Create(string type, System.Collections.Specialized.NameValueCollection parameters) {
+        #region IOpenSearchable implementation
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public OpenSearchRequest Create(string type, System.Collections.Specialized.NameValueCollection parameters) {
 
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/remoteresource/" + this.Identifier;
             var array = (from key in parameters.AllKeys
-                         from value in parameters.GetValues(key)
-                         select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
+                                  from value in parameters.GetValues(key)
+                                  select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
 
-            if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"]=="true") {
-                return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
+            if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"] == "true") {
+                return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
             }
 
-            return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true );
-		}
+            return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
+        }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
-            if (osee == null)
-                return null;
+            if (osee == null) return null;
             return new QuerySettings(this.DefaultMimeType, osee.ReadNative);
         }
 
@@ -212,17 +210,36 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
-			if (mimeType != "application/atom+xml") return null;
+        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
+            if (mimeType != "application/atom+xml") return null;
             var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
             parameters.Set("grouped", "{os:grouped?}");
             return parameters;
-		}
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            return 0;
+        public long TotalResults {
+
+            get {
+                if (this.Resources != null) {
+                    OpenSearchEngine ose = new OpenSearchEngine();
+                    AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+                    ose.RegisterExtension(aosee);
+
+                    try {
+
+                        AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
+                        return osr.TotalResults;
+
+                    } catch (Exception e) {
+                        // no error managment, set the number of product to 0
+                        return 0;
+                    }
+
+                }
+                return 0;
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -243,14 +260,14 @@ namespace Terradue.Portal {
             get { return false; }
         }
 
-		#endregion
+        #endregion
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimeType) {
-            return new OpenSearchUrl (string.Format("{0}/remoteresource/{1}/search", context.BaseUrl, this.Identifier));
+            return new OpenSearchUrl(string.Format("{0}/remoteresource/{1}/search", context.BaseUrl, this.Identifier));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl (string.Format("{0}/remoteresource/{1}/description", context.BaseUrl, this.Identifier));
+            return new OpenSearchUrl(string.Format("{0}/remoteresource/{1}/description", context.BaseUrl, this.Identifier));
         }
 
 
@@ -268,16 +285,14 @@ namespace Terradue.Portal {
 
         public event OpenSearchableChangeEventHandler OpenSearchableChange;
 
-        public void OnOpenSearchableChange (object sender,  OnOpenSearchableChangeEventArgs data)
-        {
+        public void OnOpenSearchableChange(object sender, OnOpenSearchableChangeEventArgs data) {
             // Check if there are any Subscribers
-            if (OpenSearchableChange != null)
-            {
+            if (OpenSearchableChange != null) {
                 // Call the Event
-                OpenSearchableChange (this, data);
+                OpenSearchableChange(this, data);
             }
         }
-	}
+    }
 
     /// <summary>
     /// Remote resource.
@@ -285,31 +300,31 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("resource", EntityTableConfiguration.Custom, NameField = "name")]
     public class RemoteResource : Entity {
-		private RemoteResourceSet resourceSet;
+        private RemoteResourceSet resourceSet;
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		[EntityDataField("id_set")]
-		public int ResourceSetId { get; protected set; }
+        [EntityDataField("id_set")]
+        public int ResourceSetId { get; protected set; }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		[EntityEntityField("id_set")]
+        [EntityEntityField("id_set")]
         /// <summary>
         /// Gets or sets the resource set.
         /// </summary>
         /// <value>The resource set.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public RemoteResourceSet ResourceSet { 
-			get {
-				if (this.resourceSet == null) resourceSet = RemoteResourceSet.FromId(context, ResourceSetId);
-				return this.resourceSet;
-			}
-			set {
-				this.resourceSet = value;
-				if (value != null) ResourceSetId = value.Id;
-			}
-		}
+            get {
+                if (this.resourceSet == null) resourceSet = RemoteResourceSet.FromId(context, ResourceSetId);
+                return this.resourceSet;
+            }
+            set {
+                this.resourceSet = value;
+                if (value != null) ResourceSetId = value.Id;
+            }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -321,11 +336,12 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Location { get; set; }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
-		public RemoteResource(IfyContext context) : base(context) {}
+        public RemoteResource(IfyContext context) : base(context) {
+        }
 
-		//---------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
         public static RemoteResource FromId(IfyContext context, int id) {
             RemoteResource result = new RemoteResource(context);
@@ -336,21 +352,21 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-		public static EntityList<RemoteResource> GetResources(IfyContext context, RemoteResourceSet resourceSet) {
-			EntityList<RemoteResource> result = new EntityList<RemoteResource>(context);
+        public static EntityList<RemoteResource> GetResources(IfyContext context, RemoteResourceSet resourceSet) {
+            EntityList<RemoteResource> result = new EntityList<RemoteResource>(context);
             result.Template.ResourceSet = resourceSet;
             IDbConnection dbConnection = context.GetDbConnection();
-			IDataReader reader = context.GetQueryResult(String.Format("SELECT t.id, t.location, t.name FROM resource AS t WHERE id_set={0}", resourceSet.Id), dbConnection);
-			while (reader.Read()) {
-				RemoteResource resource = new RemoteResource(context);
-				resource.Id = reader.GetInt32(0);
-				resource.ResourceSet = resourceSet;
-				resource.Location = reader.GetString(1);
+            IDataReader reader = context.GetQueryResult(String.Format("SELECT t.id, t.location, t.name FROM resource AS t WHERE id_set={0}", resourceSet.Id), dbConnection);
+            while (reader.Read()) {
+                RemoteResource resource = new RemoteResource(context);
+                resource.Id = reader.GetInt32(0);
+                resource.ResourceSet = resourceSet;
+                resource.Location = reader.GetString(1);
                 resource.Name = reader.GetString(2);
-			}
+            }
             context.CloseQueryResult(reader, dbConnection);
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }
 

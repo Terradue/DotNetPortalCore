@@ -111,7 +111,7 @@ namespace Terradue.Portal {
                 select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
-            return new MultiAtomOpenSearchRequest(ose, Series.ToArray(), type, new OpenSearchUrl(url.ToString()), true);
+            return new MultiAtomOpenSearchRequest(ose, Series.ToArray(), type, new OpenSearchUrl(url.ToString()), true, this);
 
 
         }
@@ -146,8 +146,26 @@ namespace Terradue.Portal {
             return this.MergeSeriesOpenSearchParameters();
         }
 
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            return 0;
+        public long TotalResults {
+            get {
+                if (this.Series != null) {
+                    OpenSearchEngine ose = new OpenSearchEngine();
+                    AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+                    ose.RegisterExtension(aosee);
+
+                    try {
+
+                        AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
+                        return osr.TotalResults;
+
+                    } catch (Exception e) {
+                        // no error managment, set the number of product to 0
+                        return 0;
+                    }
+
+                }
+                return 0;
+            }
         }
 
         public ParametersResult DescribeParameters() {

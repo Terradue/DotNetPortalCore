@@ -538,7 +538,7 @@ namespace Terradue.Portal {
         /// <returns>The cache count if up to date</returns>
         /// <param name="throwException">If set to <c>true</c>, it throws exception if the value is missing or not up to date.</param>
         /// \ingroup Series
-        public ulong CountCache (bool throwException) {
+        public virtual ulong CountCache (bool throwException) {
             int seriesInfoValidityTime = StringUtils.StringToSeconds(context.GetConfigValue("SeriesInfoValidityTime"));
             DateTime outdatedEndTime = DateTime.UtcNow.AddSeconds(- seriesInfoValidityTime);
 
@@ -608,37 +608,39 @@ namespace Terradue.Portal {
             return Name;
         }
 
-        public long GetTotalResults(string mimetype, NameValueCollection nvc) {
-            long result = 0;
+        long totalResult = 0;
+        public virtual long TotalResults {
+            get {
+                
+                if (totalResult <= 0) {
+                    OpenSearchEngine ose = new OpenSearchEngine();
+                    AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
+                    ose.RegisterExtension(aosee);
 
-            OpenSearchEngine ose = new OpenSearchEngine();
-            AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
-            ose.RegisterExtension(aosee);
+                    try {
+                        // Let's try to get the cache count value
+                        totalResult = (long)CountCache(true);
+                    } catch (ResourceNotFoundException) {
 
-            try {
-                // Let's try to get the cache count value
-                result = (long)CountCache(true);
-            } catch (ResourceNotFoundException) {
-
-                // update the series table with data retrieved by the acs catalog
-                try{
+                        // update the series table with data retrieved by the acs catalog
+                        try {
                     
-                    IOpenSearchResult osr = ose.Query(this,nvc,typeof(AtomFeed));
-                    AtomFeed sc = (AtomFeed)osr.Result;
+                            AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
+                            totalResult = osr.TotalResults;
 
-                    result = Int64.Parse(sc.ElementExtensions.ReadElementExtensions<string>("totalResults","http://a9.com/-/spec/opensearch/1.1/").Single());
+                        } catch (Exception e) {
+                            // no error managment, set the number of product to 0
+                            totalResult = 0;
+                        }
 
-                } catch (Exception e) {
-                    // no error managment, set the number of product to 0
-                    result = 0;
+                        // update series table with new value
+                        this.UpdateCountCache(totalResult);
+
+                    }
                 }
 
-                // update series table with new value
-                this.UpdateCountCache(result);
-
+                return totalResult;
             }
-
-            return result;
         }
 
         public ParametersResult DescribeParameters() {
@@ -650,49 +652,6 @@ namespace Terradue.Portal {
         }
 
         #endregion
-
-        /// <summary>
-        /// Get the OpenSearch field TotalResults.
-        /// </summary>
-        /// <returns>The results.</returns>
-        /// <param name="ose">Ose.</param>
-        /// \ingroup Series
-        public long GetTotalResults() {
-            long result = 0;
-
-            OpenSearchEngine ose = new OpenSearchEngine();
-            AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
-            ose.RegisterExtension(aosee);
-
-            try {
-                // Let's try to get the cache count value
-                result = (long)CountCache(true);
-            } catch (ResourceNotFoundException) {
-
-                // update the series table with data retrieved by the acs catalog
-                try{
-                    NameValueCollection nvc = new NameValueCollection();
-                    nvc.Add ("count","0");
-
-                    IOpenSearchResult osr = ose.Query(this,nvc,typeof(AtomFeed));
-                    AtomFeed sc = (AtomFeed)osr.Result;
-
-                    result = Int64.Parse(sc.ElementExtensions.ReadElementExtensions<string>("totalResults","http://a9.com/-/spec/opensearch/1.1/").Single());
-
-                } catch (Exception e) {
-                    // no error managment, set the number of product to 0
-                    result = 0;
-                }
-
-                // update series table with new value
-                this.UpdateCountCache(result);
-
-            }
-
-            return result;
-        }
-
-
 
     }
 
