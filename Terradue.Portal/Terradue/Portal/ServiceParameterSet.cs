@@ -360,8 +360,6 @@ namespace Terradue.Portal {
                 }
                 
             } else { // old service.xml format
-                Console.WriteLine("LFX-3");
-                
                 Inputs.Add(new ProcessingInputSet(this));
                 Outputs.Add(new ProcessingOutputSet(this));
                 
@@ -373,7 +371,6 @@ namespace Terradue.Portal {
                     string source = (subElement.HasAttribute("source") ? subElement.Attributes["source"].Value : null);
                     string type = (subElement.HasAttribute("type") ? subElement.Attributes["type"].Value : null);
                     
-                    Console.WriteLine(subElement.OuterXml);
                     switch (source) {
                         case "series" :
                         case "Task.Series" :
