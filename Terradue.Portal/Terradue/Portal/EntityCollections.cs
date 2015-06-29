@@ -612,23 +612,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            int count = 0;
-            foreach (T s in Items) {
-                if (!string.IsNullOrEmpty(parameters["id"]) && s.Identifier != parameters["id"]) continue;
-                if (!string.IsNullOrEmpty(parameters["author"]) && !(User.FromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
-                if (!string.IsNullOrEmpty(parameters["q"])) {
-                    var name = s.Name == null ? "" : s.Name;
-                    var identifier = s.Identifier == null ? "" : s.Identifier;
-                    var content = s.TextContent == null ? "" : s.TextContent;
-                    var q = parameters["q"];
-                    if (!(name.Contains(q) || identifier.Contains(q) || content.Contains(q)))
-                        continue;
-                }
-                count++;
+        public long TotalResults {
+            get {
+                return this.Count;
             }
-
-            return count;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

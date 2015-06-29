@@ -72,8 +72,10 @@ namespace Terradue.Portal {
 
         }
 
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            return 1;
+        public long TotalResults {
+            get {
+                return 1;
+            }
         }
 
         public OpenSearchUrl GetSearchBaseUrl(string mimetype) {
@@ -317,22 +319,7 @@ namespace Terradue.Portal {
             this.context = context;
             this.DataSetParameter = dataSetParameter;
         }
-        //---------------------------------------------------------------------------------------------------------------------
-        public void GetTotalResults() {
-            if (Url != null) {
-                
-                // Get the element names from the configuration file
-                // Get first result
-                context.AddDebug(2, "Catalogue query (base): " + Url);
-                if (!AddResultsFromRdf(Url, 0, 0)) return;
-                
-                context.AddDebug(2, "Catalogue total results: " + TotalResults);
 
-            } else if (DataSetParameter != null) {
-                
-                TotalResults = DataSetParameter.Values.Length;
-            }
-        }
         //---------------------------------------------------------------------------------------------------------------------
         public void GetDataSets(int minCount, int maxCount) {
             this.minCount = minCount;

@@ -19,6 +19,7 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using Terradue.OpenSearch.Engine.Extensions;
 
 
 
@@ -64,7 +65,7 @@ namespace Terradue.Portal {
         public string OpenSearchDescriptionUrl {
             get { return (OpenSearchDescriptionUri == null ? null : OpenSearchDescriptionUri.AbsoluteUri); }
             set { OpenSearchDescriptionUri = new Uri(value); }
-        }        
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -74,7 +75,7 @@ namespace Terradue.Portal {
         public string BaseUrl {
             get { return (BaseUri == null ? null : BaseUri.AbsoluteUri); }
             set { BaseUri = new Uri(value); }
-        }        
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -109,17 +110,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public Uri OpenSearchDescriptionUri { get; set; }        
+        public Uri OpenSearchDescriptionUri { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public Uri BaseUri { get; set; }        
+        public Uri BaseUri { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new Catalogue instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public Catalogue(IfyContext context) : base(context) {}
+        public Catalogue(IfyContext context) : base(context) {
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +172,7 @@ namespace Terradue.Portal {
         }
 
         public OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl (string.Format("{0}/catalogue/{1}/search", context.BaseUrl, this.Identifier));
+            return new OpenSearchUrl(string.Format("{0}/catalogue/{1}/search", context.BaseUrl, this.Identifier));
         }
 
         public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
@@ -179,8 +181,7 @@ namespace Terradue.Portal {
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
-            if (osee == null)
-                return null;
+            if (osee == null) return null;
             return new QuerySettings(this.DefaultMimeType, osee.ReadNative);
         }
 
@@ -196,24 +197,25 @@ namespace Terradue.Portal {
 
         public OpenSearchDescription GetOpenSearchDescription() {
 
-            if ( osd == null )
-                osd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(new OpenSearchUrl(this.OpenSearchDescriptionUri));
+            if (osd == null) osd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(new OpenSearchUrl(this.OpenSearchDescriptionUri));
             return osd;
 
         }
 
         public NameValueCollection GetOpenSearchParameters(string mimeType) {
-            OpenSearchDescription osd = this.GetOpenSearchDescription (); 
+            OpenSearchDescription osd = this.GetOpenSearchDescription(); 
             foreach (OpenSearchDescriptionUrl url in osd.Url) {
-                if ( url.Type == mimeType )
-                    return HttpUtility.ParseQueryString(new Uri(url.Template).Query);
+                if (url.Type == mimeType) return HttpUtility.ParseQueryString(new Uri(url.Template).Query);
             }
 
             return null;
         }
 
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            return 0;
+        public long TotalResults {
+            get {
+                return 0;
+
+            }
         }
 
         public ParametersResult DescribeParameters() {
