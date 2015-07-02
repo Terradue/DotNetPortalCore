@@ -204,11 +204,14 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) ids.Add(reader.GetInt32(0));
             context.CloseQueryResult(reader, dbConnection);
+            if (context.ConsoleDebug) Console.WriteLine("COUNT: " + ids.Count);
 
             foreach (int id in ids) {
+                if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
                 item.Load(id);
                 IncludeInternal(item);
+                if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
             }
             if (template != null) foreach (T item in this) AlignWithTemplate(item, false);
             IsReadOnly = false;

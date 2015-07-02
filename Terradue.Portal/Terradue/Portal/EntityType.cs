@@ -349,14 +349,12 @@ namespace Terradue.Portal {
                     if (attribute is EntityRelationshipTableAttribute) entityType = new EntityRelationshipType(actualType);
                     else if (attribute is EntityTableAttribute) entityType = new EntityType(actualType);
                     else {
-                        Console.WriteLine("A {0} - {1}", actualType.FullName, type.FullName);
                         continue;
                     }
                     entityTypes[actualType] = entityType;
                     return entityType;
                 }
                 type = type.BaseType;
-                Console.WriteLine("B {0} - {1}", actualType.FullName, type.FullName);
             }
             throw new InvalidOperationException(String.Format("Entity information not available: {0}", actualType.FullName));
         }
@@ -1072,7 +1070,6 @@ namespace Terradue.Portal {
                 table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);
                 table.ReferringItemField = referringItemField;
                 table.IdField = referencedItemField;
-                Console.WriteLine("REFERING {0}, REFERENCED {1}", referringItemField, referencedItemField);
                 Tables.Add(table);
             }
         

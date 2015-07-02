@@ -588,7 +588,6 @@ namespace Terradue.Portal {
             Job result = new Job(context);
             result.Task = task;
             result.Name = name;
-            Console.WriteLine("TASK = " + (result.Task == null ? "NULL" : result.Task.Identifier));
             result.Load();
             return result;
         }
@@ -610,7 +609,6 @@ namespace Terradue.Portal {
 
         public override string AlternativeIdentifyingCondition {
             get {
-                Console.WriteLine("TASK = " + (Task == null ? "NULL" : Task.Identifier));
                 if (Task == null) return null;
                 return String.Format("t.id_task={0} AND t.name={1}", Task.Id, StringUtils.EscapeSql(Name));
             }
