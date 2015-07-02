@@ -800,10 +800,8 @@ namespace Terradue.Portal {
                 context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
             }
             foreach (Entity item in items) {
-                Console.WriteLine("(X-1) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
                 if (context.ConsoleDebug) Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
                 item.StorePrivileges(forGroup, id, null, false);
-                Console.WriteLine("(X-5) {0}", DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff\Z"));
             }
         }
 
