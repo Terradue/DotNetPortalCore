@@ -479,6 +479,9 @@ namespace Terradue.Portal {
                     }
                 }
             }
+
+            //Log activity
+            Activity activity = null;
             
             // Do the INSERT if the item does not yet exist (1), or an UPDATE if it exists (2)
             // Note: the domain is only stored when the item is created
@@ -611,6 +614,10 @@ namespace Terradue.Portal {
                     context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PrivilegeSubjectTable.Name, entityType.PrivilegeSubjectTable.PrivilegeTable));
                 }
                 Exists = true;
+
+                //activity
+                activity = new Activity(context,this, ActivityPrivilege.CREATE);
+                activity.Store();
                 
             } else { // (2) - UPDATE
                 for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
@@ -644,6 +651,9 @@ namespace Terradue.Portal {
                         context.Execute(sql);
                     }
                 }
+                //activity
+                activity = new Activity(context,this, ActivityPrivilege.MODIFY);
+                activity.Store();
             }
 
             if (hasAutoStoreFields) StoreComplexFields(false);
@@ -828,6 +838,9 @@ namespace Terradue.Portal {
 
             context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdField, Id));
 
+            //activity
+            Activity activity = new Activity(context,this, ActivityPrivilege.DELETE);
+            activity.Store();
         }
         
         //---------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
--- VERSION 2.6.31
+-- VERSION 2.6.35
 
 USE $MAIN$;
 
@@ -2026,6 +2026,32 @@ CREATE TABLE safe_priv (
 
 /*****************************************************************************/
 
+CREATE TABLE activity (
+    id int unsigned NOT NULL auto_increment,
+    id_usr int unsigned COMMENT 'FK: User doing the activity',
+    id_priv int unsigned COMMENT 'FK: Privilege associated',
+    id_type int unsigned COMMENT 'FK: Entity type',
+    id_owner int unsigned COMMENT 'FK: User owning the entity related to the activity',
+    description text COMMENT 'Description of the activity',
+    creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
+    CONSTRAINT pk_activity PRIMARY KEY (id),
+    CONSTRAINT fk_activity_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_activity_owner FOREIGN KEY (id_owner) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_activity_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
+    CONSTRAINT fk_activity_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User activities';
+-- CHECKPOINT C-72
+
+CREATE TABLE priv_score (
+    id_priv int unsigned COMMENT 'FK: Privilege associated',
+    score_usr int unsigned COMMENT 'Score associated to a user',
+    score_owner int unsigned COMMENT 'Score associated to an owner',
+    CONSTRAINT fk_priv_score_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Privilege scores';
+-- CHECKPOINT C-73
+
+/*****************************************************************************/
+
 USE $NEWS$;
 
 /*****************************************************************************/
@@ -2041,7 +2067,7 @@ CREATE TABLE feature (
     button_link varchar(1000),
     PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Web portal featured content';
--- CHECKPOINT C-72
+-- CHECKPOINT CN-01
 
 /*****************************************************************************/
 
@@ -2058,7 +2084,7 @@ CREATE TABLE article (
     id_type int unsigned COMMENT 'FK: Entity type',
     CONSTRAINT pk_article PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'News articles';
--- CHECKPOINT C-73
+-- CHECKPOINT CN-02
 
 /*****************************************************************************/
 
@@ -2074,7 +2100,7 @@ CREATE TABLE articlecomment (
     CONSTRAINT pk_articlecomment PRIMARY KEY (id),
     CONSTRAINT fk_articlecomment_article FOREIGN KEY (id_article) REFERENCES article(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Comments on news articles';
--- CHECKPOINT C-74
+-- CHECKPOINT CN-03
 
 /*****************************************************************************/
 
@@ -2086,7 +2112,7 @@ CREATE TABLE image (
     small_url varchar(200) COMMENT 'Image preview URL',
     CONSTRAINT pk_image PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Images';
--- CHECKPOINT C-75
+-- CHECKPOINT CN-04
 
 /*****************************************************************************/
 
@@ -2096,7 +2122,7 @@ CREATE TABLE faq (
     answer text COMMENT 'Answer to question',
     CONSTRAINT pk_faq PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Frequently asked questions';
--- CHECKPOINT C-76
+-- CHECKPOINT CN-05
 
 /*****************************************************************************/
 
@@ -2109,7 +2135,7 @@ CREATE TABLE project (
     status tinyint NOT NULL DEFAULT 0 COMMENT 'Project status (1 to 4)',
     CONSTRAINT pk_project PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Projects';
--- CHECKPOINT C-77
+-- CHECKPOINT CN-06
 
 /*****************************************************************************/
 

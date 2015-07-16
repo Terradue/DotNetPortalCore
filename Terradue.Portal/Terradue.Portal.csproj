@@ -135,6 +135,9 @@
     <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
     <Compile Include="Terradue\Portal\generated\wps.cs" />
     <Compile Include="Terradue\Portal\Safe.cs" />
+    <Compile Include="Terradue\Portal\Activity.cs" />
+    <Compile Include="Terradue\Portal\Privilege.cs" />
+    <Compile Include="Terradue\Portal\UserUsage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
