@@ -18,7 +18,21 @@ namespace Terradue.Portal {
     }
 
     /// <summary>
-    /// Activity class.
+    /// Activity class
+    /// -> log activities made by users
+    /// -> associated to a privilege and an entity type (e.g series: create)
+    /// -> NOT directly associated to an entity (allow persistence if entity is deleted)
+    /// -> stores current user
+    /// -> stores entity owner
+    /// -> stores type of the entity
+    /// 
+    /// Linked to Entity
+    /// -> Entity Store function creates an activity (CREATE or MODIFY)
+    /// -> Entity Delete function creates an activity (DELETE)
+    /// -> Entity StoreGlobalPrivileges creates an activity (MAKE_PUBLIC)
+    /// 
+    /// Specific actions at SubClass level
+    /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </summary>
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
     public class Activity {
@@ -29,16 +43,20 @@ namespace Terradue.Portal {
         [EntityDataField("id")]
         public int Id { get; set; }
 
+        /// <summary>Gets the Entity Id</summary>
+        [EntityDataField("id_entity")]
+        public int EntityId { get; set; }
+
         /// <summary>Gets the User Id</summary>
-        [EntityDataField("id_usr", IsForeignKey = true)]
+        [EntityDataField("id_usr")]
         public int UserId { get; set; }
 
         /// <summary>Gets the Owner Id</summary>
-        [EntityDataField("id_owner", IsForeignKey = true)]
+        [EntityDataField("id_owner")]
         public int OwnerId { get; set; }
 
         /// <summary>Gets the Privilege Id</summary>
-        [EntityDataField("id_priv", IsForeignKey = true)]
+        [EntityDataField("id_priv")]
         public int PrivilegeId { get; set; }
 
         private Privilege priv;
@@ -56,7 +74,7 @@ namespace Terradue.Portal {
         }
 
         /// <summary>Gets the Entity Type Id</summary>
-        [EntityDataField("id_type", IsForeignKey = true)]
+        [EntityDataField("id_type")]
         public int EntityTypeId { get; protected set; }
 
         private EntityType entityType;
@@ -96,9 +114,13 @@ namespace Terradue.Portal {
         /// <param name="entity">Entity.</param>
         public Activity(IfyContext context, Entity entity, string operation) : this(context){
             if (entity != null) {
-                this.EntityType = EntityType.GetEntityType(entity.GetType());
-                this.Privilege = Privilege.FromTypeAndOperation(context, this.EntityTypeId, operation);
-                this.Description = string.Format("{0} (id = {1})",this.Privilege.Name, entity.Id);
+                try{
+                    this.EntityId = entity.Id;
+                    this.EntityType = EntityType.GetEntityType(entity.GetType());
+                    this.Privilege = Privilege.FromTypeAndOperation(context, this.EntityTypeId, operation);
+                    this.Description = string.Format("{0} (id = {1})",this.Privilege.Name, entity.Id);
+                }catch(Exception e){
+                }
             }
             this.OwnerId = entity.OwnerId;
         }

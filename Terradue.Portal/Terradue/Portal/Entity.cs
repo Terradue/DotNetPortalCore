@@ -716,6 +716,10 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreGlobalPrivileges() {
             StorePrivileges(false, 0, null, false);
+
+            //activity
+            Activity activity = new Activity(context,this, ActivityPrivilege.MAKE_PUBLIC);
+            activity.Store();
         }
         
         //---------------------------------------------------------------------------------------------------------------------

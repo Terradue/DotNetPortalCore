@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 
 namespace Terradue.Portal {
+
+    /// <summary>
+    /// UserUsage class
+    /// -> calculate for a user a usage "score" (related to priv_score table)
+    /// -> score is calculated using stored activities (with user as user or as owner)
+    /// </summary>
     public class UserUsage {
 
         private IfyContext context;
