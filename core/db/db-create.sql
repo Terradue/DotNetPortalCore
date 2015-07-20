@@ -90,6 +90,7 @@ CREATE TABLE priv (
     operation char(1) NOT NULL COLLATE latin1_general_cs COMMENT 'Operation type (one-letter code: c|m|a|p|d|o|V|A)',
     pos smallint unsigned COMMENT 'Position for ordering',
     name varchar(50) NOT NULL,
+    enable_log boolean NOT NULL default false COMMENT 'If true, activity related to this privilege are logged',
     CONSTRAINT pk_priv PRIMARY KEY (id),
     CONSTRAINT fk_priv_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
     UNIQUE INDEX (name)
@@ -2028,17 +2029,15 @@ CREATE TABLE safe_priv (
 
 CREATE TABLE activity (
     id int unsigned NOT NULL auto_increment,
-    id_usr int unsigned COMMENT 'FK: User doing the activity',
-    id_priv int unsigned COMMENT 'FK: Privilege associated',
-    id_type int unsigned COMMENT 'FK: Entity type',
-    id_owner int unsigned COMMENT 'FK: User owning the entity related to the activity',
-    description text COMMENT 'Description of the activity',
-    creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
+    id_entity int unsigned COMMENT 'Entity associated to the activity',
+    id_usr int unsigned COMMENT 'User doing the activity',
+    id_priv int unsigned COMMENT 'Privilege associated',
+    id_type int unsigned COMMENT 'Entity type',
+    id_owner int unsigned COMMENT 'User owning the entity related to the activity',
+    log_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
     CONSTRAINT pk_activity PRIMARY KEY (id),
-    CONSTRAINT fk_activity_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_activity_owner FOREIGN KEY (id_owner) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_activity_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
-    CONSTRAINT fk_activity_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
+    INDEX (`id_usr`),
+    INDEX (`creation_time`)
 ) Engine=InnoDB COMMENT 'User activities';
 -- CHECKPOINT C-72
 

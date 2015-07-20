@@ -37,11 +37,11 @@ namespace Terradue.Portal {
             
             if (this.UserId == 0) return 0;
 
-            List<Activity> activities = Activity.ForUser(context, this.UserId);
+            EntityList<Activity> activities = Activity.ForUser(context, this.UserId);
             if (activities == null) return 0;
 
             int score = 0;
-            foreach (Activity activity in activities) {
+            foreach (Activity activity in activities.GetItemsAsList()) {
                 if (types == null) {
                     score += GetScore(activity, this.UserId);
                 } else {

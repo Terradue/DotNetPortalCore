@@ -838,13 +838,13 @@ namespace Terradue.Portal {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
             //if (CanDelete) // TODO check privileges 
 
-            EntityType entityType = this.EntityType;
-
-            context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdField, Id));
-
             //activity
             Activity activity = new Activity(context,this, ActivityPrivilege.DELETE);
             activity.Store();
+
+            EntityType entityType = this.EntityType;
+
+            context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdField, Id));
         }
         
         //---------------------------------------------------------------------------------------------------------------------
