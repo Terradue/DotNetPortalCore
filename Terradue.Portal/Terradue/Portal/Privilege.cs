@@ -6,7 +6,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Activity privilege class.
     /// </summary>
-    public class ActivityPrivilege{
+    public class PrivilegeOperation{
 
         public const string VIEW = "v";
         public const string CREATE = "c";
