@@ -2037,7 +2037,7 @@ CREATE TABLE activity (
     log_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
     CONSTRAINT pk_activity PRIMARY KEY (id),
     INDEX (`id_usr`),
-    INDEX (`creation_time`)
+    INDEX (`log_time`)
 ) Engine=InnoDB COMMENT 'User activities';
 -- CHECKPOINT C-72
 
