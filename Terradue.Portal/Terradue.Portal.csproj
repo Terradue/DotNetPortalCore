@@ -11,8 +11,6 @@
     <UseMSBuildEngine>False</UseMSBuildEngine>
     <ReleaseVersion>2.6.8</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -135,6 +133,9 @@
     <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
     <Compile Include="Terradue\Portal\generated\wps.cs" />
     <Compile Include="Terradue\Portal\Safe.cs" />
+    <Compile Include="Terradue\Portal\Activity.cs" />
+    <Compile Include="Terradue\Portal\Privilege.cs" />
+    <Compile Include="Terradue\Portal\UserUsage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
