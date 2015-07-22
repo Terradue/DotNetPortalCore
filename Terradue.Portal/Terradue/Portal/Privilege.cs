@@ -6,13 +6,14 @@ namespace Terradue.Portal {
     /// <summary>
     /// Activity privilege class.
     /// </summary>
-    public class PrivilegeOperation{
+    public class OperationPriv{
 
         public const string VIEW = "v";
         public const string CREATE = "c";
         public const string MODIFY = "m";
         public const string DELETE = "d";
         public const string MAKE_PUBLIC = "p";
+        public const string LOGIN = "l";
 
     }
 
@@ -21,34 +22,14 @@ namespace Terradue.Portal {
     /// </summary>
     [EntityTable("priv", EntityTableConfiguration.Custom)]
     public class Privilege : Entity {
-
-        /// <summary>Gets the Id</summary>
-        [EntityDataField("id")]
-        public int Id { get; set;}
-
+        
         /// <summary>Gets the EntityType Id</summary>
         [EntityDataField("id_type", IsForeignKey = true)]
         public int EntityTypeId { get; protected set; }
 
-        private EntityType entityType;
-        public EntityType EntityType { 
-            get { 
-                return entityType;
-            } 
-
-            protected set {
-                entityType = value;
-                EntityTypeId = (entityType == null ? 0 : entityType.Id);
-            }
-        }
-
         /// <summary>Gets the position</summary>
         [EntityDataField("pos")]
         public int Position { get; set; }
-
-        /// <summary>Gets the name</summary>
-        [EntityDataField("name")]
-        public string Name { get; set;}
 
         /// <summary>Gets the operation</summary>
         [EntityDataField("operation")]

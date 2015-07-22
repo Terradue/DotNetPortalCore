@@ -616,7 +616,7 @@ namespace Terradue.Portal {
                 Exists = true;
 
                 //activity
-                activity = new Activity(context,this, PrivilegeOperation.CREATE);
+                activity = new Activity(context,this, OperationPriv.CREATE);
                 activity.Store();
                 
             } else { // (2) - UPDATE
@@ -652,7 +652,7 @@ namespace Terradue.Portal {
                     }
                 }
                 //activity
-                activity = new Activity(context,this, PrivilegeOperation.MODIFY);
+                activity = new Activity(context,this, OperationPriv.MODIFY);
                 activity.Store();
             }
 
@@ -718,7 +718,7 @@ namespace Terradue.Portal {
             StorePrivileges(false, 0, null, false);
 
             //activity
-            Activity activity = new Activity(context,this, PrivilegeOperation.MAKE_PUBLIC);
+            Activity activity = new Activity(context,this, OperationPriv.MAKE_PUBLIC);
             activity.Store();
         }
         
@@ -839,7 +839,7 @@ namespace Terradue.Portal {
             //if (CanDelete) // TODO check privileges 
 
             //activity
-            Activity activity = new Activity(context,this, PrivilegeOperation.DELETE);
+            Activity activity = new Activity(context,this, OperationPriv.DELETE);
             activity.Store();
 
             EntityType entityType = this.EntityType;
