@@ -1,6 +1,10 @@
 ﻿using System;
 using Terradue.Util;
 using System.Collections.Generic;
+using Terradue.OpenSearch;
+using Terradue.OpenSearch.Result;
+using System.Collections.Specialized;
+using Terradue.ServiceModel.Syndication;
 
 namespace Terradue.Portal {
 
@@ -22,11 +26,15 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </summary>
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
-    public class Activity : Entity {
+    public class Activity : Entity, IAtomizable {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
         public int EntityId { get; set; }
+
+        /// <summary>Gets the Entity Id</summary>
+        [EntityDataField("identifier_entity")]
+        public string EntityIdentifier { get; set; }
 
         /// <summary>Gets the Privilege Id</summary>
         [EntityDataField("id_priv")]
@@ -50,17 +58,19 @@ namespace Terradue.Portal {
         [EntityDataField("id_type")]
         public int EntityTypeId { get; protected set; }
 
-//        private EntityType entityType;
-//        public EntityType EntityType { 
-//            get { 
-//                return entityType;
-//            } 
-//
-//            protected set {
-//                entityType = value;
-//                EntityTypeId = (entityType == null ? 0 : entityType.Id);
-//            }
-//        }
+        private EntityType entityType;
+        public new EntityType ActivityEntityType { 
+            get { 
+                if (entityType == null && this.EntityTypeId != 0)
+                    entityType = EntityType.GetEntityTypeFromId(this.EntityTypeId);
+                return entityType;
+            } 
+
+            protected set {
+                entityType = value;
+                EntityTypeId = (entityType == null ? 0 : entityType.Id);
+            }
+        }
 
         /// <summary>Gets the UTC date and time of the activity's log creation.</summary>
         [EntityDataField("log_time")]
@@ -81,7 +91,8 @@ namespace Terradue.Portal {
             if (entity != null) {
                 try{
                     this.EntityId = entity.Id;
-                    this.EntityType = EntityType.GetEntityType(entity.GetType());
+                    this.EntityIdentifier = entity.Identifier;
+                    this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = this.EntityType.Id;
                     this.Privilege = Privilege.FromTypeAndOperation(context, this.EntityTypeId, operation);
                 }catch(Exception e){
@@ -135,6 +146,83 @@ namespace Terradue.Portal {
                                        StringUtils.EscapeSql(this.CreationTime.ToString("yyyy-MM-dd hh:mm:ss")));
             context.Execute(sql);
         }
+
+        #region IAtomizable implementation
+
+        public new AtomItem ToAtomItem(NameValueCollection parameters) {
+
+
+            if (this.EntityId == 0) return null;
+
+            Entity entity = null;
+            try{
+                entity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
+                entity.Load(this.EntityId);
+            }catch(Exception e){
+                return null;
+            }
+            User owner = User.FromId(context, this.OwnerId);
+
+            string identifier = null;
+            string name = (entity.Name != null ? entity.Name : entity.Identifier);
+            string description = null;
+            string text = (this.TextContent != null ? this.TextContent : "");
+            Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + entity.Identifier);
+
+            if (!string.IsNullOrEmpty(parameters["q"])) {
+                string q = parameters["q"].ToLower();
+                if (!(name.ToLower().Contains(q) || entity.Identifier.ToLower().Contains(q) || text.ToLower().Contains(q)))
+                    return null;
+            }
+
+            switch (this.Privilege.Operation) {
+                case OperationPriv.CREATE:
+                    description = string.Format("has created the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    break;
+                case OperationPriv.MODIFY:
+                    description = string.Format("has updated the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    break;
+                case OperationPriv.DELETE:
+                    description = string.Format("has deleted the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    break;
+                case OperationPriv.MAKE_PUBLIC:
+                    description = string.Format("has shared the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    break;
+                default:
+                    break;
+            }
+
+            AtomItem atomEntry = null;
+            AtomItem result = new AtomItem();
+
+            result.Id = id.ToString();
+            result.Title = new TextSyndicationContent(entity.Identifier);
+            result.Content = new TextSyndicationContent(name);
+
+            result.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", Guid.NewGuid());
+            result.Summary = new TextSyndicationContent(description);
+            result.ReferenceData = this;
+            result.PublishDate = new DateTimeOffset(this.CreationTime);
+            result.Date = this.CreationTime;
+            var basepath = new UriBuilder(context.BaseUrl);
+            basepath.Path = "user";
+            string usrUri = basepath.Uri.AbsoluteUri + "/" + owner.Username ;
+            string usrName = (!String.IsNullOrEmpty(owner.FirstName) && !String.IsNullOrEmpty(owner.LastName) ? owner.FirstName + " " + owner.LastName : owner.Username);
+            SyndicationPerson author = new SyndicationPerson(owner.Email, usrName, usrUri);
+            author.ElementExtensions.Add(new SyndicationElementExtension("identifier", "http://purl.org/dc/elements/1.1/", owner.Username));
+            result.Authors.Add(author);
+            result.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
+            Uri share = new Uri(context.BaseUrl + "/share?url=" +id.AbsoluteUri);
+            result.Links.Add(new SyndicationLink(share, "via", name, "application/atom+xml", 0));
+
+            return result;
+        }
+
+        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
+            return OpenSearchFactory.GetBaseOpenSearchParameter();
+        }
+
+        #endregion
     }
 }
 
