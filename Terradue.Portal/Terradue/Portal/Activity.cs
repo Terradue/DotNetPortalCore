@@ -93,7 +93,7 @@ namespace Terradue.Portal {
                     this.EntityId = entity.Id;
                     this.EntityIdentifier = entity.Identifier;
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
-                    this.EntityTypeId = this.EntityType.Id;
+                    this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
                     this.Privilege = Privilege.FromTypeAndOperation(context, this.EntityTypeId, operation);
                 }catch(Exception e){
                 }
