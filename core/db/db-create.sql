@@ -2031,6 +2031,7 @@ CREATE TABLE safe_priv (
 CREATE TABLE activity (
     id int unsigned NOT NULL auto_increment,
     id_entity int unsigned COMMENT 'Entity associated to the activity',
+    identifier_entity varchar(50) COMMENT 'Identifier associated to the activity',
     id_usr int unsigned COMMENT 'User doing the activity',
     id_priv int unsigned COMMENT 'Privilege associated',
     id_type int unsigned COMMENT 'Entity type',
