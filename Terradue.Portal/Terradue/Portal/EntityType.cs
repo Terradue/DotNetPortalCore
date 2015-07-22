@@ -424,6 +424,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public static EntityType GetEntityTypeFromId(int id) {
+            foreach (EntityType entityType in entityTypes.Values) {
+                if (entityType.Id == id) return entityType;
+            }
+            return null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public static List<EntityType> GetDomainEntityTypes() {
             List<EntityType> result = new List<EntityType>();
             foreach (EntityType entityType in entityTypes.Values) {
