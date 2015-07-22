@@ -49,7 +49,8 @@ INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword
     (23, 23, 'Terradue.Portal.Article, Terradue.Portal', NULL, 'News Article', 'News', 'news'),
     (24, 24, 'Terradue.Portal.Image, Terradue.Portal', NULL, 'Image', 'Images', 'images'),
     (25, 25, 'Terradue.Portal.Faq, Terradue.Portal', NULL, 'F.A.Q.', 'F.A.Q.', 'faqs'),
-    (26, 26, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects')
+    (26, 26, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects'),
+    (27, 27, 'Terradue.Portal.Activity, Terradue.Portal', NULL, 'Activity', 'Activities', 'activity')
 ;
 -- RESULT
 -- CHECKPOINT C-01b
