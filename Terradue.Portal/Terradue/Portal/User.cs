@@ -241,12 +241,17 @@ namespace Terradue.Portal {
         /// <returns>The User instance. New users are not stored in the database, this must be done by the calling code.</returns>
         public static User GetOrCreate(IfyContext context, string username, AuthenticationType authenticationType) {
             EntityType userType = EntityType.GetEntityType(typeof(User));
+            User result = null;
+            Activity activity = null;
             int userId = GetUserId(context, username, authenticationType);
             if (userId != 0) {
-                return FromId(context, userId);
+                result = FromId(context, userId);
+                activity = new Activity(context, result, OperationPriv.LOGIN);
+                activity.Store();
+                return result;
             } else {
                 IfyWebContext webContext = context as IfyWebContext;
-                User result = User.GetInstance(context);
+                result = User.GetInstance(context);
                 result.Username = username;
                 result.AccountStatus = (authenticationType == null ? webContext == null ? AccountStatusType.Deactivated : webContext.DefaultAccountStatus : authenticationType.GetDefaultAccountStatus());
                 result.Level = UserLevel.User;
@@ -257,6 +262,10 @@ namespace Terradue.Portal {
                 result.PasswordAuthenticationAllowed = (authType != null && authType.NormalAccountRule == RuleApplicationType.Always);
                 authType = IfyWebContext.GetAuthenticationType(typeof(PasswordAuthenticationType));
                 result.SessionlessRequestsAllowed = (authType != null && authType.NormalAccountRule == RuleApplicationType.Always);
+
+                activity = new Activity(context, result, OperationPriv.CREATE);
+                activity.Store();
+
                 return result;
             }
         }
