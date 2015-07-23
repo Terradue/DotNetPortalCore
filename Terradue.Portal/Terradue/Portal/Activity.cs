@@ -131,7 +131,8 @@ namespace Terradue.Portal {
         /// Store this instance.
         /// </summary>
         public override void Store(){
-            
+
+            context.LogDebug(this, string.Format("Storing activity: {0},{1},{2},{3}", this.context.UserId, this.PrivilegeId, this.EntityTypeId, (this.Privilege != null ? this.Privilege.EnableLog.ToString() : "null")));
             if (this.context.UserId == 0 || this.PrivilegeId == 0 || this.EntityTypeId == 0 || !this.Privilege.EnableLog) return;
 
             this.UserId = context.UserId;
