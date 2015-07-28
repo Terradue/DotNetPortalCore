@@ -479,6 +479,9 @@ namespace Terradue.Portal {
                     }
                 }
             }
+
+            //Log activity
+            Activity activity = null;
             
             // Do the INSERT if the item does not yet exist (1), or an UPDATE if it exists (2)
             // Note: the domain is only stored when the item is created
@@ -611,6 +614,10 @@ namespace Terradue.Portal {
                     context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PrivilegeSubjectTable.Name, entityType.PrivilegeSubjectTable.PrivilegeTable));
                 }
                 Exists = true;
+
+                //activity
+                activity = new Activity(context,this, OperationPriv.CREATE);
+                activity.Store();
                 
             } else { // (2) - UPDATE
                 for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
@@ -644,6 +651,9 @@ namespace Terradue.Portal {
                         context.Execute(sql);
                     }
                 }
+                //activity
+                activity = new Activity(context,this, OperationPriv.MODIFY);
+                activity.Store();
             }
 
             if (hasAutoStoreFields) StoreComplexFields(false);
@@ -706,6 +716,10 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreGlobalPrivileges() {
             StorePrivileges(false, 0, null, false);
+
+            //activity
+            Activity activity = new Activity(context,this, OperationPriv.MAKE_PUBLIC);
+            activity.Store();
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -819,15 +833,66 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Determines whether this instance has global privilege.
+        /// </summary>
+        /// <returns><c>true</c> if this instance has global privilege; otherwise, <c>false</c>.</returns>
+        public bool HasGlobalPrivilege(){
+            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name)) > 0;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the list of groups with privileges.
+        /// </summary>
+        /// <returns>The groups with privileges.</returns>
+        public List<int> GetGroupsWithPrivileges(){
+            List<int> ids = new List<int>();
+            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+
+            while (reader.Read()) {
+                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
+            }
+            reader.Close();
+            return ids;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the list of users with privileges.
+        /// </summary>
+        /// <returns>The users with privileges.</returns>
+        public List<int> GetUsersWithPrivileges(){
+            List<int> ids = new List<int>();
+            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+
+            while (reader.Read()) {
+                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
+            }
+            reader.Close();
+            return ids;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
             //if (CanDelete) // TODO check privileges 
 
+            //activity
+            Activity activity = new Activity(context,this, OperationPriv.DELETE);
+            activity.Store();
+
             EntityType entityType = this.EntityType;
 
             context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdField, Id));
-
         }
         
         //---------------------------------------------------------------------------------------------------------------------

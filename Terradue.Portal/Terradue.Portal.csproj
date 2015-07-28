@@ -11,8 +11,6 @@
     <UseMSBuildEngine>False</UseMSBuildEngine>
     <ReleaseVersion>2.6.8</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -60,7 +58,7 @@
       <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
     </Reference>
     <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.10.4\lib\net40\Terradue.OpenSearch.dll</HintPath>
+      <HintPath>..\packages\Terradue.OpenSearch.1.10.6\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -135,6 +133,9 @@
     <Compile Include="Terradue\Portal\ExecutionParameter.cs" />
     <Compile Include="Terradue\Portal\generated\wps.cs" />
     <Compile Include="Terradue\Portal\Safe.cs" />
+    <Compile Include="Terradue\Portal\Activity.cs" />
+    <Compile Include="Terradue\Portal\Privilege.cs" />
+    <Compile Include="Terradue\Portal\UserUsage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
