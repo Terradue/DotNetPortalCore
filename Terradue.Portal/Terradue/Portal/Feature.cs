@@ -84,6 +84,22 @@ namespace Terradue.Portal {
             return feat;
         }
 
+        /// <summary>
+        /// Writes the item to the database.
+        /// </summary>
+        public override void Store(){
+            //if no position, we set it to the max
+            //otherwise we increase existing ones (in case inserted amongst others)
+            if (this.Position == 0)
+                this.Position = context.GetQueryIntegerValue(string.Format("SELECT MAX(pos) FROM feature;")) + 1;
+            else {
+                if(context.GetQueryIntegerValue(string.Format("SELECT COUNT(*) FROM feature WHERE pos={0};", this.Position)) != 0)
+                    context.Execute(string.Format("UPDATE feature SET pos = pos + 1 WHERE pos >= {0};", this.Position));
+            }
+            
+            base.Store();
+        }
+
         #region IComparable implementation
 
         public int CompareTo(Feature other) {
