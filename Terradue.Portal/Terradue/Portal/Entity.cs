@@ -833,6 +833,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Determines whether this instance has global privilege.
+        /// </summary>
+        /// <returns><c>true</c> if this instance has global privilege; otherwise, <c>false</c>.</returns>
+        public bool HasGlobalPrivilege(){
+            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name)) > 0;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
