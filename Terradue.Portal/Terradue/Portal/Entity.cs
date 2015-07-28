@@ -843,6 +843,44 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the list of groups with privileges.
+        /// </summary>
+        /// <returns>The groups with privileges.</returns>
+        public List<int> GetGroupsWithPrivileges(){
+            List<int> ids = new List<int>();
+            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+
+            while (reader.Read()) {
+                ids.Add(reader.GetInt32(0));
+            }
+            reader.Close();
+            return ids;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the list of users with privileges.
+        /// </summary>
+        /// <returns>The users with privileges.</returns>
+        public List<int> GetUsersWithPrivileges(){
+            List<int> ids = new List<int>();
+            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+
+            while (reader.Read()) {
+                ids.Add(reader.GetInt32(0));
+            }
+            reader.Close();
+            return ids;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
