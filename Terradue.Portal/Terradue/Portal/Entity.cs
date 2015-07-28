@@ -854,7 +854,7 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 
             while (reader.Read()) {
-                ids.Add(reader.GetInt32(0));
+                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
             }
             reader.Close();
             return ids;
@@ -873,7 +873,7 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 
             while (reader.Read()) {
-                ids.Add(reader.GetInt32(0));
+                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
             }
             reader.Close();
             return ids;

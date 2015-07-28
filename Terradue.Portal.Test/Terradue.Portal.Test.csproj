@@ -71,6 +71,7 @@
     <Compile Include="WpsProcessOffering.Test.cs" />
     <Compile Include="SafeTest.cs" />
     <Compile Include="FeatureTest.cs" />
+    <Compile Include="EntityTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
