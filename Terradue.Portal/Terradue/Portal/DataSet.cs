@@ -68,10 +68,6 @@ namespace Terradue.Portal {
             return null;
         }
 
-        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
-
-        }
-
         public long TotalResults {
             get {
                 return 1;
@@ -82,15 +78,13 @@ namespace Terradue.Portal {
             return new OpenSearchUrl (string.Format("{0}/dataset/{1}/search", context.BaseUrl, this.Identifier));
         }
 
-
-        public ParametersResult DescribeParameters() {
-            return OpenSearchFactory.GetDefaultParametersResult();
-        }
-
         public virtual bool CanCache {
             get { return false; }
         }
 
+
+        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
+        }
         #endregion
 
     }

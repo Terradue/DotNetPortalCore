@@ -552,10 +552,6 @@ namespace Terradue.Portal {
 
         #region IOpenSearchable implementation
 
-        public virtual void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
-
-        }
-
         public virtual OpenSearchRequest Create(string type, NameValueCollection parameters) {
             return OpenSearchRequest.Create(this, type, parameters);
         }
@@ -643,14 +639,13 @@ namespace Terradue.Portal {
             }
         }
 
-        public ParametersResult DescribeParameters() {
-            return OpenSearchFactory.GetDefaultParametersResult();
-        }
-
         public virtual bool CanCache {
             get { return false; }
         }
 
+
+        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
+        }
         #endregion
 
     }

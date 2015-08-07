@@ -175,10 +175,6 @@ namespace Terradue.Portal {
             return new OpenSearchUrl(string.Format("{0}/catalogue/{1}/search", context.BaseUrl, this.Identifier));
         }
 
-        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
-
-        }
-
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
             if (osee == null) return null;
@@ -218,14 +214,13 @@ namespace Terradue.Portal {
             }
         }
 
-        public ParametersResult DescribeParameters() {
-            return OpenSearchFactory.GetDefaultParametersResult();
-        }
-
         public virtual bool CanCache {
             get { return false; }
         }
 
+
+        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
+        }
         #endregion
     }
 

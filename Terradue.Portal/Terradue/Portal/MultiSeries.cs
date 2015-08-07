@@ -80,9 +80,8 @@ namespace Terradue.Portal {
         }
 
         #region IOpenSearchable implementation
-
-        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
-
+       
+        public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
         }
 
         public OpenSearchUrl GetSearchBaseUrl(string mimeType) {
@@ -166,10 +165,6 @@ namespace Terradue.Portal {
                 }
                 return 0;
             }
-        }
-
-        public ParametersResult DescribeParameters() {
-            return OpenSearchFactory.GetDefaultParametersResult();
         }
 
         public virtual bool CanCache {
