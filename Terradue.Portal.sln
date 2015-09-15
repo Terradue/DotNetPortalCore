@@ -32,7 +32,4 @@ Global
 		{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Terradue.Portal.Test\Terradue.Portal.Test.csproj
-	EndGlobalSection
 EndGlobal
