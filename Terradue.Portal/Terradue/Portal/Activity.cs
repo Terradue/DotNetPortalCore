@@ -203,8 +203,8 @@ namespace Terradue.Portal {
             result.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", Guid.NewGuid());
             result.Summary = new TextSyndicationContent(description);
             result.ReferenceData = this;
-            result.PublishDate = new DateTimeOffset(this.CreationTime);
-            result.Date = this.CreationTime;
+            result.PublishDate = this.CreationTime;
+            result.LastUpdatedTime = this.CreationTime;
             var basepath = new UriBuilder(context.BaseUrl);
             basepath.Path = "user";
             string usrUri = basepath.Uri.AbsoluteUri + "/" + owner.Username ;
