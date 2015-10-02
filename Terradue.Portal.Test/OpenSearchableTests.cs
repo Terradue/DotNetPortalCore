@@ -34,7 +34,7 @@ namespace Terradue.Portal.Test {
             RemoteResource rr = new RemoteResource(context);
 
             rr.ResourceSet = set;
-            set.Resources = new EntityList<RemoteResource>(context);
+            set.Resources = new RemoteResourceEntityCollection(context);
             set.Resources.Include(rr);
             rr.Location = "http://catalogue.terradue.int/catalogue/search/MER_FRS_1P/rdf?startIndex=0&q=MER_FRS_1P&start=1992-01-01&stop=2014-10-24&bbox=-72,47,-57,58";
             set.OpenSearchEngine = ose;
