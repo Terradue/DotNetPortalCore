@@ -464,8 +464,8 @@ namespace Terradue.Portal {
             bool hasAutoStoreFields = false;
             
             // Check whether identifier or name already exists
-            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
-                if (!Exists && entityType.TopTable.AutoCorrectDuplicateIdentifiers) {
+            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.AutoCheckIdentifiers) {
+                if (!Exists && entityType.AutoCorrectDuplicateIdentifiers) {
                     bool finding = true;
                     int suffix = 0;
                     while (finding) {

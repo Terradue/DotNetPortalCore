@@ -204,6 +204,14 @@ namespace Terradue.Portal {
         public List<FieldInfo> Fields;
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        public bool AutoCheckIdentifiers { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool AutoCorrectDuplicateIdentifiers { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Creates a new EntityType instance.</summary>
         /// \ingroup Persistence
@@ -455,7 +463,7 @@ namespace Terradue.Portal {
 
         protected virtual void GetEntityStructure(Type type) {
             if (type == null || type == typeof(Entity)) return;
-            
+
             EntityType baseEntityType = GetEntityType(type.BaseType);
             if (baseEntityType == null) {
                 GetEntityStructure(type.BaseType);
@@ -509,7 +517,12 @@ namespace Terradue.Portal {
             }
 
             AppendProperties(type, tableIndex);
-            
+
+            foreach (EntityTableAttribute t in Tables) {
+                AutoCheckIdentifiers |= t.AutoCheckIdentifiers;
+                AutoCorrectDuplicateIdentifiers |= t.AutoCorrectDuplicateIdentifiers;
+            }
+
         }
         
         //---------------------------------------------------------------------------------------------------------------------
