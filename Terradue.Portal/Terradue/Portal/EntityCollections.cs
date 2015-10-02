@@ -161,6 +161,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        protected bool IsLoading { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityCollection(IfyContext context) : this(context, null, null) {
             this.entityType = GetEntityStructure();
         }
@@ -210,6 +214,7 @@ namespace Terradue.Portal {
             context.CloseQueryResult(reader, dbConnection);
             if (context.ConsoleDebug) Console.WriteLine("COUNT: " + ids.Count);
 
+            IsLoading = true;
             foreach (int id in ids) {
                 if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
@@ -217,6 +222,7 @@ namespace Terradue.Portal {
                 IncludeInternal(item);
                 if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
             }
+            IsLoading = false;
             if (template != null) foreach (T item in this) AlignWithTemplate(item, false);
             IsReadOnly = false;
 
@@ -245,12 +251,14 @@ namespace Terradue.Portal {
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IsLoading = true;
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Load(entityType, reader);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
+            IsLoading = false;
             context.CloseQueryResult(reader, dbConnection);
         }
 
@@ -745,7 +753,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected override void IncludeInternal(T item) {
             T newItem = null;
-            if (!AllowDuplicates && item.Identifier != null) {
+            if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
                     if (collectionItem.Identifier == item.Identifier) newItem = item;
                 }
@@ -914,7 +922,7 @@ namespace Terradue.Portal {
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
             T newItem = null;
-            if (!AllowDuplicates && item.Identifier != null) {
+            if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
                     if (collectionItem.Identifier == item.Identifier) newItem = item;
                 }
