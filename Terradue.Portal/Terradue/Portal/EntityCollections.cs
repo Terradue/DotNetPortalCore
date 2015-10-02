@@ -148,6 +148,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool AllowDuplicates { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public abstract IEnumerable<T> Items { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -361,6 +365,22 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public abstract void Clear();
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public abstract T GetItem(string identifier);
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public T CreateItem(string identifier) {
+            return entityType.GetEntityInstanceFromIdentifier(context, identifier) as T;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public T CreateItem() {
+            return entityType.GetEntityInstance(context) as T;
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -708,11 +728,29 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        public override T GetItem(string identifier) {
+            if (identifier != null) {
+                foreach (T item in Items) {
+                    if (item.Identifier == identifier) return item;
+                }
+            }
+            return CreateItem(identifier);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Includes an item in the list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected override void IncludeInternal(T item) {
+            T newItem = null;
+            if (!AllowDuplicates && item.Identifier != null) {
+                foreach (T collectionItem in Items) {
+                    if (collectionItem.Identifier == item.Identifier) newItem = item;
+                }
+            }
+            if (newItem != null) items.Remove(newItem);
             item.IsInCollection = true;
             items.Add(item);
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
@@ -772,6 +810,13 @@ namespace Terradue.Portal {
         public override void Clear() {
             items.Clear();
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override T GetItem(string identifier) {
+            if (identifier != null) return items[identifier];
+            return CreateItem(identifier);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -846,10 +891,35 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        public override T GetItem(string identifier) {
+            if (identifier != null) {
+                foreach (T item in Items) {
+                    if (item.Identifier == identifier) return item;
+                }
+            }
+            return CreateItem(identifier);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual T GetItem(int id) {
+            if (id != 0) return items[id];
+            return CreateItem(null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Includes an item in the dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
+            T newItem = null;
+            if (!AllowDuplicates && item.Identifier != null) {
+                foreach (T collectionItem in Items) {
+                    if (collectionItem.Identifier == item.Identifier) newItem = item;
+                }
+            }
+            if (newItem != null) items.Remove(newItem.Id);
             item.IsInCollection = true;
             items[item.Id] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
