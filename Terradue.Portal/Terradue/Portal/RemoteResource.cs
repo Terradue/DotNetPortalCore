@@ -152,7 +152,7 @@ namespace Terradue.Portal {
                 return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
             }
 
-            return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
