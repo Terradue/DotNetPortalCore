@@ -14,6 +14,7 @@ using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.OpenSearch.Filters;
+using Terradue.Portal.OpenSearch;
 
 namespace Terradue.Portal {
 
@@ -116,10 +117,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual IOpenSearchable[] GetOpenSearchableArray() {
-            List<GenericOpenSearchable> osResources = new List<GenericOpenSearchable>(Resources.Count);
+            List<SmartGenericOpenSearchable> osResources = new List<SmartGenericOpenSearchable>(Resources.Count);
 
             foreach (RemoteResource res in Resources) {
-                var entity = new GenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
+                var entity = new SmartGenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
                 var eosd = entity.GetOpenSearchDescription();
                 if (eosd.DefaultUrl != null && eosd.DefaultUrl.Type == "application/json") {
                     var atomUrl = eosd.Url.FirstOrDefault(u => u.Type == "application/atom+xml");
@@ -148,11 +149,11 @@ namespace Terradue.Portal {
                 .ToArray();
             url.Query = string.Join("&", array);
 
-            if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"] == "true") {
+            /*if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"] == "true") {
                 return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
-            }
+            }*/
 
-            return new MultiAtomOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {

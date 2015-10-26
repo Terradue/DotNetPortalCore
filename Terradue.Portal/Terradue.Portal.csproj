@@ -11,8 +11,6 @@
     <UseMSBuildEngine>False</UseMSBuildEngine>
     <ReleaseVersion>2.6.8</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -70,6 +68,7 @@
   <ItemGroup>
     <Folder Include="Terradue\" />
     <Folder Include="Terradue\Portal\generated\" />
+    <Folder Include="Terradue\Portal\OpenSearch\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Terradue\Portal\Action.cs" />
@@ -141,6 +140,7 @@
     <Compile Include="Terradue\Portal\Activity.cs" />
     <Compile Include="Terradue\Portal\Privilege.cs" />
     <Compile Include="Terradue\Portal\UserUsage.cs" />
+    <Compile Include="Terradue\Portal\OpenSearch\SmartGenericOpenSearchable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
