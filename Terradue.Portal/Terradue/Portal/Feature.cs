@@ -42,6 +42,14 @@ namespace Terradue.Portal {
         public string ImageStyle { get; set; }
 
         /// <summary>
+        /// Gets or sets the image credits, used to customize the image apperance.
+        /// </summary>
+        /// <value>The image credits.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("image_credits")]
+        public string ImageCredits { get; set; }
+
+        /// <summary>
         /// Gets or sets the button text.
         /// </summary>
         /// <value>The button text.</value>
