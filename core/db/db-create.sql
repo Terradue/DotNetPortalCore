@@ -2335,9 +2335,10 @@ CREATE TABLE feature (
     id int unsigned NOT NULL auto_increment,
     pos int unsigned COMMENT 'Feature position',
     title varchar(40) NOT NULL,
-    description varchar(150),
+    description varchar(200),
     image_url varchar(100),
     image_style varchar(100),
+    image_credits VARCHAR(150) NULL DEFAULT NULL,
     button_text varchar(15),
     button_link varchar(1000),
     PRIMARY KEY (id)
