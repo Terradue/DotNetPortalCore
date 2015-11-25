@@ -32,8 +32,6 @@ using Terradue.Util;
 @{
 It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
 
-\xrefitem mvc_c "Controller" "Controller components"
-
 \ingroup "Core"
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently

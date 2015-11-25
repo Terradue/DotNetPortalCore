@@ -13,17 +13,18 @@ using Terradue.OpenSearch;
 /*!
 \defgroup Series Series
 @{
-This component represents a dataset series. Practically it is a non-final component that can be extended to implement other collections.
 
-\ingroup "Core"
+This component manages all types of dataset series.
+It implements the machnaism to search for the dataset defined in the series via an \ref OpenSearchable interface.
 
-\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref IOpenSearchable
+\ingroup Core
+
+\xrefitem int "Interfaces" "External Interfaces" connects to \ref IOpenSearch interfaces defined in the series to proxy the queries
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the series information in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the series
 
-\ingroup core
 
 
 @}

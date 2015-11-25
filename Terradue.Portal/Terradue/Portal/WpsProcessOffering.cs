@@ -13,26 +13,6 @@ using System.Collections.Generic;
 //-----------------------------------------------------------------------------------------------------------------------------
 using System.Web;
 
-/*!
-\defgroup WpsService WPS Service
-@{
-
-This component is an extension of \ref Service for providing with WPS process as processing offerings.
-Practically, it get services offered in the \ref WpsProvider associated and then for each process exposed,
-retrieve the DescribeProcess() from \ref WpsProvider to describe the process with input and ouput parameters.
-
-\ingroup "Core"
-
-\xrefitem dep "Dependencies" "Dependencies" extends \ref Service for WPS specific offerings
-
-\xrefitem dep "Dependencies" "Dependencies" exports WPS Service as a service resource as a \ref OWSContext model.
-
-\xrefitem int "Interfaces" "Interfaces" implements \ref OpenSearchable interface to search WPS Service in OpenSearch.
-
-
-
-@}
-*/
 using System.Net;
 using System.IO;
 using OpenGis.Wps;
@@ -50,7 +30,7 @@ namespace Terradue.Portal {
 
 
     /// <summary>Represents a WPS process offering on a remote WPS server.</summary>
-    /// \ingroup WpsService
+    /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("wpsproc", EntityTableConfiguration.Custom)]
     public class WpsProcessOffering : Service, IAtomizable {
@@ -84,7 +64,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the WPS provider to which the WPS process offering belongs.</summary>
+        /// <summary>WPS provider to which the WPS process offering belongs.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         /// \return is offered by \ref WpsProvider thats host the service of the offering.
         public WpsProvider Provider {
@@ -126,6 +106,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Builds the task.
+        /// </summary>
+        /// <param name="task">Task.</param>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override void BuildTask(Task task) {
             //this.ComputingResourceId = Provider;
         }

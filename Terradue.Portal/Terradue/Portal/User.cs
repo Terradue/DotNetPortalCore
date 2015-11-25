@@ -35,7 +35,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// User.
     /// </summary>
-    /// \ingroup Authorisation
+    /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {

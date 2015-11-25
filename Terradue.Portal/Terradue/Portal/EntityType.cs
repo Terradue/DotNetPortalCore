@@ -9,11 +9,10 @@ using Terradue.Util;
 /*!
 \defgroup Persistence Persistence of Data
 @{
-The component provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the classes that implement an entity and which represent real-world entities.
+The component provides generic interaction with data that is persistently stored in a relational database. 
+The data location and structure are defined in the classes that implement an object and which represent real-world entities.
 
-\xrefitem mvc_m "Model" "Model components"
-
-\ingroup "Core"
+\ingroup Core
 
 \xrefitem int "Interfaces" "Interfaces" connects to \ref SQLConnector
 
