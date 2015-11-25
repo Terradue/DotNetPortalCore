@@ -172,16 +172,18 @@ endfooter
 
 \xrefitem int "Interfaces" "Interfaces" implements \ref OpenSearchable interface to search WPS Server in OpenSearch.
 
-\xrefitem int "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+\xrefitem int "Interfaces" "Interfaces" connects \ref RWPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
 
 @}
 
-\defgroup WPS Web Processing Services Interface
+\defgroup RWPS Web Processing Services Interface
 @{
-This is the interface to Web Processing Service
 
-\xrefitem cptype_int "Interfaces" "Interfaces"
-\xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
+    This is the interface to remote Web Processing Services. They are hosted by substem of the platform of thirs party system external to the platform.
+
+    \xrefitem cptype_int "Interfaces" "Interfaces"
+
+    \xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
 
 @}
 */
