@@ -19,7 +19,7 @@ It implements the machnaism to search for the dataset defined in the series via 
 
 \ingroup Core
 
-\xrefitem int "Interfaces" "External Interfaces" connects to \ref IOpenSearch interfaces defined in the series to proxy the queries
+\xrefitem int "Interfaces" "Interfaces" connects to \ref IOpenSearch interfaces defined in the series to proxy the queries
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the series information in the database
 

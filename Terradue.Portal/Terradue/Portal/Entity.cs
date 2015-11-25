@@ -28,11 +28,20 @@ using Terradue.Util;
 */
 
 /*!
+
+\defgroup Security Security
+@{
+
+@}
+
+*/
+
+/*!
 \defgroup Authorisation Authorisation
 @{
 It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
 
-\ingroup "Core"
+\ingroup Security
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
 
