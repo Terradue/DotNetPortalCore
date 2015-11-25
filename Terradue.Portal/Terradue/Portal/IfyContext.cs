@@ -27,13 +27,9 @@ a pluggable authentication interface to extend the generic username/password sch
 It interacts with the database to store and read the persistent configuration data.
 This component also manages the configuration data for the system. Basically, it saves and loads key/value pairs in the database on the behalf of all other components of the system.
 
-\xrefitem mvc_c "Controller" "Controller components"
-
-\ingroup "Core"
+\ingroup Core
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence loads/stores data from/to the database
-
-\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls access to objects
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authentication authenticates a user
 

@@ -169,7 +169,7 @@ Model and Representation
 ------------------------ 
 
 This components has also a function to represent a \ref WpsProcessOffering object as a \ref OwcOffering in the \ref OWSContext model.
-It implements the machnaism to search for \WpsProvider and the \ref WpsProcessOffering via an \ref OpenSearchable interface.
+It implements the mechanism to search for \WpsProvider and the \ref WpsProcessOffering via an \ref OpenSearchable interface.
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \WpsProvider and \ref WpsProcessOffering references in the database
 
