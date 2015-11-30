@@ -33,7 +33,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>
-    /// User.
+    /// Basic object representing a user in the system.
     /// </summary>
     /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
@@ -70,7 +70,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the activation status of the user account.</summary>
+        /// <summary>Activation status of the user account.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
         [EntityDataField("status")]
         public int AccountStatus { get; set; }

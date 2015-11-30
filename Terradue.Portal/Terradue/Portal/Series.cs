@@ -162,7 +162,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Gets the detailed description of the series.</summary>
+        /// <summary>Detailed description of the series.</summary>
         /// \ingroup Series
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
@@ -184,7 +184,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the OpenSearch description URL of the series.</summary>
+        /// <summary>OpenSearch description document URL of the remote dataset series</summary>
         /// \ingroup Series
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string CatalogueDescriptionUrl { 
@@ -236,7 +236,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets or sets the catalogue.
+        /// Catalogue.
         /// </summary>
         /// <value>The catalogue.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -365,7 +365,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// From the open search URL.
+        /// Create the series from an OpenSearch url.
         /// </summary>
         /// <returns>The open search URL.</returns>
         /// <param name="osUrl">Os URL.</param>

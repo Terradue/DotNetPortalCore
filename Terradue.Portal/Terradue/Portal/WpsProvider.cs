@@ -871,7 +871,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets the process offering.
+        /// Get all the process offering of the WPS provider
         /// </summary>
         /// <returns>The process offering.</returns>
         /// <param name="task">Task.</param>

@@ -240,7 +240,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets a value indicating whether this instance is interactive.
+        /// Value indicating whether this instance is interactive.
         /// </summary>
         /// <value><c>true</c> if this instance is interactive; otherwise, <c>false</c>.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"

@@ -26,7 +26,7 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Represents a user group</summary>
+    /// <summary>Represents a basic user group</summary>
     /// \ingroup Authorisation
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("grp", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "name")]
@@ -34,7 +34,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the name, the unique identifier, of this group.</summary>
+        /// <summary>Name, the unique identifier, of this group.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override string Name {
             get { return Identifier; }
@@ -43,14 +43,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the long description of this group.</summary>
+        /// <summary>Description of this group.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the optional privilege level of this group.</summary>
+        /// <summary>Optional privilege level of this group.</summary>
         /// <remarks>Some applications may use this property to specify a level of privileges for a group, but the meaning of those privileges is defined elsewhere.</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("priority")]

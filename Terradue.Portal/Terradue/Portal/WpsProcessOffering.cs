@@ -50,7 +50,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
+        /// <summary>Remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataFieldAttribute("remote_id")]
         public string RemoteIdentifier { get; set; }

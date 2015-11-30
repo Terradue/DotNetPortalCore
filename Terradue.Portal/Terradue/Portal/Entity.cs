@@ -117,7 +117,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets (protected) the database ID, i.e. the numeric key value of an entity item.</summary>
+        /// <summary>The database ID, i.e. the numeric key value of an entity item.</summary>
         /// <remarks>0 is not (yet) persistently stored in the database.</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int Id { get; protected set; }
@@ -129,7 +129,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the unique identifier of an entity item.</summary>
+        /// <summary>Unique identifier of an entity item.</summary>
         /// <remarks>
         ///     It must be unique among all items of an entity type. It can be a meaningful string describing the item, similar to variable identifiers in programming languages, or a machine-generated Universally Unique Identifier (UUID).
         ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
@@ -140,7 +140,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the human-readable name of an entity item item.</summary>
+        /// <summary>Human-readable name of an entity item item.</summary>
         /// <remarks>
         ///     The value of this property a short text corresponding to a title or caption of the item, according to the nature of the entity type. It should be of a length that fits without line break in a table cell so that it can be displayed easily in lists.
         ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
