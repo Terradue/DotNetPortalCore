@@ -32,6 +32,7 @@ namespace Terradue.Portal {
     /// <summary>Represents a WPS process offering on a remote WPS server.</summary>
     /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+    /// \ingroup "Core"
     [EntityTable("wpsproc", EntityTableConfiguration.Custom)]
     public class WpsProcessOffering : Service, IAtomizable {
 
