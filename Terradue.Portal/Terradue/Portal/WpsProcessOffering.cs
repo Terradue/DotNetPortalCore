@@ -50,7 +50,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
+        /// <summary>Gets or sets the remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataFieldAttribute("remote_id")]
         public string RemoteIdentifier { get; set; }
@@ -67,7 +67,7 @@ namespace Terradue.Portal {
 
         /// <summary>WPS provider to which the WPS process offering belongs.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        /// \return is offered by \ref WpsProvider thats host the service of the offering.
+        /// <value>is offered by \ref WpsProvider thats host the service of the offering</value>
         public WpsProvider Provider {
             get {
                 if (provider != null)
