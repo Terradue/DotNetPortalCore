@@ -177,7 +177,7 @@ It implements the mechanism to search for \WpsProvider and the \ref WpsProcessOf
 
 \xrefitem int "Interfaces" "Interfaces" connects \ref RWPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
 
-\ingroup "Core"
+\ingroup Core
 
 @}
 
