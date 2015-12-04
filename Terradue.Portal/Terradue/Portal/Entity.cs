@@ -23,6 +23,23 @@ using Terradue.Util;
 \defgroup Core Core
 @{
 
+The Core component is a set of .Net library developed as the base implementation of a Content Management System (CMS) for EO world entities.
+It implements basic subcomponent to deal with basic EO business objects such as dataset series, WPS service, user context, jobs...
+It also implement the low level functions to store and read data persistently on the database or to apply a configuration.
+
+@}
+
+*/
+
+/*!
+
+\defgroup Security Security
+@{
+
+The Security component is a set of .Net library in charge with all the authorisation or authentication functions and also with the privileges management 
+between users, groups and other business objects.The security scheme is open and offers many possibilities to plug other component to
+implement specific authentication mechanism or authorization scheme.
+
 @}
 
 */
@@ -32,11 +49,11 @@ using Terradue.Util;
 @{
 It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
 
-\xrefitem mvc_c "Controller" "Controller components"
-
-\ingroup "Core"
+\ingroup Security
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
+
+\xrefitem dep "Dependencies" "Dependencies" uses \ref Context to identify the user and the session
 
 The authorisation consists of two phases:
 - a generic phase where the current user's access privileges are compared to the necessary privileges for the accessed resource
@@ -108,7 +125,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets (protected) the database ID, i.e. the numeric key value of an entity item.</summary>
+        /// <summary>The database ID, i.e. the numeric key value of an entity item.</summary>
         /// <remarks>0 is not (yet) persistently stored in the database.</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int Id { get; protected set; }
@@ -120,7 +137,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the unique identifier of an entity item.</summary>
+        /// <summary>Unique identifier of an entity item.</summary>
         /// <remarks>
         ///     It must be unique among all items of an entity type. It can be a meaningful string describing the item, similar to variable identifiers in programming languages, or a machine-generated Universally Unique Identifier (UUID).
         ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
@@ -131,7 +148,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the human-readable name of an entity item item.</summary>
+        /// <summary>Human-readable name of an entity item item.</summary>
         /// <remarks>
         ///     The value of this property a short text corresponding to a title or caption of the item, according to the nature of the entity type. It should be of a length that fits without line break in a table cell so that it can be displayed easily in lists.
         ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
@@ -464,8 +481,8 @@ namespace Terradue.Portal {
             bool hasAutoStoreFields = false;
             
             // Check whether identifier or name already exists
-            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.TopTable.AutoCheckIdentifiers) {
-                if (!Exists && entityType.TopTable.AutoCorrectDuplicateIdentifiers) {
+            if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.AutoCheckIdentifiers) {
+                if (!Exists && entityType.AutoCorrectDuplicateIdentifiers) {
                     bool finding = true;
                     int suffix = 0;
                     while (finding) {

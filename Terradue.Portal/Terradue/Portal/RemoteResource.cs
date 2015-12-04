@@ -56,7 +56,9 @@ namespace Terradue.Portal {
         /// </summary>
         /// <value>The resources.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public virtual EntityList<RemoteResource> Resources { get; set; }
+        public virtual RemoteResourceEntityCollection Resources { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
         /// Gets or sets the open search engine.
@@ -106,7 +108,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public void LoadResources() {
-            Resources = new EntityList<RemoteResource>(context);
+            Resources = new RemoteResourceEntityCollection(context);
             Resources.Template.ResourceSet = this;
             Resources.Load();
             Resources.OpenSearchableChange += new OpenSearchableChangeEventHandler(OnOpenSearchableChange);
@@ -288,6 +290,34 @@ namespace Terradue.Portal {
         }
     }
 
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    public class RemoteResourceEntityCollection : EntityList<RemoteResource> {
+
+        protected override void IncludeInternal(RemoteResource item) {
+            if (!IsLoading && item.Location == null) throw new InvalidOperationException("The location of a remote resource cannot be null");
+            RemoteResource newItem = null;
+            if (!IsLoading && !AllowDuplicates) {
+                foreach (RemoteResource resource in Items) {
+                    if (resource.Location == item.Location) newItem = item;
+                }
+            }
+            base.IncludeInternal(newItem == null ? item : newItem);
+        }
+
+        public RemoteResourceEntityCollection(IfyContext context) : base(context) {
+        }
+
+    }
+
+
+
     /// <summary>
     /// Remote resource.
     /// </summary>
@@ -346,8 +376,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static EntityList<RemoteResource> GetResources(IfyContext context, RemoteResourceSet resourceSet) {
-            EntityList<RemoteResource> result = new EntityList<RemoteResource>(context);
+        public static RemoteResourceEntityCollection GetResources(IfyContext context, RemoteResourceSet resourceSet) {
+            RemoteResourceEntityCollection result = new RemoteResourceEntityCollection(context);
             result.Template.ResourceSet = resourceSet;
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(String.Format("SELECT t.id, t.location, t.name FROM resource AS t WHERE id_set={0}", resourceSet.Id), dbConnection);

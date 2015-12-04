@@ -9,11 +9,10 @@ using Terradue.Util;
 /*!
 \defgroup Persistence Persistence of Data
 @{
-The component provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the classes that implement an entity and which represent real-world entities.
+The component provides generic interaction with data that is persistently stored in a relational database. 
+The data location and structure are defined in the classes that implement an object and which represent real-world entities.
 
-\xrefitem mvc_m "Model" "Model components"
-
-\ingroup "Core"
+\ingroup Core
 
 \xrefitem int "Interfaces" "Interfaces" connects to \ref SQLConnector
 
@@ -202,6 +201,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public List<FieldInfo> Fields;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool AutoCheckIdentifiers { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool AutoCorrectDuplicateIdentifiers { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -455,7 +462,7 @@ namespace Terradue.Portal {
 
         protected virtual void GetEntityStructure(Type type) {
             if (type == null || type == typeof(Entity)) return;
-            
+
             EntityType baseEntityType = GetEntityType(type.BaseType);
             if (baseEntityType == null) {
                 GetEntityStructure(type.BaseType);
@@ -509,7 +516,12 @@ namespace Terradue.Portal {
             }
 
             AppendProperties(type, tableIndex);
-            
+
+            foreach (EntityTableAttribute t in Tables) {
+                AutoCheckIdentifiers |= t.AutoCheckIdentifiers;
+                AutoCorrectDuplicateIdentifiers |= t.AutoCorrectDuplicateIdentifiers;
+            }
+
         }
         
         //---------------------------------------------------------------------------------------------------------------------

@@ -59,7 +59,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the URL of the top-level OpenSearch document.</summary>
+        /// <summary>URL of the \ref OpenSearch description document link of the Catalogue</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("osd_url")]
         public string OpenSearchDescriptionUrl {

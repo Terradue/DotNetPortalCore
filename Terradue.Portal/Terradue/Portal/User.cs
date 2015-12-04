@@ -33,9 +33,9 @@ namespace Terradue.Portal {
     
 
     /// <summary>
-    /// User.
+    /// Basic object representing a user in the system.
     /// </summary>
-    /// \ingroup Authorisation
+    /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {
@@ -70,7 +70,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the activation status of the user account.</summary>
+        /// <summary>Activation status of the user account.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
         [EntityDataField("status")]
         public int AccountStatus { get; set; }
@@ -507,7 +507,7 @@ namespace Terradue.Portal {
             }
 
             // activationToken also used here to avoid endless nested replacements
-            subject = subject.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
+            subject = subject.Replace("$(SITENAME)", context.SiteName);
             body = body.Replace(@"\n", Environment.NewLine);
             body = body.Replace("$(", "$" + activationToken + "(");
             body = body.Replace("$" + activationToken + "(USERCAPTION)", Caption);
