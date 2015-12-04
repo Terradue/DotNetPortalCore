@@ -1,16 +1,18 @@
-﻿using System;
+using System;
 
 namespace Terradue.Portal {
 
     /// <summary>
-    /// Feature.
+    /// A Feature is a container for an item on the portal or on the web that the portal features
+    /// in a way or another depending on the user interface (e.g. front page carousel). It has all the properties
+    /// for storing the cnecessary contents (title, url, image, description).
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("feature", EntityTableConfiguration.Custom)]
     public class Feature : Entity, IComparable<Feature> {
 
         /// <summary>
-        /// Gets or sets the title.
+        /// Title.
         /// </summary>
         /// <value>The title.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -18,7 +20,7 @@ namespace Terradue.Portal {
         public string Title { get; set; }
 
         /// <summary>
-        /// Gets or sets the description.
+        /// Description.
         /// </summary>
         /// <value>The description.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -26,7 +28,7 @@ namespace Terradue.Portal {
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or sets the image.
+        /// Image url representing the feature
         /// </summary>
         /// <value>The image.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -34,7 +36,7 @@ namespace Terradue.Portal {
         public string Image { get; set; }
 
         /// <summary>
-        /// Gets or sets the image style, used to customize the image apperance.
+        /// Image style, used to customize the image apperance.
         /// </summary>
         /// <value>The image style.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -42,15 +44,7 @@ namespace Terradue.Portal {
         public string ImageStyle { get; set; }
 
         /// <summary>
-        /// Gets or sets the image credits, used to customize the image apperance.
-        /// </summary>
-        /// <value>The image credits.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        [EntityDataField("image_credits")]
-        public string ImageCredits { get; set; }
-
-        /// <summary>
-        /// Gets or sets the button text.
+        /// Link text.
         /// </summary>
         /// <value>The button text.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -58,7 +52,7 @@ namespace Terradue.Portal {
         public string ButtonText { get; set; }
 
         /// <summary>
-        /// Gets or sets the button link.
+        /// Link to the feature
         /// </summary>
         /// <value>The button link.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -66,10 +60,9 @@ namespace Terradue.Portal {
         public string ButtonLink { get; set; }
 
         /// <summary>
-        /// Gets or sets the position.
+        /// Position in all the features
         /// </summary>
         /// <value>The position.</value>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("pos")]
         public int Position { get; set; }
 

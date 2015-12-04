@@ -25,15 +25,19 @@ using System.Web;
 
 
 /*!
-\defgroup WpsProvider WPS Provider
+\defgroup CoreWPS WPS
 @{
 
-This component is an extension of \ref ComputingResource for providing with WPS Server as a processing resource.
-It has two main functions:
-- analyses the GetCapabilities() function of the WPS server to retrieve all the process offered.
-- submits, controls and montiors processing over a WPS Server
+This component is an helper for 
+- providing with WPS Server as a processing resource;
+- providing with WPS process as processing offerings.
 
-Below, the sequence diagram describes the analaysis process to retrieve WPS services and parameters.
+It has two main functions:
+- analyses the GetCapabilities() of the WPS server of a \ref WpsProvider to retrieve all the process offered;
+- retrieves the DescribeProcess() of the previously discovered process to describe the process with input and ouput parameters and create a \ref WpsProcessOffering;
+- submits, controls and monitors processing via the Execute() of the WPS server of a \ref WpsProvider
+
+Below, the sequence diagram describes the the previously listed functions.
 
 \startuml{wpsprovider.png}
 !define DIAG_NAME WPS Service Analysis Sequence Diagram
@@ -160,28 +164,31 @@ DIAG_NAME
 endfooter
 \enduml
 
-\xrefitem mvc_c "Controller" "Controller components"
 
-\xrefitem mvc_v "View" "View components"
+Model and Representation
+------------------------ 
 
-\ingroup "Core"
+This components has also a function to represent a \ref WpsProcessOffering object as a \ref OwcOffering in the \ref OWSContext model.
+It implements the mechanism to search for \WpsProvider and the \ref WpsProcessOffering via an \ref OpenSearchable interface.
 
-\xrefitem dep "Dependencies" "Dependencies" extends \ref ComputingResource for WPS specific resource
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \WpsProvider and \ref WpsProcessOffering references in the database
 
-\xrefitem dep "Dependencies" "Dependencies" exports WPS Server as a computing resource as a \ref OWSContext model.
+\xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the WPS services
 
-\xrefitem int "Interfaces" "Interfaces" implements \ref OpenSearchable interface to search WPS Server in OpenSearch.
+\xrefitem int "Interfaces" "Interfaces" connects \ref RWPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
 
-\xrefitem int "Interfaces" "Interfaces" implements \ref WPS interface to retrieve process offerings from WPS Server and to submit, control and monitor prcoessing.
+\ingroup Core
 
 @}
 
-\defgroup WPS Web Processing Services Interface
+\defgroup RWPS Remote Web Processing Services Interface
 @{
-This is the interface to Web Processing Service
 
-\xrefitem cptype_int "Interfaces" "Interfaces"
-\xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
+    This is the interface to remote Web Processing Services. They are hosted by substem of the platform of thirs party system external to the platform.
+
+    \xrefitem cptype_int "Interfaces" "Interfaces"
+
+    \xrefitem norm "Normative References" "Normative References" [OGC Web Processing Service 1.0](http://portal.opengeospatial.org/files/?artifact_id=24151)
 
 @}
 */
@@ -205,6 +212,7 @@ namespace Terradue.Portal {
     /// <summary>Represents a remote provider of a Web Processing Service.</summary>
     /// <remarks>This class is used as the computing resource on which WPS processes, which are equivalent to tasks, run.</remarks>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+    /// \ingroup "Core"
     [EntityTable("wpsprovider", EntityTableConfiguration.Custom)]
     public class WpsProvider : ComputingResource, IAtomizable {
 
@@ -863,7 +871,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets the process offering.
+        /// Get all the process offering of the WPS provider
         /// </summary>
         /// <returns>The process offering.</returns>
         /// <param name="task">Task.</param>

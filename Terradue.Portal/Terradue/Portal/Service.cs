@@ -83,7 +83,7 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Abstract base class for processing services.</summary>
+    /// <summary>Abstract base object for processing services.</summary>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
@@ -113,14 +113,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the service description.</summary>
+        /// <summary>Description text of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the service version.</summary>
+        /// <summary>Version of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("version")]
         public string Version { get; set; }
@@ -128,7 +128,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets or sets the URL.
+        /// URL pinting to the service
         /// </summary>
         /// <value>The URL.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -138,7 +138,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets or sets the icon URL.
+        /// Icon URL of the logo representing the service.
         /// </summary>
         /// <value>The icon URL.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -152,14 +152,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the service rating.</summary>
+        /// <summary>Rating of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("rating")]
         public int Rating { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the service class ID.</summary>
+        /// <summary>Class identifier. Can be used to classify the maturity level.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityForeignField("id", CLASS_TABLE)]
         public int ClassId { get; protected set; }
@@ -211,7 +211,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the callback method that is called for building a task from the given parameter values, which should include the creation of jobs and the calculation of required resources.</summary>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public BuildTaskCallbackType OnBuildTask { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -415,7 +414,6 @@ namespace Terradue.Portal {
         /// Gets the parameters.
         /// </summary>
         /// <returns>The parameters.</returns>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public abstract ServiceParameterSet GetParameters();
 
         //---------------------------------------------------------------------------------------------------------------------

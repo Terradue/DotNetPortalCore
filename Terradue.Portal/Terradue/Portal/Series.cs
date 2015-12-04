@@ -13,17 +13,18 @@ using Terradue.OpenSearch;
 /*!
 \defgroup Series Series
 @{
-This component represents a dataset series. Practically it is a non-final component that can be extended to implement other collections.
 
-\ingroup "Core"
+This component manages all types of dataset series.
+It implements the machnaism to search for the dataset defined in the series via an \ref OpenSearchable interface.
 
-\xrefitem int "Interfaces" "External Interfaces" proxy data series items via \ref IOpenSearchable
+\ingroup Core
+
+\xrefitem int "Interfaces" "Interfaces" connects to \ref OpenSearch interfaces defined in the series to proxy the queries
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores persistently the series information in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the series
 
-\ingroup core
 
 
 @}
@@ -161,7 +162,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Gets the detailed description of the series.</summary>
+        /// <summary>Detailed description of the series.</summary>
         /// \ingroup Series
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
@@ -183,7 +184,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the OpenSearch description URL of the series.</summary>
+        /// <summary>OpenSearch description document URL of the remote dataset series</summary>
         /// \ingroup Series
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string CatalogueDescriptionUrl { 
@@ -235,7 +236,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Gets or sets the catalogue.
+        /// Catalogue.
         /// </summary>
         /// <value>The catalogue.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -364,7 +365,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// From the open search URL.
+        /// Create the series from an OpenSearch url.
         /// </summary>
         /// <returns>The open search URL.</returns>
         /// <param name="osUrl">Os URL.</param>
