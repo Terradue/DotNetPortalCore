@@ -32,7 +32,10 @@ This component is an helper for
 - providing with WPS Server as a processing resource;
 - providing with WPS process as processing offerings.
 
-It has two main functions:
+
+Main Functions
+--------------
+
 - analyses the GetCapabilities() of the WPS server of a \ref WpsProvider to retrieve all the process offered;
 - retrieves the DescribeProcess() of the previously discovered process to describe the process with input and ouput parameters and create a \ref WpsProcessOffering;
 - submits, controls and monitors processing via the Execute() of the WPS server of a \ref WpsProvider
@@ -74,7 +77,7 @@ deactivate WS
 
 \enduml
 
-\startuml \startuml "WPS Service Analysis Sequence Diagram - Describe Process"
+\startuml "WPS Service Analysis Sequence Diagram - Describe Process"
 
 participant "WebClient" as WC
 participant "WebServer" as WS
@@ -186,8 +189,7 @@ deactivate WS
 
 \enduml
 
-\startuml{wpsprovider.png}
-!define DIAG_NAME WPS Service Analysis Sequence Diagram
+\startuml "WPS Service Analysis Sequence Diagram - Integrate WPS provider"
 
 participant "WebClient" as WC
 participant "WebServer" as WS
