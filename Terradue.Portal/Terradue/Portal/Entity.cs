@@ -64,8 +64,7 @@ Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation che
 The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
 
 
-\startuml
-!define DIAG_NAME Authorisation mechanism Activity Diagram
+\startuml "Authorisation mechanism Activity Diagram
 
 start
 :Load entity item considering access policies and user/group privileges;
@@ -93,10 +92,6 @@ endif
 :Operation allowed;
 stop
 
-footer
-DIAG_NAME
-(c) Terradue Srl
-endfooter
 \enduml
 
 @}

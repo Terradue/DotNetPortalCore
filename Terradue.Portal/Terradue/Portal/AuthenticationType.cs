@@ -33,8 +33,7 @@ It provides with the functions to identify a user through a generic interface fo
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the user information
 
-\startuml{authn.png}
-!define DIAG_NAME Authentication mechanism Activity Diagram
+\startuml "Authentication mechanism Activity Diagram"
 
 start
 :read session information;
@@ -62,10 +61,7 @@ else (No)
 endif
 stop
 
-footer
-DIAG_NAME
-(c) Terradue Srl
-endfooter
+
 \enduml
 
 @}
