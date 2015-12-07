@@ -15,7 +15,7 @@ using Terradue.OpenSearch;
 @{
 
 This component manages all types of dataset series.
-It implements the machnaism to search for the dataset defined in the series via an \ref OpenSearchable interface.
+It implements the mechanism to search for the dataset defined in the series via an \ref OpenSearch interface.
 
 \ingroup Core
 

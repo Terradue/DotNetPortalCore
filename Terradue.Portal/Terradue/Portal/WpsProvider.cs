@@ -219,10 +219,10 @@ end
 Model and Representation
 ------------------------ 
 
-This components has also a function to represent a \ref WpsProcessOffering object as a \ref OwcOffering in the \ref OWSContext model.
-It implements the mechanism to search for \WpsProvider and the \ref WpsProcessOffering via an \ref OpenSearchable interface.
+This components has also a function to represent a \ref Terradue::Portal::WpsProcessOffering object as a \ref Terradue.ServiceModel.Ogc.OwsModel.OwcOffering in the \ref OWSContext model.
+It implements the mechanism to search for \ref Terradue::Portal::WpsProvider and the \ref Terradue::Portal::WpsProcessOffering via an \ref OpenSearchable interface.
 
-\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \WpsProvider and \ref WpsProcessOffering references in the database
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \ref Terradue::Portal::WpsProvider and \ref Terradue::Portal::WpsProcessOffering references in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the WPS services
 
