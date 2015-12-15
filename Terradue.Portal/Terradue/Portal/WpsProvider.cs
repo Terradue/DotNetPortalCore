@@ -397,7 +397,7 @@ namespace Terradue.Portal {
 
         public void UpdateProcessOfferings() {
             List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
-            EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings();
+            EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
                 bool existsPrInDb = false;
@@ -542,10 +542,12 @@ namespace Terradue.Portal {
         /// <summary>
         /// Gets the wps process offerings from services in DB.
         /// </summary>
+        /// <param name="availables">True to return only available services</param>
         /// <returns>The wps process offerings.</returns>
-        public EntityList<WpsProcessOffering> GetWpsProcessOfferings() {
+        public EntityList<WpsProcessOffering> GetWpsProcessOfferings(bool availables = true) {
             EntityList<WpsProcessOffering> wpsProcessList = new EntityList<WpsProcessOffering>(context);
             wpsProcessList.Template.Provider = this;
+            wpsProcessList.Template.Available = availables;
             wpsProcessList.Load();
             return wpsProcessList;
         }
