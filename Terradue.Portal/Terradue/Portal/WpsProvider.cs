@@ -32,20 +32,22 @@ This component is an helper for
 - providing with WPS Server as a processing resource;
 - providing with WPS process as processing offerings.
 
-It has two main functions:
+
+Main Functions
+--------------
+
 - analyses the GetCapabilities() of the WPS server of a \ref WpsProvider to retrieve all the process offered;
 - retrieves the DescribeProcess() of the previously discovered process to describe the process with input and ouput parameters and create a \ref WpsProcessOffering;
 - submits, controls and monitors processing via the Execute() of the WPS server of a \ref WpsProvider
 
-Below, the sequence diagram describes the the previously listed functions.
+Below, the sequence diagrams describe the the previously listed functions.
 
-\startuml{wpsprovider.png}
-!define DIAG_NAME WPS Service Analysis Sequence Diagram
+\startuml "WPS Service Analysis Sequence Diagram - Get Capabilities"
 
 participant "WebClient" as WC
 participant "WebServer" as WS
-participant "Provider" as P
-participant "Cloud Provider" as C
+participant "WPS Provider" as P
+participant "Infrastructure" as C
 participant "DataBase" as DB
 
 autonumber
@@ -61,7 +63,7 @@ loop on each provider
         WS -> WS: get service info (identifier, title, abstract)
     end
 end
-WS -> C: Load all Providers
+WS -> C: discover Providers
 loop on each provider
     WS -> P: GetCapabilities
     WS -> WS: extract services from GetCapabilities using request identifier
@@ -73,6 +75,17 @@ WS -> WS: aggregate all services info into response offering
 WS -> WC: return aggregated GetCapabilities
 deactivate WS
 
+\enduml
+
+\startuml "WPS Service Analysis Sequence Diagram - Describe Process"
+
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "WPS Provider" as P
+participant "DataBase" as DB
+
+autonumber
+
 == Describe Process ==
 
 WC -> WS: DescribeProcess request
@@ -81,7 +94,6 @@ alt case process from db
     WS -> DB: load service from request identifier
     WS -> DB: get provider url + service identifier on the provider
 else case process from cloud provider
-    WS -> C: get service provider
     WS -> P: GetCapabilities
     WS -> WS: extract describeProcess url from GetCapabilities using request identifier
 end
@@ -89,6 +101,17 @@ WS -> WS: build "real" describeProcess request
 WS -> P: DescribeProcess
 WS -> WC: return result from describeProcess
 deactivate WS
+
+\enduml
+
+\startuml "WPS Service Analysis Sequence Diagram - Execute"
+
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "WPS Provider" as P
+participant "DataBase" as DB
+
+autonumber
 
 == Execute ==
 
@@ -98,7 +121,6 @@ alt case process from db
     WS -> DB: load service from request identifier
     WS -> DB: get provider url + service identifier on the provider
 else case process 'from cloud provider'
-    WS -> C: get service provider
     WS -> P: GetCapabilities
     WS -> WS: extract execute url from GetCapabilities using request identifier
 end
@@ -113,6 +135,17 @@ else case success
 end
 deactivate WS
 
+\enduml
+
+\startuml "WPS Service Analysis Sequence Diagram - Retrieve Result"
+
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "WPS Provider" as P
+participant "DataBase" as DB
+
+autonumber
+
 == Retrieve Result Servlet ==
 
 WC -> WS: RetrieveResultServlet request
@@ -123,12 +156,24 @@ WS -> WS: update href in response to put local server url instead of real provid
 WS -> WC: return updated statusLocation response
 deactivate WS
 
+\enduml
+
+\startuml "WPS Service Analysis Sequence Diagram - Search WPS process"
+
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "Provider" as P
+participant "Infrastructure" as C
+participant "DataBase" as DB
+
+autonumber
+
 == Search WPS process ==
 
 WC -> WS: WPS search request
 activate WS
 WS -> DB: Load all Providers
-WS -> C: Load all Providers
+WS -> C: discover Providers
 loop on each provider
     WS -> P: GetCapabilities
     WS -> WS: get services info
@@ -141,6 +186,17 @@ loop on each provider
     end
 end
 deactivate WS
+
+\enduml
+
+\startuml "WPS Service Analysis Sequence Diagram - Integrate WPS provider"
+
+participant "WebClient" as WC
+participant "WebServer" as WS
+participant "Provider" as P
+participant "DataBase" as DB
+
+autonumber
 
 == Integrate WPS provider ==
 
@@ -157,21 +213,16 @@ loop on each service
     WS -> DB: store service
 end
 
-
-footer
-DIAG_NAME
-(c) Terradue Srl
-endfooter
 \enduml
 
 
 Model and Representation
 ------------------------ 
 
-This components has also a function to represent a \ref WpsProcessOffering object as a \ref OwcOffering in the \ref OWSContext model.
-It implements the mechanism to search for \WpsProvider and the \ref WpsProcessOffering via an \ref OpenSearchable interface.
+This components has also a function to represent a \ref Terradue::Portal::WpsProcessOffering object as a \ref Terradue.ServiceModel.Ogc.OwsModel.OwcOffering in the \ref OWSContext model.
+It implements the mechanism to search for \ref Terradue::Portal::WpsProvider and the \ref Terradue::Portal::WpsProcessOffering via an \ref OpenSearchable interface.
 
-\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \WpsProvider and \ref WpsProcessOffering references in the database
+\xrefitem dep "Dependencies" "Dependencies" \ref Persistence stores the \ref Terradue::Portal::WpsProvider and \ref Terradue::Portal::WpsProcessOffering references in the database
 
 \xrefitem dep "Dependencies" "Dependencies" \ref Authorisation controls the access on the WPS services
 
