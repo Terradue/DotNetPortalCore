@@ -106,8 +106,9 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Generic object of all entity types that usually correspond to real-world entities.</summary>
+    /// <summary>Entity</summary>
     /// <description>
+    /// Generic object of all entity types that usually correspond to real-world entities.
     /// The object provides generic interaction with data that is persistently stored in a relational database.
     /// The data location and structure are defined in the extended object which represent real-world entities.
     /// </description>
