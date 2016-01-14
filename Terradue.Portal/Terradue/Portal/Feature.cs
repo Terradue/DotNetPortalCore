@@ -2,11 +2,12 @@ using System;
 
 namespace Terradue.Portal {
 
-    /// <summary>
+    /// <summary>Feature</summary>
+    /// <description>
     /// A Feature is a container for an item on the portal or on the web that the portal features
     /// in a way or another depending on the user interface (e.g. front page carousel). It has all the properties
-    /// for storing the cnecessary contents (title, url, image, description).
-    /// </summary>
+    /// for storing the necessary contents (title, url, image, description).
+    /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("feature", EntityTableConfiguration.Custom)]
     public class Feature : Entity, IComparable<Feature> {

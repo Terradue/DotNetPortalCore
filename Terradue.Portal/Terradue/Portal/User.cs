@@ -32,9 +32,10 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>
+    /// <summary>User</summary>
+    /// <description>
     /// Basic object representing a user in the system.
-    /// </summary>
+    /// </description>
     /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]

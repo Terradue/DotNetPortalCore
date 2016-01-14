@@ -106,9 +106,11 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Abstract base class of all entity types that usually correspond to real-world entities.</summary>
-    /// <remarks> 
-    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.<\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"rived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
+    /// <summary>Generic object of all entity types that usually correspond to real-world entities.</summary>
+    /// <description>
+    /// The object provides generic interaction with data that is persistently stored in a relational database.
+    /// The data location and structure are defined in the extended object which represent real-world entities.
+    /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract class Entity : IValueSet {
 
@@ -893,6 +895,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Remove the entity from the database</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
@@ -997,7 +1000,6 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void GetAllowedAdministratorOperations() {
             if (context.UserLevel == UserLevel.Administrator) return;
 

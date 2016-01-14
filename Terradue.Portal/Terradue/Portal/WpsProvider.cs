@@ -260,7 +260,8 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Represents a remote provider of a Web Processing Service.</summary>
+    /// <summary>WPS Provider</summary>
+    /// <description>Represents a remote provider of a Web Processing Service.</description>
     /// <remarks>This class is used as the computing resource on which WPS processes, which are equivalent to tasks, run.</remarks>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     /// \ingroup "Core"

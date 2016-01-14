@@ -139,7 +139,8 @@ namespace Terradue.Portal {
     
     
     
-    /// <summary>Represents a series of data sets that are available from a catalogue.</summary>
+    /// <summary>Data Series</summary>
+    /// <description>Represents a series of data sets that are available from a catalogue.</description>
     /// \ingroup Series
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
