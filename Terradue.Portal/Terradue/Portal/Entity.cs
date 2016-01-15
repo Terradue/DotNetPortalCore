@@ -25,7 +25,7 @@ using Terradue.Util;
 
 The Core component is a set of library developed as the base implementation of a Content Management System (CMS) for EO world entities.
 It implements basic subcomponent to deal with basic EO business objects such as dataset series, WPS service, user context, jobs...
-It also implement the low level functions to store and read data persistently on the database or to apply a configuration.
+It also implements the low level functions to store and read data persistently on the database or to apply a configuration.
 
 @}
 
