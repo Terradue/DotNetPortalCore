@@ -23,7 +23,7 @@ using Terradue.Util;
 \defgroup Core Core
 @{
 
-The Core component is a set of .Net library developed as the base implementation of a Content Management System (CMS) for EO world entities.
+The Core component is a set of library developed as the base implementation of a Content Management System (CMS) for EO world entities.
 It implements basic subcomponent to deal with basic EO business objects such as dataset series, WPS service, user context, jobs...
 It also implement the low level functions to store and read data persistently on the database or to apply a configuration.
 
@@ -36,7 +36,7 @@ It also implement the low level functions to store and read data persistently on
 \defgroup Security Security
 @{
 
-The Security component is a set of .Net library in charge with all the authorisation or authentication functions and also with the privileges management 
+The Security component is a set of library in charge with all the authorisation or authentication functions and also with the privileges management 
 between users, groups and other business objects.The security scheme is open and offers many possibilities to plug other component to
 implement specific authentication mechanism or authorization scheme.
 
