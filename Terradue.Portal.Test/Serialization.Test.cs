@@ -74,15 +74,6 @@ namespace Terradue.Portal.Test {
             Assert.NotNull(doc.Element(XName.Get("Capabilities", WpsNamespaces.Wps)).Element(XName.Get("ProcessOfferings", WpsNamespaces.Wps)));
         }
 
-        public static string StreamToString(Stream stream)
-        {
-            stream.Position = 0;
-            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-
         [Test()]
         public void Deserialize() {
             System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/geohazards-capabilities.xml", System.IO.FileMode.Open);
@@ -95,6 +86,9 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual("Geohazards Tep", capabilities.ServiceProvider.ProviderName);
             Assert.AreEqual(3, capabilities.OperationsMetadata.Operation.Count);
             Assert.AreEqual(28, capabilities.ProcessOfferings.Process.Count);
+            Assert.AreEqual("2ceb1e69-6ab2-4dab-9f7e-4a594924267c", capabilities.ProcessOfferings.Process[0].Identifier);
+            Assert.AreEqual("ASAR PF", capabilities.ProcessOfferings.Process[0].Title);
+            Assert.AreEqual("The ENVISAT ASAR PF is the ESA operational Level-1 processor developed by MDA. This processor, integrated on the ESA's Grid Processing On Demand , perform on-demand production of L1 products.", capabilities.ProcessOfferings.Process[0].Abstract);
         }
     }
 }
