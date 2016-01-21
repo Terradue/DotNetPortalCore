@@ -69,8 +69,9 @@ namespace Terradue.Portal.Test {
             serializer.Serialize(stream, capabilities);
             stream.Seek(0, SeekOrigin.Begin);
             XDocument doc = XDocument.Load(stream);
-            Assert.NotNull(doc.Element(XName.Get("Capabilities", "http://www.opengis.net/wps/1.0.0")));
-            Assert.NotNull(doc.Element(XName.Get("Capabilities", "http://www.opengis.net/wps/1.0.0")).Element(XName.Get("ProcessOfferings", "http://www.opengis.net/wps/1.0.0")));
+            Assert.NotNull(doc.Element(XName.Get("Capabilities", WpsNamespaces.Wps)));
+            Assert.NotNull(doc.Element(XName.Get("Capabilities", WpsNamespaces.Wps)).Element(XName.Get("OperationsMetadata", WpsNamespaces.Ows)));
+            Assert.NotNull(doc.Element(XName.Get("Capabilities", WpsNamespaces.Wps)).Element(XName.Get("ProcessOfferings", WpsNamespaces.Wps)));
         }
 
         public static string StreamToString(Stream stream)
@@ -89,6 +90,11 @@ namespace Terradue.Portal.Test {
             WPSCapabilitiesType capabilities = (WPSCapabilitiesType)serializer.Deserialize(atom);
 
             Assert.AreEqual("Geohazard Tep WPS", capabilities.ServiceIdentification.Title[0].Value);
+            Assert.AreEqual("WPS", capabilities.ServiceIdentification.ServiceType.Value);
+            Assert.AreEqual(4, capabilities.ServiceIdentification.Keywords[0].Keyword.Count);
+            Assert.AreEqual("Geohazards Tep", capabilities.ServiceProvider.ProviderName);
+            Assert.AreEqual(3, capabilities.OperationsMetadata.Operation.Count);
+            Assert.AreEqual(28, capabilities.ProcessOfferings.Process.Count);
         }
     }
 }
