@@ -460,7 +460,7 @@ INSERT INTO lookuplist (id, system, name) VALUES
 CREATE TABLE lookup (
     id_list smallint unsigned NOT NULL COMMENT 'FK: Lookup list',
     pos smallint unsigned COMMENT 'Position for ordering',
-    caption varchar(50) NOT NULL COMMENT 'Caption for value',
+    caption varchar(70) NOT NULL COMMENT 'Caption for value',
     value text NOT NULL COMMENT 'Value',
     CONSTRAINT fk_lookup_list FOREIGN KEY (id_list) REFERENCES lookuplist(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Values in lookup lists';
