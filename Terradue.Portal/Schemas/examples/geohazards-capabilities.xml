@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<wps:Capabilities xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:wps="http://www.opengis.net/wps/1.0.0">
+  <ows:ServiceIdentification>
+    <ows:Title>Geohazard Tep WPS</ows:Title>
+    <ows:Abstract>Proxy WPS of the geohazard platform</ows:Abstract>
+    <ows:Keywords>
+      <ows:Keyword>WPS</ows:Keyword>
+      <ows:Keyword>geohazards</ows:Keyword>
+      <ows:Keyword>geospatial</ows:Keyword>
+      <ows:Keyword>geoprocessing</ows:Keyword>
+    </ows:Keywords>
+    <ows:ServiceType>WPS</ows:ServiceType>
+    <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+    <ows:Fees>None</ows:Fees>
+    <ows:AccessConstraints>NONE</ows:AccessConstraints>
+  </ows:ServiceIdentification>
+  <ows:ServiceProvider>
+    <ows:ProviderName>Geohazards Tep</ows:ProviderName>
+    <ows:ProviderSite xlink:href="https://geohazards-tep.eo.esa.int/" />
+  </ows:ServiceProvider>
+  <ows:OperationsMetadata>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://geohazards-tep.eo.esa.int/t2api/wps/WebProcessingService" />
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="DescribeProcess">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://geohazards-tep.eo.esa.int/t2api/wps/WebProcessingService" />
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="Execute">
+      <ows:DCP>
+        <ows:HTTP>
+          <ows:Get xlink:href="https://geohazards-tep.eo.esa.int/t2api/wps/WebProcessingService" />
+          <ows:Post xlink:href="https://geohazards-tep.eo.esa.int/t2api/wps/WebProcessingService" />
+        </ows:HTTP>
+      </ows:DCP>
+    </ows:Operation>
+  </ows:OperationsMetadata>
+  <wps:ProcessOfferings>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>2ceb1e69-6ab2-4dab-9f7e-4a594924267c</ows:Identifier>
+      <ows:Title>ASAR PF</ows:Title>
+      <ows:Abstract>The ENVISAT ASAR PF is the ESA operational Level-1 processor developed by MDA. This processor, integrated on the ESA's Grid Processing On Demand , perform on-demand production of L1 products.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>08c5acd2-cf4e-4eaf-bb22-b12978cdf097</ows:Identifier>
+      <ows:Title>InSAR SBAS</ows:Title>
+      <ows:Abstract>The InSAR Small BAseline Subsets (SBAS) algorithm has been developed by IREA-CNR for monitoring temporal evolution of surface deformations and to generate interferograms stacks as well. The InSAR Parallel-SBAS (P-SBAS) algorithm version has been integrated on the ESA's Grid Processing On Demand (G-POD) to exploit the avaialble High Performance Computing resources.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>de834d21-6c15-4b23-9dd0-55617323df81</ows:Identifier>
+      <ows:Title>GAMMA DInSAR</ows:Title>
+      <ows:Abstract>The GAMMA SAR and Interferometry Software is a collection of programs, developed by GAMMA Remote Sensing, which allows processing of SAR, interferometric SAR (InSAR) and differential interferometric SAR (DInSAR) data. The GAMMA DInSAR service integrated on the ESA's Grid Processing On Demand (G-POD) performs the generation of differential interferograms starting from ENVISAT L1 SLC.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>59ae8689-d8ff-4e50-8ce7-5a213469820a</ows:Identifier>
+      <ows:Title>GAMMA Level-0</ows:Title>
+      <ows:Abstract>The GAMMA SAR and Interferometry Software is a collection of programs, developed by GAMMA Remote Sensing, which allows processing of SAR, interferometric SAR (InSAR) and differential interferometric SAR (DInSAR) data. The GAMMA Level-0 service, integrated on the ESA's Grid Processing On Demand (G-POD), performs the image focusing of ENVISAT ASAR Level-0 products.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>acf8c791-b113-41b4-8b80-5aac2ebf0866</ows:Identifier>
+      <ows:Title>NEST InSAR</ows:Title>
+      <ows:Abstract>The NEST InSAR service, integrated on the ESA's Grid Processing On Demand (G-POD), implements the InSAR workflow avaialble on NEST to produce simple interferograms and coherence maps starting from ASAR Level-1 SLC (IMS) products.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>ee26a6bd-188a-41e6-9f07-f7a9e0ea89b1</ows:Identifier>
+      <ows:Title>NEST CoReg</ows:Title>
+      <ows:Abstract>The NEST CoReg service, integrated on the ESA's Grid Processing On Demand (G-POD), implements the SAR Coregistration workflow avaialble on NEST.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>eb9a5d45-ca1c-495d-83d9-7af1b6e38c7c</ows:Identifier>
+      <ows:Title>NEST Toolbox</ows:Title>
+      <ows:Abstract>The Next ESA SAR Toolbox (NEST) is an open source toolbox for reading, processing and analysing and visualising the large archive of SAR data (from Level 1). This service, integrated on the ESA's Grid Processing On Demand (G-POD), allows users to import an exisiting processing definition and run it on the selected input products.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>73784010-433c-4540-bbc8-4538429bf00e</ows:Identifier>
+      <ows:Title>PF-ERS</ows:Title>
+      <ows:Abstract>The ERS PF is the ESA operational Level-1 SAR processor developed by MDA. This processor, integrated on the ESA's Grid Processing On Demand (G-POD), perform on-demand production of L1 products.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>e6769518-6bc6-4c6e-a069-65863586f78c</ows:Identifier>
+      <ows:Title>SBAS S1A</ows:Title>
+      <ows:Abstract>The Small BAseline Subsets (SBAS) algorithm has been developed by IREA-CNR for monitoring temporal evolution of surface deformations and to generate interferograms stacks as well. The Parallel-SBAS (P-SBAS) algorithm version has been integrated on the ESA's Grid Processing On Demand (G-POD) to exploit the avaialble High Performance Computing resources.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>34e807cf-609d-4935-a8ca-8471f7a1009e</ows:Identifier>
+      <ows:Title>Extraction and Download of EO Products</ows:Title>
+      <ows:Abstract>Service access point for the retrieval and publishing of ESA products. The request must specify the date and spatial range together with the dataset name</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>c082f69c-1f5f-4be7-8cc5-7819089b21a0</ows:Identifier>
+      <ows:Title>Download of EO Products - Time Based</ows:Title>
+      <ows:Abstract>Service access point for the retrieval and publishing of ESA products. The request must specify the date and spatial range together with the dataset name</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>4bee9d6a-ef08-4b76-b3b9-2dd8f0bedd5e</ows:Identifier>
+      <ows:Title>Download of EO Products - UK-PAC</ows:Title>
+      <ows:Abstract>Service access point for the test of UK-PAC CE.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>e707d161-251b-4941-bad7-dd18b0d601b3</ows:Identifier>
+      <ows:Title>MERIS Mosaic COM</ows:Title>
+      <ows:Abstract>Service access point for the MERIS Mosaic COM G-POD service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>830de829-87a2-4335-ae9a-4acef5d09905</ows:Identifier>
+      <ows:Title>MIRAVI Geo</ows:Title>
+      <ows:Abstract>Service access point for the MIRAVI service. The request must specify the date and spatial range together with the dataset name</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>ad6651ee-6e1e-4568-bd3c-ca6ad1188ac5</ows:Identifier>
+      <ows:Title>BEAMARITHM</ows:Title>
+      <ows:Abstract>Service access point for the BEAMARITHM service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>3b538ea1-7f26-4e16-8ee9-34189f04765a</ows:Identifier>
+      <ows:Title>MGVIREGIONAL</ows:Title>
+      <ows:Abstract>Service access point for the MGVIREGIONAL service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>a2bfecf9-3ccb-4314-83aa-f0816d04d797</ows:Identifier>
+      <ows:Title>EnviProjAntarctic</ows:Title>
+      <ows:Abstract>Service access point for the EnviProjAntarctic service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>9e54c1fd-c588-4acd-899a-7ea8ab6ab604</ows:Identifier>
+      <ows:Title>fAPAR</ows:Title>
+      <ows:Abstract>Service access point for the SSE-Grid fAPAR</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>9e402a90-f4c0-4a85-af80-e425ed2e88b5</ows:Identifier>
+      <ows:Title>GPODTEST</ows:Title>
+      <ows:Abstract>Service access point for the GPODTEST service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>1cf0e6f6-1b45-4dcc-b43d-4d7a6bfe4870</ows:Identifier>
+      <ows:Title>PF-ASAR (WPS)</ows:Title>
+      <ows:Abstract>Service access point for the PF-ASAR service </ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>3d55a4f3-0ebd-40e1-be4c-80aece2fe222</ows:Identifier>
+      <ows:Title>PHAVEOS WPS</ows:Title>
+      <ows:Abstract>Service access point for the PHAVEOS service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>cdd26a18-f2ec-44ed-8bea-f74c3604287e</ows:Identifier>
+      <ows:Title>SBAS MTA</ows:Title>
+      <ows:Abstract>SBAS Multitemporal Analysis Service</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>37457d31-cee6-4455-b390-25566c1d455a</ows:Identifier>
+      <ows:Title>TC-GPOD-2.4.8-WPS-01</ows:Title>
+      <ows:Abstract>Test WPS template for validation of release 2.4.8</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>f8200f1d-d616-4de7-a2e9-09fad7a256a7</ows:Identifier>
+      <ows:Title>SRTM Digital Elevation Model</ows:Title>
+      <ows:Abstract>This application generates the STRM DEM in ROI_PAC or GAMMA ready format</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>e837c24b-f57e-48cb-a4a4-904d30fcdc10</ows:Identifier>
+      <ows:Title>ADORE DORIS interferometric processor</ows:Title>
+      <ows:Abstract>ADORE DORIS interferometric processor</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>2f16688c-2f8e-41f0-ad0a-00ddb9b19422</ows:Identifier>
+      <ows:Title>Repeat Orbit Interferometry Package (ROI_PAC)</ows:Title>
+      <ows:Abstract>Data processing software allowing researchers in the area of topography and surface displacements studies to apply Interferometric Synthetic Aperture Radar (InSAR) methods.</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>9bbeba20-fb1a-419e-b142-c930555f254c</ows:Identifier>
+      <ows:Title>StaMPS Permanent Scatterer</ows:Title>
+      <ows:Abstract>StaMPS (Stanford Method for Persistent Scatterers) is a software package that implements an InSAR persistent scatterer (PS) method developed to work even in terrains devoid of man-made structures and/or undergoing non-steady deformation. This processing service is the StaMPS Permanent Scatterer (PS).</ows:Abstract>
+    </wps:Process>
+    <wps:Process wps:processVersion="1.0.0">
+      <ows:Identifier>213f6f3a-4a13-4132-b5b8-9b933fddeaf1</ows:Identifier>
+      <ows:Title>GMTSAR interferometric processor</ows:Title>
+      <ows:Abstract>GMTSAR is an open source (GNU General Public License) InSAR processing system. This service provides standard 2-pass processing of a master product against one or more slave products</ows:Abstract>
+    </wps:Process>
+  </wps:ProcessOfferings>
+  <wps:Languages>
+    <wps:Default>
+      <ows:Language>en-US</ows:Language>
+    </wps:Default>
+  </wps:Languages>
+</wps:Capabilities>
