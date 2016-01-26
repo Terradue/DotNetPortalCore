@@ -2,9 +2,9 @@ using System;
 
 namespace Terradue.Portal {
 
-    /// <summary>Feature</summary>
+    /// <summary>Portal Feature</summary>
     /// <description>
-    /// A Feature is a container for an item on the portal or on the web that the portal features
+    /// A portal feature is a container for an item on the portal or on the web that the portal features
     /// in a way or another depending on the user interface (e.g. front page carousel). It has all the properties
     /// for storing the necessary contents (title, url, image, description).
     /// </description>
