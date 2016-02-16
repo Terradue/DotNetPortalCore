@@ -9,6 +9,8 @@ using Terradue.OpenSearch;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using Terradue.OpenSearch.Result;
+using Terradue.ServiceModel.Syndication;
 
 
 
@@ -28,7 +30,7 @@ namespace Terradue.Portal {
     /// <summary>Represents a news article published on the portal.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("article", EntityTableConfiguration.Custom, NameField = "title", IdentifierField = "identifier", HasExtensions = true)]
-    public class Article : Entity {
+    public class Article : Entity, IAtomizable {
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -132,6 +134,55 @@ namespace Terradue.Portal {
                 base.Store();
             }
         }
+
+
+        #region IAtomizable implementation
+        public Terradue.OpenSearch.Result.AtomItem ToAtomItem(System.Collections.Specialized.NameValueCollection parameters) {
+
+            string identifier = null;
+            string name = (this.Title != null ? this.Title : this.Identifier);
+            string description = null;
+            string text = (this.TextContent != null ? this.TextContent : "");
+            var entityType = EntityType.GetEntityType(typeof(Article));
+            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
+
+            if (!string.IsNullOrEmpty(parameters["q"])) {
+                string q = parameters["q"].ToLower();
+
+                if (!(name.ToLower().Contains(q) 
+                      || this.Identifier.ToLower().Contains(q)
+                      || this.Abstract.Contains(q)
+                      || text.ToLower().Contains(q)
+                      || this.Tags.ToLower().Contains(q)))
+                    return null;
+            }
+
+            WpsProcessOffering process = null;
+            WpsProvider provider = null;
+            AtomItem result = new AtomItem();
+
+            result.Id = id.ToString();
+            result.Title = new TextSyndicationContent(name);
+            result.Summary = new TextSyndicationContent(Abstract);
+            result.Content = new TextSyndicationContent(Content);
+
+            result.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+
+            result.ReferenceData = this;
+            result.PublishDate = this.Time;
+            SyndicationPerson author = new SyndicationPerson(null, this.Author, null);
+            result.Authors.Add(author);
+            result.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
+
+            foreach (var tag in this.Tags.Split(",".ToCharArray())) {
+                result.Categories.Add(new SyndicationCategory("tag", null, tag));
+            }
+            return result;
+        }
+        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 
 }
