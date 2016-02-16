@@ -600,6 +600,20 @@ namespace Terradue.Portal {
             return context.GetQueryBooleanValue(String.Format("SELECT password=PASSWORD({1}) FROM usr WHERE id={0};", Id, StringUtils.EscapeSql(password)));
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ValidateActivationToken(string token){
+            if (token == null) throw new ArgumentNullException("No account key or token specified");
+            int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
+            if (userId != this.Id) throw new UnauthorizedAccessException("Invalid account key");
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        protected string GetActivationToken(){
+            return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
+        }
+
     }
 
     
