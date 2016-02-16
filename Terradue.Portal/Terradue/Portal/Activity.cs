@@ -26,7 +26,7 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </summary>
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
-    public class Activity : Entity, IAtomizable {
+    public class Activity : Entity, IAtomizable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
@@ -221,6 +221,17 @@ namespace Terradue.Portal {
 
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
             return OpenSearchFactory.GetBaseOpenSearchParameter();
+        }
+
+        #endregion
+
+        #region IComparable implementation
+
+        public int CompareTo(Activity other) {
+            if (other == null)
+                return 1;
+            else
+                return this.CreationTime.CompareTo(other.CreationTime);
         }
 
         #endregion

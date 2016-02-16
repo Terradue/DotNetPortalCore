@@ -23,9 +23,9 @@ using Terradue.Util;
 \defgroup Core Core
 @{
 
-The Core component is a set of .Net library developed as the base implementation of a Content Management System (CMS) for EO world entities.
+The Core component is a set of library developed as the base implementation of a Content Management System (CMS) for EO world entities.
 It implements basic subcomponent to deal with basic EO business objects such as dataset series, WPS service, user context, jobs...
-It also implement the low level functions to store and read data persistently on the database or to apply a configuration.
+It also implements the low level functions to store and read data persistently on the database or to apply a configuration.
 
 @}
 
@@ -36,8 +36,8 @@ It also implement the low level functions to store and read data persistently on
 \defgroup Security Security
 @{
 
-The Security component is a set of .Net library in charge with all the authorisation or authentication functions and also with the privileges management 
-between users, groups and other business objects.The security scheme is open and offers many possibilities to plug other component to
+The Security component is a set of library in charge with all the authorisation or authentication functions and also with the privileges management 
+between users, groups and other business objects. The security scheme is open and offers many possibilities to plug other component to
 implement specific authentication mechanism or authorization scheme.
 
 @}
@@ -64,8 +64,7 @@ Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation che
 The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
 
 
-\startuml
-!define DIAG_NAME Authorisation mechanism Activity Diagram
+\startuml "Authorisation mechanism Activity Diagram
 
 start
 :Load entity item considering access policies and user/group privileges;
@@ -93,10 +92,6 @@ endif
 :Operation allowed;
 stop
 
-footer
-DIAG_NAME
-(c) Terradue Srl
-endfooter
 \enduml
 
 @}
@@ -111,9 +106,12 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Abstract base class of all entity types that usually correspond to real-world entities.</summary>
-    /// <remarks> 
-    ///     <p>The class provides generic interaction with data that is persistently stored in a relational database. The data location and structure are defined in the subclasses which represent real-world entities.<\xrefitem rmodp "RM-ODP" "RM-ODP Documentation"rived class stores privileges persistently in a database table if the entity subclass has the Terradue.Portal#EntityTableAttribute.HasPrivilegeManagement flag set.
+    /// <summary>Entity</summary>
+    /// <description>
+    /// Generic object of all entity types that usually correspond to real-world entities.
+    /// The object provides generic interaction with data that is persistently stored in a relational database.
+    /// The data location and structure are defined in the extended object which represent real-world entities.
+    /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract class Entity : IValueSet {
 
@@ -898,6 +896,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Remove the entity from the database</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
@@ -1002,7 +1001,6 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void GetAllowedAdministratorOperations() {
             if (context.UserLevel == UserLevel.Administrator) return;
 

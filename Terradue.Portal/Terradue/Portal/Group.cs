@@ -26,7 +26,8 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Represents a basic user group</summary>
+    /// <summary>User Group</summary>
+    /// <description></description>>Represents a basic user group</description>
     /// \ingroup Authorisation
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("grp", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "name")]

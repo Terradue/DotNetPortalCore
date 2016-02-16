@@ -83,7 +83,8 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Abstract base object for processing services.</summary>
+    /// <summary>Processing Service</summary>
+    /// <description>Abstract base object for processing services.</description>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]

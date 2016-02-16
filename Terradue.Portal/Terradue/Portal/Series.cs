@@ -15,7 +15,7 @@ using Terradue.OpenSearch;
 @{
 
 This component manages all types of dataset series.
-It implements the machnaism to search for the dataset defined in the series via an \ref OpenSearchable interface.
+It implements the mechanism to search for the dataset defined in the series via an \ref OpenSearch interface.
 
 \ingroup Core
 
@@ -139,7 +139,8 @@ namespace Terradue.Portal {
     
     
     
-    /// <summary>Represents a series of data sets that are available from a catalogue.</summary>
+    /// <summary>Data Series</summary>
+    /// <description>Represents a series of data sets that are available from a catalogue.</description>
     /// \ingroup Series
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]

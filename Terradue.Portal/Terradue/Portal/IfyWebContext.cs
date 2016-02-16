@@ -47,8 +47,7 @@ Basically, 3 access level are defined
 - User access: web resource accessible only to an authenticated user
 - Admin access: web resources accessible only to an administrator
 
-\startuml{WebControlAccess.png}
-!define DIAG_NAME HTTP Web access control mechanism Activity Diagram
+\startuml "HTTP Web access control mechanism Activity Diagram"
 
 start
 :read user information;
@@ -61,10 +60,6 @@ elseif (Web Resource access level > user access level) then (yes)
 endif
 stop
 
-footer
-DIAG_NAME
-(c) Terradue Srl
-endfooter
 \enduml
 
 @}
