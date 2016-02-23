@@ -39,7 +39,7 @@ namespace Terradue.Portal.Test {
             //if private key is not generated, we get an exception
             bool exceptionpriv = false;
             try{
-                privatekey = safe.GetBase64SSHPrivateKey(password);
+                privatekey = safe.GetBase64SSHPrivateKey();
             }catch(Exception e){
                 exceptionpriv = true;
             }
@@ -50,7 +50,7 @@ namespace Terradue.Portal.Test {
         public void SafeKeyGenerationTest(){
             if (safe == null) InitSafe();
 
-            safe.GenerateKeys(password);
+            safe.GenerateKeys();
             safe.Store();
 
             //if public key is not generated, we get an exception
@@ -65,7 +65,7 @@ namespace Terradue.Portal.Test {
             //if private key is generated, we don't get an exception
             bool exception = false;
             try{
-                privatekey = safe.GetBase64SSHPrivateKey(password);
+                privatekey = safe.GetBase64SSHPrivateKey();
             }catch(Exception e){
                 exception = true;
             }
@@ -79,7 +79,7 @@ namespace Terradue.Portal.Test {
         public void SafeKeyClearTest(){
             if (safe == null) InitSafe();
 
-            safe.GenerateKeys(password);
+            safe.GenerateKeys();
             safe.Store();
 
             safe.ClearKeys();
@@ -92,7 +92,7 @@ namespace Terradue.Portal.Test {
         public void SafeKeyPuttyTest(){
             if (safe == null) InitSafe();
 
-            safe.GenerateKeys(password);
+            safe.GenerateKeys();
             safe.Store();
 
             string putty = safe.GetKeysForPutty(password);
@@ -105,12 +105,12 @@ namespace Terradue.Portal.Test {
         public void SafeKeySSHTest(){
             if (safe == null) InitSafe();
 
-            safe.GenerateKeys(password);
+            safe.GenerateKeys();
             safe.Store();
 
             string sshpub64 = safe.GetBase64SSHPublicKey();
             Assert.That(sshpub64.Contains("ssh-rsa"));
-            string sshpriv64 = safe.GetBase64SSHPrivateKey(password);
+            string sshpriv64 = safe.GetBase64SSHPrivateKey();
             Assert.That(sshpriv64.Contains("-----BEGIN RSA PRIVATE KEY-----"));
             Assert.That(sshpriv64.Contains("-----END RSA PRIVATE KEY-----"));                        
 
