@@ -33,7 +33,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the private key</summary>
-        [EntityDataField("private_key")]
+//        [EntityDataField("private_key")]
         public string PrivateKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
