@@ -30,7 +30,7 @@ namespace Terradue.Portal {
     /// <summary>Represents a news article published on the portal.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("article", EntityTableConfiguration.Custom, NameField = "title", IdentifierField = "identifier", HasExtensions = true)]
-    public class Article : Entity, IAtomizable {
+    public class Article : Entity, IAtomizable, IComparable<Article> {
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -182,6 +182,17 @@ namespace Terradue.Portal {
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
             throw new NotImplementedException();
         }
+        #endregion
+
+        #region IComparable implementation
+
+        public int CompareTo(Article other) {
+            if (other == null)
+                return 1;
+            else
+                return this.Time.CompareTo(other.Time);
+        }
+
         #endregion
     }
 

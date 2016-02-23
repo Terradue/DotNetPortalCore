@@ -33,7 +33,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the private key</summary>
-        [EntityDataField("private_key")]
+//        [EntityDataField("private_key")]
         public string PrivateKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -87,15 +87,15 @@ namespace Terradue.Portal {
         /// <summary>
         /// Generates the private and public keys.
         /// </summary>
-        public void GenerateKeys(string password){
+        public void GenerateKeys(){
             if (!string.IsNullOrEmpty(this.PublicKey) || !string.IsNullOrEmpty(this.PrivateKey)) throw new Exception("Keys already existing");
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
 
             //public key (not encrypted)
             this.PublicKey = rsa.ToXmlString(false);
 
-            //private key (encrypted)
-            this.PrivateKey = CipherUtility.Encrypt<AesManaged>(rsa.ToXmlString(true), password, SALT);
+            //private key (not encrypted)
+            this.PrivateKey = rsa.ToXmlString(true);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -115,19 +115,11 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The private key in base64.</returns>
         /// <param name="password">Password.</param>
-        public string GetBase64SSHPrivateKey(string password){
+        public string GetBase64SSHPrivateKey(){
             if (PrivateKey == null) throw new Exception("Private key has not been generated");
-            //decrypt private key
-            string decrypted = null;
-            try{
-                decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
-            }catch(Exception e){
-                throw new Exception("Wrong password", e);
-            }
 
-            //get RSA
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(decrypted);
+            rsa.FromXmlString(this.PrivateKey);
 
             var privateBlob = System.Convert.ToBase64String(PrivateKeyBase64FromRSAParametersToSSH(rsa.ExportParameters(true)));
 
@@ -169,12 +161,9 @@ namespace Terradue.Portal {
         public string GetKeysForPutty(string password){
             if (PrivateKey == null) throw new Exception("Private key has not been generated");
 
-            //decrypt private key
-            string decrypted = CipherUtility.Decrypt<AesManaged>(PrivateKey, password, SALT);
-
             //get RSA
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(decrypted);
+            rsa.FromXmlString(PrivateKey);
 
             return FromRSAParametersToPutty(rsa);
         }
