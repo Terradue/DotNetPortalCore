@@ -530,7 +530,7 @@ namespace Terradue.Portal {
 
             feed.Items = pds.GetCurrentPage();
 
-            feed.TotalResults = this.TotalResults;
+            feed.TotalResults = items.Count;
 
             return feed;
 
