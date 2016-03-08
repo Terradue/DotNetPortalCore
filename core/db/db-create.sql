@@ -1,4 +1,4 @@
--- VERSION 2.6.43
+-- VERSION 2.7
 
 USE $MAIN$;
 
@@ -386,12 +386,10 @@ CREATE TABLE domain (
 
 CREATE TABLE role (
     id int unsigned NOT NULL auto_increment,
-    id_domain int unsigned COMMENT 'FK: Managed domain',
     name varchar(100) NOT NULL COMMENT 'Unique name',
     description text COMMENT 'Description',
     count INT NULL COMMENT 'number of products',
     CONSTRAINT pk_role PRIMARY KEY (id),
-    CONSTRAINT fk_role_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL,
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'Manager roles';
 -- CHECKPOINT C-08
@@ -401,11 +399,107 @@ CREATE TABLE role (
 CREATE TABLE role_priv (
     id_role int unsigned NOT NULL COMMENT 'FK: Manager role',
     id_priv int unsigned NOT NULL COMMENT 'FK: Manager privilege',
+    int_value int COMMENT 'Value (optional)',
     CONSTRAINT pk_role_priv PRIMARY KEY (id_role, id_priv),
     CONSTRAINT fk_role_priv_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_priv_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of manager privileges to roles';
 -- CHECKPOINT C-09
+
+/*****************************************************************************/
+
+CREATE TABLE usr (
+    id int unsigned NOT NULL auto_increment,
+    username varchar(50) NOT NULL COMMENT 'Username',
+    id_domain int unsigned COMMENT 'FK: Owning domain',
+    status tinyint NOT NULL DEFAULT 4 COMMENT 'Account status, see lookup list "accountStatus"',
+    level tinyint unsigned NOT NULL DEFAULT 1 COMMENT '1: User, 2: Developer, 3: Admin',
+    email varchar(100) COMMENT 'Email address',
+    password varchar(50) COMMENT 'Password',
+    firstname varchar(50) COMMENT 'First name',
+    lastname varchar(50) COMMENT 'Last name',
+    affiliation varchar(100) COMMENT 'Affiliation, organization etc.',
+    country varchar(100) COMMENT 'Country',
+    language char(2) COMMENT 'Preferred language',
+    time_zone char(25) NOT NULL DEFAULT 'UTC' COMMENT 'Time zone',
+    normal_account boolean NOT NULL DEFAULT false COMMENT 'If true, auth/n settings are made in general configuration',
+    allow_password boolean NOT NULL DEFAULT true COMMENT 'If true, password authentication is allowed',
+    allow_sessionless boolean COMMENT 'If true, sessionless requests from trusted hosts are allowed',
+    force_trusted boolean COMMENT 'If true, only connections from trusted hosts are allowed',
+    force_ssl boolean NOT NULL DEFAULT false COMMENT 'If true, accept only SSL authentication',
+    debug_level tinyint unsigned NOT NULL DEFAULT 0 COMMENT 'Debug level (admins only), 3..6',
+    simple_gui boolean NOT NULL DEFAULT false COMMENT 'If true, simplified GUI is selected',
+    credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
+    task_storage_period smallint unsigned COMMENT 'Maximum lifetime of concluded tasks, 0 if endless',
+    publish_folder_size int unsigned COMMENT 'Maximum size of user''s publish folder',
+    proxy_username varchar(50) COMMENT 'Proxy username',
+    proxy_password varchar(50) COMMENT 'Proxy password',
+    cert_subject varchar(200) COMMENT 'Certificate subject',
+    last_password_change_time datetime COMMENT 'Date/time of last password change',
+    failed_logins int NOT NULL DEFAULT 0 COMMENT 'Number of failed login attempts after last successful login',
+    CONSTRAINT pk_usr PRIMARY KEY (id),
+    UNIQUE INDEX (username)
+) Engine=InnoDB COMMENT 'User accounts';
+-- CHECKPOINT C-16a
+
+-- Adding initial administrator user (username admin, password changeme) ... \
+INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
+    (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
+;
+-- RESULT
+-- CHECKPOINT C-16b
+
+/*****************************************************************************/
+
+CREATE TABLE grp (
+    id int unsigned NOT NULL auto_increment,
+    id_domain int unsigned COMMENT 'FK: Owning domain',
+    conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, group can be configured by other domains',
+    name varchar(50) NOT NULL COMMENT 'Unique name',
+    description text COMMENT 'Description',
+    priority smallint COMMENT 'Priority (optional)',
+    is_default boolean NOT NULL DEFAULT false COMMENT 'If true, group is automatically selected for new users',
+    all_resources boolean NOT NULL DEFAULT false COMMENT 'If true, new resources are automatically added to group',
+    CONSTRAINT pk_grp PRIMARY KEY (id),
+    UNIQUE INDEX (name)
+) Engine=InnoDB COMMENT 'User groups';
+-- CHECKPOINT C-25a
+
+-- Adding initial administrator group ... \
+INSERT INTO grp (name, description, all_resources) VALUES ('Administrators', 'Portal administrators', true);
+-- RESULT
+-- CHECKPOINT C-25b
+
+/*****************************************************************************/
+
+CREATE TABLE usr_grp (
+    id_usr int unsigned NOT NULL COMMENT 'FK: User',
+    id_grp int unsigned NOT NULL COMMENT 'FK: Group to which the user is assigned',
+    temp boolean NOT NULL DEFAULT false COMMENT 'True if record is temporary (for current session)',
+    CONSTRAINT pk_usr_grp PRIMARY KEY (id_usr, id_grp),
+    CONSTRAINT fk_usr_grp_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_usr_grp_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of users to groups';
+-- CHECKPOINT C-26a
+
+-- Assigning administror user the administrator group ... \
+INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN grp AS t1 WHERE t.username='admin' AND t1.name='Administrators';
+-- RESULT
+-- CHECKPOINT C-26b
+
+/*****************************************************************************/
+
+CREATE TABLE role_grant (
+    id_usr int unsigned COMMENT 'FK: User',
+    id_grp int unsigned COMMENT 'FK: Group',
+    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user is assigned',
+    id_domain int unsigned COMMENT 'FK: Domain for which the user has the role',
+    CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_grp_role_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE,
+    CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
+    CONSTRAINT fk_usr_role_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of users/groups to manager roles for domains';
+-- CHECKPOINT C-24
 
 /*****************************************************************************/
 
@@ -1324,49 +1418,6 @@ CREATE TABLE schedulerclass (
 
 /*****************************************************************************/
 
-CREATE TABLE usr (
-    id int unsigned NOT NULL auto_increment,
-    username varchar(50) NOT NULL COMMENT 'Username',
-    id_domain int unsigned COMMENT 'FK: Owning domain',
-    status tinyint NOT NULL DEFAULT 4 COMMENT 'Account status, see lookup list "accountStatus"',
-    level tinyint unsigned NOT NULL DEFAULT 1 COMMENT '1: User, 2: Developer, 3: Admin',
-    email varchar(100) COMMENT 'Email address',
-    password varchar(50) COMMENT 'Password',
-    firstname varchar(50) COMMENT 'First name',
-    lastname varchar(50) COMMENT 'Last name',
-    affiliation varchar(100) COMMENT 'Affiliation, organization etc.',
-    country varchar(100) COMMENT 'Country',
-    language char(2) COMMENT 'Preferred language',
-    time_zone char(25) NOT NULL DEFAULT 'UTC' COMMENT 'Time zone',
-    normal_account boolean NOT NULL DEFAULT false COMMENT 'If true, auth/n settings are made in general configuration',
-    allow_password boolean NOT NULL DEFAULT true COMMENT 'If true, password authentication is allowed',
-    allow_sessionless boolean COMMENT 'If true, sessionless requests from trusted hosts are allowed',
-    force_trusted boolean COMMENT 'If true, only connections from trusted hosts are allowed',
-    force_ssl boolean NOT NULL DEFAULT false COMMENT 'If true, accept only SSL authentication',
-    debug_level tinyint unsigned NOT NULL DEFAULT 0 COMMENT 'Debug level (admins only), 3..6',
-    simple_gui boolean NOT NULL DEFAULT false COMMENT 'If true, simplified GUI is selected',
-    credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
-    task_storage_period smallint unsigned COMMENT 'Maximum lifetime of concluded tasks, 0 if endless',
-    publish_folder_size int unsigned COMMENT 'Maximum size of user''s publish folder',
-    proxy_username varchar(50) COMMENT 'Proxy username',
-    proxy_password varchar(50) COMMENT 'Proxy password',
-    cert_subject varchar(200) COMMENT 'Certificate subject',
-    last_password_change_time datetime COMMENT 'Date/time of last password change',
-    failed_logins int NOT NULL DEFAULT 0 COMMENT 'Number of failed login attempts after last successful login',
-    CONSTRAINT pk_usr PRIMARY KEY (id),
-    UNIQUE INDEX (username)
-) Engine=InnoDB COMMENT 'User accounts';
--- CHECKPOINT C-16a
-
--- Adding initial administrator user (username admin, password changeme) ... \
-INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
-    (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
-;
--- RESULT
--- CHECKPOINT C-16b
-
-/*****************************************************************************/
-
 CREATE TABLE usr_auth (
     id_usr int unsigned NOT NULL COMMENT 'FK: User',
     id_auth int unsigned NOT NULL COMMENT 'FK: Authentication type',
@@ -1450,55 +1501,6 @@ CREATE TABLE filter (
     CONSTRAINT fk_filter_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User-defined filters on entities';
 -- CHECKPOINT C-23
-
-/*****************************************************************************/
-
-CREATE TABLE usr_role (
-    id_usr int unsigned NOT NULL COMMENT 'FK: User',
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user is assigned',
-    CONSTRAINT pk_usr_role PRIMARY KEY (id_usr, id_role),
-    CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of users to manager roles';
--- CHECKPOINT C-24
-
-/*****************************************************************************/
-
-CREATE TABLE grp (
-    id int unsigned NOT NULL auto_increment,
-    id_domain int unsigned COMMENT 'FK: Owning domain',
-    conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, group can be configured by other domains',
-    name varchar(50) NOT NULL COMMENT 'Unique name',
-    description text COMMENT 'Description',
-    priority smallint COMMENT 'Priority (optional)',
-    is_default boolean NOT NULL DEFAULT false COMMENT 'If true, group is automatically selected for new users',
-    all_resources boolean NOT NULL DEFAULT false COMMENT 'If true, new resources are automatically added to group',
-    CONSTRAINT pk_grp PRIMARY KEY (id),
-    UNIQUE INDEX (name)
-) Engine=InnoDB COMMENT 'User groups';
--- CHECKPOINT C-25a
-
--- Adding initial administrator group ... \
-INSERT INTO grp (name, description, all_resources) VALUES ('Administrators', 'Portal administrators', true);
--- RESULT
--- CHECKPOINT C-25b
-
-/*****************************************************************************/
-
-CREATE TABLE usr_grp (
-    id_usr int unsigned NOT NULL COMMENT 'FK: User',
-    id_grp int unsigned NOT NULL COMMENT 'FK: Group to which the user is assigned',
-    temp boolean NOT NULL DEFAULT false COMMENT 'True if record is temporary (for current session)',
-    CONSTRAINT pk_usr_grp PRIMARY KEY (id_usr, id_grp),
-    CONSTRAINT fk_usr_grp_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_grp_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of users to groups';
--- CHECKPOINT C-26a
-
--- Assigning administror user the administrator group ... \
-INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN grp AS t1 WHERE t.username='admin' AND t1.name='Administrators';
--- RESULT
--- CHECKPOINT C-26b
 
 /*****************************************************************************/
 
