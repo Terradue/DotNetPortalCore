@@ -490,10 +490,10 @@ INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN
 /*****************************************************************************/
 
 CREATE TABLE role_grant (
-    id_usr int unsigned COMMENT 'FK: User',
-    id_grp int unsigned COMMENT 'FK: Group',
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user is assigned',
-    id_domain int unsigned COMMENT 'FK: Domain for which the user has the role',
+    id_usr int unsigned COMMENT 'FK: User (id_usr or id_grp must be set)',
+    id_grp int unsigned COMMENT 'FK: Group (id_usr or id_grp must be set)',
+    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user/group is assigned',
+    id_domain int unsigned COMMENT 'FK: Domain for which the user/group has the role',
     CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_grp_role_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE,
     CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,

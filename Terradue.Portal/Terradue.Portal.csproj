@@ -116,7 +116,7 @@
     <Compile Include="Terradue\Portal\Catalogue.cs" />
     <Compile Include="Terradue\Portal\Domain.cs" />
     <Compile Include="Terradue\Portal\EntityOperation.cs" />
-    <Compile Include="Terradue\Portal\ManagerRole.cs" />
+    <Compile Include="Terradue\Portal\Role.cs" />
     <Compile Include="Terradue\Portal\Mailer.cs" />
     <Compile Include="Terradue\Portal\RemoteResource.cs" />
     <Compile Include="Terradue\Portal\EntityAttributes.cs" />
