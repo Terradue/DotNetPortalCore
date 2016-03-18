@@ -11,46 +11,15 @@ namespace Terradue.Portal.Test {
         [TestFixtureSetUp]
         public virtual void FixtureSetup() {
 
-            create = true;
-            AfterFailureCheckpoint = true;
-
-            dbMainSchema = "TerraduePortalTest";
-            dbNewsSchema = dbMainSchema;
-            currentSchema = dbMainSchema;
-            Verbose = false;
-            siteRootDir = "../..";
-
-            try {
-                OpenConnection(connectionString);
-                schemaExists = true;
-            } catch (Exception e) {
-                if (!e.Message.Contains("Unknown database"))
-                    throw e;
-            }
-
-            try {
-                CreateSchemas();
-                CheckState();
-            } catch (Exception e) {
-                Console.Error.WriteLine(e.Message);
-                throw e;
-            }
-
-            CoreModule core = new CoreModule(this, String.Format("{0}/../../core", Directory.GetCurrentDirectory()));
-            try{
-                core.Install();
-            } catch (Exception e) {
-                Console.Error.WriteLine(e.Message);
-                throw e;
-            }
-            CloseConnection();
+            AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
+            adminTool.Process();
 
             try {
                 context = IfyContext.GetLocalContext(connectionString, false);
                 context.Open();
             } catch (Exception e) {
                 Console.Error.WriteLine(e.Message);
-                throw e;
+                throw;
             }
 
 

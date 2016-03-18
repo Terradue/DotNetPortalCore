@@ -75,6 +75,7 @@
     <Compile Include="SafeTest.cs" />
     <Compile Include="FeatureTest.cs" />
     <Compile Include="EntityTest.cs" />
+    <Compile Include="RolePrivilegeTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

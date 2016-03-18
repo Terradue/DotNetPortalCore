@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NUnit.Framework;
 
 namespace Terradue.Portal.Test {
@@ -6,12 +7,17 @@ namespace Terradue.Portal.Test {
     [TestFixture]
     public class RolePrivilegeTests {
 
+        string connectionString = "Server=localhost; Port=3306; User Id=root; Database=TerraduePortalTest";
+
         [TestFixtureSetUp]
         public void CreateEnvironment() {
 
-/*            string connectionString = "Server=localhost; Port=3306; User Id=root; Database=TerraduePortalTest";
-            AdminTool adminTool = new AdminTool();
-            adminTool.Process();*/
+            AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
+            try {
+                adminTool.Process();
+            } catch (Exception e) {
+                Console.WriteLine(e.Message + " " + e.StackTrace);
+            }
 
         }
 
