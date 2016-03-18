@@ -152,7 +152,11 @@ namespace Terradue.Portal {
         Assign = 'a',
             
         /// <summary>Assign resource item permissions to any user or group.</summary>
-        AssignGlobal = 'A'
+        AssignGlobal = 'A',
+
+        /// <summary>Use an item in the same way as its owner.</summary>
+        Use = 'u'
+
     }
 
 }
