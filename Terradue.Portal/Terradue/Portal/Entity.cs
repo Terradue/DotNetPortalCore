@@ -526,7 +526,7 @@ namespace Terradue.Portal {
                             }
                             if (entityType.TopTable.TypeReferenceField != null) {
                                 names += entityType.TopTable.TypeReferenceField;
-                                values += entityType.Id.ToString();
+                                values += entityType.PersistentTypeId.ToString();
                             } else {
                                 names += entityType.TopTable.TypeField;
                                 values += entityType.ClassName;

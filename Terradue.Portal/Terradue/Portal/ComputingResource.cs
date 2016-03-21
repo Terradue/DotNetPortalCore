@@ -53,7 +53,7 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup ComputingResource
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("cr", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 

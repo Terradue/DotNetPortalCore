@@ -71,15 +71,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Gets or sets the database ID of the direct subclass of Entity of which this entity type is derived./summary>
         public int TopTypeId { get; protected set; }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the database ID of the nearest base class of this entity type that has a database record./summary>
+        public int PersistentTypeId { get; protected set; }
+
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the class name.</summary>
         /// \ingroup Persistence
-        public string ClassName {
-            get; protected set;
-        }
+        public string ClassName { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -222,6 +226,7 @@ namespace Terradue.Portal {
         public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : base(null) {
             if (IfyContext.DefaultConsoleDebug) Console.WriteLine("NEW ENTITY TYPE {0}", className);
             this.Id = id;
+            this.PersistentTypeId = id;
             this.ClassName = className;
             this.ClassType = Type.GetType(className, true);
             
@@ -284,9 +289,8 @@ namespace Terradue.Portal {
             foreach (ForeignTableInfo foreignTable in source.ForeignTables) ForeignTables.Add(foreignTable);
             foreach (FieldInfo field in source.Fields) Fields.Add(field);
             TopTypeId = source.TopTypeId;
-            /*ClassName = source.ClassName;
+            PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;
-            CustomClassType = source.CustomClassType;*/
             TopTable = source.TopTable;
             PrivilegeSubjectTable = source.PrivilegeSubjectTable;
         }
@@ -916,7 +920,25 @@ namespace Terradue.Portal {
         /// \ingroup Persistence
         public Entity GetEntityInstanceFromId(IfyContext context, int id) {
             if (TopTable.HasExtensions) {
-                Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdField, id));
+                Entity result;
+                if (TopTable.TypeReferenceField != null) {
+                    int entityTypeId = context.GetQueryIntegerValue(String.Format("SELECT {3} FROM {0} WHERE {1}={2};", TopTable.Name, TopTable.IdField, id, TopTable.TypeReferenceField));
+                    if (entityTypeId != 0) {
+                        EntityType entityType = null;
+                        foreach (EntityType et in entityTypes.Values) {
+                            if (et.Id != entityTypeId) continue;
+                            entityType = et;
+                            break;
+                        }
+                        if (entityType != null) {
+                            result = entityType.GetEntityInstance(context);
+                            result.Load(id);
+                            return result;
+                        }
+                    }
+                }
+
+                result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdField, id));
                 if (result != null) return result;
                 if (DoesItemExist(context, id)) throw new Exception("Invalid entity extension type");
                 throw new EntityNotFoundException(String.Format("{0} item [{1}] not found", SingularCaption == null ? ClassName : SingularCaption, id), this, id.ToString());
@@ -933,7 +955,25 @@ namespace Terradue.Portal {
         /// \ingroup Persistence
         public Entity GetEntityInstanceFromIdentifier(IfyContext context, string identifier) {
             if (TopTable.HasExtensions) {
-                Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdentifierField, StringUtils.EscapeSql(identifier)));
+                Entity result;
+                if (TopTable.TypeReferenceField != null) {
+                    int entityTypeId = context.GetQueryIntegerValue(String.Format("SELECT {3} FROM {0} WHERE {1}={2};", TopTable.Name, TopTable.IdentifierField, StringUtils.EscapeSql(identifier), TopTable.TypeReferenceField));
+                    if (entityTypeId != 0) {
+                        EntityType entityType = null;
+                        foreach (EntityType et in entityTypes.Values) {
+                            if (et.Id != entityTypeId) continue;
+                            entityType = et;
+                            break;
+                        }
+                        if (entityType != null) {
+                            result = entityType.GetEntityInstance(context);
+                            result.Load(identifier);
+                            return result;
+                        }
+                    }
+                }
+
+                result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdentifierField, StringUtils.EscapeSql(identifier)));
                 if (result != null) return result;
                 if (DoesItemExist(context, identifier)) throw new Exception("Invalid entity extension type");
                 throw new EntityNotFoundException(String.Format("{0} item \"{1}\" not found", SingularCaption == null ? ClassName : SingularCaption, identifier), this, identifier);
