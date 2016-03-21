@@ -279,11 +279,11 @@ namespace Terradue.Portal {
                 tool.Process();
             } catch (Exception e) {
                 if (!tool.NewLine) Console.Error.WriteLine("ERROR");
-                WriteErrorSeparator();
+                tool.WriteErrorSeparator();
                 Console.Error.WriteLine("ERROR: " + e.Message + " " + e.StackTrace);
                 if (tool != null) tool.CloseConnection();
                 //Console.Error.WriteLine(String.Format("The database schema version is {0}{1}", tool.SchemaVersion, tool.Checkpoint == null ? String.Empty : " (checkpoint " + tool.Checkpoint + ")"));
-                WriteErrorSeparator();
+                tool.WriteErrorSeparator();
                 Environment.ExitCode = 1;
                 return;
             }
@@ -315,45 +315,42 @@ namespace Terradue.Portal {
                         Verbose = true;
                         break;
                     case "-b":
+                        if (argpos == args.Length - 1) return false;
                         InstallationBaseDirectory = args[++argpos];
                         break;
                     case "-s":
+                        if (argpos == args.Length - 1) return false;
                         SiteName = args[++argpos];
                         break;
                     case "-r" :
+                        if (argpos == args.Length - 1) return false;
                         InstallationBaseDirectory = args[++argpos];
                         break;
                     case "-H" : 
-                        if (argpos < args.Length - 1) {
-                            DbHost = args[++argpos];
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        DbHost = args[++argpos];
                         break;
                     case "-P" : 
-                        if (argpos < args.Length - 1) {
-                            int dbPort;
-                            Int32.TryParse(args[++argpos], out dbPort);
-                            DbPort = dbPort;
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        int dbPort;
+                        Int32.TryParse(args[++argpos], out dbPort);
+                        DbPort = dbPort;
                         break;
                     case "-u" :
-                        if (argpos < args.Length - 1) {
-                            DbUsername = args[++argpos];
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        DbUsername = args[++argpos];
                         break;
                     case "-p" : 
-                        if (argpos < args.Length - 1) {
-                            DbPassword = args[++argpos];
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        DbPassword = args[++argpos];
                         break;
                     case "-S" : 
-                        if (argpos < args.Length - 1) {
-                            DbMainSchema = args[++argpos];
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        DbMainSchema = args[++argpos];
                         break;
                     case "-Sn" : 
-                        if (argpos < args.Length - 1) {
-                            DbNewsSchema = args[++argpos];
-                        } else return false;
+                        if (argpos == args.Length - 1) return false;
+                        DbNewsSchema = args[++argpos];
                         break;
                     default: 
                         return false;
@@ -407,7 +404,7 @@ namespace Terradue.Portal {
             string connectionString = GetConnectionString();
             if (connectionString == null) return;
 
-            Console.WriteLine("Connecting to: " + Regex.Replace(connectionString, "(Password)=[^;]+", "$1=********", RegexOptions.IgnoreCase));
+            if (Interactive) Console.WriteLine("Connecting to: " + Regex.Replace(connectionString, "(Password)=[^;]+", "$1=********", RegexOptions.IgnoreCase));
     
             try {
                 OpenConnection(connectionString);
@@ -418,10 +415,10 @@ namespace Terradue.Portal {
             
             if (schemaExists) {
                 if (DefinitionMode == DataDefinitionMode.Create) {
-                    Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", dbMainSchema);
+                    if (Interactive) Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", dbMainSchema);
                     if (!GetYes("Answer yes to delete and recreate: ")) {
                         CloseConnection();
-                        Console.WriteLine("Aborted (no change)");
+                        if (Interactive) Console.WriteLine("Aborted (no change)");
                         return;
                     }
                 } else if (DefinitionMode == DataDefinitionMode.Automatic) {
@@ -430,7 +427,7 @@ namespace Terradue.Portal {
             } else if (DefinitionMode == DataDefinitionMode.Automatic) {
                 DefinitionMode = DataDefinitionMode.Create;
             } else if (DefinitionMode != DataDefinitionMode.Create) {
-                Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", dbMainSchema);
+                if (Interactive) Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", dbMainSchema);
                 return;
             }
             
@@ -469,14 +466,16 @@ namespace Terradue.Portal {
             WriteSeparator();
     
             if (DefinitionMode == DataDefinitionMode.Create || schemaExists) {
-                Console.WriteLine("SUMMARY");
-                WriteSeparator();
-                core.WriteChange();
-                foreach (Module module in modules) module.WriteChange();
-                foreach (ServiceItem service in services) service.WriteChange();
-                if (site != null) site.WriteChange();
-                WriteSeparator();
-                Console.WriteLine("Portal database {0} successfully.", DefinitionMode == DataDefinitionMode.Create ? "installed" : "upgraded");
+                if (Interactive) {
+                    Console.WriteLine("SUMMARY");
+                    WriteSeparator();
+                    core.WriteChange();
+                    foreach (Module module in modules) module.WriteChange();
+                    foreach (ServiceItem service in services) service.WriteChange();
+                    if (site != null) site.WriteChange();
+                    WriteSeparator();
+                    Console.WriteLine("Portal database {0} successfully.", DefinitionMode == DataDefinitionMode.Create ? "installed" : "upgraded");
+                }
             }
             
             WriteToDoList();
@@ -590,12 +589,14 @@ namespace Terradue.Portal {
 
                 string configFile = String.Format("{0}{1}root{1}web.config", SiteBaseDirectory, Path.DirectorySeparatorChar);
                 if (!File.Exists(configFile)) {
-                    Console.Error.WriteLine(
-                        String.Format("ERROR: The configuration file {0} does not exist.",
-                            configFile,
-                            File.Exists(configFile + ".tmpl") ? " You may create it using the .tmpl file." : String.Empty
-                        )
-                    );
+                    if (Interactive) {
+                        Console.Error.WriteLine(
+                                String.Format("ERROR: The configuration file {0} does not exist.",
+                                        configFile,
+                                        File.Exists(configFile + ".tmpl") ? " You may create it using the .tmpl file." : String.Empty
+                                )
+                        );
+                    }
                     return null;
                 }
                 XmlDocument configDoc = new XmlDocument();
@@ -603,7 +604,7 @@ namespace Terradue.Portal {
 
                 XmlElement key = configDoc.SelectSingleNode("/configuration/appSettings/add[@key='DatabaseConnection']") as XmlElement;
                 if (key == null || !key.HasAttribute("value") || (connectionString = key.Attributes["value"].Value) == String.Empty) {
-                    Console.Error.WriteLine(String.Format("ERROR: No connection string found in web.config.{0}       Make sure the key \"DatabaseConnection\" exists under <appSettings>", Environment.NewLine));
+                    if (Interactive) Console.Error.WriteLine(String.Format("ERROR: No connection string found in web.config.{0}       Make sure the key \"DatabaseConnection\" exists under <appSettings>", Environment.NewLine));
                     return null;
                 }
 
@@ -760,12 +761,12 @@ namespace Terradue.Portal {
                     )
             );*/
 
-            Console.WriteLine("Creating main portal schema \"{0}\"", dbMainSchema);
+            if (Interactive) Console.WriteLine("Creating main portal schema \"{0}\"", dbMainSchema);
             Execute("CREATE DATABASE $MAIN$ DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;");
             schemaExists = true;
             
             if (dbNewsSchema != dbMainSchema) {
-                Console.WriteLine("Creating news schema \"{0}\"", dbNewsSchema);
+                if (Interactive) Console.WriteLine("Creating news schema \"{0}\"", dbNewsSchema);
                 try {
                     Execute("USE $NEWS$;");
                     Execute("DROP DATABASE $NEWS$;");
@@ -946,7 +947,7 @@ namespace Terradue.Portal {
                 Match match = Regex.Match(comment, @"^EXECUTE\((.+)\)$");
                 if (match.Success) {
                     ExecuteSpecificAction(match.Groups[1].Value);
-                } else {
+                } else if (Interactive) {
                     NewLine = !comment.EndsWith(@"\");
                     if (!NewLine) comment = Regex.Replace(comment, @"\\$", "");
                     if (Verbose) comment = "-- " + comment;
@@ -976,14 +977,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static void WriteSeparator() {
-            Console.WriteLine("----------------------------------------------------------------------------------------------------");
+        public void WriteSeparator() {
+            if (Interactive) Console.WriteLine("----------------------------------------------------------------------------------------------------");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static void WriteErrorSeparator() {
-            Console.Error.WriteLine("----------------------------------------------------------------------------------------------------");
+        public void WriteErrorSeparator() {
+            if (Interactive) Console.Error.WriteLine("----------------------------------------------------------------------------------------------------");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -1010,7 +1011,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void WriteToDoList() {
-            if (toDoCount == 0) return;
+            if (!Interactive || toDoCount == 0) return;
             WriteSeparator();
             Console.WriteLine("TO DO: Follow the instruction{0} below before using the web portal and its services", toDoCount == 1 ? "" : "s");
             Console.WriteLine();
@@ -1062,7 +1063,7 @@ namespace Terradue.Portal {
         public void WriteResult() {
             if (DbResult == null) DbResult = String.Format("OK{0}", totalRowCount == -1 ? "" : " (" + totalRowCount + " record" + (totalRowCount == 1 ? "" : "s") + ")");
             if (Verbose) DbResult = "-- " + DbResult;
-            Console.WriteLine(DbResult);
+            if (Interactive) Console.WriteLine(DbResult);
             ResetResult();
         }
         
@@ -1146,19 +1147,19 @@ namespace Terradue.Portal {
                     case "CREATE TABLE" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+);");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating table \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating table \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "CREATE FUNCTION" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+)");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating stored function \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating stored function \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "CREATE PROCEDURE" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+)");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating stored procedure \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating stored procedure \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "ALTER TABLE" :
@@ -1174,9 +1175,7 @@ namespace Terradue.Portal {
                         changeData = DB_INSERT;
                         break;
                 }
-                if (Verbose) {
-                    Console.WriteLine(sql);
-                }
+                if (Interactive && Verbose) Console.WriteLine(sql);
             }
     
             dbCommand = currentDbConn.CreateCommand();
@@ -1189,11 +1188,11 @@ namespace Terradue.Portal {
             } else {
                 rowCount = dbCommand.ExecuteNonQuery();
             }
-            if (Verbose) Console.WriteLine("-- rows: " + rowCount); 
+            if (Interactive && Verbose) Console.WriteLine("-- rows: " + rowCount); 
     
             if (changeData != 0 && rowCount != -1) totalRowCount = (totalRowCount == -1 ? 0 : totalRowCount) + rowCount;
     
-            if (message) Console.WriteLine("OK");
+            if (Interactive && message) Console.WriteLine("OK");
         }
     
         //---------------------------------------------------------------------------------------------------------------------

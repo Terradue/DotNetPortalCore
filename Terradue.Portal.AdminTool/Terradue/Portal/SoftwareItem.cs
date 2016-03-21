@@ -147,7 +147,7 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-prepare.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) return;
 
-            AdminTool.WriteSeparator();
+            Tool.WriteSeparator();
             Console.WriteLine("Prepare {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
             Tool.ExecuteSqlScript(file, this);
         }
@@ -164,7 +164,7 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-create.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) throw new FileNotFoundException(String.Format("Installation script for {0} not found at {1}", ItemsCaption, file));
 
-            AdminTool.WriteSeparator();
+            Tool.WriteSeparator();
             Console.WriteLine("Install {0}{1}\n({2}):", ItemsCaption, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
             Tool.ExecuteSqlScript(file, this);
 
@@ -202,7 +202,7 @@ namespace Terradue.Portal {
 
                 Version = currentFileVersion;
 
-                AdminTool.WriteSeparator();
+                Tool.WriteSeparator();
                 Console.WriteLine("Upgrade {0} to version {1}{2}\n({3}):", ItemsCaption, Version, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
                 Tool.ExecuteSqlScript(file, this);
 
@@ -245,7 +245,7 @@ namespace Terradue.Portal {
 
                 CleanupVersion = currentFileVersion;
 
-                AdminTool.WriteSeparator();
+                Tool.WriteSeparator();
                 Console.WriteLine("Run {0} cleanup for version {1}{2}\n({3}):", ItemsCaption, CleanupVersion, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
                 Tool.ExecuteSqlScript(file, this);
                 RegisterCleanupVersion();
@@ -265,7 +265,7 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-complete.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) return;
 
-            AdminTool.WriteSeparator();
+            Tool.WriteSeparator();
             Console.WriteLine("Complete {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
             Tool.ExecuteSqlScript(file, this);
         }
