@@ -37,7 +37,7 @@ INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword
     (11, 11, 'Terradue.Portal.User, Terradue.Portal', NULL, 'User', 'Users', 'users'),
     (12, 12, 'Terradue.Portal.Group, Terradue.Portal', NULL, 'Group', 'Groups', 'groups'),
     (13, 13, 'Terradue.Portal.LightGridEngine, Terradue.Portal', NULL, 'LGE Instance', 'LGE Instances', 'lge-instances'),
-    (14, 14, 'Terradue.Portal.ComputingResource, Terradue.Portal', NULL, 'Computing Resource', 'Computing Resources', 'computing-resources'),
+    (14, 14, 'Terradue.Portal.ComputingResource, Terradue.Portal', 'Terradue.Portal.GenericComputingResource, Terradue.Portal', 'Computing Resource', 'Computing Resources', 'computing-resources'),
     (15, 15, 'Terradue.Portal.Catalogue, Terradue.Portal', NULL, 'Metadata catalogue', 'Metadata catalogues', 'catalogues'),
     (16, 16, 'Terradue.Portal.Series, Terradue.Portal', NULL, 'Dataset Series', 'Dataset Series', 'series'),
     (17, 17, 'Terradue.Portal.ProductType, Terradue.Portal', NULL, 'Product Type', 'Product Types', 'product-types'),
