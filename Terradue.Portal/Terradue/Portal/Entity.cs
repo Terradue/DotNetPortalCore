@@ -47,7 +47,7 @@ implement specific authentication mechanism or authorization scheme.
 /*!
 \defgroup Authorisation Authorisation
 @{
-It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
+It provides with the functions to define privileges for users or groups on \ref Entity objects for which restrictions are useful, such as entities that represent resources (\ref Service, \ref Series ...).
 
 \ingroup Security
 
@@ -55,16 +55,51 @@ It provides with the functions to define privileges for users or groups on entit
 
 \xrefitem dep "Dependencies" "Dependencies" uses \ref Context to identify the user and the session
 
+The following class diagram describes the base authorization scheme implemented in the \ref Security component providing with the access control mechanism to the \ref Core and depending components.
+
+\startuml Authorisation scheme Class Diagram
+
+        Group  *-right-"0..*" User : has >
+        User -down-"0..*" Domain : belongs >
+        Group -down-"0..*" Domain : belongs >
+        abstract class Entity
+        Entity <|-up- Domain
+        Entity <|-up- Object
+        Entity -- EntityType : is specified by >
+        EntityType -right- Privilege : defines >
+        Role *-down- Privilege : is granted >
+        class Permission
+        User -- Object : accesses >
+        Group -- Object : accesses >
+        Object -right- Domain : belongs >
+
+        (User, Domain) . Role
+        (Group, Domain) . Role
+        (User, Object) . Permission
+        (Group, Object) . Permission
+
+\enduml
+
+The following defintions supports this scheme:
+- \ref User and \ref Group are defined according the regular convention that a group is a set of zero or many users.
+- A Domain is an organizational unit to regroup \ref User, \ref Group and Objects (\ref Entity).
+- A \ref Role defines the set of privileges a \ref User or a \ref Group is granted for a specific Domain. A \ref Role not associated to a domain is GLOBAL.
+- A Privilege is an access control for a given entity (object) type. For instance: "Can Create" for \ref Series specify the possibility to create a \Series in the system
+- A Permission is a specific Privilege for a \ref User or a \ref Group for a given Object (\ref Entity). For instance: "Can View" for the ENVISAT \ref Series speificy the possibility to view the ENVISAT \ref Series in the results of a search.
+
+And the following rules applies:
+- All Objects belonging to a domain are granted to all \User and \ref Group in that domain according to their \ref Role and thus to the Privileges set to that role
+- All Objects NOT belonging to a domain are considered GLOBAL and granted to all \User and \ref Group of the system according to their GLOBAL \ref Role and thus to the Privileges set to that role.
+- A specific permission for a specific object is granted to a specific \ref User or \ref Group.
+
+
 The authorisation consists of two phases:
-- a generic phase where the current user's access privileges are compared to the necessary privileges for the accessed resource
-- an optional specific phase where the same check is performed for the requested operation. This phase is specific to the entity subclass in question as the possible operations are entity-specific.
+- a generic phase where the current \ref User 's access privileges are compared to the necessary privileges for the accessed object according to the domain or the global.
+- an optional specific phase where the same check is performed for the requested operation. This phase is specific to the \ref entity object in question as the possible operations are entity-specific.
 
-If IfyContext.RestrictedMode is <em>true</em> (the default value) and the user has insufficient privileges to access an item, the item is not loaded and an exception is thrown immediately.
-Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation check needs to be done by the code that loaded the entity item. This code should check the CanView property of the loaded item and if its value is <em>false</em>, it may either continue or throw another, more appropriate, exception.
-The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
+The authorisation for a specific operation must be ensured by the code of the \ref Entity object. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
 
-
-\startuml "Authorisation mechanism Activity Diagram
+\startuml Authorisation mechanism Activity Diagram
 
 start
 :Load entity item considering access policies and user/group privileges;
