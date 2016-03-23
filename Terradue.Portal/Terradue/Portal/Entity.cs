@@ -83,13 +83,15 @@ The following class diagram describes the base authorization scheme implemented 
 The following defintions supports this scheme:
 - \ref User and \ref Group are defined according the regular convention that a group is a set of zero or many users.
 - A Domain is an organizational unit to regroup \ref User, \ref Group and Objects (\ref Entity).
-- A \ref Role defines the set of privileges a \ref User or a \ref Group is granted for a specific Domain. A \ref Role not associated to a domain is GLOBAL.
+- A \ref Role defines the set of privileges that are granted to a \ref User or a \ref Group for a specific Domain or globally.
+- The assignement of a \ref Role to a \ref User or a \ref Group is called a "Role Grant". A Role Grant can be associated to a Domain and is therefore called "Domain Role Grant".
+A Role Grant not associated to any domain is a "Global Role Grant".
 - A Privilege is an access control for a given entity (object) type. For instance: "Can Create" for \ref Series specify the possibility to create a \Series in the system
 - A Permission is a specific Privilege for a \ref User or a \ref Group for a given Object (\ref Entity). For instance: "Can View" for the ENVISAT \ref Series speificy the possibility to view the ENVISAT \ref Series in the results of a search.
 
 And the following rules applies:
-- All Objects belonging to a domain are granted to all \User and \ref Group in that domain according to their \ref Role and thus to the Privileges set to that role
-- All Objects NOT belonging to a domain are considered GLOBAL and granted to all \User and \ref Group of the system according to their GLOBAL \ref Role and thus to the Privileges set to that role.
+- Users and Groups with a Domain Role Grant on a certain Domain have all the privileges defined by that Role on all Objects belonging to that Domain.
+- Users and Groups with a Global Role Grant have all the privileges defined by that Role on all Objects, whether belonging to a Domain or not.
 - A specific permission for a specific object is granted to a specific \ref User or \ref Group.
 
 
