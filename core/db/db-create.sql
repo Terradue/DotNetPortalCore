@@ -369,11 +369,12 @@ CREATE TABLE domain (
 
 CREATE TABLE role (
     id int unsigned NOT NULL auto_increment,
-    name varchar(100) NOT NULL COMMENT 'Unique name',
+    identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
+    name varchar(100) COMMENT 'Name',
     description text COMMENT 'Description',
     count INT NULL COMMENT 'number of products',
     CONSTRAINT pk_role PRIMARY KEY (id),
-    UNIQUE INDEX (name)
+    UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Manager roles';
 -- CHECKPOINT C-08
 
