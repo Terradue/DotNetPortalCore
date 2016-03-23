@@ -25,7 +25,8 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Represents a domain.</summary>
+    /// <summary>Domain</summary>
+    /// <description>A Domain is an organizational unit to regroup \ref Entity</description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("domain", EntityTableConfiguration.Custom, NameField = "name")]
     public class Domain : Entity {
@@ -33,6 +34,9 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         [EntityDataField("description")]
+        /// <summary>Description</summary>
+        /// <description>Human readable description of the domain</description>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string Description { get; set; } 
 
         //---------------------------------------------------------------------------------------------------------------------
