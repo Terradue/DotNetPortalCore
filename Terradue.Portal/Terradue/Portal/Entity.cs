@@ -105,7 +105,7 @@ The authorisation for a specific operation must be ensured by the code of the \r
 
 start
 :Load entity item considering access policies and user/group privileges;
-if (Are view privileges for current user sufficient?) then (yes)
+if (Are list/view privileges/permissions for current user sufficient?) then (yes)
     :Access granted;
 else (no)
     if (Is current context set to restricted mode?) then (yes)
@@ -118,8 +118,8 @@ else (no)
 endif
 :Generic authorisation check completed;
 :Speficic authorisation checks for operation (performed by entity subclass);
-if (Is specific privilege required for requested operation) then (yes)
-    if (Does user have this privilege?) then (no)
+if (Is specific privilege or permission required for requested operation) then (yes)
+    if (Does user have this privilege in the object's domain or this permission on the specific object?) then (no)
         :Operation rejected (throw exception);
         stop
     else (yes)
