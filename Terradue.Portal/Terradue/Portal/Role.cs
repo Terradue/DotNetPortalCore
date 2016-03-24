@@ -108,8 +108,6 @@ namespace Terradue.Portal {
             if (condition != null) sql.Append(String.Format(" AND {0}", condition));
             sql.Append(" ORDER BY v1;");
 
-            Console.WriteLine("SQL = {0}", sql.ToString());
-
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql.ToString(), dbConnection);
             bool result = reader.Read();
@@ -133,32 +131,29 @@ namespace Terradue.Portal {
     /// <summary>Enumeration of generic operations regarding entities.</summary>
     public enum EntityOperationType {
 
-        /// <summary>View an entity item.</summary>
-        View = 'v',
-
-        /// <summary>View additional information related to an entity item.</summary>
-        ViewExtended = 'V',
-
         /// <summary>Create a new entity item.</summary>
+        /// <remarks>This privilege allows a user to create new domain-owned or global entity items according to his grant.</remarks>
         Create = 'c',
 
+        /// <summary>List and search entity items.</summary>
+        /// <remarks>This privilege allows a user to see lists of entity items that are part of his grant and to search within these lists.</remarks>
+        Search = 's',
+
+        /// <summary>View an entity item.</summary>
+        /// <remarks>This privilege allows a user to view the details of entity items that are part of his grant.</remarks>
+        View = 'v',
+
         /// <summary>Change an existing entity item.</summary>
+        /// <remarks>This privilege allows a user to make persistent modifications to entity items that are part of his grant.</remarks>
         Change = 'm',
 
-        /// <summary>Make owned entity item available to others.</summary>
-        Publish = 'p',
+        /// <summary>Use an entity item in the same way as its owner and manage or control it.</summary>
+        /// <remarks>This privilege implies the Change privilege and, in addition, allows a user to influence what other users can do regarding entity items within his grant. Typical operations include changes to availability and the assignment of permissions to users or groups.</remarks>
+        Manage = 'M',
 
         /// <summary>Make an entity item available to others.</summary>
-        Delete = 'd',
-
-        /// <summary>Assign resource item permissions to users or groups of same domain.</summary>
-        Assign = 'a',
-            
-        /// <summary>Assign resource item permissions to any user or group.</summary>
-        AssignGlobal = 'A',
-
-        /// <summary>Use an item in the same way as its owner.</summary>
-        Use = 'u'
+        /// <remarks>This privilege allows a user to definitely remove entity items that are part of his grant from the database.</remarks>
+        Delete = 'd'
 
     }
 
