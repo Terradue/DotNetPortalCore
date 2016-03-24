@@ -8,7 +8,11 @@ using Terradue.ServiceModel.Syndication;
 
 namespace Terradue.Portal {
 
-    /// <summary>
+
+
+
+    /// <summary>Activity</summary>
+    /// <description>
     /// Activity class
     /// -> log activities made by users
     /// -> associated to a privilege and an entity type (e.g series: create)
@@ -24,7 +28,8 @@ namespace Terradue.Portal {
     /// 
     /// Specific actions at SubClass level
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
-    /// </summary>
+    /// </description>
+    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
     public class Activity : Entity, IAtomizable, IComparable<Activity> {
 
