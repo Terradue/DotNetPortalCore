@@ -7,7 +7,7 @@ namespace Terradue.Portal.Test {
     [TestFixture]
     public class RolePrivilegeTests {
 
-        bool rebuildData = false;
+        bool rebuildData = true;
 
         string connectionString = "Server=localhost; Port=3306; User Id=root; Password=root; Database=TerraduePortalTest";
         Domain domain1, domain2;
@@ -40,11 +40,11 @@ namespace Terradue.Portal.Test {
                     domain2.Store();
 
                     group1 = new Group(context);
-                    group1.Identifier = "cr-viewers-and-modifiers";
+                    group1.Identifier = "domain-1_cr_viewers+changers";
                     group1.Store();
 
                     group2 = new Group(context);
-                    group2.Identifier = "group-2";
+                    group2.Identifier = "global_cr_deleters";
                     group2.Store();
 
                     user0 = new User(context);
@@ -60,7 +60,7 @@ namespace Terradue.Portal.Test {
                     user12.Store();
 
                     user21 = new User(context);
-                    user21.Identifier = "user-2-1";
+                    user21.Identifier = "global_cr_deleter";
                     user21.Store();
 
                     role1 = new Role(context);
@@ -82,9 +82,9 @@ namespace Terradue.Portal.Test {
 
                     context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {2}), ({1}, {2});", user11.Id, user12.Id, group1.Id));
                     context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {1});", user21.Id, group2.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {2}, {3}), ({1}, {2}, {3});", group1.Id, group2.Id, role1.Id, domain1.Id));
+                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {2}, {3});", group1.Id, group2.Id, role1.Id, domain1.Id));
                     context.Execute(String.Format("INSERT INTO role_grant (id_usr, id_role, id_domain) VALUES ({0}, {1}, {2});", user12.Id, role2.Id, domain1.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {1}, NULL);", user12.Id, role2.Id));
+                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {1}, NULL);", group2.Id, role2.Id));
 
                 } else {
                     
@@ -92,16 +92,16 @@ namespace Terradue.Portal.Test {
                     domain1.Load("domain-1");
                     domain2 = Domain.GetInstance(context);
                     domain2.Load("domain-2");
-                    group1 = Group.FromIdentifier(context, "group-1");
-                    group2 = Group.FromIdentifier(context, "group-2");
+                    group1 = Group.FromIdentifier(context, "domain-1_cr_viewers+changers");
+                    group2 = Group.FromIdentifier(context, "global_cr_deleters");
                     user0 = User.FromUsername(context, "user-0");
-                    user11 = User.FromUsername(context, "user-1-1");
-                    user12 = User.FromUsername(context, "user-1-2");
-                    user21 = User.FromUsername(context, "user-2-1");
+                    user11 = User.FromUsername(context, "domain-1_cr_viewer+changer");
+                    user12 = User.FromUsername(context, "domain-1_cr_viewer+changer+deleter");
+                    user21 = User.FromUsername(context, "global_cr_deleter");
                     role1 = Role.GetInstance(context);
-                    role1.Load("role-1");
+                    role1.Load("cr_view+change");
                     role2 = Role.GetInstance(context);
-                    role2.Load("role-2");
+                    role2.Load("cr_delete");
                 }
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
@@ -110,34 +110,29 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
-        public void Test() {
-            // user-1-1 and user-1-2 have privilege to view computing resources in domain-1
+        public void TestDomainRoleGrant() {
             try {
+                // Users "domain-1_cr_viewer+changer" and "domain-1_cr_viewer+changer+deleter" have privilege to view computing resources in domain-1
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user11, domain1, "cr-v"));
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user12, domain1, "cr-v"));
 
-                // user-1-1 and user-1-2 have privilege to change computing resources in domain-1
+                // Users "domain-1_cr_viewer+changer" and "domain-1_cr_viewer+changer+deleter" have privilege to change computing resources in domain-1
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user11, domain1, "cr-m"));
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user12, domain1, "cr-m"));
 
-                // user-1-1 DOES NOT have privilege to delete computing resources in domain-1
+                // User "domain-1_cr_viewer+changer" DOES NOT have privilege to delete computing resources in domain-1
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, domain1, "cr-d"));
 
-                // user-1-2 DOES have privilege to delete computing resources in domain-1
+                // User "domain-1_cr_viewer+changer+deleter" DOES have privilege to delete computing resources in domain-1
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user12, domain1, "cr-d"));
 
-                // user-1-1 and user-1-2 DO NOT have privilege to view, change or delete global computing resources
+                // Users "domain-1_cr_viewer+changer" and "domain-1_cr_viewer+changer+deleter" DO NOT have privilege to view, change or delete global computing resources
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-v"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user12, null, "cr-v"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-m"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user12, null, "cr-m"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-d"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user12, null, "cr-d"));
-
-                // user-2-1 cannot view
-                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-v"));
-                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-v"));
-
 
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
@@ -146,16 +141,27 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
-        public void BBB() {
-            Assert.That(true);
+        public void TestGlobalRoleGrant() {
+            try {
+                // User "global_cr_deleter" DOES NOT have privilege to view or change computing resources
+                // (global privilege does not allow it)
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, domain1, "cr-v"));
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, domain2, "cr-v"));
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, null, "cr-v"));
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, domain1, "cr-m"));
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, domain2, "cr-m"));
+                Assert.IsFalse(Role.DoesUserHavePrivilege(context, user21, null, "cr-m"));
+
+                // User "global_cr_deleter" DOES have privilege to delete computing resources globally
+                Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, domain1, "cr-d"));
+                Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, domain2, "cr-d"));
+                Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, null, "cr-d"));
+
+                Console.WriteLine("CIAO CIAO");
+            } catch (Exception e) {
+                Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
+            }
         }
-
-        [Test]
-        public void AAA() {
-            Assert.That(true);
-        }
-
-
 
         [TestFixtureTearDown]
         public void DestroyEnvironment() {
