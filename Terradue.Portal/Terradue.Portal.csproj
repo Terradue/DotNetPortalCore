@@ -143,6 +143,7 @@
     <Compile Include="Terradue\Portal\Privilege.cs" />
     <Compile Include="Terradue\Portal\UserUsage.cs" />
     <Compile Include="Terradue\Portal\OpenSearch\SmartGenericOpenSearchable.cs" />
+    <Compile Include="Terradue\Portal\_Documentation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
