@@ -35,6 +35,7 @@ This is the interface to the relational Database in SQL
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+using System.Text;
 
 
 
@@ -632,8 +633,12 @@ namespace Terradue.Portal {
             // Build join
             int privilegeSubjectTableIndex = -1;
             
-            string join = String.Format("{0} AS t", TopTable.Name);
+            bool includePrivileges = true;
+            bool list = true;
             string aggregation = null;
+            bool restrictedList = true;
+
+            string join = String.Format("{0} AS t", TopTable.Name);
 
             for (int i = 0; i < Tables.Count; i++) {
                 EntityTableAttribute table = Tables[i];
@@ -646,16 +651,17 @@ namespace Terradue.Portal {
                             Tables[i - 1].IdField
                     );
                 }
-                if (table == PrivilegeSubjectTable) {
+                if (includePrivileges && table == PrivilegeSubjectTable) {
                     privilegeSubjectTableIndex = i;
-                    join += String.Format(" INNER JOIN {0} AS p ON t{1}.id=p.id_{2}",
+                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3}",
+                            restrictedList ? "INNER" : "LEFT",
                             table.PrivilegeTable,
                             i == 0 ? String.Empty : i.ToString(),
                             table.Name
                     );
                 }
                 for (int j = 0; j < ForeignTables.Count; j++) {
-                    if (ForeignTables[j].IsMultiple || ForeignTables[j].ReferringTable != table) continue;
+                    if (!list && ForeignTables[j].IsMultiple || ForeignTables[j].ReferringTable != table) continue;
                     join += String.Format(" {0} JOIN {1}", 
                             ForeignTables[j].IsRequired ? "INNER" : "LEFT",
                             ForeignTables[j].Join
@@ -711,6 +717,170 @@ namespace Terradue.Portal {
         }
         
         //---------------------------------------------------------------------------------------------------------------------
+/*        private string restrictedJoinSql;
+        private string unrestrictedJoinSql;
+        private string adminJoinSql;
+
+        private string idSelectSql;
+        private string fullSelectSql;
+        private string adminSelectSql;
+
+
+        private void BuildBaseQueries() {
+            bool list = true;
+            //bool restrictedList = list && context.RestrictedMode;
+            //bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
+            //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
+            bool distinct = false;
+
+            // Build join
+            int privilegeSubjectTableIndex = -1;
+
+            string aggregation = null;
+
+            string s = String.Format("{0} AS t", TopTable.Name);
+            restrictedJoinSql = s;
+            unrestrictedJoinSql = s;
+            adminJoinSql = s;
+
+
+            for (int i = 0; i < Tables.Count; i++) {
+                EntityTableAttribute table = Tables[i];
+                if (i != 0) {
+                    s = String.Format(" INNER JOIN {0} AS t{1} ON t{2}.{4}=t{1}.{3}", 
+                        table.Name,
+                        i,
+                        i == 1 ? String.Empty : (i - 1).ToString(),
+                        table.IdField,
+                        Tables[i - 1].IdField
+                    );
+                }
+                restrictedJoinSql += s;
+                unrestrictedJoinSql += s;
+                adminJoinSql += s;
+
+                if (table == PrivilegeSubjectTable) {
+                    s = String.Format(" JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
+                            table.PrivilegeTable,
+                            i == 0 ? String.Empty : i.ToString(),
+                            table.Name
+                    );
+                    restrictedJoinSql += String.Format(" INNER {0}", s);
+                    unrestrictedJoinSql += String.Format(" LEFT {0}", s);
+                }
+                for (int j = 0; j < ForeignTables.Count; j++) {
+                    if (ForeignTables[j].ReferringTable != table) continue;
+                    s = String.Format(" {0} JOIN {1}", 
+                        ForeignTables[j].IsRequired ? "INNER" : "LEFT",
+                        ForeignTables[j].Join
+                    );
+                    distinct |= ForeignTables[j].IsMultiple;
+                    restrictedJoinSql += s;
+                    unrestrictedJoinSql += s;
+                    adminJoinSql += s;
+                }
+            }
+
+            // Build WHERE clause
+            // **** if (list && TopTable.TypeReferenceField != null) {
+            // ****     if (condition == null) condition = String.Empty; else condition += " AND ";
+            // ****     //condition += String.Format("t.{1}={0}", Id, TopTable.TypeReferenceField);
+            // ****     condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
+            // **** }
+
+            s = String.Format("t.{0}", TopTable.IdField);
+            idSelectSql = s;
+            fullSelectSql = s;
+            adminSelectSql = s;
+
+
+            // **** if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
+
+            // Add GROUP BY aggregation if necessary
+            // **** if (includePrivileges) aggregation = " GROUP BY t.id";
+
+            // Add generic identifying fields to SELECT clause
+            s = String.Empty;
+            if (TopTable.HasIdentifierField) s += String.Format(", t.{0}", TopTable.IdentifierField);
+            if (TopTable.HasNameField) s += String.Format(", t.{0}", TopTable.NameField);
+            if (TopTable.HasDomainReference) s += String.Format(", t.{0}", TopTable.DomainReferenceField);
+            if (TopTable.HasOwnerReference) s += String.Format(", t.{0}", TopTable.OwnerReferenceField);
+            fullSelectSql += s;
+            adminSelectSql += s;
+
+            if (includePrivileges) {
+                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN ug.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
+            }
+
+            // Add entity-specific fields to SELECT clause 
+            foreach (FieldInfo field in Fields) {
+                if (field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
+                    fullSelectSql += String.Format(", MAX(CASE WHEN p.id_usr IS NOT NULL OR ug.id_grp IS NOT NULL OR p.id_{1} AND p.id_usr IS NULL AND p.id_grp IS NULL THEN p.{0} ELSE NULL END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
+                    adminSelectSql += ", NULL";
+                } else if (field.FieldType == EntityFieldType.DataField) {
+                    if (field.FieldName == null) s = String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
+                    else s = String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
+                    fullSelectSql += s;
+                    adminSelectSql += s;
+                } else if (field.FieldType == EntityFieldType.ForeignField) {
+                    ForeignTableInfo foreignTable = null;
+                    for (int j = 0; j < ForeignTables.Count; j++) {
+                        foreignTable = ForeignTables[j];
+                        if (foreignTable.IsMultiple || foreignTable.ReferringTable != Tables[field.TableIndex] || foreignTable.SubIndex != field.TableSubIndex) {
+                            foreignTable = null;
+                            continue;
+                        }
+                        break;
+                    }
+                    if (foreignTable == null) s = ", NULL";
+                    else if (field.FieldName == null) s += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
+                    else s += String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
+                    fullSelectSql += s;
+                    adminSelectSql += s;
+                }
+            }
+
+            // **** string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
+
+            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, select, distinct ? "DISTINCT " : String.Empty, sort);
+
+        }
+
+        private string GetQueryNew(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
+
+
+            //bool restrictedList = list && context.RestrictedMode;
+            //bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
+            //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
+            bool distinct = false;
+
+            // Build join
+            int privilegeSubjectTableIndex = -1;
+
+            string aggregation = null;
+
+            string joinSql = context.AdminMode ? adminJoinSql : context.RestrictedMode ? restrictedJoinSql : unrestrictedJoinSql;
+
+            // Build WHERE clause
+            if (list && TopTable.TypeReferenceField != null) {
+                if (condition == null) condition = String.Empty; else condition += " AND ";
+                //condition += String.Format("t.{1}={0}", Id, TopTable.TypeReferenceField);
+                condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
+            }
+            string selectSql = idsOnly ? idSelectSql : context.AdminMode ? adminSelectSql : fullSelectSql;
+
+            // Add GROUP BY aggregation if necessary
+            if (includePrivileges) aggregation = " GROUP BY t.id";
+
+            if (includePrivileges) {
+                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN ug.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
+            }
+
+            string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
+
+            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, distinct ? "DISTINCT " : String.Empty, sort);
+
+        }*/
 
         private string GetQuery(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
 
@@ -722,8 +892,9 @@ namespace Terradue.Portal {
             // Build join
             int privilegeSubjectTableIndex = -1;
             
-            string join = String.Format("{0} AS t", TopTable.Name);
             string aggregation = null;
+
+            string join = String.Format("{0} AS t", TopTable.Name);
 
             for (int i = 0; i < Tables.Count; i++) {
                 EntityTableAttribute table = Tables[i];
