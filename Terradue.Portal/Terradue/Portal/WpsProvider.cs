@@ -40,7 +40,7 @@ Main Functions
 - retrieves the DescribeProcess() of the previously discovered process to describe the process with input and ouput parameters and create a \ref WpsProcessOffering;
 - submits, controls and monitors processing via the Execute() of the WPS server of a \ref WpsProvider
 
-Below, the sequence diagrams describe the the previously listed functions.
+Below, the sequence diagrams describe the previously listed functions.
 
 \startuml "WPS Service Analysis Sequence Diagram - Get Capabilities"
 
