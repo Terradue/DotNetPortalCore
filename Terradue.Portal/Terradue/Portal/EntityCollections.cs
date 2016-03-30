@@ -218,7 +218,6 @@ namespace Terradue.Portal {
             foreach (int id in ids) {
                 if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
-                item.Load(id);
                 IncludeInternal(item);
                 if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
             }

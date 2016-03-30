@@ -73,12 +73,18 @@ namespace Terradue.Portal.Test {
                     role2.Store();
                     context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('cr-d');", role2.Id));
 
-
                     ComputingResource cr1 = new GenericComputingResource(context);
                     cr1.Identifier = "cr-1";
                     cr1.Name = "cr-1";
                     cr1.DomainId = domain1.Id;
                     cr1.Store();
+
+                    PublishServer ps1 = new PublishServer(context);
+                    ps1.Identifier = "ps-1";
+                    ps1.Name = "ps-1";
+                    ps1.Hostname = "mytest.host";
+                    ps1.DomainId = domain1.Id;
+                    ps1.Store();
 
                     context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {2}), ({1}, {2});", user11.Id, user12.Id, group1.Id));
                     context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {1});", user21.Id, group2.Id));
@@ -157,9 +163,9 @@ namespace Terradue.Portal.Test {
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, domain2, "cr-d"));
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, null, "cr-d"));
 
-                Console.WriteLine("CIAO CIAO");
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
+                throw;
             }
         }
 

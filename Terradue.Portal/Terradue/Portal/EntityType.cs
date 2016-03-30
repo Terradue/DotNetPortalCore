@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text;
 using Terradue.Util;
 
 
@@ -35,7 +36,6 @@ This is the interface to the relational Database in SQL
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using System.Text;
 
 
 
@@ -69,6 +69,16 @@ namespace Terradue.Portal {
         private static Dictionary<PropertyInfo, EntityRelationshipType> entityRelationshipTypes = new Dictionary<PropertyInfo, EntityRelationshipType>();
 
         private string singularCaption, pluralCaption;
+
+        private string restrictedJoinSql;
+        private string unrestrictedJoinSql;
+        private string adminJoinSql;
+
+        private string idSelectSql;
+        private string fullSelectSql;
+        private string adminSelectSql;
+
+        private bool isSqlPrepared = false;
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -205,6 +215,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool HasMultipleTables { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public List<FieldInfo> Fields;
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -294,6 +308,7 @@ namespace Terradue.Portal {
             GenericClassType = source.GenericClassType;
             TopTable = source.TopTable;
             PrivilegeSubjectTable = source.PrivilegeSubjectTable;
+            HasMultipleTables = source.HasMultipleTables;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -511,6 +526,7 @@ namespace Terradue.Portal {
                     EntityMultipleForeignTableAttribute attr = attribute as EntityMultipleForeignTableAttribute;
                     ForeignTableInfo foreignTableInfo = new ForeignTableInfo(tableInfo, tableIndex, attr);
                     ForeignTables.Add(foreignTableInfo);
+                    HasMultipleTables = true;
                     if (IfyContext.DefaultConsoleDebug) Console.WriteLine("MULTIPLE FOREIGN TABLE {0} - {1}", attr.RelationshipName, attr.Name);
                 } else if (attribute is EntityForeignTableAttribute) {
                     EntityForeignTableAttribute attr = attribute as EntityForeignTableAttribute;
@@ -565,7 +581,7 @@ namespace Terradue.Portal {
         /// <param name="id">The database ID of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, int id) {
-            return context.GetQueryIntegerValue(GetQuery(context, 0, null, String.Format("t.{1}={0}", id, TopTable.IdField), false, true)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", id, TopTable.IdField), false, true)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -575,7 +591,8 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, string identifier) {
-            return context.GetQueryIntegerValue(GetQuery(context, 0, null, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), false, true)) != 0;
+            if (!TopTable.HasIdentifierField) return false;
+            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), false, true)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -586,7 +603,7 @@ namespace Terradue.Portal {
         /// <param name="condition">Additional SQL condition.</param>
         /// <returns>The SQL query.</returns>
         public string GetItemQuery(IfyContext context, int userId, string condition) {
-            return GetQuery(context, userId, null, condition, false, false);
+            return GetQuery(context, userId, condition, false, false);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
@@ -598,21 +615,21 @@ namespace Terradue.Portal {
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <returns>The SQL query.</returns>
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly) {
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
             string condition = (template == null ? null : GetTemplateCondition(template, false));
-            return GetQuery(context, userId, template, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
             string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -624,7 +641,7 @@ namespace Terradue.Portal {
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
 
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -670,14 +687,14 @@ namespace Terradue.Portal {
             }
             
             // Build WHERE clause
-            if (TopTable.HasPrivilegeManagement && groupIds != null && groupIds.Length != 0) {
+            if (HasPrivilegeManagement && groupIds != null && groupIds.Length != 0) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("p.id_grp{0}", groupIds.Length == 1 ? String.Format("={0}", groupIds[0].ToString()) : String.Format(" IN ({0})", String.Join(", ", groupIds)));
             }
             if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
 
             // Add GROUP BY aggregation if necessary
-            if (TopTable.HasPrivilegeManagement) aggregation = " GROUP BY t.id";
+            if (HasPrivilegeManagement) aggregation = " GROUP BY t.id";
 
             // Add generic identifying fields to SELECT clause
             string select = String.Format("t.{0}", TopTable.IdField);
@@ -685,7 +702,7 @@ namespace Terradue.Portal {
             if (TopTable.HasNameField) select += String.Format(", t.{0}", TopTable.NameField);
             if (TopTable.HasDomainReference) select += String.Format(", t.{0}", TopTable.DomainReferenceField);
             if (TopTable.HasOwnerReference) select += String.Format(", t.{0}", TopTable.OwnerReferenceField);
-            if (!context.AdminMode && TopTable.HasPrivilegeManagement) {
+            if (!context.AdminMode && HasPrivilegeManagement) {
                 select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN p.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
             }
             
@@ -717,17 +734,8 @@ namespace Terradue.Portal {
         }
         
         //---------------------------------------------------------------------------------------------------------------------
-/*        private string restrictedJoinSql;
-        private string unrestrictedJoinSql;
-        private string adminJoinSql;
 
-        private string idSelectSql;
-        private string fullSelectSql;
-        private string adminSelectSql;
-
-
-        private void BuildBaseQueries() {
-            bool list = true;
+        private void PrepareSql() {
             //bool restrictedList = list && context.RestrictedMode;
             //bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
             //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
@@ -735,8 +743,6 @@ namespace Terradue.Portal {
 
             // Build join
             int privilegeSubjectTableIndex = -1;
-
-            string aggregation = null;
 
             string s = String.Format("{0} AS t", TopTable.Name);
             restrictedJoinSql = s;
@@ -754,13 +760,13 @@ namespace Terradue.Portal {
                         table.IdField,
                         Tables[i - 1].IdField
                     );
+                    restrictedJoinSql += s;
+                    unrestrictedJoinSql += s;
+                    adminJoinSql += s;
                 }
-                restrictedJoinSql += s;
-                unrestrictedJoinSql += s;
-                adminJoinSql += s;
 
                 if (table == PrivilegeSubjectTable) {
-                    s = String.Format(" JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
+                    s = String.Format("JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
                             table.PrivilegeTable,
                             i == 0 ? String.Empty : i.ToString(),
                             table.Name
@@ -781,23 +787,10 @@ namespace Terradue.Portal {
                 }
             }
 
-            // Build WHERE clause
-            // **** if (list && TopTable.TypeReferenceField != null) {
-            // ****     if (condition == null) condition = String.Empty; else condition += " AND ";
-            // ****     //condition += String.Format("t.{1}={0}", Id, TopTable.TypeReferenceField);
-            // ****     condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
-            // **** }
-
             s = String.Format("t.{0}", TopTable.IdField);
             idSelectSql = s;
             fullSelectSql = s;
             adminSelectSql = s;
-
-
-            // **** if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
-
-            // Add GROUP BY aggregation if necessary
-            // **** if (includePrivileges) aggregation = " GROUP BY t.id";
 
             // Add generic identifying fields to SELECT clause
             s = String.Empty;
@@ -808,15 +801,14 @@ namespace Terradue.Portal {
             fullSelectSql += s;
             adminSelectSql += s;
 
-            if (includePrivileges) {
-                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN ug.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
+            if (HasPrivilegeManagement) {
+                fullSelectSql += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN p.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
             }
 
             // Add entity-specific fields to SELECT clause 
             foreach (FieldInfo field in Fields) {
                 if (field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
-                    fullSelectSql += String.Format(", MAX(CASE WHEN p.id_usr IS NOT NULL OR ug.id_grp IS NOT NULL OR p.id_{1} AND p.id_usr IS NULL AND p.id_grp IS NULL THEN p.{0} ELSE NULL END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
-                    adminSelectSql += ", NULL";
+                    fullSelectSql += String.Format(", MAX(CASE WHEN p.id_{1} IS NULL THEN NULL ELSE p.{0} END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
                 } else if (field.FieldType == EntityFieldType.DataField) {
                     if (field.FieldName == null) s = String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
                     else s = String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
@@ -833,33 +825,29 @@ namespace Terradue.Portal {
                         break;
                     }
                     if (foreignTable == null) s = ", NULL";
-                    else if (field.FieldName == null) s += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
-                    else s += String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
+                    else if (field.FieldName == null) s = String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
+                    else s = String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
                     fullSelectSql += s;
                     adminSelectSql += s;
                 }
             }
 
-            // **** string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
-
-            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, select, distinct ? "DISTINCT " : String.Empty, sort);
-
+            isSqlPrepared = true;
         }
 
-        private string GetQueryNew(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
+        //---------------------------------------------------------------------------------------------------------------------
 
+        public string GetQuery(IfyContext context, int userId, string condition, bool list, bool idsOnly) {
 
-            //bool restrictedList = list && context.RestrictedMode;
-            //bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
-            //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
-            bool distinct = false;
+            if (!isSqlPrepared) PrepareSql();
 
-            // Build join
-            int privilegeSubjectTableIndex = -1;
+            // Add GROUP BY aggregation if necessary
+            string aggregation = context.AdminMode ? String.Empty : " GROUP BY t.id";
 
-            string aggregation = null;
+            string[] userJoinValues = GetUserJoinValues(context, userId);
 
-            string joinSql = context.AdminMode ? adminJoinSql : context.RestrictedMode ? restrictedJoinSql : unrestrictedJoinSql;
+            // Build FROM clause
+            string joinSql = String.Format(context.AdminMode ? adminJoinSql : context.RestrictedMode ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
 
             // Build WHERE clause
             if (list && TopTable.TypeReferenceField != null) {
@@ -867,25 +855,33 @@ namespace Terradue.Portal {
                 //condition += String.Format("t.{1}={0}", Id, TopTable.TypeReferenceField);
                 condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
             }
+
             string selectSql = idsOnly ? idSelectSql : context.AdminMode ? adminSelectSql : fullSelectSql;
-
-            // Add GROUP BY aggregation if necessary
-            if (includePrivileges) aggregation = " GROUP BY t.id";
-
-            if (includePrivileges) {
-                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN ug.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
-            }
 
             string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
 
-            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, distinct ? "DISTINCT " : String.Empty, sort);
+            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort);
 
-        }*/
+        }
 
-        private string GetQuery(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
+        //---------------------------------------------------------------------------------------------------------------------
+
+        private string[] GetUserJoinValues(IfyContext context, int userId) {
+            int[] groupIds = null;
+            if (HasPrivilegeManagement) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
+            if (groupIds == null || groupIds.Length == 0) groupIds = new int[] {0};
+            return new string[] {
+                userId.ToString(),
+                String.Join(",", groupIds)
+            };
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+/*
+        private string GetQueryOld(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
 
             bool restrictedList = list && context.RestrictedMode;
-            bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
+            bool includePrivileges = !context.AdminMode && HasPrivilegeManagement;
             bool excludeUnaccessibleItems = restrictedList && includePrivileges;
             bool distinct = false;
             
@@ -983,7 +979,7 @@ namespace Terradue.Portal {
             return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, select, distinct ? "DISTINCT " : String.Empty, sort);
 
         }
-
+*/
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetAdministratorOperationsQuery(int userId, int itemId) {

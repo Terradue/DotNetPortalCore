@@ -1626,7 +1626,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = (dbReader.GetValue(0) != DBNull.Value ? dbReader.GetInt32(0) : 0);
+            if (dbReader.Read()) result = (dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetInt32(0));
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
@@ -1639,7 +1639,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = (dbReader.GetValue(0) != DBNull.Value ? dbReader.GetInt64(0) : 0);
+            if (dbReader.Read()) result = (dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetInt64(0));
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
@@ -1652,12 +1652,24 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) {
-                if (dbReader.GetValue(0) == DBNull.Value) result = 0;
-                else result = dbReader.GetDouble(0);
-            }
+            if (dbReader.Read()) result = dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetDouble(0);
             CloseQueryResult(dbReader, dbConnection);
             return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public int[] GetQueryIntegerValues(string sql) {
+            List<int> result = new List<int>();
+            IDbConnection dbConnection = GetDbConnection();
+            IDbCommand dbCommand = dbConnection.CreateCommand();
+            dbCommand.CommandText = sql;
+            IDataReader dbReader = dbCommand.ExecuteReader();
+            while (dbReader.Read()) {
+                if (dbReader.GetValue(0) != DBNull.Value) result.Add(dbReader.GetInt32(0));
+            }
+            CloseQueryResult(dbReader, dbConnection);
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------

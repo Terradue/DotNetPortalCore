@@ -300,8 +300,7 @@ namespace Terradue.Portal {
 
             Load(entityType, reader);
 
-            if (context.ConsoleDebug)
-                Console.WriteLine("AFTER LOAD");
+            if (context.ConsoleDebug) Console.WriteLine("AFTER LOAD");
             
             CanChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
             CanDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
@@ -321,22 +320,17 @@ namespace Terradue.Portal {
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void Load(EntityType entityType, IDataReader reader) {
-            bool includePrivileges = !context.AdminMode && entityType.TopTable.HasPrivilegeManagement;
+            bool includePrivileges = !context.AdminMode && entityType.HasPrivilegeManagement;
             int index = 0;
 
             Id = reader.GetInt32(index++);
             Exists = true;
-            if (entityType.TopTable.HasIdentifierField)
-                Identifier = context.GetValue(reader, index++);
-            if (entityType.TopTable.HasNameField)
-                Name = context.GetValue(reader, index++);
-            if (entityType.TopTable.HasDomainReference)
-                DomainId = context.GetIntegerValue(reader, index++);
-            if (entityType.TopTable.HasOwnerReference)
-                OwnerId = context.GetIntegerValue(reader, index++);
-            else
-                OwnerId = 0;
-            if (entityType.TopTable.HasPrivilegeManagement) {
+            if (entityType.TopTable.HasIdentifierField) Identifier = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasNameField) Name = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
+            if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
+            else OwnerId = 0;
+            if (entityType.HasPrivilegeManagement) {
                 bool isUserAuthorized = false, isUserAuthorizedViaGroup = false, isUserAuthorizedViaGlobal = false;
                 if (context.AdminMode) {
                     isUserAuthorized = true;
@@ -370,19 +364,16 @@ namespace Terradue.Portal {
 
                     SetPropertyValue(field.Property, reader, index++);
                 }
-            } catch (Exception) {
+            } catch (Exception e) {
                 index = firstCustomFieldIndex;
                 foreach (FieldInfo field in entityType.Fields) {
                     // Skip privilege fields in admin mode
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField)
-                        continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField)
-                        continue;
+                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
+                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
 
                     try {
                         SetPropertyValue(field.Property, reader, index++);
-                    } catch (Exception) {
-                    }
+                    } catch (Exception) {}
                 }
             }
 
@@ -397,16 +388,14 @@ namespace Terradue.Portal {
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference)
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
-                if (!context.AdminMode && entityType.TopTable.HasPrivilegeManagement/* && Restricted*/) { // TODO
+                if (!context.AdminMode && entityType.HasPrivilegeManagement/* && Restricted*/) { // TODO
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
                 }
                 foreach (FieldInfo field in entityType.Fields) {
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField)
-                        continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField)
-                        continue;
+                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
+                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
                     Console.WriteLine("- VALUE: {0,-25} = {1}", field.Property.Name, context.GetValue(reader, index++));
                 }
             }
@@ -604,7 +593,7 @@ namespace Terradue.Portal {
                 }
                 
                 // Add view privilege to owner
-                if (OwnerId != 0 && entityType.TopTable.HasPrivilegeManagement) {
+                if (OwnerId != 0 && entityType.HasPrivilegeManagement) {
                     context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PrivilegeSubjectTable.Name, entityType.PrivilegeSubjectTable.PrivilegeTable));
                 }
                 Exists = true;

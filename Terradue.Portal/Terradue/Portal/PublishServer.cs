@@ -66,22 +66,22 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("protocol")]
-        public string Protocol { get; protected set; }
+        public string Protocol { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("hostname")]
-        public string Hostname { get; protected set; }
+        public string Hostname { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("port")]
-        public int Port { get; protected set; }
+        public int Port { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("path")]
-        public string Path { get; protected set; }
+        public string Path { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
