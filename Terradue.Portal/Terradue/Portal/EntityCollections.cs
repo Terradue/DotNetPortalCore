@@ -119,12 +119,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets a template object of the collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
+        /// <remarks>The template object is created automatically if it is accessed.</remarks>
         public T Template {
             get {
                 if (template == null) template = entityType.GetEntityInstance(context) as T;
                 return template;
             }
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public PrivilegeSet PrivilegeSet { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 

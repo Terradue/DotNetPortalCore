@@ -581,7 +581,7 @@ namespace Terradue.Portal {
         /// <param name="id">The database ID of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, int id) {
-            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", id, TopTable.IdField), false, true)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", id, TopTable.IdField), false, true, EntityQueryMode.Unrestricted)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -592,7 +592,7 @@ namespace Terradue.Portal {
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, string identifier) {
             if (!TopTable.HasIdentifierField) return false;
-            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), false, true)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, 0, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), false, true, EntityQueryMode.Unrestricted)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -602,8 +602,8 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <returns>The SQL query.</returns>
-        public string GetItemQuery(IfyContext context, int userId, string condition) {
-            return GetQuery(context, userId, condition, false, false);
+        public string GetItemQuery(IfyContext context, int userId, string condition, EntityQueryMode queryMode) {
+            return GetQuery(context, userId, condition, false, false, queryMode);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
@@ -615,21 +615,21 @@ namespace Terradue.Portal {
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <returns>The SQL query.</returns>
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly) {
-            return GetQuery(context, userId, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly, EntityQueryMode.Default);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
             string condition = (template == null ? null : GetTemplateCondition(template, false));
-            return GetQuery(context, userId, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly, EntityQueryMode.Default);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
             string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
-            return GetQuery(context, userId, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly, EntityQueryMode.Default);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -641,7 +641,7 @@ namespace Terradue.Portal {
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
 
-            return GetQuery(context, userId, condition, true, idsOnly);
+            return GetQuery(context, userId, condition, true, idsOnly, EntityQueryMode.Default);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -837,17 +837,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetQuery(IfyContext context, int userId, string condition, bool list, bool idsOnly) {
+        public string GetQuery(IfyContext context, int userId, string condition, bool list, bool idsOnly, EntityQueryMode queryMode) {
+
+            if (queryMode == EntityQueryMode.Default) queryMode = context.AdminMode ? EntityQueryMode.Administrator : context.RestrictedMode ? EntityQueryMode.Restricted : EntityQueryMode.Unrestricted;
 
             if (!isSqlPrepared) PrepareSql();
 
             // Add GROUP BY aggregation if necessary
-            string aggregation = context.AdminMode ? String.Empty : " GROUP BY t.id";
+            string aggregation = queryMode == EntityQueryMode.Administrator ? String.Empty : " GROUP BY t.id";
 
             string[] userJoinValues = GetUserJoinValues(context, userId);
 
             // Build FROM clause
-            string joinSql = String.Format(context.AdminMode ? adminJoinSql : context.RestrictedMode ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
+            string joinSql = String.Format(queryMode == EntityQueryMode.Administrator ? adminJoinSql : userId != 0 && queryMode == EntityQueryMode.Restricted ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
 
             // Build WHERE clause
             if (list && TopTable.TypeReferenceField != null) {
@@ -856,7 +858,7 @@ namespace Terradue.Portal {
                 condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
             }
 
-            string selectSql = idsOnly ? idSelectSql : context.AdminMode ? adminSelectSql : fullSelectSql;
+            string selectSql = idsOnly ? idSelectSql : queryMode == EntityQueryMode.Administrator ? adminSelectSql : fullSelectSql;
 
             string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
 
@@ -874,6 +876,19 @@ namespace Terradue.Portal {
                 userId.ToString(),
                 String.Join(",", groupIds)
             };
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType operation) {
+            List<int> result = new List<int>();
+            string sql = String.Format("SELECT DISTINCT r.id FROM priv AS p LEFT JOIN role_priv AS rp ON p.id=rp.id_priv LEFT JOIN role AS r ON rp.id_role=r.id WHERE p.id_type={0} AND p.operation='{1}';", TopTypeId, (char)operation);
+            Console.WriteLine("ROLES: {0}", sql);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            while (reader.Read()) result.Add(reader.GetValue(0) == DBNull.Value ? 0 : reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1691,7 +1706,31 @@ namespace Terradue.Portal {
         //ComplexField,
         RelationshipField
     }
-    
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Modes for influencing the SQL queries selecting entity items and lists of items.</summary>
+    public enum EntityQueryMode {
+
+        /// <summary>Use default behaviour, which is one of the other values, based on the context.</summary>
+        Default,
+
+        /// <summary>Apply no restrictions at all and ignore permission information for items.</summary>
+        Administrator,
+
+        /// <summary>Apply no restrictions, but obtain permission information for items.</summary>
+        Unrestricted,
+
+        /// <summary>Apply all restrictions and obtain all permission information for items.</summary>
+        Restricted
+    }
+
 
 }
 

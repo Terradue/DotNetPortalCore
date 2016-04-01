@@ -129,18 +129,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        */
         public PublishServer(IfyContext context) : base(context) {}
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created PublishServer object</returns>
-        */
         public static new PublishServer GetInstance(IfyContext context) {
             return new PublishServer(context);
         }
@@ -148,11 +144,9 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance representing the publish server with the specified ID.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">the publish server ID</param>
         /// <returns>the created PublishServer object</returns>
-        */
         public static PublishServer FromId(IfyContext context, int id) {
             PublishServer result = new PublishServer(context);
             result.Id = id;
