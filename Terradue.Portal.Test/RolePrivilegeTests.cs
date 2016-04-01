@@ -28,7 +28,9 @@ namespace Terradue.Portal.Test {
 
             try {
                 if (rebuildData) {
-                    
+
+                    context.AdminMode = true;
+
                     domain1 = new Domain(context);
                     domain1.Identifier = "domain-1";
                     domain1.Name = "domain-1";
@@ -66,7 +68,7 @@ namespace Terradue.Portal.Test {
                     role1 = new Role(context);
                     role1.Identifier = "cr_view+change";
                     role1.Store();
-                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('cr-v', 'cr-m');", role1.Id));
+                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('cr-v', 'cr-s', 'cr-m');", role1.Id));
 
                     role2 = new Role(context);
                     role2.Identifier = "cr_delete";
@@ -91,6 +93,8 @@ namespace Terradue.Portal.Test {
                     context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {2}, {3});", group1.Id, group2.Id, role1.Id, domain1.Id));
                     context.Execute(String.Format("INSERT INTO role_grant (id_usr, id_role, id_domain) VALUES ({0}, {1}, {2});", user12.Id, role2.Id, domain1.Id));
                     context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {1}, NULL);", group2.Id, role2.Id));
+
+                    context.AdminMode = false;
 
                 } else {
                     
@@ -162,6 +166,59 @@ namespace Terradue.Portal.Test {
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, domain1, "cr-d"));
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, domain2, "cr-d"));
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user21, null, "cr-d"));
+
+                EntityType crEntityType = EntityType.GetEntityType(typeof(ComputingResource));
+                EntityType psEntityType = EntityType.GetEntityType(typeof(PublishServer));
+
+                EntityList<ComputingResource> crs = new EntityList<ComputingResource>(context);
+                crs.Load();
+                foreach (ComputingResource cr in crs) Console.WriteLine("CR {0}", cr.Identifier);
+
+                context.AdminMode = true;
+                EntityList<ComputingResource> crs2 = new EntityList<ComputingResource>(context);
+                crs2.Load();
+                foreach (ComputingResource cr in crs2) Console.WriteLine("CR-2 {0}", cr.Identifier);
+                context.AdminMode = false;
+
+                EntityList<PublishServer> pss = new EntityList<PublishServer>(context);
+                pss.Load();
+                foreach (PublishServer ps in pss) Console.WriteLine("PS {0}", ps.Identifier);
+
+                context.AdminMode = true;
+                EntityList<PublishServer> pss2 = new EntityList<PublishServer>(context);
+                pss2.Load();
+                foreach (PublishServer ps in pss2) Console.WriteLine("PS-2 {0}/{1}", ps.Identifier, ps.Name);
+                context.AdminMode = false;
+
+                Console.WriteLine("CR EXISTS {0} {1} {2} {3}", crEntityType.DoesItemExist(context, 3), crEntityType.DoesItemExist(context, 1), crEntityType.DoesItemExist(context, "cr-3"), crEntityType.DoesItemExist(context, "cr-1"));
+                Console.WriteLine("PS EXISTS {0} {1} {2} {3}", psEntityType.DoesItemExist(context, 3), psEntityType.DoesItemExist(context, 1), psEntityType.DoesItemExist(context, "ps-3"), psEntityType.DoesItemExist(context, "ps-1"));
+
+                Console.WriteLine(crEntityType.GetQuery(context, 1, null, true, false, EntityQueryMode.Restricted));
+                Console.WriteLine(psEntityType.GetQuery(context, 1, null, true, false, EntityQueryMode.Restricted));
+
+                ComputingResource cr1;
+                try {
+                    cr1 = ComputingResource.FromIdentifier(context, "cr-1");
+                    Console.WriteLine("(1) CR LOADED: {0}", cr1.GetType());
+                } catch (Exception e) {
+                    Console.WriteLine("(1) CR LOAD EXCEPTION: {0}", e.Message);
+                }
+                context.RestrictedMode = false;
+                try {
+                    cr1 = ComputingResource.FromIdentifier(context, "cr-1");
+                    Console.WriteLine("(2) CR LOADED: {0}", cr1.GetType());
+                } catch (Exception e) {
+                    Console.WriteLine("(2) CR LOAD EXCEPTION: {0}", e.Message);
+                }
+                context.RestrictedMode = true;
+
+                cr1 = new GenericComputingResource(context);
+                cr1.UserId = 3;
+                cr1.LoadPrivilegeBased("t.identifier='cr-1'");
+                cr1.UserId = 4;
+                cr1.LoadPrivilegeBased("t.identifier='cr-1'");
+                cr1.UserId = 5;
+                cr1.LoadPrivilegeBased("t.identifier='cr-1'");
 
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
