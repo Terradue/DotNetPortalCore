@@ -590,7 +590,7 @@ namespace Terradue.Portal {
         /// <param name="id">The database ID of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, int id) {
-            return context.GetQueryIntegerValue(GetQuery(context, null, 0, String.Format("t.{1}={0}", id, TopTable.IdField), true, EntityAccessMode.Administrator)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, null, 0, null, String.Format("t.{1}={0}", id, TopTable.IdField), true, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -601,7 +601,7 @@ namespace Terradue.Portal {
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, string identifier) {
             if (!TopTable.HasIdentifierField) return false;
-            return context.GetQueryIntegerValue(GetQuery(context, null, 0, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), true, EntityAccessMode.Administrator)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, null, 0, null, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), true, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -611,8 +611,8 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <returns>The SQL query.</returns>
-        public string GetItemQuery(IfyContext context, Entity item, int userId, string condition, EntityAccessMode accessMode) {
-            return GetQuery(context, item, userId, condition, false, accessMode);
+        public string GetItemQuery(IfyContext context, Entity item, int userId, string condition, EntityAccessLevel accessLevel) {
+            return GetQuery(context, item, userId, null, condition, false, accessLevel);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
@@ -624,21 +624,21 @@ namespace Terradue.Portal {
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <returns>The SQL query.</returns>
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly) {
-            return GetQuery(context, null, userId, condition, idsOnly, EntityAccessMode.Default);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
             string condition = (template == null ? null : GetTemplateCondition(template, false));
-            return GetQuery(context, null, userId, condition, idsOnly, EntityAccessMode.Default);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
             string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
-            return GetQuery(context, null, userId, condition, idsOnly, EntityAccessMode.Default);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -650,98 +650,9 @@ namespace Terradue.Portal {
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
 
-            return GetQuery(context, null, userId, condition, idsOnly, EntityAccessMode.Default);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public string GetGroupQuery(IfyContext context, int[] groupIds, bool idsOnly, string condition) {
-            // Build join
-            int permissionSubjectTableIndex = -1;
-            
-            bool includePrivileges = true;
-            bool list = true;
-            string aggregation = null;
-            bool restrictedList = true;
-
-            string join = String.Format("{0} AS t", TopTable.Name);
-
-            for (int i = 0; i < Tables.Count; i++) {
-                EntityTableAttribute table = Tables[i];
-                if (i != 0) {
-                    join += String.Format(" INNER JOIN {0} AS t{1} ON t{2}.{4}=t{1}.{3}", 
-                            table.Name,
-                            i,
-                            i == 1 ? String.Empty : (i - 1).ToString(),
-                            table.IdField,
-                            Tables[i - 1].IdField
-                    );
-                }
-                if (includePrivileges && table == PermissionSubjectTable) {
-                    permissionSubjectTableIndex = i;
-                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3}",
-                            restrictedList ? "INNER" : "LEFT",
-                        table.PermissionTable,
-                            i == 0 ? String.Empty : i.ToString(),
-                            table.Name
-                    );
-                }
-                for (int j = 0; j < ForeignTables.Count; j++) {
-                    if (!list && ForeignTables[j].IsMultiple || ForeignTables[j].ReferringTable != table) continue;
-                    join += String.Format(" {0} JOIN {1}", 
-                            ForeignTables[j].IsRequired ? "INNER" : "LEFT",
-                            ForeignTables[j].Join
-                    );
-                }
-            }
-            
-            // Build WHERE clause
-            if (HasPermissionManagement && groupIds != null && groupIds.Length != 0) {
-                if (condition == null) condition = String.Empty; else condition += " AND ";
-                condition += String.Format("p.id_grp{0}", groupIds.Length == 1 ? String.Format("={0}", groupIds[0].ToString()) : String.Format(" IN ({0})", String.Join(", ", groupIds)));
-            }
-            if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
-
-            // Add GROUP BY aggregation if necessary
-            if (HasPermissionManagement) aggregation = " GROUP BY t.id";
-
-            // Add generic identifying fields to SELECT clause
-            string select = String.Format("t.{0}", TopTable.IdField);
-            if (TopTable.HasIdentifierField) select += String.Format(", t.{0}", TopTable.IdentifierField);
-            if (TopTable.HasNameField) select += String.Format(", t.{0}", TopTable.NameField);
-            if (TopTable.HasDomainReference) select += String.Format(", t.{0}", TopTable.DomainReferenceField);
-            if (TopTable.HasOwnerReference) select += String.Format(", t.{0}", TopTable.OwnerReferenceField);
-            if (context.AccessMode != EntityAccessMode.Administrator && HasPermissionManagement) {
-                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN p.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PermissionSubjectTable.Name);
-            }
-            
-            // Add entity-specific fields to SELECT clause 
-            foreach (FieldInfo field in Fields) {
-                if (field.TableIndex == permissionSubjectTableIndex && field.FieldType == EntityFieldType.PermissionField) {
-                    select += String.Format(", MAX(p.{0}) AS _{0}", field.FieldName, PermissionSubjectTable.Name);
-                } else if (field.FieldType == EntityFieldType.DataField) {
-                    if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
-                    else select += String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
-                } else if (field.FieldType == EntityFieldType.ForeignField) {
-                    ForeignTableInfo foreignTable = null;
-                    for (int j = 0; j < ForeignTables.Count; j++) {
-                        foreignTable = ForeignTables[j];
-                        if (foreignTable.IsMultiple || foreignTable.ReferringTable != Tables[field.TableIndex] || foreignTable.SubIndex != field.TableSubIndex) {
-                            foreignTable = null;
-                            continue;
-                        }
-                        break;
-                    }
-                    if (foreignTable == null) select += ", NULL";
-                    else if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace(", $(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
-                    else select += String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
-                }
-            }
-            
-            return String.Format("SELECT {3} FROM {0} WHERE {1}{2};", join, condition, aggregation, select);
-
-        }
-        
         //---------------------------------------------------------------------------------------------------------------------
 
         private void PrepareSql() {
@@ -849,6 +760,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string GetGroupQuery(IfyContext context, int[] groupIds, bool idsOnly, string condition) {
+            return GetQuery(context, null, 0, groupIds, condition, idsOnly, EntityAccessLevel.None);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Builds the SQL query necessary to load an entity item or a list of entity items according to the specified restrictions.</summary>
         /// <returns>The SQL <c>SELECT</c> statement that selects the entity item or the list of entity items.</returns>
         /// <param name="context">The execution environment context.</param>
@@ -856,28 +773,28 @@ namespace Terradue.Portal {
         /// <param name="userId">ID of the user on whose behalf the item or list.</param>
         /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
         /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
-        /// <param name="accessMode">The entity access mode according to which restrictions are applied to the resulting query.</param>
-        public string GetQuery(IfyContext context, Entity item, int userId, string condition, bool idsOnly, EntityAccessMode accessMode) {
+        /// <param name="accessLevel">The entity access mode according to which restrictions are applied to the resulting query.</param>
+        public string GetQuery(IfyContext context, Entity item, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
             bool list = (item == null);
 
-            if (accessMode == EntityAccessMode.Default) {
-                accessMode = context.AccessMode;
+            if (accessLevel == EntityAccessLevel.None) {
+                accessLevel = context.AccessLevel;
                 //queryMode = context.AdminMode ? EntityQueryMode.Administrator : context.RestrictedMode ? EntityQueryMode.Restricted : EntityQueryMode.Unrestricted;
             }
 
             if (!isSqlPrepared) PrepareSql();
 
-            string[] userJoinValues = GetUserJoinValues(context, userId);
+            string[] userJoinValues = (userId == 0 && groupIds == null ? new string[] {"0", "0"} : GetUserJoinValues(context, userId, groupIds));
 
             // Build FROM clause
-            string joinSql = String.Format(accessMode == EntityAccessMode.Administrator ? adminJoinSql : userId != 0 && accessMode == EntityAccessMode.PermissionCheck && list ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
+            string joinSql = String.Format(accessLevel == EntityAccessLevel.Administrator ? adminJoinSql : userId != 0 && accessLevel == EntityAccessLevel.Permission && list ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
 
             // Add GROUP BY aggregation if necessary
-            string aggregation = accessMode == EntityAccessMode.Administrator ? String.Empty : " GROUP BY t.id";
+            string aggregation = accessLevel == EntityAccessLevel.Administrator ? String.Empty : " GROUP BY t.id";
 
             string grantSelectSql = null;
 
-            if (accessMode == EntityAccessMode.PrivilegeCheck) {
+            if (accessLevel == EntityAccessLevel.Privilege) {
                 // Get all roles with view privilege on items of the entity type
                 int[] roleIds = GetRolesForPrivilege(context, EntityOperationType.View);
                 if (context.ConsoleDebug) Console.WriteLine("ROLES: {0}", roleIds == null ? "PRIVILEGE NOT DEFINED" : String.Join(",", roleIds));
@@ -913,7 +830,7 @@ namespace Terradue.Portal {
                     }
                 }
             }
-            if (accessMode != EntityAccessMode.Administrator && grantSelectSql == null) grantSelectSql = ", true";
+            if (accessLevel != EntityAccessLevel.Administrator && grantSelectSql == null) grantSelectSql = ", true";
 
             // Build WHERE clause
             if (list && TopTable.TypeReferenceField != null) {
@@ -923,20 +840,19 @@ namespace Terradue.Portal {
 
             // coreSelectSql selects Entity core fields (Id, Identifier etc.)
             // domainGrantSql selects a boolean saying whether the user is allowed
-            string selectSql = idsOnly ? idSelectSql : accessMode == EntityAccessMode.Administrator ? adminSelectSql : String.Format("{0}{1}{2}", coreSelectSql, grantSelectSql, contentSelectSql);
+            string selectSql = idsOnly ? idSelectSql : accessLevel == EntityAccessLevel.Administrator ? adminSelectSql : String.Format("{0}{1}{2}", coreSelectSql, grantSelectSql, contentSelectSql);
 
             string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
 
-            Console.WriteLine(String.Format("QUERY SQL: SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort));
+            //Console.WriteLine(String.Format("QUERY SQL: SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort));
             return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort);
 
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private string[] GetUserJoinValues(IfyContext context, int userId) {
-            int[] groupIds = null;
-            if (HasPermissionManagement) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
+        private string[] GetUserJoinValues(IfyContext context, int userId, int[] groupIds) {
+            if (HasPermissionManagement && groupIds == null) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
             if (groupIds == null || groupIds.Length == 0) groupIds = new int[] {0};
             return new string[] {
                 userId.ToString(),
@@ -955,7 +871,7 @@ namespace Terradue.Portal {
             string condition = String.Format("p.id_type={0} AND ", TopTypeId);
             condition += (operation == EntityOperationType.View ? String.Format("p.operation!='{0}'", (char)EntityOperationType.Search) : String.Format("p.operation='{0}'", (char)EntityOperationType.View));
             string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
-            Console.WriteLine("ROLES: {0}", sql);
+            //Console.WriteLine("ROLES: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             bool privilegeExists = false;
@@ -1690,27 +1606,29 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Modes for influencing the SQL queries selecting entity items and lists of items.</summary>
+    /// <summary>Levels of access to entity items used for restricting item selections.</summary>
     /// <remarks>
-    ///     <para>The <c>Default</c> mode depends on the IfyContext.AdminMode and IfyContext.RestrictedMode settings.</para>
-    ///     <para>The <c>Administrator</c> mode does not limit the access to items in any way.</para>
-    ///     <para><c>PrivilegeCheck</c> and <c>PermissionCheck</c> can limit the access to items, but follow different principles. Based on the application's authorisation policies and the way the authorisation framework is used, access checks using these modes yield different results.</para>
-    ///     <para><c>PrivilegeCheck</c> is based on roles granted to a user group or a single user directly either for a specific domain or globally. It is suitable for applications that make use of roles and privileges where users are considered small administrators with a limited scope.</para>
-    ///     <para>On the other hand, <c>PermissionCheck</c> is based on direct assignments of items to user groups or users without considering roles, privileges and domains. This is suitable for where there is less need for a complex privilege management.</para>
+    ///     <para>The meaning of these values depend on the situation: if used before loading an entity item, the value applies the corresponding filtering rules. After the item has been loaded, the property Entity.AccessLevel contains the maximum access level applicable for the loading user (Entity.UserId), which can be the same as the one used for the selection or lower.</para>
+    ///     <para><c>None</c> if used before selecting entity items, the value of the current IfyContext.AccessLevel applies. After the item has been loaded, the value <c>None</c> means that the access is denied.</para>
+    ///     <para><c>Privilege</c> and <c>Permission</c> limit the access to items, but follow different principles. Based on the application's authorisation policies and the way the authorisation framework is used, access checks using these modes yield different results. <c>Privilege</c> is considered a higher level because a single grant of a role with a privilege can apply to a large number of entity items.</para>
+    ///     <para><c>Privilege</c> is based on roles granted to a user group or a single user directly either for a specific domain or globally. It is suitable for applications that make use of roles and privileges where users are considered small administrators with a limited scope.</para>
+    ///     <para><c>Permission</c>, on the other hand, is based on direct assignments of items to user groups or users without considering roles, privileges and domains. This is suitable when there is less need for a complex privilege management.</para>
+    ///     <para>The <c>Administrator</c> level does not limit the access to items in any way.</para>
     /// </remarks>
-    public enum EntityAccessMode {
+    public enum EntityAccessLevel {
 
-        /// <summary>Use default behaviour, which is one of the other values, based on the context.</summary>
-        Default,
-
-        /// <summary>Apply no restrictions at all and ignore permission or grant information for items.</summary>
-        Administrator,
-
-        /// <summary>Allow access only for items for which the user has been granted search or view privileges and enforce other privilege-based as well.</summary>
-        PrivilegeCheck,
+        /// <summary>Use the context's access mode; otherwise indicator for denied access.</summary>
+        None,
 
         /// <summary>Allow access only for items for which the user has specific permissions.</summary>
-        PermissionCheck
+        Permission,
+
+        /// <summary>Allow access only for items for which the user has been granted search or view privileges and enforce other privilege-based as well.</summary>
+        Privilege,
+
+        /// <summary>Apply no restrictions at all and ignore permission or grant information for items.</summary>
+        Administrator
+
     }
 
 

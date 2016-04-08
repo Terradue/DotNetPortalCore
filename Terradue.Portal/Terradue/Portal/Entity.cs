@@ -50,8 +50,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the EntityAccessMode by which this entity item was created or loaded.</summary>
-        public EntityAccessMode AccessMode { get; protected set; }
+        /// <summary>Gets or sets the EntityAccessLevel by which this entity item was created or loaded.</summary>
+        public EntityAccessLevel AccessLevel { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -153,7 +153,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanCreate {
             get {
-                if (canCreate || AccessMode == EntityAccessMode.Administrator) return true;
+                if (canCreate || AccessLevel == EntityAccessLevel.Administrator) return true;
                 return canCreate;
             } 
         }
@@ -164,7 +164,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanChange { 
             get {
-                if (canChange || AccessMode == EntityAccessMode.Administrator) return true;
+                if (canChange || AccessLevel == EntityAccessLevel.Administrator) return true;
                 return canChange;
             } 
         }
@@ -187,7 +187,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanManage { 
             get {
-                if (AccessMode == EntityAccessMode.PrivilegeCheck) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Manage);
+                if (AccessLevel == EntityAccessLevel.Privilege) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Manage);
                 return true;
             } 
         }
@@ -198,8 +198,8 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanDelete { 
             get {
-                if (AccessMode == EntityAccessMode.PrivilegeCheck) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Delete);
-                if (canDelete || AccessMode == EntityAccessMode.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Delete);
+                if (canDelete || AccessLevel == EntityAccessLevel.Administrator) return true;
                 return canDelete;
             } 
         }
@@ -253,6 +253,7 @@ namespace Terradue.Portal {
         /// <summary>Reads the information of the item with the specified ID from the database.</summary>
         public virtual void Load(int id) {
             Id = id;
+            Identifier = null;
             Load();
         }
 
@@ -260,6 +261,7 @@ namespace Terradue.Portal {
 
         /// <summary>Reads the information of the item with the specified ID from the database.</summary>
         public virtual void Load(string identifier) {
+            Id = 0;
             Identifier = identifier;
             Load();
         }
@@ -286,7 +288,7 @@ namespace Terradue.Portal {
 
             // Do not restrict query (a single item is requested)
             //EntityQueryMode queryMode = context.AdminMode ? EntityQueryMode.Administrator : EntityQueryMode.Unrestricted;
-            string sql = entityType.GetItemQuery(context, this, UserId, condition, context.AccessMode);
+            string sql = entityType.GetItemQuery(context, this, UserId, condition, context.AccessLevel);
             
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
@@ -305,7 +307,7 @@ namespace Terradue.Portal {
                 throw new EntityNotFoundException(String.Format("{0} not found", itemTerm), entityType, itemTerm);
             }
 
-            bool authorized = Load(entityType, reader, context.AccessMode);
+            bool authorized = Load(entityType, reader, context.AccessLevel);
 
             context.CloseQueryResult(reader, dbConnection);
 
@@ -315,7 +317,7 @@ namespace Terradue.Portal {
                 string message = String.Format("{0} is not authorized to use {1} ({2})",
                     UserId == 0 ? "Unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
                     GetItemTerm(),
-                    AccessMode == EntityAccessMode.PermissionCheck ? "no permission" : "no permission or grant"
+                    context.AccessLevel == EntityAccessLevel.Permission ? "no permission" : "no permission or grant"
                 );
 
                 throw new EntityUnauthorizedException(message, entityType, this, UserId);
@@ -350,14 +352,15 @@ namespace Terradue.Portal {
         /// <param name="entityType">The entity type of this entity item.</param>
         /// <param name="reader">The IDataReader from which the entity item is loaded.</param>
         /// <param name="queryMode">The query mode that was used to create the query for the reader. Depending on the query, the selected fields differ.</param>
+        /// <returns><c>true</c> if the user is allowed to access the item.</returns>
         /// <remarks>
         ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built using one of the methods in EntityType class that provide queries.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public bool Load(EntityType entityType, IDataReader reader, EntityAccessMode accessMode) {
+        public bool Load(EntityType entityType, IDataReader reader, EntityAccessLevel accessLevel) {
             //if (queryMode == EntityQueryMode.Default) queryMode = context.AdminMode ? EntityQueryMode.Administrator : context.RestrictedMode ? EntityQueryMode.Restricted : EntityQueryMode.Unrestricted;
-            if (accessMode == EntityAccessMode.Default) accessMode = context.AccessMode;
-            bool includePermissions = accessMode != EntityAccessMode.Administrator && entityType.HasPermissionManagement;
+            if (accessLevel == EntityAccessLevel.None) accessLevel = context.AccessLevel;
+            bool includePermissions = accessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement;
             int index = 0;
 
             Id = reader.GetInt32(index++);
@@ -367,11 +370,11 @@ namespace Terradue.Portal {
             if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
             if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
             else OwnerId = 0;
-            bool hasPrivilege = (accessMode == EntityAccessMode.Administrator || context.GetBooleanValue(reader, index++));
+            bool hasPrivilege = (accessLevel == EntityAccessLevel.Administrator || context.GetBooleanValue(reader, index++));
             bool hasPermission = true;
             if (entityType.HasPermissionManagement) {
                 bool hasUserPermission, hasGroupPermission = false, hasGlobalPermission = false;
-                if (accessMode != EntityAccessMode.Administrator) {
+                if (accessLevel != EntityAccessLevel.Administrator) {
                     hasUserPermission = context.GetBooleanValue(reader, index++);
                     hasGroupPermission = context.GetBooleanValue(reader, index++);
                     hasGlobalPermission = context.GetBooleanValue(reader, index++);
@@ -379,18 +382,6 @@ namespace Terradue.Portal {
                 }
             }
             int firstCustomFieldIndex = index;
-
-            /*if (!hasPrivilege && !hasPermission) {
-                reader.Close();
-                string message = String.Format("{0} is not authorized to use {1} {2} ({3})",
-                        UserId == 0 ? "An unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
-                        entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                        entityType.TopTable.HasIdentifierField ? String.Format("\"{0}\"", Identifier) : String.Format("[{0}]", Id),
-                        hasPrivilege ? "no permission" : "no global or domain grant"
-                );
-
-                throw new EntityUnauthorizedException(message, entityType, this, UserId);
-            }*/
 
             try {
                 foreach (FieldInfo field in entityType.Fields) {
@@ -400,7 +391,7 @@ namespace Terradue.Portal {
 
                     SetPropertyValue(field.Property, reader, index++);
                 }
-            } catch (Exception e) {
+            } catch (Exception) {
                 index = firstCustomFieldIndex;
                 foreach (FieldInfo field in entityType.Fields) {
                     // Skip permission fields in admin mode
@@ -420,7 +411,7 @@ namespace Terradue.Portal {
                 if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
-                if (AccessMode != EntityAccessMode.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
+                if (AccessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
@@ -431,6 +422,11 @@ namespace Terradue.Portal {
                     Console.WriteLine("- VALUE: {0,-25} = {1}", field.Property.Name, context.GetValue(reader, index++));
                 }
             }
+
+            if (accessLevel == EntityAccessLevel.Administrator) AccessLevel = EntityAccessLevel.Administrator;
+            else if (accessLevel == EntityAccessLevel.Privilege) AccessLevel = hasPrivilege ? EntityAccessLevel.Privilege : hasPermission ? EntityAccessLevel.Permission : EntityAccessLevel.None;
+            else if (accessLevel == EntityAccessLevel.Permission) AccessLevel = hasPermission ? EntityAccessLevel.Permission : EntityAccessLevel.None;
+            else AccessLevel = EntityAccessLevel.None;
 
             return hasPermission || hasPrivilege;
         }
@@ -616,7 +612,7 @@ namespace Terradue.Portal {
                 }
                 
                 // Add view privilege to owner (if it was not created by an administrator)
-                if (OwnerId != 0 && entityType.HasPermissionManagement && (AccessMode != EntityAccessMode.Administrator || OwnerId != context.UserId)) {
+                if (OwnerId != 0 && entityType.HasPermissionManagement && (AccessLevel != EntityAccessLevel.Administrator || OwnerId != context.UserId)) {
                     context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PermissionSubjectTable.Name, entityType.PermissionSubjectTable.PermissionTable));
                 }
                 Exists = true;

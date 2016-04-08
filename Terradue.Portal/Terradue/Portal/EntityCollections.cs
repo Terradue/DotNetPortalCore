@@ -246,6 +246,7 @@ namespace Terradue.Portal {
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
                 item.UserId = UserId;
                 item.Collection = this;
+                item.UserId = UserId;
                 item.Load(id);
                 IncludeInternal(item);
                 if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
@@ -283,7 +284,7 @@ namespace Terradue.Portal {
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Collection = this;
-                item.Load(entityType, reader, EntityAccessMode.Default);
+                item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -305,7 +306,7 @@ namespace Terradue.Portal {
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Collection = this;
-                item.Load(entityType, reader, EntityAccessMode.Default);
+                item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }

@@ -462,7 +462,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (AccessMode == EntityAccessMode.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}";
                 else url = "/tasks/jobs?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -475,7 +475,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (AccessMode == EntityAccessMode.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/details";
                 else url = "/tasks/jobs/details?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -488,7 +488,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (AccessMode == EntityAccessMode.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/parameters";
                 else url = "/tasks/jobs/parameters?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);

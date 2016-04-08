@@ -34,7 +34,7 @@ namespace Terradue.Portal.Test {
             try {
                 if (rebuildData) {
 
-                    context.AccessMode = EntityAccessMode.Administrator;
+                    context.AccessLevel = EntityAccessLevel.Administrator;
 
                     domain1 = new Domain(context);
                     domain1.Identifier = "domain-1";
@@ -146,7 +146,7 @@ namespace Terradue.Portal.Test {
                     context.Execute(String.Format("INSERT INTO series_priv (id_series, id_usr) VALUES ({0}, {1});", sharedSeries.Id, shareReceiver.Id));
                     seriesShareRole.AssignUsers(new int[]{shareCreator.Id}, seriesShareDomain.Id);
 
-                    context.AccessMode = EntityAccessMode.PermissionCheck;
+                    context.AccessLevel = EntityAccessLevel.Permission;
 
                 } else {
                     
@@ -235,27 +235,27 @@ namespace Terradue.Portal.Test {
                 //EntityType crEntityType = EntityType.GetEntityType(typeof(ComputingResource));
                 //EntityType psEntityType = EntityType.GetEntityType(typeof(PublishServer));
 
-                context.AccessMode = EntityAccessMode.PrivilegeCheck;
+                context.AccessLevel = EntityAccessLevel.Privilege;
                 EntityList<ComputingResource> crs = new EntityList<ComputingResource>(context);
                 crs.UserId = user11.Id;
                 crs.Load();
                 foreach (ComputingResource cr in crs) Console.WriteLine("CR {0}", cr.Identifier);
 
-                context.AccessMode = EntityAccessMode.Administrator;
+                context.AccessLevel = EntityAccessLevel.Administrator;
                 EntityList<ComputingResource> crs2 = new EntityList<ComputingResource>(context);
                 crs2.Load();
                 foreach (ComputingResource cr in crs2) Console.WriteLine("CR-2 {0}", cr.Identifier);
-                context.AccessMode = EntityAccessMode.PermissionCheck;
+                context.AccessLevel = EntityAccessLevel.Permission;
 
                 EntityList<PublishServer> pss = new EntityList<PublishServer>(context);
                 pss.Load();
                 foreach (PublishServer ps in pss) Console.WriteLine("PS {0}", ps.Identifier);
 
-                context.AccessMode = EntityAccessMode.Administrator;
+                context.AccessLevel = EntityAccessLevel.Administrator;
                 EntityList<PublishServer> pss2 = new EntityList<PublishServer>(context);
                 pss2.Load();
                 foreach (PublishServer ps in pss2) Console.WriteLine("PS-2 {0}/{1}", ps.Identifier, ps.Name);
-                context.AccessMode = EntityAccessMode.PermissionCheck;
+                context.AccessLevel = EntityAccessLevel.Permission;
 
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
@@ -272,8 +272,8 @@ namespace Terradue.Portal.Test {
                 //Console.WriteLine("CR EXISTS {0} {1} {2} {3}", crEntityType.DoesItemExist(context, 3), crEntityType.DoesItemExist(context, 1), crEntityType.DoesItemExist(context, "cr-3"), crEntityType.DoesItemExist(context, "cr-1"));
                 //Console.WriteLine("PS EXISTS {0} {1} {2} {3}", psEntityType.DoesItemExist(context, 3), psEntityType.DoesItemExist(context, 1), psEntityType.DoesItemExist(context, "ps-3"), psEntityType.DoesItemExist(context, "ps-1"));
 
-                //Console.WriteLine(crEntityType.GetQuery(context, null, 1, null, false, EntityAccessMode.PermissionCheck));
-                //Console.WriteLine(psEntityType.GetQuery(context, null, 1, null, false, EntityAccessMode.PermissionCheck));
+                //Console.WriteLine(crEntityType.GetQuery(context, null, 1, null, false, EntityAccessLevel.Permission));
+                //Console.WriteLine(psEntityType.GetQuery(context, null, 1, null, false, EntityAccessLevel.Permission));
 
                 ComputingResource cr1;
                 try {
@@ -283,7 +283,7 @@ namespace Terradue.Portal.Test {
                 } catch (Exception e) {
                     Console.WriteLine("(1) CR LOAD EXCEPTION: {0}", e.Message);
                 }
-                context.AccessMode = EntityAccessMode.PrivilegeCheck;
+                context.AccessLevel = EntityAccessLevel.Privilege;
                 try {
                     cr1 = ComputingResource.FromIdentifier(context, "cr-1");
                     cr1.UserId = user11.Id;
@@ -291,7 +291,7 @@ namespace Terradue.Portal.Test {
                 } catch (Exception e) {
                     Console.WriteLine("(2) CR LOAD EXCEPTION: {0}", e.Message);
                 }
-                context.AccessMode = EntityAccessMode.PermissionCheck;
+                context.AccessLevel = EntityAccessLevel.Permission;
 
                 Console.WriteLine("Permission-based: user 'domain-1_cr_viewer+changer' (no permission)");
                 cr1 = new GenericComputingResource(context);
@@ -309,7 +309,7 @@ namespace Terradue.Portal.Test {
                 cr1.Load("cr-1");
                 Assert.IsTrue(true);
 
-                context.AccessMode = EntityAccessMode.PrivilegeCheck;
+                context.AccessLevel = EntityAccessLevel.Privilege;
 
                 Console.WriteLine("Privilege-based: user 'domain-1_cr_viewer+changer' (can view, cannot delete)");
                 cr1 = new GenericComputingResource(context);
@@ -338,7 +338,7 @@ namespace Terradue.Portal.Test {
             try {
                 EntityList<Series> serieses;
 
-                context.AccessMode = EntityAccessMode.PermissionCheck;
+                context.AccessLevel = EntityAccessLevel.Permission;
                 serieses = new EntityList<Series>(context);
                 serieses.UserId = shareCreator.Id;
                 serieses.Load();
@@ -346,21 +346,35 @@ namespace Terradue.Portal.Test {
                 serieses.UserId = shareReceiver.Id;
                 serieses.Load();
                 Assert.IsTrue(serieses.Count == 1);
-                foreach (Series series in serieses) Assert.IsTrue(series.Identifier == sharedSeries.Identifier);
+                foreach (Series s in serieses) Assert.IsTrue(s.Identifier == sharedSeries.Identifier);
 
-                context.AccessMode = EntityAccessMode.PrivilegeCheck;
+                context.AccessLevel = EntityAccessLevel.Privilege;
                 serieses = new EntityList<Series>(context);
                 serieses.UserId = shareCreator.Id;
-                context.ConsoleDebug = true;
                 serieses.Load();
-                context.ConsoleDebug = false;
                 Assert.IsTrue(serieses.Count == 2);
                 serieses.UserId = shareReceiver.Id;
-                context.ConsoleDebug = true;
                 serieses.Load();
-                context.ConsoleDebug = false;
                 Assert.IsTrue(serieses.Count == 1);
-                foreach (Series series in serieses) Assert.IsTrue(series.Identifier == sharedSeries.Identifier);
+                foreach (Series s in serieses) Assert.IsTrue(s.Identifier == sharedSeries.Identifier);
+
+                Series series = Series.GetInstance(context);
+                series.UserId = shareCreator.Id;
+                series.Load("shared-series");
+                series.Load("unshared-series");
+                    
+                series.UserId = shareReceiver.Id;
+                series.Load("shared-series");
+                try {
+                    context.ConsoleDebug = true;
+                    series.Load("unshared-series");
+                    context.ConsoleDebug = false;
+                    Assert.IsTrue(false); // force failure (we should never arrive here)
+                } catch (Exception e) {
+                    Assert.IsTrue(e is EntityUnauthorizedException);
+                }
+
+
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
                 throw;

@@ -392,7 +392,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityAccessMode AccessMode { get; set; }
+        public EntityAccessLevel AccessLevel { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -401,10 +401,10 @@ namespace Terradue.Portal {
         ///     In administrator mode, the entity's privilege properties are not set and user authorisation checks are not performed for default operations.
         ///     The administrator mode is only available for administrator and manager users. The default value is <i>false</i>.
         /// </remarks>
-        [Obsolete("Use AccessMode.Administrator")]
+        [Obsolete("Use AccessLevel.Administrator")]
         public bool AdminMode {
-            get { return AccessMode == EntityAccessMode.Administrator; }
-            set { AccessMode = (value ? EntityAccessMode.Administrator : EntityAccessMode.PrivilegeCheck); }
+            get { return AccessLevel == EntityAccessLevel.Administrator; }
+            set { AccessLevel = (value ? EntityAccessLevel.Administrator : EntityAccessLevel.Privilege); }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -416,10 +416,10 @@ namespace Terradue.Portal {
         ///     Setting RestrictedMode to <i>false</i> allows obtaining an item instances even if the current user has no privileges on the item at all.
         ///     The privilege properties (e.g. CanView) reflect the user's actual privileges and the calling code has to react accordingly. The default value is <i>true</i>.
         /// </summary>
-        [Obsolete("Use AccessMode.PermissionCheck")]
+        [Obsolete("Use AccessLevel.Permission")]
         public bool RestrictedMode {
-            get { return AccessMode == EntityAccessMode.PermissionCheck; }
-            set { AccessMode = (value ? EntityAccessMode.PermissionCheck : EntityAccessMode.PrivilegeCheck); }
+            get { return AccessLevel == EntityAccessLevel.Permission; }
+            set { AccessLevel = (value ? EntityAccessLevel.Permission : EntityAccessLevel.Privilege); }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -800,7 +800,7 @@ namespace Terradue.Portal {
         public IfyContext(string connectionString) {
             this.mainConnectionString = connectionString;
             //this.RestrictedMode = true;
-            this.AccessMode = EntityAccessMode.PermissionCheck;
+            this.AccessLevel = EntityAccessLevel.Permission;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

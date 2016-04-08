@@ -348,7 +348,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public static void SetAccountStatus(IfyContext context, int[] ids, int accountStatus) {
-            if (context.AccessMode != EntityAccessMode.Administrator) context.ReturnError("You are not authorized to enable or disable user accounts");
+            if (context.AccessLevel != EntityAccessLevel.Administrator) context.ReturnError("You are not authorized to enable or disable user accounts");
             string idsStr = "";
             for (int i = 0; i < ids.Length; i++) idsStr += (idsStr == "" ? "" : ",") + ids[i]; 
             string sql = String.Format("UPDATE usr SET status={0}{1} WHERE id{2};", 

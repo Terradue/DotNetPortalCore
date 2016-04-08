@@ -589,7 +589,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (AccessMode == EntityAccessMode.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{1}/{2}/{0}";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{1}/{2}/{0}";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{3}/{0}"; 
                 else url = "/tasks?uid={0}";
                 return String.Format(url, Exists ? Identifier : String.Empty, webContext.AdminRootUrl, EntityType.GetEntityType(this.GetType()).Keyword, webContext.TaskWorkspaceRootUrl);
