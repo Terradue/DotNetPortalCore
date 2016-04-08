@@ -88,10 +88,10 @@ END;
 CREATE TABLE priv (
     id int unsigned NOT NULL auto_increment,
     identifier varchar(50) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+    name varchar(50) NOT NULL,
     id_type int unsigned COMMENT 'FK: Entity type',
     operation char(1) COLLATE latin1_general_cs COMMENT 'Operation type (one-letter code)',
     pos smallint unsigned COMMENT 'Position for ordering',
-    name varchar(50) NOT NULL,
     enable_log boolean NOT NULL default false COMMENT 'If true, activity related to this privilege are logged',
     CONSTRAINT pk_priv PRIMARY KEY (id),
     CONSTRAINT fk_priv_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,

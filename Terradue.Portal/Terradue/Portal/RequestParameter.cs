@@ -371,7 +371,7 @@ namespace Terradue.Portal {
                 </tr>
                 <tr>
                     <td><b>%Task.%ComputingResource</b>&nbsp;or<br/><b>computingResource</b></td>
-                    <td>All computing resources that are compatible with the service and for which the requesting user has usage privileges</td>
+                    <td>All computing resources that are compatible with the service and for which the requesting user has usage permissions</td>
                     <td>ServiceDerivate::ComputingResource</td>
                 </tr>
                 <tr>
@@ -391,7 +391,7 @@ namespace Terradue.Portal {
                 </tr>
                 <tr>
                     <td><b>%Task.%Series</b>&nbsp;or<br/><b>series</b></td>
-                    <td>All series that are compatible with the service and for which the requesting user has usage privileges</td>
+                    <td>All series that are compatible with the service and for which the requesting user has usage permissions</td>
                     <td>N/A<br/>(no corresponding attribute)</td>
                 </tr>
                 <tr>

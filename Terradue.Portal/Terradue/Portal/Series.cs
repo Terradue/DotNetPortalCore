@@ -1,13 +1,20 @@
 using System;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Data;
 using System.Collections.Generic;
-using System.Xml;
+using System.Collections.Specialized;
+using System.Data;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using Terradue.Util;
+using System.Xml;
+using Terradue.ServiceModel.Syndication;
 using Terradue.OpenSearch;
+using Terradue.OpenSearch.Engine;
+using Terradue.OpenSearch.Engine.Extensions;
+using Terradue.OpenSearch.Request;
+using Terradue.OpenSearch.Response;
+using Terradue.OpenSearch.Result;
+using Terradue.OpenSearch.Schema;
+using Terradue.Util;
 
 
 /*!
@@ -36,13 +43,6 @@ It implements the mechanism to search for the dataset defined in the series via 
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Engine.Extensions;
-using Terradue.OpenSearch.Result;
-using Terradue.OpenSearch.Engine;
-using Terradue.OpenSearch.Request;
-using Terradue.OpenSearch.Response;
-using Terradue.OpenSearch.Schema;
-using Terradue.ServiceModel.Syndication;
 
 
 
@@ -143,7 +143,7 @@ namespace Terradue.Portal {
     /// <description>Represents a series of data sets that are available from a catalogue.</description>
     /// \ingroup Series
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
     public class Series : Entity, IOpenSearchable {
         
@@ -307,7 +307,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Series instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Series object</returns>
-        public static new Series GetInstance(IfyContext context) {
+        public static Series GetInstance(IfyContext context) {
             return new Series(context);
         }
         
@@ -373,10 +373,9 @@ namespace Terradue.Portal {
         /// <param name="context">Context.</param>
         /// <param name="exists">If set to <c>true</c> exists.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static Series FromOpenSearchUrl (OpenSearchUrl osUrl, IfyContext context, Boolean exists = true)
-        {
+        public static Series FromOpenSearchUrl(OpenSearchUrl osUrl, IfyContext context, bool exists = true) {
             Series result = new Series (context);
-            OpenSearchDescription osdd = OpenSearchFactory.LoadOpenSearchDescriptionDocument (osUrl);
+            OpenSearchDescription osdd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(osUrl);
 
             result.Identifier = osdd.ShortName;
 
@@ -392,6 +391,13 @@ namespace Terradue.Portal {
 
         public static int GetIdFromName(IfyContext context, string identifier) {
             return context.GetQueryIntegerValue(String.Format("SELECT id FROM series WHERE identifier={0}", StringUtils.EscapeSql(identifier)));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void Store() {
+            if (Name == null) Name = Identifier;
+            base.Store();
         }
 
         //---------------------------------------------------------------------------------------------------------------------

@@ -392,12 +392,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public EntityAccessMode AccessMode { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Indicates or determines whether administrator mode is used.</summary>
         /// <remarks>
         ///     In administrator mode, the entity's privilege properties are not set and user authorisation checks are not performed for default operations.
         ///     The administrator mode is only available for administrator and manager users. The default value is <i>false</i>.
         /// </remarks>
-        public bool AdminMode { get; set; }
+        [Obsolete("Use AccessMode.Administrator")]
+        public bool AdminMode {
+            get { return AccessMode == EntityAccessMode.Administrator; }
+            set { AccessMode = (value ? EntityAccessMode.Administrator : EntityAccessMode.PrivilegeCheck); }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -408,7 +416,11 @@ namespace Terradue.Portal {
         ///     Setting RestrictedMode to <i>false</i> allows obtaining an item instances even if the current user has no privileges on the item at all.
         ///     The privilege properties (e.g. CanView) reflect the user's actual privileges and the calling code has to react accordingly. The default value is <i>true</i>.
         /// </summary>
-        public bool RestrictedMode { get; set; }
+        [Obsolete("Use AccessMode.PermissionCheck")]
+        public bool RestrictedMode {
+            get { return AccessMode == EntityAccessMode.PermissionCheck; }
+            set { AccessMode = (value ? EntityAccessMode.PermissionCheck : EntityAccessMode.PrivilegeCheck); }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -787,7 +799,8 @@ namespace Terradue.Portal {
         */
         public IfyContext(string connectionString) {
             this.mainConnectionString = connectionString;
-            this.RestrictedMode = true;
+            //this.RestrictedMode = true;
+            this.AccessMode = EntityAccessMode.PermissionCheck;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -968,6 +981,7 @@ namespace Terradue.Portal {
             defaultMinArgumentsPerNode = GetConfigIntegerValue("DefaultMinArgumentsPerNode");
 
             EntityType.LoadEntityTypes(this);
+            Privilege.LoadPrivileges(this);
 
             LoadAdditionalConfiguration();
 

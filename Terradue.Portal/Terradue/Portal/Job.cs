@@ -462,7 +462,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
+                if (AccessMode == EntityAccessMode.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}";
                 else url = "/tasks/jobs?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -475,7 +475,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
+                if (AccessMode == EntityAccessMode.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/details";
                 else url = "/tasks/jobs/details?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -488,7 +488,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
+                if (AccessMode == EntityAccessMode.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/parameters";
                 else url = "/tasks/jobs/parameters?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -523,7 +523,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Job object</returns>
         */
-        public static new Job GetInstance(IfyContext context) {
+        public static Job GetInstance(IfyContext context) {
             return new Job(context);
         }
         

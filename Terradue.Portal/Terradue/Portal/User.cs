@@ -218,7 +218,7 @@ namespace Terradue.Portal {
         /// \ingroup Authorisation
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created User object.</returns>
-        public static new User GetInstance(IfyContext context) {
+        public static User GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(User));
             return (User)entityType.GetEntityInstance(context); 
         }
@@ -241,7 +241,6 @@ namespace Terradue.Portal {
         /// <param name="authenticationType">The used authentication type. This parameter can be null. If specified, the username is looked for only among the external usernames of the specified authentication type, otherwise among the web portal's own usernames.</param>
         /// <returns>The User instance. New users are not stored in the database, this must be done by the calling code.</returns>
         public static User GetOrCreate(IfyContext context, string username, AuthenticationType authenticationType) {
-            EntityType userType = EntityType.GetEntityType(typeof(User));
             User result = null;
             Activity activity = null;
             int userId = GetUserId(context, username, authenticationType);
@@ -349,7 +348,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public static void SetAccountStatus(IfyContext context, int[] ids, int accountStatus) {
-            if (!context.AdminMode) context.ReturnError("You are not authorized to enable or disable user accounts");
+            if (context.AccessMode != EntityAccessMode.Administrator) context.ReturnError("You are not authorized to enable or disable user accounts");
             string idsStr = "";
             for (int i = 0; i < ids.Length; i++) idsStr += (idsStr == "" ? "" : ",") + ids[i]; 
             string sql = String.Format("UPDATE usr SET status={0}{1} WHERE id{2};", 

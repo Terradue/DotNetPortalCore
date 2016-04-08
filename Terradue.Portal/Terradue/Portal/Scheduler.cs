@@ -202,7 +202,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Scheduler instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Scheduler object</returns>
-        public static new Scheduler GetInstance(IfyContext context) {
+        public static Scheduler GetInstance(IfyContext context) {
             return new CustomScheduler(context);
         }
         

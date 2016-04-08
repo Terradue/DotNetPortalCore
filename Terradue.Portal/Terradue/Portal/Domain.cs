@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-
-
-
-
-
-//-----------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------------------------------
 using System.Data;
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -51,7 +51,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Domain instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created Domain object.</returns>
-        public static new Domain GetInstance(IfyContext context) {
+        public static Domain GetInstance(IfyContext context) {
             return new Domain(context);
         }
         
@@ -76,7 +76,7 @@ namespace Terradue.Portal {
         ///     <list type="bullet">
         ///         <item>An empty array means that the user is not authorised.</item>
         ///         <item>An array containing one or more IDs means that the user is authorised for items that belong to the domains with these database IDs.</item>
-        ///         <item>If the array consists only of the value <c>0</c>, the user is authorised globally.</item>
+        ///         <item>If the array is <c>null</c>, the user is authorised globally.</item>
         ///     </list>
         /// </returns>
         /// <param name="context">The execution environment context.</param>
@@ -86,18 +86,21 @@ namespace Terradue.Portal {
             if (roleIds == null || roleIds.Length == 0) return new int[] {0};
 
             List<int> domainIds = new List<int>();
-            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM role_grant AS rg INNER JOIN usr_grp AS ug ON rg.id_role IN ({1}) AND (rg.id_usr=ug.id_usr AND rg.id_usr={0} OR rg.id_grp=ug.id_grp AND ug.id_usr={0}) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", roleIds));
+            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM role_grant AS rg LEFT JOIN usr_grp AS ug ON rg.id_role IN ({1}) AND rg.id_grp=ug.id_grp WHERE rg.id_usr={0} OR ug.id_usr={0} ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", roleIds));
+            Console.WriteLine("DOMAINS: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool globallyAuthorized = false;
             while (reader.Read()) {
-                // If the domain ID is NULL, the user has the privilege globally and other any additional domains don't matter
+                // The domain ID NULL means that the user has the privilege globally and other any additional domains do not matter
                 if (reader.GetValue(0) == DBNull.Value) {
-                    domainIds.Add(0);
+                    globallyAuthorized = true;
                     break;
                 }
                 domainIds.Add(reader.GetInt32(0));
             }
             context.CloseQueryResult(reader, dbConnection);
+            if (globallyAuthorized) return null;
             return domainIds.ToArray();
         }
         

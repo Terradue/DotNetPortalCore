@@ -42,7 +42,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created ProductType object</returns>
         */
-        public static new ProductType GetInstance(IfyContext context) {
+        public static ProductType GetInstance(IfyContext context) {
             return new ProductType(context);
         }
         

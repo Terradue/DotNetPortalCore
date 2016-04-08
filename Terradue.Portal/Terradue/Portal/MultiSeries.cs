@@ -12,7 +12,7 @@ using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
 
 namespace Terradue.Portal {
-    [EntityTable("multiseries", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("multiseries", EntityTableConfiguration.Full, HasExtensions = true, HasPermissionManagement = true)]
     public class MultiSeries : Entity, IOpenSearchable {
 
         private EntityList<Series> series;

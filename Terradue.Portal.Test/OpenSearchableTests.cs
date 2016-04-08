@@ -9,12 +9,12 @@ using System.Collections.Specialized;
 namespace Terradue.Portal.Test {
 
     [TestFixture]
-    public class OpenSearchableTests : BaseTest{
+    public class OpenSearchableTests : BaseTest {
 
         OpenSearchEngine ose;
 
         [TestFixtureSetUp]
-        public void FixtureSetup(){
+        public override void FixtureSetup(){
 
             base.FixtureSetup();
 

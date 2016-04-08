@@ -80,7 +80,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Group instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created Group object.</returns>
-        public static new Group GetInstance(IfyContext context) {
+        public static Group GetInstance(IfyContext context) {
             return new Group(context);
         }
         
@@ -125,7 +125,7 @@ namespace Terradue.Portal {
             List<User> result = new List<User>();
             List<int> userIds = new List<int>();
 
-            string sql = String.Format("SELECT t.id_usr FROM usr_grp AS t WHERE t.id_grp={0};", this.Id);
+            string sql = String.Format("SELECT id_usr FROM usr_grp WHERE id_grp={0};", Id);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) userIds.Add(reader.GetInt32(0));
@@ -141,11 +141,24 @@ namespace Terradue.Portal {
         /// <summary>Associates the specified users to this group.</summary>
         /// <param name="users">The users to be associated.</param>
         public void SetUsers(IEnumerable<User> users) {
-            context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0};",this.Id));
+            context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0};", Id));
             foreach (User user in users) {
                 if (!user.Exists) user.Store();
                 context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0},{1});", user.Id, this.Id));
             }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void AssignUsers(int[] userIds) {
+            if (userIds == null || userIds.Length == 0) return;
+            context.Execute(String.Format("DELETE FROM usr_grp WHERE id_usr IN ({0});", String.Join(",", userIds))); // avoid duplicates
+            string valuesStr = String.Empty;
+            for (int i = 0; i < userIds.Length; i++) {
+                if (i != 0) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1})", userIds[i], Id);
+            }
+            context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));
         }
 
     }

@@ -42,7 +42,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Project object</returns>
         */
-        public static new Project GetInstance(IfyContext context) {
+        public static Project GetInstance(IfyContext context) {
             return new Project(context);
         }
         

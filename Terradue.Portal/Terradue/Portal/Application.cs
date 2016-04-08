@@ -63,7 +63,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Application object</returns>
         */
-        public static new Application GetInstance(IfyContext context) {
+        public static Application GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(Application));
             return (Application)entityType.GetEntityInstance(context); 
         }

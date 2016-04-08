@@ -21,7 +21,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Safe.
     /// </summary>
-    [EntityTable("safe", EntityTableConfiguration.Custom, HasOwnerReference = true, HasPrivilegeManagement = true)]
+    [EntityTable("safe", EntityTableConfiguration.Custom, HasOwnerReference = true, HasPermissionManagement = true)]
     public class Safe : Entity {
 
         private static string SALT = "salt";

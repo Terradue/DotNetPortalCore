@@ -64,7 +64,7 @@ namespace Terradue.Portal {
         public int EntityTypeId { get; protected set; }
 
         private EntityType entityType;
-        public new EntityType ActivityEntityType { 
+        public EntityType ActivityEntityType { 
             get { 
                 if (entityType == null && this.EntityTypeId != 0)
                     entityType = EntityType.GetEntityTypeFromId(this.EntityTypeId);
@@ -155,7 +155,7 @@ namespace Terradue.Portal {
 
         #region IAtomizable implementation
 
-        public new AtomItem ToAtomItem(NameValueCollection parameters) {
+        public AtomItem ToAtomItem(NameValueCollection parameters) {
 
 
             if (this.EntityId == 0) return null;

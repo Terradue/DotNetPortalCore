@@ -128,7 +128,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Catalogue instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created Catalogue object.</returns>
-        public static new Catalogue GetInstance(IfyContext context) {
+        public static Catalogue GetInstance(IfyContext context) {
             return new Catalogue(context);
         }
         

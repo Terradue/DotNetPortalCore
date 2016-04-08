@@ -45,7 +45,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created ServiceClass object</returns>
         */
-        public static new ServiceClass GetInstance(IfyContext context) {
+        public static ServiceClass GetInstance(IfyContext context) {
             return new ServiceClass(context);
         }
         

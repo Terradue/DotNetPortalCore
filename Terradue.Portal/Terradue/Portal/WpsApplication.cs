@@ -492,7 +492,6 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 ServerResponsibility = true;
                 throw new WpsNoApplicableCodeException("Could not load process configurations" + (context.UserLevel == UserLevel.Administrator ? ": " + e.Message : String.Empty));
-                return false;
             }
             return true;
         }
@@ -544,7 +543,6 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 ServerResponsibility = true;
                 throw new WpsNoApplicableCodeException(e.Message);
-                return;
             }
         }
 

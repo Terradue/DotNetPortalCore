@@ -37,8 +37,8 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract partial class Entity : IValueSet {
 
-        private string identifier;
         private int ownerId;
+        private EntityCollection collection;
 
         protected IfyContext context;
         private bool canCreate = false, canChange = false, canDelete = false;
@@ -47,6 +47,11 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets (protected) the reference to the entity type of this entity item.</summary>
         public EntityType EntityType { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the EntityAccessMode by which this entity item was created or loaded.</summary>
+        public EntityAccessMode AccessMode { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -107,27 +112,40 @@ namespace Terradue.Portal {
             set {
                 this.ownerId = value;
                 if (EntityType == null) return;
-                canChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
-                canDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
+                canChange = UserId != 0 && UserId == OwnerId;
+                canDelete = UserId != 0 && UserId == OwnerId;
             }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the user who is the subject to restrictions.</summary>
-        /// <summary>The value of this property is used for obtaining privilege information. By default this is the requesting user (e.g. currently logged in on the website). Do not confuse with OwnerId.</summary>
+        /// <remarks>The value of this property is used for obtaining privilege information. By default this is the requesting user (e.g. currently logged in on the website). Do not confuse with OwnerId.</remarks>
         public virtual int UserId { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
-        
-        /// <summary>Indicates or determines whether the user is authorized to use the item representad by the entity instance.</summary>
-        public virtual bool CanView { get; set; }
-        
+
+        /// <summary>Gets or sets (only once) the EntityCollection instance that was used to create this item, if applicable.</summary>
+        public EntityCollection Collection { 
+            get {
+                return collection;
+            }
+            set {
+                if (collection != null) throw new InvalidOperationException("The initial collection of an entity item cannot be changed");
+                collection = value;
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates or determines whether an item contained in an entity collection is still supposed to be part of the collection.</summary>
-        /// <remarks>This property has an effect only if the Entity instance is part of an IEntityCollection.</remarks>
+        /// <summary>Indicates or determines whether an item contained in an entity collection is still part of its original collection.</summary>
+        /// <remarks>This property has an effect only if the Entity instance was created by an EntityCollection.</remarks>
         public bool IsInCollection { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or determines whether the user is authorized to use the item representad by the entity instance.</summary>
+        public virtual bool CanView { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -135,7 +153,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanCreate {
             get {
-                if (canCreate || (context != null && context.AdminMode)) return true;
+                if (canCreate || AccessMode == EntityAccessMode.Administrator) return true;
                 return canCreate;
             } 
         }
@@ -146,14 +164,14 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanChange { 
             get {
-                if (canChange || (context != null && context.AdminMode)) return true;
+                if (canChange || AccessMode == EntityAccessMode.Administrator) return true;
                 return canChange;
             } 
         }
 
         [Obsolete("Obsolete, please use CanChange instead")]
         public bool CanModify { 
-            get { return CanChange; } 
+            get { return CanChange; }
             set { canChange = value; }
         }
 
@@ -167,13 +185,25 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates whether an existing item can be deleted.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public virtual bool CanManage { 
+            get {
+                if (AccessMode == EntityAccessMode.PrivilegeCheck) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Manage);
+                return true;
+            } 
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether an existing item can be deleted.</summary>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanDelete { 
             get {
-                if (canDelete || (context != null && context.AdminMode)) return true;
+                if (AccessMode == EntityAccessMode.PrivilegeCheck) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Delete);
+                if (canDelete || AccessMode == EntityAccessMode.Administrator) return true;
                 return canDelete;
             } 
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual string AlternativeIdentifyingCondition { 
@@ -254,41 +284,48 @@ namespace Terradue.Portal {
             else condition = AlternativeIdentifyingCondition;
             if (condition == null) throw new EntityNotAvailableException("No identifying attribute specified for item");
 
-            string sql = entityType.GetItemQuery(context, UserId, condition, EntityQueryMode.Default);
+            // Do not restrict query (a single item is requested)
+            //EntityQueryMode queryMode = context.AdminMode ? EntityQueryMode.Administrator : EntityQueryMode.Unrestricted;
+            string sql = entityType.GetItemQuery(context, this, UserId, condition, context.AccessMode);
             
-            //string sql = String.Format("SELECT {3} FROM {0} WHERE {1}{2};", join, condition, aggregation, select);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
-            IDataReader reader;
             IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader;
             try {
                 reader = context.GetQueryResult(sql, dbConnection);
             } catch (Exception e) {
-                Console.WriteLine("FAILING SQL: {0}", sql);
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
                 throw;
             }
-            
+
             if (!reader.Read()) {
                 context.CloseQueryResult(reader, dbConnection);
-                string loadTerm = entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString();
-                string message = String.Format("{0} {2}{1}{3} not found",
-                        entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                        loadTerm,
-                        entityType.TopTable.HasIdentifierField ? "\"" : "[",
-                        entityType.TopTable.HasIdentifierField ? "\"" : "]"
-                );
-                throw new EntityNotFoundException(message, entityType, loadTerm);
+                string itemTerm = GetItemTerm();
+                throw new EntityNotFoundException(String.Format("{0} not found", itemTerm), entityType, itemTerm);
             }
 
-            Load(entityType, reader);
+            bool authorized = Load(entityType, reader, context.AccessMode);
+
+            context.CloseQueryResult(reader, dbConnection);
 
             if (context.ConsoleDebug) Console.WriteLine("AFTER LOAD");
             
-            canChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
-            canDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
-            
-            context.CloseQueryResult(reader, dbConnection);
+            if (!authorized) {
+                string message = String.Format("{0} is not authorized to use {1} ({2})",
+                    UserId == 0 ? "Unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
+                    GetItemTerm(),
+                    AccessMode == EntityAccessMode.PermissionCheck ? "no permission" : "no permission or grant"
+                );
 
+                throw new EntityUnauthorizedException(message, entityType, this, UserId);
+
+                //if (context.RestrictedMode && !CanView) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no permission)", GetItemTerm()), entityType, this, UserId);
+            }
+
+            //canChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
+            //canDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
+            
             /*if (context.ConsoleDebug) Console.WriteLine("BEFORE LCF");
             if (hasAutoLoadFields) LoadComplexFields(false);
             if (context.ConsoleDebug) Console.WriteLine("AFTER LCF");*/
@@ -296,58 +333,31 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Reads the information of an item from the database based on the privileges of a user.</summary>
-        public void LoadPrivilegeBased(string condition) {
+        public string GetItemTerm() {
             EntityType entityType = this.EntityType;
-
-            // Get all roles with view privilege on items of the entity type
-            int[] roleIds = entityType.GetRolesForPrivilege(context, EntityOperationType.View);
-            if (context.ConsoleDebug) {
-                Console.Write("ROLES: ");
-                for (int i = 0; i < roleIds.Length; i++) Console.Write("{1}{0}", roleIds[i], i == 0 ? String.Empty : ",");
-                Console.WriteLine();
-            }
-
-            // If first (and only) role ID is 0 (NULL), the view privilege is defined, but there is no role that includes that privilege
-            // Therefore, the item cannot be loaded (by nobody except an administrator).
-            if (roleIds.Length != 0 && roleIds[0] == 0) throw new Exception("Not allowed");
-
-            // Get the list of domains for which the user has the view privilege on items of the entity type
-            // The domain restriction check needs to be performed only if the privilege is defined (otherwise everybody has the privilege)
-            if (roleIds.Length != 0) {
-                int[] domainIds = Domain.GetGrantScopeForUser(context, UserId, roleIds);
-                if (context.ConsoleDebug) {
-                    Console.Write("DOMAINS: ");
-                    for (int i = 0; i < domainIds.Length; i++) Console.Write("{1}{0}", domainIds[i], i == 0 ? String.Empty : ",");
-                    Console.WriteLine();
-                }
-
-                // no domain (unauthorised) -> exception
-                // some domains (partly authorised) -> if entity can be assigned to domains: filter result by domains in domainIds, otherwise: exception
-                // NULL domain (globally authorised) -> no domain filtering in query
-
-                if (domainIds.Length == 0 || !entityType.TopTable.HasDomainReference && domainIds[0] != 0) throw new Exception("Not allowed");
-
-                if (entityType.TopTable.HasDomainReference && domainIds[0] != 0) {
-                    if (condition == null) condition = String.Empty;
-                    else condition += " AND ";
-                    condition += String.Format("t.{0} IN ({1})", entityType.TopTable.DomainReferenceField, String.Join(",", domainIds));
-                }
-            }
-
-            string sql = entityType.GetItemQuery(context, UserId, condition, EntityQueryMode.Unrestricted);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: {0}", sql);
+            bool useIdentifier = entityType.TopTable.HasIdentifierField && Identifier != null;
+            return String.Format("{0} {2}{1}{3}",
+                entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
+                entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString(),
+                useIdentifier ? "\"" : "[",
+                useIdentifier ? "\"" : "]"
+            );
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Reads the information of an item using the specified IDataReader.</summary>
+        /// <param name="entityType">The entity type of this entity item.</param>
+        /// <param name="reader">The IDataReader from which the entity item is loaded.</param>
+        /// <param name="queryMode">The query mode that was used to create the query for the reader. Depending on the query, the selected fields differ.</param>
         /// <remarks>
-        ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built according to the Entity.Load() overload.
+        ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built using one of the methods in EntityType class that provide queries.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void Load(EntityType entityType, IDataReader reader) {
-            bool includePrivileges = !context.AdminMode && entityType.HasPrivilegeManagement;
+        public bool Load(EntityType entityType, IDataReader reader, EntityAccessMode accessMode) {
+            //if (queryMode == EntityQueryMode.Default) queryMode = context.AdminMode ? EntityQueryMode.Administrator : context.RestrictedMode ? EntityQueryMode.Restricted : EntityQueryMode.Unrestricted;
+            if (accessMode == EntityAccessMode.Default) accessMode = context.AccessMode;
+            bool includePermissions = accessMode != EntityAccessMode.Administrator && entityType.HasPermissionManagement;
             int index = 0;
 
             Id = reader.GetInt32(index++);
@@ -357,44 +367,45 @@ namespace Terradue.Portal {
             if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
             if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
             else OwnerId = 0;
-            if (entityType.HasPrivilegeManagement) {
-                bool isUserAuthorized = false, isUserAuthorizedViaGroup = false, isUserAuthorizedViaGlobal = false;
-                if (context.AdminMode) {
-                    isUserAuthorized = true;
-                } else {
-                    isUserAuthorized = context.GetBooleanValue(reader, index++);
-                    isUserAuthorizedViaGroup = context.GetBooleanValue(reader, index++);
-                    isUserAuthorizedViaGlobal = context.GetBooleanValue(reader, index++);
+            bool hasPrivilege = (accessMode == EntityAccessMode.Administrator || context.GetBooleanValue(reader, index++));
+            bool hasPermission = true;
+            if (entityType.HasPermissionManagement) {
+                bool hasUserPermission, hasGroupPermission = false, hasGlobalPermission = false;
+                if (accessMode != EntityAccessMode.Administrator) {
+                    hasUserPermission = context.GetBooleanValue(reader, index++);
+                    hasGroupPermission = context.GetBooleanValue(reader, index++);
+                    hasGlobalPermission = context.GetBooleanValue(reader, index++);
+                    hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
                 }
-                CanView = isUserAuthorized || isUserAuthorizedViaGroup || isUserAuthorizedViaGlobal;
             }
             int firstCustomFieldIndex = index;
 
-            if (includePrivileges && context.RestrictedMode && !CanView) {
+            /*if (!hasPrivilege && !hasPermission) {
                 reader.Close();
-                string message = String.Format("{0} is not authorized to use {1} {2}",
-                                               UserId == 0 ? "An unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
-                                               entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                                               entityType.TopTable.HasIdentifierField ? String.Format("\"{0}\"", Identifier) : String.Format("[{0}]", Id)
-                                 );
+                string message = String.Format("{0} is not authorized to use {1} {2} ({3})",
+                        UserId == 0 ? "An unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
+                        entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
+                        entityType.TopTable.HasIdentifierField ? String.Format("\"{0}\"", Identifier) : String.Format("[{0}]", Id),
+                        hasPrivilege ? "no permission" : "no global or domain grant"
+                );
 
                 throw new EntityUnauthorizedException(message, entityType, this, UserId);
-            }
+            }*/
 
             try {
                 foreach (FieldInfo field in entityType.Fields) {
-                    // Skip privilege fields in admin mode
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    // Skip permission fields in admin mode
+                    if (field.FieldType != EntityFieldType.PermissionField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
+                    if (!includePermissions && field.FieldType == EntityFieldType.PermissionField) continue;
 
                     SetPropertyValue(field.Property, reader, index++);
                 }
             } catch (Exception e) {
                 index = firstCustomFieldIndex;
                 foreach (FieldInfo field in entityType.Fields) {
-                    // Skip privilege fields in admin mode
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    // Skip permission fields in admin mode
+                    if (field.FieldType != EntityFieldType.PermissionField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
+                    if (!includePermissions && field.FieldType == EntityFieldType.PermissionField) continue;
 
                     try {
                         SetPropertyValue(field.Property, reader, index++);
@@ -409,17 +420,19 @@ namespace Terradue.Portal {
                 if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
-                if (!context.AdminMode && entityType.HasPrivilegeManagement/* && Restricted*/) { // TODO
+                if (AccessMode != EntityAccessMode.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
                 }
                 foreach (FieldInfo field in entityType.Fields) {
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    if (field.FieldType != EntityFieldType.PermissionField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
+                    if (!includePermissions && field.FieldType == EntityFieldType.PermissionField) continue;
                     Console.WriteLine("- VALUE: {0,-25} = {1}", field.Property.Name, context.GetValue(reader, index++));
                 }
             }
+
+            return hasPermission || hasPrivilege;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -602,9 +615,9 @@ namespace Terradue.Portal {
                     context.CloseDbConnection(dbConnection);
                 }
                 
-                // Add view privilege to owner
-                if (!context.AdminMode && OwnerId != 0 && entityType.HasPrivilegeManagement) {
-                    context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PrivilegeSubjectTable.Name, entityType.PrivilegeSubjectTable.PrivilegeTable));
+                // Add view privilege to owner (if it was not created by an administrator)
+                if (OwnerId != 0 && entityType.HasPermissionManagement && (AccessMode != EntityAccessMode.Administrator || OwnerId != context.UserId)) {
+                    context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PermissionSubjectTable.Name, entityType.PermissionSubjectTable.PermissionTable));
                 }
                 Exists = true;
 
@@ -658,97 +671,168 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the privileges for the user specified in the item's UserId property according to the privilege properties.</summary>
+        /// <summary>Sets the permissions for the user specified in the item's UserId property according to the permission properties.</summary>
+        public void GrantPermissions() {
+            GrantPermissions(false, UserId, null, false);
+        }
+
+        [Obsolete("Use GrantPermissions (changed for terminology consistency)")]
         public void StorePrivileges() {
-            StorePrivileges(false, UserId, null, false);
+            GrantPermissions();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the privileges on the resource represented by the instance for the specified users according to the privilege properties.</summary>
-        /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several users.</remarks>
-        /// <param name="userIds">An array of IDs of the users to which the privilege setting applies.</param>
+        /// <summary>Sets the permissions on the resource represented by the instance for the specified users according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="userIds">An array of IDs of the users to which the permission setting applies.</param>
+        public void GrantPermissionsToUsers(int[] userIds) {
+            GrantPermissions(false, 0, userIds, false);
+        }
+
+        [Obsolete("Use GrantPermissionsToUsers (changed for terminology consistency)")]
         public void StorePrivilegesForUsers(int[] userIds) {
-            StorePrivileges(false, 0, userIds, false);
+            GrantPermissionsToUsers(userIds);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the privileges on the resource represented by the instance for the specified users according to the privilege properties.</summary>
-        /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several users.</remarks>
-        /// <param name="userIds">An array of IDs of the users to which the privilege setting applies.</param>
-        /// <param name="removeOthers">Determines whether privilege settings for other users not contained in <c>userIds</c> are removed.</param>
+        /// <summary>Sets the permissions on the resource represented by the instance for the specified users according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="userIds">An array of IDs of the users to which the permission setting applies.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other users not contained in <c>userIds</c> are removed.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToUsers(int[] userIds, bool removeOthers) {
+            GrantPermissions(false, 0, userIds, removeOthers);
+        }
+
+        [Obsolete("Use GrantPermissionsToUsers (changed for terminology consistency)")]
         public void StorePrivilegesForUsers(int[] userIds, bool removeOthers) {
-            StorePrivileges(false, 0, userIds, removeOthers);
+            GrantPermissionsToUsers(userIds, removeOthers);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the privileges on the resource represented by the instance for the specified user groups according to the privilege properties.</summary>
-        /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several groups.</remarks>
-        /// <param name="groupIds">An array of IDs of the groups to which the privilege setting applies.</param>
+        /// <summary>Sets the permissions on the resource represented by the instance for the specified user groups according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
+        /// <param name="groupIds">An array of IDs of the groups to which the permission setting applies.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToGroups(int[] groupIds) {
+            GrantPermissions(true, 0, groupIds, false);
+        }
+
+        [Obsolete("Use GrantPermissionsToGroups (changed for terminology consistency)")]
         public void StorePrivilegesForGroups(int[] groupIds) {
-            StorePrivileges(true, 0, groupIds, false);
+            GrantPermissionsToGroups(groupIds);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the privileges on the resource represented by the instance for the specified user groups according to the privilege properties.</summary>
-        /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to several groups.</remarks>
-        /// <param name="groupIds">An array of IDs of the groups to which the privilege setting applies.</param>
-        /// <param name="removeOthers">Determines whether privilege settings for other groups not contained in <c>groupIds</c> are removed.</param>
+        /// <summary>Sets the permissions on the resource represented by the instance for the specified user groups according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
+        /// <param name="groupIds">An array of IDs of the groups to which the permission setting applies.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other groups not contained in <c>groupIds</c> are removed.</param>
+        public void GrantPermissionsToGroups(int[] groupIds, bool removeOthers) {
+            GrantPermissions(true, 0, groupIds, removeOthers);
+        }
+
+        [Obsolete("Use GrantPermissionsToGroups (changed for terminology consistency)")]
         public void StorePrivilegesForGroups(int[] groupIds, bool removeOthers) {
-            StorePrivileges(true, 0, groupIds, removeOthers);
+            GrantPermissionsToGroups(groupIds, removeOthers);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets global privileges on the resource represented by the instance that will apply to all users according to the privilege properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
         /// <remarks>
-        ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
-        ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
+        ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
+        ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void StoreGlobalPrivileges() {
-            StorePrivileges(false, 0, null, false);
+        public void GrantGlobalPermissions() {
+            GrantPermissions(false, 0, null, false);
 
             //activity
             Activity activity = new Activity(context, this, OperationPriv.MAKE_PUBLIC);
             activity.Store();
         }
         
+        [Obsolete("Use GrantGlobalPermissions (changed for terminology consistency)")]
+        public void StoreGlobalPrivileges() {
+            GrantGlobalPermissions();
+
+            //activity
+            Activity activity = new Activity(context, this, OperationPriv.MAKE_PUBLIC);
+            activity.Store();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets global permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
+        /// <remarks>
+        ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
+        ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
+        /// </remarks>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void RevokeGlobalPermission() {
+            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name));
+        }
+
+        [Obsolete("Use RevokeGlobalPermission (changed for terminology consistency)")]
+        public void RemoveGlobalPrivileges() {
+            RevokeGlobalPermission();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Determines whether this instance has global permission.
+        /// </summary>
+        /// <returns><c>true</c> if this instance has global permission; otherwise, <c>false</c>.</returns>
+        public bool DoesGrantGlobalPermission() {
+            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+        }
+
+        [Obsolete("Use DoesGrantGlobalPermission (changed for terminology consistency)")]
+        public bool HasGlobalPrivilege() {
+            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets global privileges on the resource represented by the instance that will apply to all users according to the privilege properties.</summary>
-        /// <remarks>This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.</remarks>
-        /// <param name="removeOthers">Determines whether privilege settings at user and group level are removed.</param>
-        public void StoreGlobalPrivileges(bool removeOthers) {
-            StorePrivileges(false, 0, null, removeOthers);
+        /// <summary>Sets global permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.</remarks>
+        /// <param name="removeOthers">Determines whether permission settings at user and group level are removed.</param>
+        public void GrantGlobalPermissions(bool removeOthers) {
+            GrantPermissions(false, 0, null, removeOthers);
         }
         
+        [Obsolete("Use AssignPermissionsGlobally (changed for terminology consistency)")]
+        public void StoreGlobalPrivileges(bool removeOthers) {
+            GrantGlobalPermissions(removeOthers);
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
         
-        private void StorePrivileges(bool forGroup, int singleId, int[] multipleIds, bool removeOthers) {
+        private void GrantPermissions(bool forGroup, int singleId, int[] multipleIds, bool removeOthers) {
             EntityType entityType = this.EntityType;
-            int privilegeSubjectTableIndex = -1;
+            int permissionSubjectTableIndex = -1;
 
             for (int i = 0; i < entityType.Tables.Count; i++) {
                 EntityTableAttribute table = entityType.Tables[i];
-                if (table == entityType.PrivilegeSubjectTable) {
-                    privilegeSubjectTableIndex = i;
+                if (table == entityType.PermissionSubjectTable) {
+                    permissionSubjectTableIndex = i;
                     break;
                 }
             }
             
             // Add entity-specific fields to SELECT clause
-            string names = String.Format("id_{0}, id_usr, id_grp", entityType.PrivilegeSubjectTable.Name);
+            string names = String.Format("id_{0}, id_usr, id_grp", entityType.PermissionSubjectTable.Name);
             string values = String.Empty;
             string totalValues = null;
             string deleteCondition = null;
             foreach (FieldInfo field in entityType.Fields) {
-                if (field.TableIndex != privilegeSubjectTableIndex || field.FieldType != EntityFieldType.PrivilegeField) continue;
+                if (field.TableIndex != permissionSubjectTableIndex || field.FieldType != EntityFieldType.PermissionField) continue;
                 names += String.Format(", {0}", field.FieldName);
                 object value = field.Property.GetValue(this, null);
                 value = (field.NullValue != null && field.NullValue.Equals(value)) ? "NULL" : StringUtils.ToSqlString(value);
@@ -777,79 +861,65 @@ namespace Terradue.Portal {
                 else deleteCondition = "id_usr IS NULL AND id_grp IS NULL";
             }
             
-            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND ({3});", Id, entityType.PrivilegeSubjectTable.PrivilegeTable, entityType.PrivilegeSubjectTable.Name, deleteCondition));
-            context.Execute(String.Format("INSERT INTO {0} ({1}) VALUES {2};", entityType.PrivilegeSubjectTable.PrivilegeTable, names, totalValues));
+            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND ({3});", Id, entityType.PermissionSubjectTable.PermissionTable, entityType.PermissionSubjectTable.Name, deleteCondition));
+            context.Execute(String.Format("INSERT INTO {0} ({1}) VALUES {2};", entityType.PermissionSubjectTable.PermissionTable, names, totalValues));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets privileges on resources for a single user.</summary>
-        /// <remarks>This method allows managing privileges from a single user's point of view: one user has privileges on several resources.</remarks>
+        /// <summary>Sets permissions on resources for a single user.</summary>
+        /// <remarks>This method allows managing permissions from a single user's point of view: one user has permissions on several resources.</remarks>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="userId">The ID of the user for which privileges on entity items are provided.</param>
-        /// <param name="items">An array containing the Entity instances with the privilege values set according to the user's actual privileges.</param>
-        /// <param name="removeOthers">Determines whether privilege settings for other resources not contained in <c>items</c> are removed.</param>
+        /// <param name="userId">The ID of the user for which permissions on entity items are provided.</param>
+        /// <param name="items">An array containing the Entity instances with the permission values set according to the user's actual permissions.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other resources not contained in <c>items</c> are removed.</param>
+        public static void GrantPermissionsToUser(IfyContext context, int userId, Entity[] items, bool removeOthers) {
+            GrantPermissions(context, false, userId, items, removeOthers);
+        }
+
+        [Obsolete("Use GrantPermissionsToUser (changed for terminology consistency)")]
         public static void StorePrivilegesForUser(IfyContext context, int userId, Entity[] items, bool removeOthers) {
-            StorePrivileges(context, false, userId, items, removeOthers);
+            GrantPermissionsToUser(context, userId, items, removeOthers);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets privileges on resources for a single group.</summary>
-        /// <remarks>This method allows managing privileges from a single group's point of view: one group has privileges on several resources.</remarks>
+        /// <summary>Sets permissions on resources for a single group.</summary>
+        /// <remarks>This method allows managing permissions from a single group's point of view: one group has permissions on several resources.</remarks>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="groupId">The ID of the group for which privileges on entity items are provided.</param>
-        /// <param name="items">An array containing the Entity instances with the privilege values set according to the group's actual privileges.</param>
-        /// <param name="removeOthers">Determines whether privilege settings for other resources not contained in <c>items</c> are removed.</param>
+        /// <param name="groupId">The ID of the group for which permissions on entity items are provided.</param>
+        /// <param name="items">An array containing the Entity instances with the permission values set according to the group's actual permissions.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other resources not contained in <c>items</c> are removed.</param>
+        public static void GrantPermissionsToGroup(IfyContext context, int groupId, Entity[] items, bool removeOthers) {
+            GrantPermissions(context, true, groupId, items, removeOthers);
+        }
+
+        [Obsolete("Use GrantPermissionsToGroup (changed for terminology consistency)")]
         public static void StorePrivilegesForGroup(IfyContext context, int groupId, Entity[] items, bool removeOthers) {
-            StorePrivileges(context, true, groupId, items, removeOthers);
+            GrantPermissionsToGroup(context, groupId, items, removeOthers);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary></summary>
         /// <remarks></remarks>
-        protected static void StorePrivileges(IfyContext context, bool forGroup, int id, Entity[] items, bool removeOthers) {
+        protected static void GrantPermissions(IfyContext context, bool forGroup, int id, Entity[] items, bool removeOthers) {
             if (removeOthers && items.Length != 0) {
-                context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
+                context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PermissionSubjectTable.PermissionTable, forGroup ? "id_grp" : "id_usr", id));
             }
             foreach (Entity item in items) {
                 if (context.ConsoleDebug) Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
-                item.StorePrivileges(forGroup, id, null, false);
+                item.GrantPermissions(forGroup, id, null, false);
             }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Sets global privileges on the resource represented by the instance that will apply to all users according to the privilege properties.</summary>
-        /// <remarks>
-        ///     This method allows managing privileges from the resource's point of view: one resource grants privileges to everybody.
-        ///     The privileges previously defined for users and groups are kept but, since the global privilege settings override all finer grained settings, those have only effect for the privileges that are not allowed by the global privilege.
-        /// </remarks>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void RemoveGlobalPrivileges() {
-            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name));
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Determines whether this instance has global privilege.
-        /// </summary>
-        /// <returns><c>true</c> if this instance has global privilege; otherwise, <c>false</c>.</returns>
-        public bool HasGlobalPrivilege() {
-            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name)) > 0;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Gets the list of groups with privileges.
-        /// </summary>
-        /// <returns>The groups with privileges.</returns>
-        public List<int> GetGroupsWithPrivileges() {
+        /// <summary>Gets the list of groups that have any permissions on this entity item.</summary>
+        /// <returns>The database IDs of the groups with privileges.</returns>
+        public List<int> GetGroupsWithPermissions() {
             List<int> ids = new List<int>();
-            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 
@@ -862,13 +932,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the list of users with privileges.
-        /// </summary>
-        /// <returns>The users with privileges.</returns>
-        public List<int> GetUsersWithPrivileges() {
+        /// <summary>Gets the list of users that have any permissions on this entity item.</summary>
+        /// <returns>The database IDs of the users with privileges.</returns>
+        public List<int> GetUsersWithPermissions() {
             List<int> ids = new List<int>();
-            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 

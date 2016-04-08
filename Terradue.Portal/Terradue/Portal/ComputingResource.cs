@@ -53,7 +53,7 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup ComputingResource
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("cr", EntityTableConfiguration.Custom, HasDomainReference = true, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 
@@ -203,7 +203,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created GenericComputingResource object</returns>
         /// <remarks>Since ComputingResource is abstract, an instance of GenericComputingResource is returned. This subclass provides only the functionality inherited from the superclasses of ComputingResource (e.g. Entity) but no functionality of a real computing resource.</remarks>
-        public static new ComputingResource GetInstance(IfyContext context) {
+        public static ComputingResource GetInstance(IfyContext context) {
             return new GenericComputingResource(context);
         }
         

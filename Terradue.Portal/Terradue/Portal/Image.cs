@@ -71,7 +71,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Image object</returns>
         */
-        public static new Image GetInstance(IfyContext context) {
+        public static Image GetInstance(IfyContext context) {
             return new Image(context);
         }
 

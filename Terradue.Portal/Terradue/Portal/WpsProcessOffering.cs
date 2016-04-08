@@ -366,7 +366,7 @@ namespace Terradue.Portal {
             return new AtomItem(entry);
         }
 
-        public NameValueCollection GetOpenSearchParameters() {
+        public new NameValueCollection GetOpenSearchParameters() {
             var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
             parameters.Add("id", "{geo:uid?}");
             parameters.Add("wpsUrl", "{ows:url?}");

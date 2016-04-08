@@ -70,7 +70,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created LookupList object</returns>
         */
-        public static new LookupList GetInstance(IfyContext context) {
+        public static LookupList GetInstance(IfyContext context) {
             return new LookupList(context);
         }
         

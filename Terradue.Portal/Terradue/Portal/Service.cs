@@ -87,7 +87,7 @@ namespace Terradue.Portal {
     /// <description>Abstract base object for processing services.</description>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
     public abstract class Service : Entity, IAtomizable {
         private const int CLASS_TABLE = 1;
@@ -102,7 +102,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        [EntityPrivilegeField("allow_scheduling")]
+        [EntityPermissionField("allow_scheduling")]
         public bool CanSchedule { get; private set; }
         // TODO if (context.GetQueryBooleanValue(String.Format("SELECT allow_sessionless FROM usr WHERE id={0};", UserId))) return true;
 

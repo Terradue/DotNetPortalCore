@@ -589,7 +589,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext != null && webContext.AdminRootUrl != null) url = "{1}/{2}/{0}";  
+                if (AccessMode == EntityAccessMode.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{1}/{2}/{0}";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{3}/{0}"; 
                 else url = "/tasks?uid={0}";
                 return String.Format(url, Exists ? Identifier : String.Empty, webContext.AdminRootUrl, EntityType.GetEntityType(this.GetType()).Keyword, webContext.TaskWorkspaceRootUrl);
@@ -683,7 +683,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Task instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Task object</returns>
-        public static new Task GetInstance(IfyContext context) {
+        public static Task GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(Task));
             return (Task)entityType.GetEntityInstance(context); 
         }
@@ -1093,7 +1093,7 @@ namespace Terradue.Portal {
             // Determine the attributes to be updated (user, priority, computing resource, publish server and result compression value) 
             // depending on the user privileges and the task status
             
-            if (CanModify) {
+            if (CanChange) {
                 Store();
                 if (context.DebugLevel >= 2) context.AddDebug(2, "Task attributes updated in database");
             } else {
@@ -1141,7 +1141,7 @@ namespace Terradue.Portal {
             
             if (context.DebugLevel >= 3) context.AddDebug(3, "Copy task " + oldIdentifier);
             // Save the task 
-            CanModify = false;
+            // CanChange = false;
             Store();
             if (Id == oldId) {
                 context.AddError("Could not copy task " + oldIdentifier + " (" + oldId + ")");
@@ -1597,14 +1597,14 @@ namespace Terradue.Portal {
             }
 
             // So the task itself can be changed only if any of the above can be changed
-            CanModify = (canChangeOwner || canChangeAttributes || canChangePublishServer);
+            //CanModify = (canChangeOwner || canChangeAttributes || canChangePublishServer);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
         
         //!
         public void GetResult() {
-            bool result = ComputingResource.GetTaskResult(this);
+            ComputingResource.GetTaskResult(this);
         }
         
         //---------------------------------------------------------------------------------------------------------------------

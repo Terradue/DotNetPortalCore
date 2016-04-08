@@ -44,7 +44,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new ManagerRole instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created ManagerRole object</returns>
-        public static new Role GetInstance(IfyContext context) {
+        public static Role GetInstance(IfyContext context) {
             return new Role(context);
         }
         
@@ -118,42 +118,40 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-    }
+        /// <summary>Assigns this role to the specified users for the specified domain or globally.</summary>
+        /// <param name="userIds">An array of the database IDs of the users.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the users obtain this role globally.</param>
+        public void AssignUsers(int[] userIds, int domainId) {
+            AssignUsersOrGroups(true, userIds, domainId);
+        }
 
+        //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Assigns this role to the specified groups for the specified domain or globally.</summary>
+        /// <param name="groupIds">An array of the database IDs of the groups.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the groups obtain this role globally.</param>
+        public void AssignGroups(int[] groupIds, int domainId) {
+            AssignUsersOrGroups(false, groupIds, domainId);
+        }
 
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Assigns this role to the specified users or groups for the specified domain or globally.</summary>
+        /// <param name="addUsers">If <c>true</c>, the methods considers the given IDs as users IDs, otherwise as group IDs.</param>
+        /// <param name="ids">An array of the database IDs of the users or groups.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the beneficiaries obtain this role globally.</param>
+        public void AssignUsersOrGroups(bool addUsers, int[] ids, int domainId) {
+            if (ids == null || ids.Length == 0) return;
+            context.Execute(String.Format("DELETE FROM role_grant WHERE {0} IN ({1}) AND id_domain{2};", addUsers ? "id_usr" : "id_grp", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
+            string valuesStr = String.Empty;
+            for (int i = 0; i < ids.Length; i++) {
+                if (i != 0) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1},{2})", ids[i], Id, domainId == 0 ? "NULL" : domainId.ToString());
+            }
+            context.Execute(String.Format("INSERT INTO role_grant ({0}, id_role, id_domain) VALUES {1};", addUsers ? "id_usr" : "id_grp", valuesStr));
+        }
 
-
-    /// <summary>Enumeration of generic operations regarding entities.</summary>
-    public enum EntityOperationType {
-
-        /// <summary>Create a new entity item.</summary>
-        /// <remarks>This privilege allows a user to create new domain-owned or global entity items according to his grant.</remarks>
-        Create = 'c',
-
-        /// <summary>List and search entity items.</summary>
-        /// <remarks>This privilege allows a user to see lists of entity items that are part of his grant and to search within these lists.</remarks>
-        Search = 's',
-
-        /// <summary>View an entity item.</summary>
-        /// <remarks>This privilege allows a user to view the details of entity items that are part of his grant.</remarks>
-        View = 'v',
-
-        /// <summary>Change an existing entity item.</summary>
-        /// <remarks>This privilege allows a user to make persistent modifications to entity items that are part of his grant.</remarks>
-        Change = 'm',
-
-        /// <summary>Use an entity item in the same way as its owner and manage or control it.</summary>
-        /// <remarks>This privilege implies the Change privilege and, in addition, allows a user to influence what other users can do regarding entity items within his grant. Typical operations include changes to availability and the assignment of permissions to users or groups.</remarks>
-        Manage = 'M',
-
-        /// <summary>Make an entity item available to others.</summary>
-        /// <remarks>This privilege allows a user to definitely remove entity items that are part of his grant from the database.</remarks>
-        Delete = 'd'
+        //---------------------------------------------------------------------------------------------------------------------
 
     }
 
