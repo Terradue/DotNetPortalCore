@@ -18,84 +18,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 
-/*!
-
-\defgroup Core Core
-@{
-
-The Core component is a set of library developed as the base implementation of a Content Management System (CMS) for EO world entities.
-It implements basic subcomponent to deal with basic EO business objects such as dataset series, WPS service, user context, jobs...
-It also implements the low level functions to store and read data persistently on the database or to apply a configuration.
-
-@}
-
-*/
-
-/*!
-
-\defgroup Security Security
-@{
-
-The Security component is a set of library in charge with all the authorisation or authentication functions and also with the privileges management 
-between users, groups and other business objects. The security scheme is open and offers many possibilities to plug other component to
-implement specific authentication mechanism or authorization scheme.
-
-@}
-
-*/
-
-/*!
-\defgroup Authorisation Authorisation
-@{
-It provides with the functions to define privileges for users or groups on entities for which restrictions are useful, such as entities that represent resources (computing resources or processing services etc.).
-
-\ingroup Security
-
-\xrefitem dep "Dependencies" "Dependencies" \ref Persistence reads/writes the privileges persistently
-
-\xrefitem dep "Dependencies" "Dependencies" uses \ref Context to identify the user and the session
-
-The authorisation consists of two phases:
-- a generic phase where the current user's access privileges are compared to the necessary privileges for the accessed resource
-- an optional specific phase where the same check is performed for the requested operation. This phase is specific to the entity subclass in question as the possible operations are entity-specific.
-
-If IfyContext.RestrictedMode is <em>true</em> (the default value) and the user has insufficient privileges to access an item, the item is not loaded and an exception is thrown immediately.
-Otherwise, if IfyContext.RestrictedMode is <em>false</em>, the authorisation check needs to be done by the code that loaded the entity item. This code should check the CanView property of the loaded item and if its value is <em>false</em>, it may either continue or throw another, more appropriate, exception.
-The latter procedure is also followed for the second phase that checks operation authorisations. The authorisation for a specific operation must be ensured by the code of the entity subclass. The central authorisation model supports this task by initialising the properties corresponding to the operation privilege that are applicable to the entity subclass.
-
-
-\startuml "Authorisation mechanism Activity Diagram
-
-start
-:Load entity item considering access policies and user/group privileges;
-if (Are view privileges for current user sufficient?) then (yes)
-    :Access granted;
-else (no)
-    if (Is current context set to restricted mode?) then (yes)
-        :Access denied (throw exception);
-        stop
-    else (no)
-        :Item flagged as unaccessible for current user (no exception);
-    endif
-    :Access granted;
-endif
-:Generic authorisation check completed;
-:Speficic authorisation checks for operation (performed by entity subclass);
-if (Is specific privilege required for requested operation) then (yes)
-    if (Does user have this privilege?) then (no)
-        :Operation rejected (throw exception);
-        stop
-    else (yes)
-    endif
-else (no)
-endif
-:Operation allowed;
-stop
-
-\enduml
-
-@}
- */
 namespace Terradue.Portal {
 
     
@@ -113,7 +35,7 @@ namespace Terradue.Portal {
     /// The data location and structure are defined in the extended object which represent real-world entities.
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    public abstract class Entity : IValueSet {
+    public abstract partial class Entity : IValueSet {
 
         private string identifier;
         private int ownerId;
@@ -158,7 +80,13 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the domain to which the item belongs.</summary>
-        public virtual int DomainId { get; set; } 
+        public virtual int DomainId { get; set; }
+
+        /// <summary>Domain</summary>
+        /// <description>Domain to which the item belongs.</description>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
+        /// <returns>belonging Domain</returns>
+        public virtual Domain Domain { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -173,17 +101,18 @@ namespace Terradue.Portal {
             }
             set {
                 this.ownerId = value;
-                if (EntityType == null) return;
+                if (EntityType == null)
+                    return;
                 CanChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
                 CanDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
-           }
-        } 
+            }
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the user who is the subject to restrictions.</summary>
         /// <summary>The value of this property is used for obtaining privilege information. By default this is the requesting user (e.g. currently logged in on the website). Do not confuse with OwnerId.</summary>
-        public virtual int UserId { get; set; } 
+        public virtual int UserId { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -198,10 +127,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Indicates or determines whether a new item can be created.</summary>
+        /// <summary>Creation Privilege</summary>
+        /// <description>Indicates or determines whether a new item can be created.</description>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanCreate {
             get {
-                if (canCreate || (context != null && context.AdminMode)) return true;
+                if (canCreate || (context != null && context.AdminMode))
+                    return true;
                 return canCreate;
             } 
             set {
@@ -217,10 +149,13 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creation Privilege</summary>
         /// <summary>Indicates or determines whether an existing item can be modified.</summary>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanChange { 
             get {
-                if (canChange || (context != null && context.AdminMode)) return true;
+                if (canChange || (context != null && context.AdminMode))
+                    return true;
                 return canChange;
             } 
             set {
@@ -236,10 +171,13 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creation Privilege</summary>
         /// <summary>Indicates or determines whether an existing item can be deleted.</summary>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanDelete { 
             get {
-                if (canDelete || (context != null && context.AdminMode)) return true;
+                if (canDelete || (context != null && context.AdminMode))
+                    return true;
                 return canDelete;
             } 
             set {
@@ -269,7 +207,8 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         protected Entity(IfyContext context) {
             this.context = context;
-            if (!(this is EntityType)) this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
+            if (!(this is EntityType))
+                this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
             if (context != null) {
                 this.UserId = context.UserId;
                 this.OwnerId = UserId;
@@ -283,7 +222,11 @@ namespace Terradue.Portal {
             EntityType entityType = this.EntityType;
             foreach (FieldInfo field in entityType.Fields) {
                 if (field.FieldType == EntityFieldType.RelationshipField) {
-                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[]{ typeof(IfyContext), typeof(EntityType), typeof(Entity) });
+                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[] {
+                        typeof(IfyContext),
+                        typeof(EntityType),
+                        typeof(Entity)
+                    });
                     EntityRelationshipType entityRelationshipType = EntityRelationshipType.GetOrAddEntityRelationshipType(field.Property);
                     object o = ci.Invoke(new object[] { context, entityRelationshipType, this });
                     field.Property.SetValue(this, o, null);
@@ -318,16 +261,21 @@ namespace Terradue.Portal {
 
             // Build WHERE clause
             string condition = null;
-            if (Id != 0) condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
-            else if (entityType.TopTable.HasIdentifierField && Identifier != null) condition = String.Format("t.{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
+            if (Id != 0)
+                condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
+            else if (entityType.TopTable.HasIdentifierField && Identifier != null)
+                condition = String.Format("t.{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
             //else if (!entityType.TopTable.HasAutomaticIds) condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
-            else condition = AlternativeIdentifyingCondition;
-            if (condition == null) throw new EntityNotAvailableException("No identifying attribute specified for item");
+            else
+                condition = AlternativeIdentifyingCondition;
+            if (condition == null)
+                throw new EntityNotAvailableException("No identifying attribute specified for item");
 
             string sql = entityType.GetItemQuery(context, UserId, condition);
             
             //string sql = String.Format("SELECT {3} FROM {0} WHERE {1}{2};", join, condition, aggregation, select);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+            if (context.ConsoleDebug)
+                Console.WriteLine("SQL: " + sql);
 
             IDataReader reader;
             IDbConnection dbConnection = context.GetDbConnection();
@@ -342,17 +290,18 @@ namespace Terradue.Portal {
                 context.CloseQueryResult(reader, dbConnection);
                 string loadTerm = entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString();
                 string message = String.Format("{0} {2}{1}{3} not found",
-                        entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                        loadTerm,
-                        entityType.TopTable.HasIdentifierField ? "\"" : "[",
-                        entityType.TopTable.HasIdentifierField ? "\"" : "]"
-                );
+                                               entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
+                                               loadTerm,
+                                               entityType.TopTable.HasIdentifierField ? "\"" : "[",
+                                               entityType.TopTable.HasIdentifierField ? "\"" : "]"
+                                 );
                 throw new EntityNotFoundException(message, entityType, loadTerm);
             }
 
             Load(entityType, reader);
 
-            if (context.ConsoleDebug) Console.WriteLine("AFTER LOAD");
+            if (context.ConsoleDebug)
+                Console.WriteLine("AFTER LOAD");
             
             CanChange = context.AdminMode || UserId != 0 && UserId == OwnerId;
             CanDelete = context.AdminMode || UserId != 0 && UserId == OwnerId;
@@ -377,11 +326,16 @@ namespace Terradue.Portal {
 
             Id = reader.GetInt32(index++);
             Exists = true;
-            if (entityType.TopTable.HasIdentifierField) Identifier = context.GetValue(reader, index++);
-            if (entityType.TopTable.HasNameField) Name = context.GetValue(reader, index++);
-            if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
-            if (entityType.TopTable.HasOwnerReference) OwnerId = context.GetIntegerValue(reader, index++);
-            else OwnerId = 0;
+            if (entityType.TopTable.HasIdentifierField)
+                Identifier = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasNameField)
+                Name = context.GetValue(reader, index++);
+            if (entityType.TopTable.HasDomainReference)
+                DomainId = context.GetIntegerValue(reader, index++);
+            if (entityType.TopTable.HasOwnerReference)
+                OwnerId = context.GetIntegerValue(reader, index++);
+            else
+                OwnerId = 0;
             if (entityType.TopTable.HasPrivilegeManagement) {
                 bool isUserAuthorized = false, isUserAuthorizedViaGroup = false, isUserAuthorizedViaGlobal = false;
                 if (context.AdminMode) {
@@ -398,10 +352,10 @@ namespace Terradue.Portal {
             if (includePrivileges && context.RestrictedMode && !CanView) {
                 reader.Close();
                 string message = String.Format("{0} is not authorized to use {1} {2}",
-                        UserId == 0 ? "An unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
-                        entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                        entityType.TopTable.HasIdentifierField ? String.Format("\"{0}\"", Identifier) : String.Format("[{0}]", Id)
-                );
+                                               UserId == 0 ? "An unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
+                                               entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
+                                               entityType.TopTable.HasIdentifierField ? String.Format("\"{0}\"", Identifier) : String.Format("[{0}]", Id)
+                                 );
 
                 throw new EntityUnauthorizedException(message, entityType, this, UserId);
             }
@@ -409,8 +363,10 @@ namespace Terradue.Portal {
             try {
                 foreach (FieldInfo field in entityType.Fields) {
                     // Skip privilege fields in admin mode
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField)
+                        continue;
+                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField)
+                        continue;
 
                     SetPropertyValue(field.Property, reader, index++);
                 }
@@ -418,8 +374,10 @@ namespace Terradue.Portal {
                 index = firstCustomFieldIndex;
                 foreach (FieldInfo field in entityType.Fields) {
                     // Skip privilege fields in admin mode
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField)
+                        continue;
+                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField)
+                        continue;
 
                     try {
                         SetPropertyValue(field.Property, reader, index++);
@@ -431,18 +389,24 @@ namespace Terradue.Portal {
             index = 0;
             if (context.ConsoleDebug) {
                 Console.WriteLine("+ VALUE: {0,-25} = {1}", "Id", reader.GetInt32(index++));
-                if (entityType.TopTable.HasIdentifierField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Identifier", context.GetValue(reader, index++));
-                if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
-                if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
-                if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
+                if (entityType.TopTable.HasIdentifierField)
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "Identifier", context.GetValue(reader, index++));
+                if (entityType.TopTable.HasNameField)
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
+                if (entityType.TopTable.HasDomainReference)
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
+                if (entityType.TopTable.HasOwnerReference)
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
                 if (!context.AdminMode && entityType.TopTable.HasPrivilegeManagement/* && Restricted*/) { // TODO
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
                 }
                 foreach (FieldInfo field in entityType.Fields) {
-                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;
-                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField) continue;
+                    if (field.FieldType != EntityFieldType.PrivilegeField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField)
+                        continue;
+                    if (!includePrivileges && field.FieldType == EntityFieldType.PrivilegeField)
+                        continue;
                     Console.WriteLine("- VALUE: {0,-25} = {1}", field.Property.Name, context.GetValue(reader, index++));
                 }
             }
@@ -451,13 +415,20 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void SetPropertyValue(PropertyInfo propertyInfo, IDataReader reader, int index) {
-            if (propertyInfo.PropertyType == typeof(string)) propertyInfo.SetValue(this, context.GetValue(reader, index), null);
-            else if (propertyInfo.PropertyType == typeof(bool)) propertyInfo.SetValue(this, context.GetBooleanValue(reader, index), null);
-            else if (propertyInfo.PropertyType == typeof(int)) propertyInfo.SetValue(this, context.GetIntegerValue(reader, index), null);
-            else if (propertyInfo.PropertyType == typeof(long)) propertyInfo.SetValue(this, context.GetLongIntegerValue(reader, index), null);
-            else if (propertyInfo.PropertyType == typeof(double)) propertyInfo.SetValue(this, context.GetDoubleValue(reader, index), null);
-            else if (propertyInfo.PropertyType == typeof(DateTime)) propertyInfo.SetValue(this, context.GetDateTimeValue(reader, index), null);
-            else if (propertyInfo.PropertyType.IsEnum) propertyInfo.SetValue(this, Enum.ToObject(propertyInfo.PropertyType, context.GetIntegerValue(reader, index)), null);
+            if (propertyInfo.PropertyType == typeof(string))
+                propertyInfo.SetValue(this, context.GetValue(reader, index), null);
+            else if (propertyInfo.PropertyType == typeof(bool))
+                propertyInfo.SetValue(this, context.GetBooleanValue(reader, index), null);
+            else if (propertyInfo.PropertyType == typeof(int))
+                propertyInfo.SetValue(this, context.GetIntegerValue(reader, index), null);
+            else if (propertyInfo.PropertyType == typeof(long))
+                propertyInfo.SetValue(this, context.GetLongIntegerValue(reader, index), null);
+            else if (propertyInfo.PropertyType == typeof(double))
+                propertyInfo.SetValue(this, context.GetDoubleValue(reader, index), null);
+            else if (propertyInfo.PropertyType == typeof(DateTime))
+                propertyInfo.SetValue(this, context.GetDateTimeValue(reader, index), null);
+            else if (propertyInfo.PropertyType.IsEnum)
+                propertyInfo.SetValue(this, Enum.ToObject(propertyInfo.PropertyType, context.GetIntegerValue(reader, index)), null);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
@@ -484,10 +455,13 @@ namespace Terradue.Portal {
                     bool finding = true;
                     int suffix = 0;
                     while (finding) {
-                        if (context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdentifierField, StringUtils.EscapeSql(String.Format("{0}{1}", Identifier, suffix == 0 ? String.Empty : suffix.ToString())))) == 0) finding = false;
-                        else suffix++;
+                        if (context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdentifierField, StringUtils.EscapeSql(String.Format("{0}{1}", Identifier, suffix == 0 ? String.Empty : suffix.ToString())))) == 0)
+                            finding = false;
+                        else
+                            suffix++;
                     }
-                    if (suffix != 0) Identifier = String.Format("{0}{1}", Identifier, suffix);
+                    if (suffix != 0)
+                        Identifier = String.Format("{0}{1}", Identifier, suffix);
                 } else {
                     if (context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {0} WHERE {1}!={2} AND {3}={4};", entityType.TopTable.Name, entityType.TopTable.IdField, Id, entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier))) != 0) {
                         throw new DuplicateEntityIdentifierException(String.Format("A different {0} named '{1}' already exists", entityType.SingularCaption, Identifier), null);
@@ -566,7 +540,8 @@ namespace Terradue.Portal {
                             values += (DomainId == 0 ? "NULL" : DomainId.ToString());
                         }
 
-                        if (context.OwnerId != 0) OwnerId = context.OwnerId;
+                        if (context.OwnerId != 0)
+                            OwnerId = context.OwnerId;
                         if (entityType.TopTable.HasOwnerReference) {
                             if (names == null) {
                                 names = String.Empty;
@@ -589,9 +564,11 @@ namespace Terradue.Portal {
                             hasAutoStoreFields = true;
                             continue;
                         }*/
-                        if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
+                        if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly)
+                            continue;
                         object value = field.Property.GetValue(this, null);
-                        if (value == null) continue;
+                        if (value == null)
+                            continue;
 
                         if (names == null) {
                             names = String.Empty;
@@ -612,14 +589,16 @@ namespace Terradue.Portal {
                     }
 
                     string sql = String.Format("INSERT INTO {0} ({1}) VALUES ({2});", entityType.Tables[i].Name, names, values);
-                    if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+                    if (context.ConsoleDebug)
+                        Console.WriteLine("SQL: " + sql);
                     IDbConnection dbConnection = context.GetDbConnection();
                     context.Execute(sql, dbConnection);
                     
                     // Get the database ID of the created record
                     if (Id == 0 && i == 0) {
                         Id = context.GetInsertId(dbConnection);
-                        if (context.ConsoleDebug) Console.WriteLine("  -> ID = " + Id);
+                        if (context.ConsoleDebug)
+                            Console.WriteLine("  -> ID = " + Id);
                     }
                     context.CloseDbConnection(dbConnection);
                 }
@@ -631,7 +610,7 @@ namespace Terradue.Portal {
                 Exists = true;
 
                 //activity
-                activity = new Activity(context,this, OperationPriv.CREATE);
+                activity = new Activity(context, this, OperationPriv.CREATE);
                 activity.Store();
                 
             } else { // (2) - UPDATE
@@ -639,22 +618,35 @@ namespace Terradue.Portal {
                     string assignments = null;
                     if (i == 0) {
                         if (entityType.TopTable.HasIdentifierField) {
-                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
+                            if (assignments == null)
+                                assignments = String.Empty;
+                            else
+                                assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
                         }
                         if (entityType.TopTable.HasNameField) {
-                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
+                            if (assignments == null)
+                                assignments = String.Empty;
+                            else
+                                assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.NameField, StringUtils.EscapeSql(Name));
                         }
                         if (entityType.TopTable.HasOwnerReference) {
-                            if (assignments == null) assignments = String.Empty; else assignments += ", ";
+                            if (assignments == null)
+                                assignments = String.Empty;
+                            else
+                                assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.OwnerReferenceField, OwnerId == 0 ? "NULL" : OwnerId.ToString());
                         }
                     }
                     
                     foreach (FieldInfo field in entityType.Fields) {
-                        if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
-                        if (assignments == null) assignments = String.Empty; else assignments += ", ";
+                        if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly)
+                            continue;
+                        if (assignments == null)
+                            assignments = String.Empty;
+                        else
+                            assignments += ", ";
                         object value = field.Property.GetValue(this, null);
                         value = (field.IsForeignKey && value != null && value.Equals(0) || field.NullValue != null && field.NullValue.Equals(value) ? "NULL" : StringUtils.ToSqlString(value)); 
                         assignments += String.Format("{0}={1}", field.FieldName, value); 
@@ -662,16 +654,18 @@ namespace Terradue.Portal {
 
                     if (assignments != null) {
                         string sql = String.Format("UPDATE {0} SET {3} WHERE {1}={2};", entityType.Tables[i].Name, entityType.Tables[i].IdField, Id, assignments);
-                        if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+                        if (context.ConsoleDebug)
+                            Console.WriteLine("SQL: " + sql);
                         context.Execute(sql);
                     }
                 }
                 //activity
-                activity = new Activity(context,this, OperationPriv.MODIFY);
+                activity = new Activity(context, this, OperationPriv.MODIFY);
                 activity.Store();
             }
 
-            if (hasAutoStoreFields) StoreComplexFields(false);
+            if (hasAutoStoreFields)
+                StoreComplexFields(false);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -733,7 +727,7 @@ namespace Terradue.Portal {
             StorePrivileges(false, 0, null, false);
 
             //activity
-            Activity activity = new Activity(context,this, OperationPriv.MAKE_PUBLIC);
+            Activity activity = new Activity(context, this, OperationPriv.MAKE_PUBLIC);
             activity.Store();
         }
         
@@ -766,7 +760,8 @@ namespace Terradue.Portal {
             string totalValues = null;
             string deleteCondition = null;
             foreach (FieldInfo field in entityType.Fields) {
-                if (field.TableIndex != privilegeSubjectTableIndex || field.FieldType != EntityFieldType.PrivilegeField) continue;
+                if (field.TableIndex != privilegeSubjectTableIndex || field.FieldType != EntityFieldType.PrivilegeField)
+                    continue;
                 names += String.Format(", {0}", field.FieldName);
                 object value = field.Property.GetValue(this, null);
                 value = (field.NullValue != null && field.NullValue.Equals(value)) ? "NULL" : StringUtils.ToSqlString(value);
@@ -774,22 +769,36 @@ namespace Terradue.Portal {
             }
             if (singleId != 0) {
                 totalValues = String.Format("({0}, {1}, {2}{3})", Id, forGroup ? "NULL" : singleId.ToString(), forGroup ? singleId.ToString() : "NULL", values);
-                if (removeOthers) deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
-                else deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
+                if (removeOthers)
+                    deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
+                else
+                    deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
             } else if (multipleIds != null) {
                 for (int i = 0; i < multipleIds.Length; i++) {
-                    if (i == 0) totalValues = String.Empty; else totalValues += ", ";
-                    if (i == 0) deleteCondition = String.Empty; else deleteCondition += ", ";
+                    if (i == 0)
+                        totalValues = String.Empty;
+                    else
+                        totalValues += ", ";
+                    if (i == 0)
+                        deleteCondition = String.Empty;
+                    else
+                        deleteCondition += ", ";
                     totalValues += String.Format("({0}, {1}, {2}{3})", Id, forGroup ? "NULL" : multipleIds[i].ToString(), forGroup ? multipleIds[i].ToString() : "NULL", values);
-                    if (!removeOthers) deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
+                    if (!removeOthers)
+                        deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
                 }
-                if (removeOthers) deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
-                else if (multipleIds.Length != 0) deleteCondition = String.Format("{0} IN ({1})", forGroup ? "id_grp" : "id_usr", deleteCondition);
-                else deleteCondition = "false";
+                if (removeOthers)
+                    deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
+                else if (multipleIds.Length != 0)
+                    deleteCondition = String.Format("{0} IN ({1})", forGroup ? "id_grp" : "id_usr", deleteCondition);
+                else
+                    deleteCondition = "false";
             } else {
                 totalValues = String.Format("({0}, NULL, NULL{1})", Id, values);
-                if (removeOthers) deleteCondition = "true";
-                else deleteCondition = "id_usr IS NULL AND id_grp IS NULL";
+                if (removeOthers)
+                    deleteCondition = "true";
+                else
+                    deleteCondition = "id_usr IS NULL AND id_grp IS NULL";
             }
             
             context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND ({3});", Id, entityType.PrivilegeSubjectTable.PrivilegeTable, entityType.PrivilegeSubjectTable.Name, deleteCondition));
@@ -829,7 +838,8 @@ namespace Terradue.Portal {
                 context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PrivilegeSubjectTable.PrivilegeTable, forGroup ? "id_grp" : "id_usr", id));
             }
             foreach (Entity item in items) {
-                if (context.ConsoleDebug) Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
+                if (context.ConsoleDebug)
+                    Console.WriteLine(String.Format("{0} {1} -> {2}", forGroup ? "grp" : "usr", id, item.Identifier));
                 item.StorePrivileges(forGroup, id, null, false);
             }
         }
@@ -852,7 +862,7 @@ namespace Terradue.Portal {
         /// Determines whether this instance has global privilege.
         /// </summary>
         /// <returns><c>true</c> if this instance has global privilege; otherwise, <c>false</c>.</returns>
-        public bool HasGlobalPrivilege(){
+        public bool HasGlobalPrivilege() {
             return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name)) > 0;
         }
 
@@ -862,14 +872,15 @@ namespace Terradue.Portal {
         /// Gets the list of groups with privileges.
         /// </summary>
         /// <returns>The groups with privileges.</returns>
-        public List<int> GetGroupsWithPrivileges(){
+        public List<int> GetGroupsWithPrivileges() {
             List<int> ids = new List<int>();
-            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 
             while (reader.Read()) {
-                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
+                if (reader.GetValue(0) != DBNull.Value)
+                    ids.Add(reader.GetInt32(0));
             }
             reader.Close();
             return ids;
@@ -881,14 +892,15 @@ namespace Terradue.Portal {
         /// Gets the list of users with privileges.
         /// </summary>
         /// <returns>The users with privileges.</returns>
-        public List<int> GetUsersWithPrivileges(){
+        public List<int> GetUsersWithPrivileges() {
             List<int> ids = new List<int>();
-            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};",Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
+            string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};", Id, EntityType.PrivilegeSubjectTable.PrivilegeTable, EntityType.PrivilegeSubjectTable.Name);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
 
             while (reader.Read()) {
-                if(reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
+                if (reader.GetValue(0) != DBNull.Value)
+                    ids.Add(reader.GetInt32(0));
             }
             reader.Close();
             return ids;
@@ -899,11 +911,12 @@ namespace Terradue.Portal {
         /// <summary>Remove the entity from the database</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
-            if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
+            if (!Exists)
+                throw new InvalidOperationException("Cannot delete, no item loaded");
             //if (CanDelete) // TODO check privileges 
 
             //activity
-            Activity activity = new Activity(context,this, OperationPriv.DELETE);
+            Activity activity = new Activity(context, this, OperationPriv.DELETE);
             activity.Store();
 
             EntityType entityType = this.EntityType;
@@ -1002,7 +1015,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual void GetAllowedAdministratorOperations() {
-            if (context.UserLevel == UserLevel.Administrator) return;
+            if (context.UserLevel == UserLevel.Administrator)
+                return;
 
             CanCreate = false;
             CanChange = false;
@@ -1015,20 +1029,20 @@ namespace Terradue.Portal {
 
             while (reader.Read()) {
                 switch (reader.GetChar(0)) {
-                    case 'v' :
-                    case 'V' :
+                    case 'v':
+                    case 'V':
                         CanView = true;
                         break;
-                    case 'c' :
+                    case 'c':
                         CanCreate = true;
                         break;
-                    case 'm' :
+                    case 'm':
                         CanChange = true;
                         break;
-                    case 'p' :
+                    case 'p':
                         //CanMakePublic = true;
                         break;
-                    case 'd' :
+                    case 'd':
                         CanDelete = true;
                         break;
                 }
@@ -1072,6 +1086,7 @@ namespace Terradue.Portal {
     public class EntityNotFoundException : Exception {
 
         public EntityType EntityType { get; protected set; }
+
         public string LoadTerm { get; protected set; }
 
         public EntityNotFoundException(string message) : base(message) {
@@ -1083,7 +1098,8 @@ namespace Terradue.Portal {
             this.LoadTerm = loadTerm;
         }
 
-        public EntityNotFoundException(string message, Exception e) : base(message, e) {}
+        public EntityNotFoundException(string message, Exception e) : base(message, e) {
+        }
     }
 
 
@@ -1097,7 +1113,9 @@ namespace Terradue.Portal {
     public class EntityUnauthorizedException : UnauthorizedAccessException {
 
         public EntityType EntityType { get; protected set; }
+
         public Entity Entity { get; protected set; }
+
         public int UserId { get; protected set; }
 
         public EntityUnauthorizedException(string message, EntityType entityType, Entity entity, int userId) : base(message) {
@@ -1119,7 +1137,9 @@ namespace Terradue.Portal {
     public class DuplicateEntityIdentifierException : Exception {
 
         public EntityType EntityType { get; protected set; }
+
         public Entity Entity { get; protected set; }
+
         public string Identifier { get; protected set; }
 
         public DuplicateEntityIdentifierException(string message, EntityType entityType, string identifier) : base(message) {
@@ -1127,7 +1147,8 @@ namespace Terradue.Portal {
             this.Identifier = identifier;
         }
 
-        public DuplicateEntityIdentifierException(string message, Exception e) : base(message, e) {}
+        public DuplicateEntityIdentifierException(string message, Exception e) : base(message, e) {
+        }
     }
 
 
@@ -1138,8 +1159,9 @@ namespace Terradue.Portal {
 
     
 
-    public class EntityNotAvailableException : Exception { 
-        public EntityNotAvailableException(string message) : base(message) {}
+    public class EntityNotAvailableException : Exception {
+        public EntityNotAvailableException(string message) : base(message) {
+        }
     }
 
     
@@ -1150,8 +1172,9 @@ namespace Terradue.Portal {
 
     
 
-    public class EntityNotOwnedException : Exception { 
-        public EntityNotOwnedException(string message) : base(message) {}
+    public class EntityNotOwnedException : Exception {
+        public EntityNotOwnedException(string message) : base(message) {
+        }
     }
 
     
@@ -1163,11 +1186,12 @@ namespace Terradue.Portal {
     
 
     // IICD-WC-WS exception
-    public class ResourceNotFoundException : Exception { 
-        public ResourceNotFoundException(string message) : base(message) {}
+    public class ResourceNotFoundException : Exception {
+        public ResourceNotFoundException(string message) : base(message) {
+        }
     }
 
-/*    public class EntityNotAccessibleException : Exception { 
+    /*    public class EntityNotAccessibleException : Exception { 
         public EntityNotAccessibleException(string message) : base(message) {}
     }
 
@@ -1197,7 +1221,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Output types</summary>
-    public enum OutputType { 
+    public enum OutputType {
         
         /// <summary><b>item list</b> output type</summary>
         List,
@@ -1218,7 +1242,7 @@ namespace Terradue.Portal {
     
 
     /// <summary>Generic operation types for entities</summary>
-    public enum OperationType { 
+    public enum OperationType {
         /// <summary>View the item list</summary>
         ViewList,
 
@@ -1250,7 +1274,10 @@ namespace Terradue.Portal {
     
 
     public enum ViewingState {
-        Unknown, ShowingList, DefiningItem, ShowingItem
+        Unknown,
+        ShowingList,
+        DefiningItem,
+        ShowingItem
     }
 
 }
