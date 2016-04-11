@@ -2212,6 +2212,8 @@ namespace Terradue.Portal {
             string smtpHostname = GetConfigValue("SmtpHostname");
             string smtpUsername = GetConfigValue("SmtpUsername");
             string smtpPassword = GetConfigValue("SmtpPassword");
+            int smtpPort = GetConfigIntegerValue("SmtpPort");
+            bool smtpSsl = GetConfigBooleanValue("SmtpSSL");
 
             SmtpClient client = new SmtpClient(smtpHostname);
 
@@ -2219,6 +2221,11 @@ namespace Terradue.Portal {
             if (smtpUsername == String.Empty) smtpUsername = null;
             else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
             if (smtpPassword == String.Empty) smtpPassword = null;
+
+            if (smtpPort > 0)
+                client.Port = smtpPort;
+
+            client.EnableSsl = smtpSsl;
 
             try {
                 client.Send(message);
