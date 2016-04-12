@@ -114,7 +114,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the preloaded privilege instance representing the privilege with the specified ID.</summary>
         /// <param name="id">The database ID of the privilege.</param>
-        /// <returns>The created Privilege object.</returns>
+        /// <returns>The matching Privilege instance.</returns>
         public static Privilege Get(int id) {
             Privilege result = privileges[id];
             return result;
@@ -122,6 +122,44 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns all privileges related to the specified entity type.</summary>
+        /// <param name="entityType">The entity type to which the privileges apply.</param>
+        /// <returns>An array of matching Privilege instances.</returns>
+        public static Privilege[] Get(EntityType entityType) {
+            List<Privilege> result = new List<Privilege>();
+            entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            foreach (Privilege privilege in privileges.Values) { // method parameter "privileges" 
+                if (privilege.TargetEntityType == entityType) result.Add(privilege);
+            }
+            return result.ToArray();
+            //entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            //return Get(entityType, operation, privileges.Values); // static member "privileges"
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns all privileges related to the specified entity type that match the specified operations.</summary>
+        /// <param name="entityType">The entity type to which the privileges apply.</param>
+        /// <param name="operations">The operations on the entity type.</param>
+        /// <returns>An array of matching Privilege instances.</returns>
+        public static Privilege[] Get(EntityType entityType, IEnumerable<EntityOperationType> operations) {
+            List<Privilege> result = new List<Privilege>();
+            List<EntityOperationType> operationsList = new List<EntityOperationType>(operations);
+            entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            foreach (Privilege privilege in privileges.Values) { // method parameter "privileges" 
+                if (privilege.TargetEntityType == entityType && operationsList.Contains(privilege.Operation)) result.Add(privilege);
+            }
+            return result.ToArray();
+            //entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            //return Get(entityType, operation, privileges.Values); // static member "privileges"
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the privilege defined by the specified entity type and operation.</summary>
+        /// <param name="entityType">The entity type to which the privilege applies.</param>
+        /// <param name="operation">The operation on the entity type.</param>
+        /// <returns>The matching Privilege instance.</returns>
         public static Privilege Get(EntityType entityType, EntityOperationType operation) {
             entityType = entityType.TopType; // privileges defined for subtypes are not supported
             return Get(entityType, operation, privileges.Values); // static member "privileges"
@@ -129,6 +167,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns the privilege defined by the specified entity type and operation from a list.</summary>
+        /// <param name="entityType">The entity type to which the privilege applies.</param>
+        /// <param name="operation">The operation on the entity type.</param>
+        /// <param name="privileges">An IEnumerable containing privileges to choose from.</param>
+        /// <returns>The matching Privilege instance.</returns>
         public static Privilege Get(EntityType entityType, EntityOperationType operation, IEnumerable<Privilege> privileges) {
             entityType = entityType.TopType; // privileges defined for subtypes are not supported
             foreach (Privilege privilege in privileges) { // method parameter "privileges" 
@@ -139,6 +182,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns the privilege defined by the specified entity type and operation from a list.</summary>
+        /// <param name="entityType">The entity type to which the privilege applies.</param>
+        /// <param name="operation">The operation on the entity type.</param>
+        /// <param name="privileges">An IEnumerable containing privileges to choose from. It should contain only privileges applicable to the same type with only one occurence of the requested operation.</param>
+        /// <returns>The matching Privilege instance.</returns>
         public static Privilege Get(EntityOperationType operation, IEnumerable<Privilege> privileges) {
             foreach (Privilege privilege in privileges) { // method parameter "privileges" 
                 if (privilege.Operation == operation) return privilege;

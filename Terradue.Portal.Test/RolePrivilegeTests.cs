@@ -80,20 +80,20 @@ namespace Terradue.Portal.Test {
                     role1 = new Role(context);
                     role1.Identifier = "cr_view+change";
                     role1.Store();
-                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('cr-s','cr-v','cr-m');", role1.Id));
+                    role1.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(ComputingResource)), new EntityOperationType[] {EntityOperationType.Search, EntityOperationType.View, EntityOperationType.Change})); 
                     role1.AssignGroups(new int[] {group1.Id}, domain1.Id);
 
                     role2 = new Role(context);
                     role2.Identifier = "cr_delete";
                     role2.Store();
-                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('cr-d');", role2.Id));
+                    role2.IncludePrivilege(Privilege.Get(EntityType.GetEntityType(typeof(ComputingResource)), EntityOperationType.Delete)); 
                     role2.AssignUsers(new int[] {user12.Id}, domain1.Id);
                     role2.AssignGroups(new int[] {group2.Id}, 0);
 
                     role3 = new Role(context);
                     role3.Identifier = "service_all";
                     role3.Store();
-                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE identifier IN ('service-c','service-s','service-v','service-c','service-m','service-d');", role3.Id));
+                    role3.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Service)))); 
                     role3.AssignUsers(new int[] {user31.Id}, 0);
 
                     ComputingResource cr1 = new GenericComputingResource(context);
@@ -101,7 +101,7 @@ namespace Terradue.Portal.Test {
                     cr1.Name = "cr-1";
                     cr1.Domain = domain1;
                     cr1.Store();
-                    context.Execute(String.Format("INSERT INTO cr_priv (id_cr, id_usr) VALUES ({0}, {1});", cr1.Id, user12.Id));
+                    cr1.GrantPermissionsToUsers(new int[] {user12.Id});
 
                     PublishServer ps1 = new PublishServer(context);
                     ps1.Identifier = "ps-1";
@@ -109,13 +109,6 @@ namespace Terradue.Portal.Test {
                     ps1.Hostname = "mytest.host";
                     ps1.Domain = domain1;
                     ps1.Store();
-
-                    /*context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {2}), ({1}, {2});", user11.Id, user12.Id, group1.Id));
-                    context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {1});", user21.Id, group2.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {2}, {3});", group1.Id, group2.Id, role1.Id, domain1.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_usr, id_role, id_domain) VALUES ({0}, {1}, {2});", user12.Id, role2.Id, domain1.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_grp, id_role, id_domain) VALUES ({0}, {1}, NULL);", group2.Id, role2.Id));
-                    context.Execute(String.Format("INSERT INTO role_grant (id_usr, id_role, id_domain) VALUES ({0}, {1}, NULL);", user31.Id, role3.Id));*/
 
                     seriesShareDomain = new Domain(context);
                     seriesShareDomain.Identifier = "series-share";
@@ -133,6 +126,7 @@ namespace Terradue.Portal.Test {
                     sharedSeries = new Series(context);
                     sharedSeries.Identifier = "shared-series";
                     sharedSeries.Store();
+                    sharedSeries.GrantPermissionsToUsers(new int[] {shareReceiver.Id});
                     unsharedSeries = new Series(context);
                     unsharedSeries.Domain = seriesShareDomain;
                     unsharedSeries.Identifier = "unshared-series";
@@ -142,8 +136,7 @@ namespace Terradue.Portal.Test {
                     seriesShareRole = new Role(context);
                     seriesShareRole.Identifier = "series_all";
                     seriesShareRole.Store();
-                    context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) SELECT {0}, id FROM priv WHERE id_type={1};", seriesShareRole.Id, EntityType.GetEntityType(typeof(Series)).Id));
-                    context.Execute(String.Format("INSERT INTO series_priv (id_series, id_usr) VALUES ({0}, {1});", sharedSeries.Id, shareReceiver.Id));
+                    seriesShareRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
                     seriesShareRole.AssignUsers(new int[]{shareCreator.Id}, seriesShareDomain.Id);
 
                     context.AccessLevel = EntityAccessLevel.Permission;
