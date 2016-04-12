@@ -2257,8 +2257,7 @@ namespace Terradue.Portal {
             } else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
             if (smtpPassword == String.Empty) smtpPassword = null;
 
-            if (smtpPort > 0)
-                client.Port = smtpPort;
+            if (smtpPort > 0) client.Port = smtpPort;
 
             client.EnableSsl = smtpSsl;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
