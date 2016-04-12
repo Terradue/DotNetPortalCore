@@ -2244,19 +2244,31 @@ namespace Terradue.Portal {
             string smtpHostname = GetConfigValue("SmtpHostname");
             string smtpUsername = GetConfigValue("SmtpUsername");
             string smtpPassword = GetConfigValue("SmtpPassword");
+            int smtpPort = GetConfigIntegerValue("SmtpPort");
+            bool smtpSsl = GetConfigBooleanValue("SmtpSSL");
 
             SmtpClient client = new SmtpClient(smtpHostname);
 
             // Add credentials if the SMTP server requires them.
-            if (smtpUsername == String.Empty) smtpUsername = null;
-            else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
+            if (string.IsNullOrEmpty(smtpUsername)) {
+                smtpUsername = null;
+                client.Credentials = null;
+                client.UseDefaultCredentials = false;
+            } else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
             if (smtpPassword == String.Empty) smtpPassword = null;
+
+            if (smtpPort > 0)
+                client.Port = smtpPort;
+
+            client.EnableSsl = smtpSsl;
+            client.DeliveryMethod = SmtpDeliveryMethod.Network;
 
             try {
                 client.Send(message);
             } catch (Exception e) {
                 if (e.Message.Contains("CDO.Message") || e.Message.Contains("535")) AddError("Mail could not be sent, this is a site administration issue (probably caused by an invalid SMTP hostname or wrong SMTP server credentials)");
                 else AddError("Mail could not be sent, this is a site administration issue: " + e.Message);
+                throw e;
             }
         }
         
