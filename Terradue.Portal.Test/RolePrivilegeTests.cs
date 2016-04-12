@@ -8,8 +8,10 @@ namespace Terradue.Portal.Test {
     public class RolePrivilegeTests {
 
         bool rebuildData = true;
+        string connectionString;
 
-        string connectionString = "Server=localhost; Port=3306; User Id=root; Password=root; Database=TerraduePortalTest";
+        IfyContext context;
+
         Domain domain1, domain2;
         Group group1, group2;
         User user0, user11, user12, user21, user31;
@@ -20,10 +22,9 @@ namespace Terradue.Portal.Test {
         Role seriesShareRole;
         Domain seriesShareDomain;
 
-        IfyContext context;
-
         [TestFixtureSetUp]
         public void CreateEnvironment() {
+            connectionString = BaseTest.GetConnectionString(null);
             if (rebuildData) {
                 AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
                 adminTool.Process();

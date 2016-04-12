@@ -1,15 +1,29 @@
 ﻿using System;
-using NUnit.Framework;
 using System.IO;
+using System.Text.RegularExpressions;
+using NUnit.Framework;
 
 namespace Terradue.Portal.Test {
     public class BaseTest : AdminTool {
 
         protected IfyContext context;
-        string connectionString = "Server=localhost; Port=3306; User Id=root; Database=TerraduePortalTest";
+        string connectionString;
+
+        public static string GetConnectionString(string databaseName) {
+            StreamReader sr = new StreamReader(Directory.GetCurrentDirectory() + "/../../db-conn.txt");
+            string result = sr.ReadToEnd().Trim();
+            if (databaseName != null) {
+                Match match = Regex.Match(result, "Database=[^;]+");
+                if (match.Success) result = result.Replace(match.Value, "Database=" + databaseName);
+                else result += "; Database=" + databaseName;
+            }
+            sr.Close();
+            return result;
+        }
 
         [TestFixtureSetUp]
         public virtual void FixtureSetup() {
+            connectionString = GetConnectionString(null);
 
             AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
             adminTool.Process();
