@@ -16,7 +16,8 @@ namespace Terradue.Portal {
     /// <summary>
     /// Activity privilege class.
     /// </summary>
-    public class OperationPriv{
+    [Obsolete("Use EntityOperationType")]
+    public class OperationPriv {
 
         public const string VIEW = "v";
         public const string CREATE = "c";
@@ -53,7 +54,12 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets (protected) the database ID of the entity type to which this privilege refers.</summary>
         [EntityDataField("id_type", IsForeignKey = true)]
-        public int EntityTypeId { get; protected set; }
+        public int TargetEntityTypeId { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets (protected) the entity type to which this privilege refers (different from Entity.EntityType property that is the EntityType of the item itself).</summary>
+        public EntityType TargetEntityType { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -65,23 +71,18 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the operation on items of the entity type defined by this privilege.</summary>
         [EntityDataField("operation")]
-        public string Operation { get; set; }
+        public string OperationChar { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the operation on items of the entity type defined by this privilege.</summary>
+        public EntityOperationType Operation { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates or decides whether the every usage of this privilege is logged.</summary>
         [EntityDataField("enable_log")]
         public bool EnableLog { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets the alternative identifying condition.</summary>
-        public override string AlternativeIdentifyingCondition {
-            get {
-                if (Id == 0 && EntityTypeId != 0 && !String.IsNullOrEmpty(Operation)) return String.Format("t.id_type={0} AND t.operation={1}", EntityTypeId, StringUtils.EscapeSql(Operation));
-                return null;
-            }
-        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -93,6 +94,56 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public Privilege(int id, string identifier, string name, EntityType entityType, EntityOperationType operation, bool enableLog) : this(null) {
+            this.Id = id;
+            this.Identifier = identifier;
+            this.Name = name;
+            this.TargetEntityType = entityType;
+            this.Operation = operation;
+            this.EnableLog = enableLog;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void Load() {
+            base.Load();
+            TargetEntityType = EntityType;
+            Operation = GetOperationType(OperationChar.ToString());
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the preloaded privilege instance representing the privilege with the specified ID.</summary>
+        /// <param name="id">The database ID of the privilege.</param>
+        /// <returns>The created Privilege object.</returns>
+        public static Privilege Get(int id) {
+            Privilege result = privileges[id];
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static Privilege Get(EntityType entityType, EntityOperationType operation) {
+            entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            return Get(entityType, operation, privileges.Values); // static member "privileges"
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static Privilege Get(EntityType entityType, EntityOperationType operation, IEnumerable<Privilege> privileges) {
+            entityType = entityType.TopType; // privileges defined for subtypes are not supported
+            foreach (Privilege privilege in privileges) { // method parameter "privileges" 
+                if (privilege.TargetEntityType == entityType && privilege.Operation == operation) return privilege;
+            }
+            return null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static Privilege Get(EntityOperationType operation, IEnumerable<Privilege> privileges) {
+            foreach (Privilege privilege in privileges) { // method parameter "privileges" 
+                if (privilege.Operation == operation) return privilege;
+            }
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -117,21 +168,6 @@ namespace Terradue.Portal {
         public static Privilege FromIdentifier(IfyContext context, string identifier) {
             Privilege result = new Privilege(context);
             result.Identifier = identifier;
-            result.Load();
-            return result;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Creates a new Privilege instance representing the privilege with the specified identifier.</summary>
-        /// <param name="context">The execution environment context.</param>
-        /// <param name="entityTypeId">The database ID of the entity type to which the privilege refers.</param>
-        /// <param name="operation">The operation to be performed on items of the entity type.</param>
-        /// <returns>The created Privilege object.</returns>
-        public static Privilege FromTypeAndOperation(IfyContext context, int entityTypeId, string operation) {
-            Privilege result = new Privilege(context);
-            result.EntityTypeId = entityTypeId;
-            result.Operation = operation;
             result.Load();
             return result;
         }
@@ -178,6 +214,8 @@ namespace Terradue.Portal {
                     return EntityOperationType.Manage;
                 case 'd':
                     return EntityOperationType.Delete;
+                case 'p':
+                    return EntityOperationType.Share;
             }
 
             return EntityOperationType.Other;
@@ -193,32 +231,36 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Enumeration of generic operations regarding entities.</summary>
+    /// <summary>Enumeration of generic operations that, in combination with entity types, are used to define privileges.</summary>
     public enum EntityOperationType {
 
         /// <summary>Create a new entity item.</summary>
-        /// <remarks>This privilege allows a user to create new domain-owned or global entity items according to his grant.</remarks>
+        /// <remarks>This operation creates new domain-owned or global entity items according to his grant.</remarks>
         Create = 'c',
 
         /// <summary>List and search entity items.</summary>
-        /// <remarks>This privilege allows a user to see lists of entity items that are part of his grant and to search within these lists.</remarks>
+        /// <remarks>This operation selects lists of entity items that are part of his grant and to search within these lists.</remarks>
         Search = 's',
 
         /// <summary>View an entity item.</summary>
-        /// <remarks>This privilege allows a user to view the details of entity items that are part of his grant. The <c>View</c> privilege is implied by all other privileges except <c>Search</c>.</remarks>
+        /// <remarks>This operation selects the details of entity items that are part of a user's grant. The <c>View</c> privilege on an entity type is implied by all other privileges on that entity type except <c>Search</c>.</remarks>
         View = 'v',
 
         /// <summary>Change an existing entity item.</summary>
-        /// <remarks>This privilege allows a user to make persistent modifications to entity items that are part of his grant.</remarks>
+        /// <remarks>This operation makes persistent modifications to entity items that are part a user's grant.</remarks>
         Change = 'm',
 
         /// <summary>Use an entity item in the same way as its owner and manage or control it.</summary>
-        /// <remarks>This privilege implies the Change privilege and, in addition, allows a user to influence what other users can do regarding entity items within his grant. Typical operations include changes to availability and the assignment of permissions to users or groups.</remarks>
+        /// <remarks>This operation is a for all sorts of entity-type-specific operations. The <c>Manage</c> privilege on an entity type implies the Change privilege on that entity type and, in addition, allows a user to influence what other users can do regarding entity items within his grant. Typical operations include changes to availability and the assignment of permissions to users or groups.</remarks>
         Manage = 'M',
 
         /// <summary>Make an entity item available to others.</summary>
-        /// <remarks>This privilege allows a user to definitely remove entity items that are part of his grant from the database.</remarks>
+        /// <remarks>This operation definitely removes entity items that are part of a user's grant from the database.</remarks>
         Delete = 'd',
+
+        /// <summary>Share an entity by making it accessible to other users.</summary>
+        /// <remarks>This operation makes an entity item accessible to other users. Unlike the other operations it is ignored if it is used in a role privilege, i.e. a user's <em>share</em> privileges are not checked.</remarks>
+        Share = 'p', // "p" for "part" or "publish"
 
         /// <summary>Any other operation.</summary>
         Other = '\0'

@@ -263,7 +263,7 @@ namespace Terradue.Portal {
                 authType = IfyWebContext.GetAuthenticationType(typeof(PasswordAuthenticationType));
                 result.SessionlessRequestsAllowed = (authType != null && authType.NormalAccountRule == RuleApplicationType.Always);
 
-                activity = new Activity(context, result, OperationPriv.CREATE);
+                activity = new Activity(context, result, EntityOperationType.Create);
                 activity.Store();
 
                 return result;

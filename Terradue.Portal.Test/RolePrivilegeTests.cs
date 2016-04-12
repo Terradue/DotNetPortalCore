@@ -98,7 +98,7 @@ namespace Terradue.Portal.Test {
                     ComputingResource cr1 = new GenericComputingResource(context);
                     cr1.Identifier = "cr-1";
                     cr1.Name = "cr-1";
-                    cr1.DomainId = domain1.Id;
+                    cr1.Domain = domain1;
                     cr1.Store();
                     context.Execute(String.Format("INSERT INTO cr_priv (id_cr, id_usr) VALUES ({0}, {1});", cr1.Id, user12.Id));
 
@@ -106,7 +106,7 @@ namespace Terradue.Portal.Test {
                     ps1.Identifier = "ps-1";
                     ps1.Name = "ps-1";
                     ps1.Hostname = "mytest.host";
-                    ps1.DomainId = domain1.Id;
+                    ps1.Domain = domain1;
                     ps1.Store();
 
                     /*context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0}, {2}), ({1}, {2});", user11.Id, user12.Id, group1.Id));
@@ -130,7 +130,6 @@ namespace Terradue.Portal.Test {
 
                     context.StartImpersonation(shareCreator.Id);
                     sharedSeries = new Series(context);
-                    sharedSeries.Domain = seriesShareDomain;
                     sharedSeries.Identifier = "shared-series";
                     sharedSeries.Store();
                     unsharedSeries = new Series(context);
@@ -192,7 +191,7 @@ namespace Terradue.Portal.Test {
                 // User "domain-1_cr_viewer+changer+deleter" DOES have privilege to delete computing resources in domain-1
                 Assert.IsTrue(Role.DoesUserHavePrivilege(context, user12, domain1, "cr-d"));
 
-                // Users "domain-1_cr_viewer+changer" and "domain-1_cr_viewer+changer+deleter" DO NOT have privilege to view, change or delete global computing resources
+                // Users "domain-1_cr_viewer+changer" and "domain-1_cr_viewer+changer+deleter" DO NOT have privilege to change or delete global computing resources
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-v"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user12, null, "cr-v"));
                 Assert.IsFalse(Role.DoesUserHavePrivilege(context, user11, null, "cr-m"));
@@ -235,22 +234,26 @@ namespace Terradue.Portal.Test {
                 //EntityType crEntityType = EntityType.GetEntityType(typeof(ComputingResource));
                 //EntityType psEntityType = EntityType.GetEntityType(typeof(PublishServer));
 
+                Console.WriteLine("(1)");
                 context.AccessLevel = EntityAccessLevel.Privilege;
                 EntityList<ComputingResource> crs = new EntityList<ComputingResource>(context);
                 crs.UserId = user11.Id;
                 crs.Load();
                 foreach (ComputingResource cr in crs) Console.WriteLine("CR {0}", cr.Identifier);
 
+                Console.WriteLine("(2)");
                 context.AccessLevel = EntityAccessLevel.Administrator;
                 EntityList<ComputingResource> crs2 = new EntityList<ComputingResource>(context);
                 crs2.Load();
                 foreach (ComputingResource cr in crs2) Console.WriteLine("CR-2 {0}", cr.Identifier);
                 context.AccessLevel = EntityAccessLevel.Permission;
 
+                Console.WriteLine("(3)");
                 EntityList<PublishServer> pss = new EntityList<PublishServer>(context);
                 pss.Load();
                 foreach (PublishServer ps in pss) Console.WriteLine("PS {0}", ps.Identifier);
 
+                Console.WriteLine("(4)");
                 context.AccessLevel = EntityAccessLevel.Administrator;
                 EntityList<PublishServer> pss2 = new EntityList<PublishServer>(context);
                 pss2.Load();
@@ -276,38 +279,6 @@ namespace Terradue.Portal.Test {
                 //Console.WriteLine(psEntityType.GetQuery(context, null, 1, null, false, EntityAccessLevel.Permission));
 
                 ComputingResource cr1;
-                try {
-                    cr1 = ComputingResource.FromIdentifier(context, "cr-1");
-                    cr1.UserId = user11.Id;
-                    Console.WriteLine("(1) CR LOADED: {0}", cr1.GetType());
-                } catch (Exception e) {
-                    Console.WriteLine("(1) CR LOAD EXCEPTION: {0}", e.Message);
-                }
-                context.AccessLevel = EntityAccessLevel.Privilege;
-                try {
-                    cr1 = ComputingResource.FromIdentifier(context, "cr-1");
-                    cr1.UserId = user11.Id;
-                    Console.WriteLine("(2) CR LOADED: {0}", cr1.GetType());
-                } catch (Exception e) {
-                    Console.WriteLine("(2) CR LOAD EXCEPTION: {0}", e.Message);
-                }
-                context.AccessLevel = EntityAccessLevel.Permission;
-
-                Console.WriteLine("Permission-based: user 'domain-1_cr_viewer+changer' (no permission)");
-                cr1 = new GenericComputingResource(context);
-                cr1.UserId = user11.Id;
-                try {
-                    cr1.Load("cr-1");
-                    Console.WriteLine("(1): {0}", cr1.Identifier);
-                    Assert.IsTrue(false); // force failure (we should never arrive here)
-                } catch (Exception e) {
-                    Assert.IsTrue(e is EntityUnauthorizedException);
-                }
-
-                Console.WriteLine("Permission-based: user 'domain-1_cr_viewer+changer+deleter' (permission)");
-                cr1.UserId = user12.Id;
-                cr1.Load("cr-1");
-                Assert.IsTrue(true);
 
                 context.AccessLevel = EntityAccessLevel.Privilege;
 
@@ -316,15 +287,14 @@ namespace Terradue.Portal.Test {
                 cr1.UserId = user11.Id;
                 cr1.Load("cr-1");
                 Assert.IsTrue(cr1.CanView);
-                Assert.IsFalse(cr1.CanChange);
+                Assert.IsTrue(cr1.CanChange);
                 Assert.IsFalse(cr1.CanDelete);
 
                 Console.WriteLine("Privilege-based: user 'domain-1_cr_viewer+changer' (can view, can delete)");
                 cr1.UserId = user12.Id;
                 cr1.Load("cr-1");
-                Assert.IsTrue(true);
                 Assert.IsTrue(cr1.CanView);
-                Assert.IsFalse(cr1.CanChange);
+                Assert.IsTrue(cr1.CanChange);
                 Assert.IsTrue(cr1.CanDelete);
 
             } catch (Exception e) {
@@ -361,18 +331,22 @@ namespace Terradue.Portal.Test {
                 Series series = Series.GetInstance(context);
                 series.UserId = shareCreator.Id;
                 series.Load("shared-series");
+                Assert.IsTrue(series.AccessLevel == EntityAccessLevel.Permission);
                 series.Load("unshared-series");
+                Assert.IsTrue(series.AccessLevel == EntityAccessLevel.Privilege);
+                series.Store();
                     
                 series.UserId = shareReceiver.Id;
                 series.Load("shared-series");
+                Assert.IsTrue(series.AccessLevel == EntityAccessLevel.Permission);
+                context.ConsoleDebug = true;
                 try {
-                    context.ConsoleDebug = true;
                     series.Load("unshared-series");
-                    context.ConsoleDebug = false;
                     Assert.IsTrue(false); // force failure (we should never arrive here)
                 } catch (Exception e) {
                     Assert.IsTrue(e is EntityUnauthorizedException);
                 }
+                context.ConsoleDebug = true;
 
 
             } catch (Exception e) {

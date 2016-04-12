@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using Terradue.Util;
@@ -31,7 +32,9 @@ namespace Terradue.Portal {
     [EntityTable("role", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name")]
     public class Role : Entity {
 
-        private const string PrivilegeBaseQuery = "SELECT CASE WHEN int_value IS NULL THEN 0 ELSE int_value END AS v1 FROM usr AS u LEFT JOIN usr_grp AS ug ON u.id=ug.id_usr LEFT JOIN grp AS g ON ug.id_grp=g.id INNER JOIN role_grant AS rg ON rg.id_usr=u.id OR rg.id_grp=g.id INNER JOIN role_priv AS rp ON rp.id_role=rg.id_role INNER JOIN priv AS p ON rp.id_priv=p.id";
+        private const string PrivilegeBaseJoinSql = "priv AS p INNER JOIN role_priv AS rp ON p.id=rp.id_priv INNER JOIN role AS r ON rp.id_role=r.id INNER JOIN role_grant AS rg ON rp.id_role=rg.id_role LEFT JOIN usr_grp AS ug ON rg.id_usr={0} AND ug.id_usr IS NULL OR rg.id_grp=ug.id_grp AND ug.id_usr={0}";
+        private const string PrivilegeValueSelectSql = "CASE WHEN int_value IS NULL THEN 0 ELSE int_value END AS v1";
+        //private const string PrivilegeBaseQuery = "SELECT p.id, CASE WHEN int_value IS NULL THEN 0 ELSE int_value END AS v1 FROM usr AS u LEFT JOIN usr_grp AS ug ON u.id=ug.id_usr LEFT JOIN grp AS g ON ug.id_grp=g.id INNER JOIN role_grant AS rg ON rg.id_usr=u.id OR rg.id_grp=g.id INNER JOIN role_priv AS rp ON rp.id_role=rg.id_role INNER JOIN priv AS p ON rp.id_priv=p.id";
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +91,30 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the privilege.</param>
         /// <returns><i>true</i> if the user has the privilege.</returns>
         public static bool DoesUserHavePrivilege(IfyContext context, int userId, int domainId, EntityType entityType, EntityOperationType operation) {
-            return DoesUserHavePrivilegeInternal(context, userId, domainId, String.Format("p.id_type={0} AND p.operation='{1}'", entityType.Id, operation.ToString()));
+            return DoesUserHavePrivilegeInternal(context, userId, domainId, String.Format("p.id_type={0} AND p.operation='{1}'", entityType.TopTypeId, operation.ToString()));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static Privilege[] GetUserPrivileges(IfyContext context, int userId, Entity item) {
+            StringBuilder sql = new StringBuilder();
+            sql.Append("SELECT DISTINCT p.id FROM ");
+            sql.Append(PrivilegeBaseJoinSql);
+            sql.Replace("{0}", userId.ToString());
+            sql.Append(String.Format(" WHERE p.id_type={0} AND ", item.EntityType.TopTypeId));
+            sql.Append(String.Format("(rg.id_usr={0} OR ug.id_usr={0}) AND ", userId));
+            sql.Append(item.DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("(rg.id_domain IS NULL OR rg.id_domain={0});", item.DomainId));
+
+            List<Privilege> result = new List<Privilege>();
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql.ToString(), dbConnection);
+            while (reader.Read()) {
+                Privilege privilege = Privilege.Get(reader.GetInt32(0));
+                result.Add(Privilege.Get(reader.GetInt32(0)));
+            }
+            context.CloseQueryResult(reader, dbConnection);
+
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -100,13 +126,16 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the privilege.</param>
         /// <returns><i>true</i> if the user has the privilege.</returns>
         private static bool DoesUserHavePrivilegeInternal(IfyContext context, int userId, int domainId, string condition) {
-            // TODO To be implemented
-
-            StringBuilder sql = new StringBuilder(PrivilegeBaseQuery);
-            sql.Append(String.Format(" WHERE u.id={0}", userId));
-            sql.Append(domainId == 0 ? " AND rg.id_domain IS NULL" : String.Format(" AND (rg.id_domain IS NULL OR rg.id_domain={0})", domainId));
+            StringBuilder sql = new StringBuilder();
+            sql.Append("SELECT ");
+            sql.Append(PrivilegeValueSelectSql);
+            sql.Append(" FROM ");
+            sql.Append(PrivilegeBaseJoinSql);
+            sql.Replace("{0}", userId.ToString());
+            sql.Append(" WHERE ");
+            sql.Append(String.Format("(rg.id_usr={0} OR ug.id_usr={0}) AND ", userId));
+            sql.Append(domainId == 0 ? "rg.id_domain IS NULL" : String.Format("(rg.id_domain IS NULL OR rg.id_domain={0})", domainId));
             if (condition != null) sql.Append(String.Format(" AND {0}", condition));
-            sql.Append(" ORDER BY v1;");
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql.ToString(), dbConnection);

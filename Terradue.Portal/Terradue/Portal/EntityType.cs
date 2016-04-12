@@ -85,6 +85,11 @@ namespace Terradue.Portal {
         private bool isSqlPrepared = false;
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the direct subclass of Entity of which this entity type is derived./summary>
+        public EntityType TopType { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets or sets the database ID of the direct subclass of Entity of which this entity type is derived./summary>
         public int TopTypeId { get; protected set; }
@@ -271,12 +276,16 @@ namespace Terradue.Portal {
             this.PluralCaption = pluralCaption;
             this.Keyword = keyword;
             
+            this.TopType = this;
             this.TopTypeId = this.Id;
             
             Type type = ClassType;
             while (type != null) {
                 EntityType entityType = EntityType.GetEntityType(type);
-                if (entityType != null) this.TopTypeId = entityType.Id;
+                if (entityType != null) {
+                    this.TopType = entityType;
+                    this.TopTypeId = entityType.Id;
+                }
                 type = type.BaseType;
             }
             
@@ -312,6 +321,7 @@ namespace Terradue.Portal {
             foreach (EntityTableAttribute table in source.Tables) Tables.Add(table);
             foreach (ForeignTableInfo foreignTable in source.ForeignTables) ForeignTables.Add(foreignTable);
             foreach (FieldInfo field in source.Fields) Fields.Add(field);
+            TopType = source.TopType;
             TopTypeId = source.TopTypeId;
             PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;

@@ -37,10 +37,12 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract partial class Entity : IValueSet {
 
+        protected IfyContext context;
+        private int domainId;
+        private Domain domain;
         private int ownerId;
         private EntityCollection collection;
 
-        protected IfyContext context;
         private bool canCreate = false, canChange = false, canDelete = false;
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -90,13 +92,30 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the domain to which the item belongs.</summary>
-        public virtual int DomainId { get; set; }
+        public virtual int DomainId {
+            get {
+                return (domain == null ? domainId : domain.Id); 
+            }
+            set {
+                if (value != domainId) domain = null;
+                domainId = value;
+            }
+        }
 
         /// <summary>Domain</summary>
         /// <description>Domain to which the item belongs.</description>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
         /// <returns>belonging Domain</returns>
-        public virtual Domain Domain { get; set; }
+        public virtual Domain Domain {
+            get {
+                if (domain == null && domainId != 0) domain = Domain.FromId(context, domainId);
+                return domain;
+            }
+            set {
+                domain = value;
+                if (value == null) domainId = 0;
+            }
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -144,8 +163,26 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        private bool privilegesLoaded;
+        public Privilege[] ItemPrivileges { get; protected set; }
+        public void LoadItemPrivileges() {
+            ItemPrivileges = Role.GetUserPrivileges(context, UserId, this);
+            privilegesLoaded = true;
+        }
+
+
         /// <summary>Indicates or determines whether the user is authorized to use the item representad by the entity instance.</summary>
-        public virtual bool CanView { get; set; }
+        public virtual bool CanView {
+            get {
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.View) == null) return true;
+                    if (!privilegesLoaded) LoadItemPrivileges();
+                    return Privilege.Get(EntityOperationType.View, ItemPrivileges) != null;
+                }
+                return false;
+            } 
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -153,8 +190,13 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanCreate {
             get {
-                if (canCreate || AccessLevel == EntityAccessLevel.Administrator) return true;
-                return canCreate;
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.Create) == null) return true;
+                    if (!privilegesLoaded) LoadItemPrivileges();
+                    return Privilege.Get(EntityOperationType.Create, ItemPrivileges) != null;
+                }
+                return false;
             } 
         }
         
@@ -164,9 +206,14 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanChange { 
             get {
-                if (canChange || AccessLevel == EntityAccessLevel.Administrator) return true;
-                return canChange;
-            } 
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.Change) == null) return true;
+                    if (!privilegesLoaded) LoadItemPrivileges();
+                    return Privilege.Get(EntityOperationType.Change, ItemPrivileges) != null;
+                }
+                return false;
+            }
         }
 
         [Obsolete("Obsolete, please use CanChange instead")]
@@ -187,8 +234,13 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanManage { 
             get {
-                if (AccessLevel == EntityAccessLevel.Privilege) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Manage);
-                return true;
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.Manage) == null) return true;
+                    if (!privilegesLoaded) LoadItemPrivileges();
+                    return Privilege.Get(EntityOperationType.Manage, ItemPrivileges) != null;
+                }
+                return false;
             } 
         }
 
@@ -198,9 +250,13 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanDelete { 
             get {
-                if (AccessLevel == EntityAccessLevel.Privilege) return Role.DoesUserHavePrivilege(context, UserId, DomainId, EntityType, EntityOperationType.Delete);
-                if (canDelete || AccessLevel == EntityAccessLevel.Administrator) return true;
-                return canDelete;
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.Delete) == null) return true;
+                    if (!privilegesLoaded) LoadItemPrivileges();
+                    return Privilege.Get(EntityOperationType.Delete, ItemPrivileges) != null;
+                }
+                return false;
             } 
         }
 
@@ -224,6 +280,7 @@ namespace Terradue.Portal {
             this.context = context;
             if (!(this is EntityType)) this.EntityType = EntityType.GetOrAddEntityType(this.GetType());
             if (context != null) {
+                this.AccessLevel = context.AccessLevel;
                 this.UserId = context.UserId;
                 this.OwnerId = UserId;
                 InitializeRelationships(context);
@@ -365,6 +422,7 @@ namespace Terradue.Portal {
 
             Id = reader.GetInt32(index++);
             Exists = true;
+
             if (entityType.TopTable.HasIdentifierField) Identifier = context.GetValue(reader, index++);
             if (entityType.TopTable.HasNameField) Name = context.GetValue(reader, index++);
             if (entityType.TopTable.HasDomainReference) DomainId = context.GetIntegerValue(reader, index++);
@@ -411,7 +469,7 @@ namespace Terradue.Portal {
                 if (entityType.TopTable.HasNameField) Console.WriteLine("- VALUE: {0,-25} = {1}", "Name", context.GetValue(reader, index++));
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
-                if (AccessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
+                if (accessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
@@ -427,6 +485,8 @@ namespace Terradue.Portal {
             else if (accessLevel == EntityAccessLevel.Privilege) AccessLevel = hasPrivilege ? EntityAccessLevel.Privilege : hasPermission ? EntityAccessLevel.Permission : EntityAccessLevel.None;
             else if (accessLevel == EntityAccessLevel.Permission) AccessLevel = hasPermission ? EntityAccessLevel.Permission : EntityAccessLevel.None;
             else AccessLevel = EntityAccessLevel.None;
+
+            privilegesLoaded = false;
 
             return hasPermission || hasPrivilege;
         }
@@ -461,6 +521,8 @@ namespace Terradue.Portal {
             EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
             
+            if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", GetItemTerm()), EntityType, this, UserId);
+
             // Check whether identifier or name already exists
             if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.AutoCheckIdentifiers) {
                 if (!Exists && entityType.AutoCorrectDuplicateIdentifiers) {
@@ -612,13 +674,13 @@ namespace Terradue.Portal {
                 }
                 
                 // Add view privilege to owner (if it was not created by an administrator)
-                if (OwnerId != 0 && entityType.HasPermissionManagement && (AccessLevel != EntityAccessLevel.Administrator || OwnerId != context.UserId)) {
+                if (OwnerId != 0 && entityType.HasPermissionManagement && (AccessLevel != EntityAccessLevel.Administrator || context.IsImpersonating || OwnerId != UserId)) {
                     context.Execute(String.Format("INSERT INTO {3} (id_{2}, id_usr) VALUES ({0}, {1});", Id, OwnerId, entityType.PermissionSubjectTable.Name, entityType.PermissionSubjectTable.PermissionTable));
                 }
                 Exists = true;
 
                 //activity
-                activity = new Activity(context, this, OperationPriv.CREATE);
+                activity = new Activity(context, this, EntityOperationType.Create);
                 activity.Store();
                 
             } else { // (2) - UPDATE
@@ -658,7 +720,7 @@ namespace Terradue.Portal {
                     }
                 }
                 //activity
-                activity = new Activity(context, this, OperationPriv.MODIFY);
+                activity = new Activity(context, this, EntityOperationType.Change);
                 activity.Store();
             }
 
@@ -749,17 +811,13 @@ namespace Terradue.Portal {
             GrantPermissions(false, 0, null, false);
 
             //activity
-            Activity activity = new Activity(context, this, OperationPriv.MAKE_PUBLIC);
+            Activity activity = new Activity(context, this, EntityOperationType.Share);
             activity.Store();
         }
         
         [Obsolete("Use GrantGlobalPermissions (changed for terminology consistency)")]
         public void StoreGlobalPrivileges() {
             GrantGlobalPermissions();
-
-            //activity
-            Activity activity = new Activity(context, this, OperationPriv.MAKE_PUBLIC);
-            activity.Store();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -949,10 +1007,11 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
-            //if (CanDelete) // TODO check privileges 
+
+            if (!CanDelete) throw new EntityUnauthorizedException(String.Format("Not authorized to delete {0}", GetItemTerm()), EntityType, this, UserId);
 
             //activity
-            Activity activity = new Activity(context, this, OperationPriv.DELETE);
+            Activity activity = new Activity(context, this, EntityOperationType.Delete);
             activity.Store();
 
             EntityType entityType = this.EntityType;
@@ -1050,13 +1109,14 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
+        [Obsolete("Use Can* properties directly")]
         public virtual void GetAllowedAdministratorOperations() {
             if (context.UserLevel == UserLevel.Administrator) return;
 
             canCreate = false;
             canChange = false;
             canDelete = false;
-            CanView = false;
+            //CanView = false;
 
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -1066,7 +1126,7 @@ namespace Terradue.Portal {
                 switch (reader.GetChar(0)) {
                     case 'v':
                     case 'V':
-                        CanView = true;
+                        //CanView = true;
                         break;
                     case 'c':
                         canCreate = true;
