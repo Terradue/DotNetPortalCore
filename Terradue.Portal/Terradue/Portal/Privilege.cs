@@ -16,7 +16,7 @@ namespace Terradue.Portal {
     /// <summary>
     /// Activity privilege class.
     /// </summary>
-    [Obsolete("Use EntityOperationType")]
+    [Obsolete("Use EntityOperationType where possible")]
     public class OperationPriv {
 
         public const string VIEW = "v";

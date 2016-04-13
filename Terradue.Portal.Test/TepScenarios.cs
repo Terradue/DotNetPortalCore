@@ -11,7 +11,7 @@ namespace Terradue.Portal.Test {
         IfyContext context;
 
         Domain moveDomain;
-        User sarah, marco, jean, sofia, emma;
+        User sarah, marco, jean, sofia, emma, dataProvider;
         Role expertRole, clusterProvisionRole;
         Series xstSeries;
 
@@ -64,11 +64,24 @@ namespace Terradue.Portal.Test {
                     emma.LastName = "Muller";
                     emma.Store();
 
+                    dataProvider = new User(context);
+                    dataProvider.Identifier = "data-provider";
+                    dataProvider.Store();
+
                     expertRole = new Role(context);
                     expertRole.Identifier = "expert-role";
                     expertRole.Name = "Expert role";
                     expertRole.Store();
                     //expertRole.AssignUsersOrGroups
+
+                    xstSeries = new Series(context);
+                    xstSeries.Identifier = "xst-series";
+                    xstSeries.Store();
+
+                    // 
+                    expertRole.AssignUsers(new int[] {marco.Id}, moveDomain.Id);
+
+
 
                 } else {
                     
@@ -77,7 +90,7 @@ namespace Terradue.Portal.Test {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
                 throw;
             }
-                    }
+        }
 
         [TestFixtureTearDown]
         public void DestroyEnvironment() {

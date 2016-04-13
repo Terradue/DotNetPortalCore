@@ -163,7 +163,7 @@ namespace Terradue.Portal {
 
         public string CurrentSchema {
             get { return currentSchema; } 
-            set { currentSchema = GetSchemaName(value); }
+            set { currentSchema = value; }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -398,7 +398,7 @@ namespace Terradue.Portal {
         public void Process() {
             AfterFailureCheckpoint = true;
 
-            currentSchema = dbMainSchema;
+            currentSchema = DbMainSchema;
 
             GetDirectories();
             string connectionString = GetConnectionString();
@@ -415,7 +415,7 @@ namespace Terradue.Portal {
             
             if (schemaExists) {
                 if (DefinitionMode == DataDefinitionMode.Create) {
-                    if (Interactive) Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", dbMainSchema);
+                    if (Interactive) Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", DbMainSchema);
                     if (!GetYes("Answer yes to delete and recreate: ")) {
                         CloseConnection();
                         if (Interactive) Console.WriteLine("Aborted (no change)");
@@ -427,7 +427,7 @@ namespace Terradue.Portal {
             } else if (DefinitionMode == DataDefinitionMode.Automatic) {
                 DefinitionMode = DataDefinitionMode.Create;
             } else if (DefinitionMode != DataDefinitionMode.Create) {
-                if (Interactive) Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", dbMainSchema);
+                if (Interactive) Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", DbMainSchema);
                 return;
             }
             
@@ -585,7 +585,7 @@ namespace Terradue.Portal {
             string connectionString = null;
 
             // Get connection string (from web.config or build it from command line argument)
-            if (dbMainSchema == null) {
+            if (DbMainSchema == null) {
 
                 string configFile = String.Format("{0}{1}root{1}web.config", SiteBaseDirectory, Path.DirectorySeparatorChar);
                 if (!File.Exists(configFile)) {
@@ -761,12 +761,12 @@ namespace Terradue.Portal {
                     )
             );*/
 
-            if (Interactive) Console.WriteLine("Creating main portal schema \"{0}\"", dbMainSchema);
+            if (Interactive) Console.WriteLine("Creating main portal schema \"{0}\"", DbMainSchema);
             Execute("CREATE DATABASE $MAIN$ DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;");
             schemaExists = true;
             
-            if (dbNewsSchema != dbMainSchema) {
-                if (Interactive) Console.WriteLine("Creating news schema \"{0}\"", dbNewsSchema);
+            if (DbNewsSchema != DbMainSchema) {
+                if (Interactive) Console.WriteLine("Creating news schema \"{0}\"", DbNewsSchema);
                 try {
                     Execute("USE $NEWS$;");
                     Execute("DROP DATABASE $NEWS$;");
@@ -880,7 +880,7 @@ namespace Terradue.Portal {
             if (AfterFailureCheckpoint) SetCheckpoint(item, null);
             else if (CurrentPhase == LastFailurePhase && item == LastFailureItem && LastFailureItemCheckpoint == null) AfterFailureCheckpoint = true;
             ResetResult();
-            Execute("USE $MAIN$;");
+            ChangeSchema(DbMainSchema);
             StreamReader fileReader = new StreamReader(filename);
             string line, command = String.Empty;
             bool routine = false;
@@ -904,8 +904,8 @@ namespace Terradue.Portal {
                     Match match = Regex.Match(command, "^USE +([^ ]+);$");
                     bool execute = AfterFailureCheckpoint;
                     if (match.Success) {
-                        CurrentSchema = match.Groups[1].Value;
-                        execute = true;
+                        ChangeSchema(match.Groups[1].Value);
+                        execute = false;
                     }
                     if (execute && CurrentSchema != null) Execute(command);
 
@@ -914,8 +914,23 @@ namespace Terradue.Portal {
                 }
             }
             fileReader.Close();
-            Execute("USE $MAIN$;");
+            ChangeSchema(DbMainSchema);
             if (AfterFailureCheckpoint) ClearCheckpoint();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ChangeSchema(string schema) {
+            switch (schema) {
+                case "$MAIN$":
+                    schema = DbMainSchema;
+                    break;
+                case "$NEWS$":
+                    schema = DbNewsSchema;
+                    break;
+            }
+            CurrentSchema = schema;
+            Execute(String.Format("USE {0};", schema));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -989,18 +1004,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetSchemaName(string placeholder) {
-            switch (placeholder) {
-                case "$MAIN$" :
-                    return dbMainSchema;
-                case "$NEWS$" :
-                    return dbNewsSchema;
-            }
-            return null;
-        }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
         public void AddToDoTask(string text) {
             text = text.Replace(@"\n", Environment.NewLine + toDoSpace);
             if (toDoCount == 0) toDoList = String.Empty; else toDoList += Environment.NewLine + Environment.NewLine; 
@@ -1028,12 +1031,12 @@ namespace Terradue.Portal {
                 string value = matches[i].Value;
                 switch (value) {
                     case "$MAIN$" :
-                        if (dbMainSchema == null) return null;
-                        sql = sql.Replace(value, NameQuote + dbMainSchema + NameQuote);
+                        if (DbMainSchema == null) return null;
+                        sql = sql.Replace(value, NameQuote + DbMainSchema + NameQuote);
                         break;
                     case "$NEWS$" :
-                        if (dbNewsSchema == null) return null;
-                        sql = sql.Replace(value, NameQuote + dbNewsSchema + NameQuote);
+                        if (DbNewsSchema == null) return null;
+                        sql = sql.Replace(value, NameQuote + DbNewsSchema + NameQuote);
                         break;
                     case "$DBHOSTNAME$" :
                         sql = sql.Replace(value, DbHost);
