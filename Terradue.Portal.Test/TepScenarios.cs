@@ -10,10 +10,11 @@ namespace Terradue.Portal.Test {
         bool rebuildData = true;
         IfyContext context;
 
-        Domain moveDomain;
+        Domain moveDomain, rldDomain;
+        Role clusterProvisionRole, expertRole, contentAuthorityRole, softwareVendorRole, endUserRole, memberRole;
+        Group moveGroup;
         User sarah, marco, jean, sofia, emma, dataProvider;
-        Role expertRole, clusterProvisionRole;
-        Series xstSeries;
+        Series demSeries, xstSeries;
 
         [TestFixtureSetUp]
         public void CreateEnvironment() {
@@ -29,17 +30,24 @@ namespace Terradue.Portal.Test {
             context = new IfyLocalContext(connectionString, false);
             context.Open();
 
-            EntityType.WriteThings(context);
-
             try {
                 if (rebuildData) {
 
                     context.AccessLevel = EntityAccessLevel.Administrator;
 
+                    // Domains ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
                     moveDomain = new Domain(context);
                     moveDomain.Identifier = "MOVE";
                     moveDomain.Name = "MOVE domain";
                     moveDomain.Store();
+
+                    rldDomain = new Domain(context);
+                    rldDomain.Identifier = "RLD";
+                    rldDomain.Name = "RLD domain";
+                    rldDomain.Store();
+
+                    // Users ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                     sarah = new User(context);
                     sarah.Identifier = "sarah";
@@ -74,19 +82,60 @@ namespace Terradue.Portal.Test {
                     dataProvider.Identifier = "data-provider";
                     dataProvider.Store();
 
+                    // Groups +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                    moveGroup = new Group(context);
+                    moveGroup.Identifier = "MOVE TEP group";
+                    moveGroup.Store();
+                    moveGroup.AssignUsers(new User[] {sarah, marco, jean, sofia, emma});
+
+                    // Roles ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                    clusterProvisionRole = new Role(context);
+                    clusterProvisionRole.Identifier = "cluster-provision-role";
+                    clusterProvisionRole.Name = "Cluster provision";
+                    clusterProvisionRole.Store();
+                    clusterProvisionRole.GrantToUser(sarah, moveDomain);
+
                     expertRole = new Role(context);
                     expertRole.Identifier = "expert-role";
-                    expertRole.Name = "Expert role";
+                    expertRole.Name = "Expert";
                     expertRole.Store();
-                    //expertRole.AssignUsersOrGroups
+                    expertRole.GrantToUser(marco, moveDomain);
+
+                    contentAuthorityRole = new Role(context);
+                    contentAuthorityRole.Identifier = "content-authority-role";
+                    contentAuthorityRole.Name = "Content authority";
+                    contentAuthorityRole.Store();
+                    contentAuthorityRole.GrantToUser(jean, moveDomain);
+
+                    softwareVendorRole = new Role(context);
+                    softwareVendorRole.Identifier = "software-vendor-role";
+                    softwareVendorRole.Name = "Software vendor";
+                    softwareVendorRole.Store();
+                    softwareVendorRole.GrantToUser(sofia, moveDomain);
+
+                    endUserRole = new Role(context);
+                    endUserRole.Identifier = "end-user-role";
+                    endUserRole.Name = "End user";
+                    endUserRole.Store();
+                    endUserRole.GrantToUser(emma, moveDomain);
+
+                    memberRole = new Role(context);
+                    memberRole.Identifier = "member-role";
+                    memberRole.Name = "Member role";
+                    memberRole.Store();
+                    memberRole.GrantToUser(sarah, rldDomain);
+
+                    // Data +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                    demSeries = new Series(context);
+                    demSeries.Identifier = "dem-series";
+                    demSeries.Store();
 
                     xstSeries = new Series(context);
                     xstSeries.Identifier = "xst-series";
                     xstSeries.Store();
-
-                    // 
-                    expertRole.AssignUsers(new int[] {marco.Id}, moveDomain.Id);
-
 
 
                 } else {

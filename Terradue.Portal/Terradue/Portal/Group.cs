@@ -150,15 +150,32 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void AssignUsers(int[] userIds) {
-            if (userIds == null || userIds.Length == 0) return;
-            context.Execute(String.Format("DELETE FROM usr_grp WHERE id_usr IN ({0});", String.Join(",", userIds))); // avoid duplicates
+        public void AssignUser(User user) {
+            AssignUsers(new int[] {user.Id});
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void AssignUsers(IEnumerable<User> users) {
+            List<int> userIds = new List<int>();
+            foreach (User user in users) userIds.Add(user.Id);
+            AssignUsers(userIds);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void AssignUsers(IEnumerable<int> userIds) {
+            if (userIds == null) return;
             string valuesStr = String.Empty;
-            for (int i = 0; i < userIds.Length; i++) {
-                if (i != 0) valuesStr += ", ";
-                valuesStr += String.Format("({0},{1})", userIds[i], Id);
+            bool hasIds = false;
+            foreach (int userId in userIds) {
+                if (hasIds) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1})", userId, Id);
             }
-            context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));
+            if (hasIds) {
+                context.Execute(String.Format("DELETE FROM usr_grp WHERE id_usr IN ({0});", String.Join(",", userIds))); // avoid duplicates
+                context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));        
+            }
         }
 
     }

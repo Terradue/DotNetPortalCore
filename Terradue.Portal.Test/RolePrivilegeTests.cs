@@ -81,20 +81,20 @@ namespace Terradue.Portal.Test {
                     role1.Identifier = "cr_view+change";
                     role1.Store();
                     role1.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(ComputingResource)), new EntityOperationType[] {EntityOperationType.Search, EntityOperationType.View, EntityOperationType.Change})); 
-                    role1.AssignGroups(new int[] {group1.Id}, domain1.Id);
+                    role1.GrantToGroups(new int[] {group1.Id}, domain1.Id);
 
                     role2 = new Role(context);
                     role2.Identifier = "cr_delete";
                     role2.Store();
                     role2.IncludePrivilege(Privilege.Get(EntityType.GetEntityType(typeof(ComputingResource)), EntityOperationType.Delete)); 
-                    role2.AssignUsers(new int[] {user12.Id}, domain1.Id);
-                    role2.AssignGroups(new int[] {group2.Id}, 0);
+                    role2.GrantToUsers(new int[] {user12.Id}, domain1.Id);
+                    role2.GrantToGroups(new int[] {group2.Id}, 0);
 
                     role3 = new Role(context);
                     role3.Identifier = "service_all";
                     role3.Store();
                     role3.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Service)))); 
-                    role3.AssignUsers(new int[] {user31.Id}, 0);
+                    role3.GrantToUsers(new int[] {user31.Id}, 0);
 
                     ComputingResource cr1 = new GenericComputingResource(context);
                     cr1.Identifier = "cr-1";
@@ -137,7 +137,7 @@ namespace Terradue.Portal.Test {
                     seriesShareRole.Identifier = "series_all";
                     seriesShareRole.Store();
                     seriesShareRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
-                    seriesShareRole.AssignUsers(new int[]{shareCreator.Id}, seriesShareDomain.Id);
+                    seriesShareRole.GrantToUsers(new int[]{shareCreator.Id}, seriesShareDomain.Id);
 
                     context.AccessLevel = EntityAccessLevel.Permission;
 
