@@ -19,6 +19,8 @@ CALL add_type($ID$, 'Terradue.Cloud.OcciCloudProvider, Terradue.Cloud', 'Terradu
 CALL add_type($ID$, 'Terradue.Cloud.OneCloudProvider, Terradue.Cloud', 'Terradue.Cloud.CloudProvider, Terradue.Cloud', 'OpenNebula Cloud Provider', 'OpenNebula Cloud Providers', NULL);
 -- RESULT
 
+/*****************************************************************************/
+
 -- Adding privileges for cloud providers ... \
 INSERT INTO priv (identifier, id_type, operation, pos, name) VALUES
     ('cloudprov-c', @type_id, 'c', @priv_pos + 1, 'Cloud providers: create'),
@@ -145,4 +147,18 @@ CREATE TABLE usr_cloud (
 
 CALL add_type($ID$, 'Terradue.Cloud.CloudUser, Terradue.Cloud', 'Terradue.Portal.User, Terradue.Portal', 'Cloud user information', 'Cloud user information', NULL);
 
+/*****************************************************************************/
+
+
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+UPDATE type SET class=REPLACE(class, 'Terradue.Cloud.', 'Terradue.Portal.Test.Terradue.Cloud.');
+UPDATE type SET class=REPLACE(class, ', Terradue.Cloud', ', Terradue.Portal.Test');
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
 /*****************************************************************************/

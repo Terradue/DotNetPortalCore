@@ -167,7 +167,7 @@ namespace Terradue.Portal {
             sql.Append(" WHERE ");
             sql.Append(String.Format("(rg.id_usr={0} OR ug.id_usr={0}) AND ", userId));
             sql.Append(domainId == 0 ? "rg.id_domain IS NULL" : String.Format("(rg.id_domain IS NULL OR rg.id_domain={0})", domainId));
-            if (condition != null) sql.Append(String.Format(" AND {0}", condition));
+            if (condition != null) sql.Append(String.Format(" AND {0};", condition));
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql.ToString(), dbConnection);

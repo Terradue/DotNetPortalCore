@@ -1,5 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
+using Terradue.Portal;
 
 namespace Terradue.Portal.Test {
 
@@ -30,7 +31,7 @@ namespace Terradue.Portal.Test {
             EntityList<Feature> features = new EntityList<Feature>(context);
             features.Load();
 
-            System.Collections.Generic.List<Terradue.Portal.Feature> fs = features.GetItemsAsList();
+            System.Collections.Generic.List<Feature> fs = features.GetItemsAsList();
             fs.Sort();
 
             Assert.That(fs[0].Title.Equals("feat1"));
