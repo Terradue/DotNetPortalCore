@@ -11,9 +11,9 @@ namespace Terradue.Portal.Test {
         IfyContext context;
 
         Domain moveDomain, rldDomain;
-        Role clusterProvisionRole, expertRole, contentAuthorityRole, softwareVendorRole, endUserRole, memberRole;
-        Group moveGroup;
-        User sarah, marco, jean, sofia, emma, dataProvider;
+        Role clusterProvisionRole, expertRole, contentAuthorityRole, softwareVendorRole, endUserRole, memberRole, dataProviderRole;
+        Group moveGroup, rldGroup;
+        User sarah, marco, jean, sofia, emma, rldUser;
         Series demSeries, xstSeries;
 
         [TestFixtureSetUp]
@@ -78,9 +78,9 @@ namespace Terradue.Portal.Test {
                     emma.LastName = "Muller";
                     emma.Store();
 
-                    dataProvider = new User(context);
-                    dataProvider.Identifier = "data-provider";
-                    dataProvider.Store();
+                    rldUser = new User(context);
+                    rldUser.Identifier = "rld-user";
+                    rldUser.Store();
 
                     // Groups +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -89,12 +89,18 @@ namespace Terradue.Portal.Test {
                     moveGroup.Store();
                     moveGroup.AssignUsers(new User[] {sarah, marco, jean, sofia, emma});
 
+                    rldGroup = new Group(context);
+                    rldGroup.Identifier = "RLD TEP group";
+                    rldGroup.Store();
+                    rldGroup.AssignUser(sarah);
+
                     // Roles ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                     clusterProvisionRole = new Role(context);
                     clusterProvisionRole.Identifier = "cluster-provision-role";
                     clusterProvisionRole.Name = "Cluster provision";
                     clusterProvisionRole.Store();
+                    clusterProvisionRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
                     clusterProvisionRole.GrantToUser(sarah, moveDomain);
 
                     expertRole = new Role(context);
@@ -107,6 +113,7 @@ namespace Terradue.Portal.Test {
                     contentAuthorityRole.Identifier = "content-authority-role";
                     contentAuthorityRole.Name = "Content authority";
                     contentAuthorityRole.Store();
+                    contentAuthorityRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
                     contentAuthorityRole.GrantToUser(jean, moveDomain);
 
                     softwareVendorRole = new Role(context);
@@ -123,19 +130,31 @@ namespace Terradue.Portal.Test {
 
                     memberRole = new Role(context);
                     memberRole.Identifier = "member-role";
-                    memberRole.Name = "Member role";
+                    memberRole.Name = "Member";
                     memberRole.Store();
                     memberRole.GrantToUser(sarah, rldDomain);
+
+                    dataProviderRole = new Role(context);
+                    dataProviderRole.Identifier = "data-provider-role";
+                    dataProviderRole.Name = "Data provider";
+                    dataProviderRole.Store();
+                    dataProviderRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
+                    dataProviderRole.GrantToUser(rldUser, null);
 
                     // Data +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                     demSeries = new Series(context);
+                    demSeries.Domain = moveDomain;
+                    demSeries.OwnerId = sarah.Id;
                     demSeries.Identifier = "dem-series";
                     demSeries.Store();
 
                     xstSeries = new Series(context);
+                    xstSeries.Domain = rldDomain;
+                    xstSeries.OwnerId = rldUser.Id;
                     xstSeries.Identifier = "xst-series";
                     xstSeries.Store();
+                    xstSeries.GrantPermissionsToGroups(new Group[] {rldGroup});
 
 
                 } else {
@@ -147,18 +166,9 @@ namespace Terradue.Portal.Test {
             }
 
 
-
-
-
-
-
-
-
-
-
-
             try {
-                context.ConsoleDebug = true;
+                context.AccessLevel = EntityAccessLevel.Privilege;
+                /*context.ConsoleDebug = true;
                 Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
                 Console.WriteLine("CP: {0}", cloudProvider.EntityType.Id);
                 cloudProvider.Identifier = "cloud-provider-1";
@@ -170,7 +180,39 @@ namespace Terradue.Portal.Test {
 
                 laboratory.Identifier = "laboratory-1";
                 laboratory.Name = "Laboratory 1";
-                laboratory.Store();
+                laboratory.Store();*/
+
+                // Sarah grants global processing permission on "demSeries"
+                context.StartImpersonation(sarah.Id);
+                demSeries = Series.FromId(context, demSeries.Id); // reload "demSeries" with Sarah's account
+                demSeries.CanProcess = true;
+                demSeries.GrantGlobalPermissions();
+
+                // Sarah tries to grant her group (-> she can't)
+                context.ConsoleDebug = true;
+                xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Sarah's account
+                try {
+                    xstSeries.GrantPermissionsToGroups(new Group[] {moveGroup});
+                    Assert.IsTrue(false); // force failure (we should never arrive here)
+                } catch (Exception e) {
+                    Assert.IsTrue(e is EntityUnauthorizedException);
+                    context.ConsoleDebug = false;
+                }
+                context.ConsoleDebug = false;
+
+                context.EndImpersonation();
+
+                // RLD user grants download and processing permission to Sarah's group
+                context.StartImpersonation(rldUser.Id);
+                xstSeries.CanDownload = true;
+                xstSeries.CanProcess = true;
+                xstSeries.GrantPermissionsToGroups(new Group[] {moveGroup});
+                context.EndImpersonation();
+
+
+
+
+
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
                 throw;
