@@ -806,7 +806,7 @@ namespace Terradue.Portal {
         public IfyContext(string connectionString) {
             this.mainConnectionString = connectionString;
             //this.RestrictedMode = true;
-            this.AccessLevel = EntityAccessLevel.Permission;
+            this.AccessLevel = EntityAccessLevel.Privilege;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1759,7 +1759,7 @@ namespace Terradue.Portal {
         public virtual void StartImpersonation(int userId) {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
-            User user = User.FromId(this, userId);
+            User user = User.ForceFromId(this, userId);
             UserInformation.Update(user);
             OriginalUserId = UserId;
             UserId = user.Id;
@@ -1775,7 +1775,7 @@ namespace Terradue.Portal {
         public virtual void EndImpersonation() {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
-            User user = User.FromId(this, UserInformation.OriginalUserId);
+            User user = User.ForceFromId(this, UserInformation.OriginalUserId);
             UserInformation.Update(user);
             UserId = user.Id;
             UserLevel = user.Level;

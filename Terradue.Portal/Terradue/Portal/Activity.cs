@@ -169,7 +169,7 @@ namespace Terradue.Portal {
             }catch(Exception e){
                 return null;
             }
-            User owner = User.FromId(context, this.OwnerId);
+            User owner = User.ForceFromId(context, this.OwnerId);
 
             string identifier = null;
             string name = (entity.Name != null ? entity.Name : entity.Identifier);

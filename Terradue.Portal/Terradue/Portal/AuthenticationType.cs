@@ -432,7 +432,7 @@ namespace Terradue.Portal {
             int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
             if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
 
-            User user = User.FromId(context, userId);
+            User user = User.ForceFromId(context, userId);
             if (user.AccountStatus == AccountStatusType.Enabled) throw new InvalidOperationException("Account already enabled");
 
             if (user.AccountStatus == AccountStatusType.PendingActivation || user.AccountStatus == AccountStatusType.PasswordReset || user.FailedLogins != 0) {
@@ -491,7 +491,7 @@ namespace Terradue.Portal {
                 }
                 return null;
             } else {
-                return User.FromId(context, userId);
+                return User.ForceFromId(context, userId);
             }
         }
 

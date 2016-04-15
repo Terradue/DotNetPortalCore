@@ -838,7 +838,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public void RefreshUser(int userId) {
-            User user = User.FromId(this, userId);
+            User user = User.ForceFromId(this, userId);
 
             SetUserInformation(null, user);
         }

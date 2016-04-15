@@ -508,7 +508,7 @@ namespace Terradue.Portal {
                 }
 
                 if (!string.IsNullOrEmpty(parameters["author"])) {
-                    if (!(User.FromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
+                    if (!(User.ForceFromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
                 }
 
                 if (s is IAtomizable) {
