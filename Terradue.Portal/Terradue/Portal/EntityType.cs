@@ -65,7 +65,7 @@ namespace Terradue.Portal {
     /// \ingroup Persistence
     public class EntityType : Entity {
 
-        private const string RolePrivilegeBaseQuery = "SELECT DISTINCT r.id FROM priv AS p LEFT JOIN role_priv AS rp ON p.id=rp.id_priv LEFT JOIN role AS r ON rp.id_role=r.id";
+        private const string RolePrivilegeBaseQuery = "SELECT DISTINCT rp.id_role FROM priv AS p LEFT JOIN role_priv AS rp ON p.id=rp.id_priv";
 
         // Static list of entity type metadata; loaded at application startup and used as reference for lookup throughout the runtime
         private static Dictionary<Type, EntityType> entityTypes = new Dictionary<Type, EntityType>();

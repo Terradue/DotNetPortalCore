@@ -332,6 +332,12 @@ namespace Terradue.Portal {
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"   
         public virtual void Load() {
+            Load(context.AccessLevel);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public virtual void Load(EntityAccessLevel accessLevel) {
             EntityType entityType = this.EntityType;
             bool hasAutoLoadFields = false;
 
@@ -345,7 +351,7 @@ namespace Terradue.Portal {
 
             // Do not restrict query (a single item is requested)
             //EntityQueryMode queryMode = context.AdminMode ? EntityQueryMode.Administrator : EntityQueryMode.Unrestricted;
-            string sql = entityType.GetItemQuery(context, this, UserId, condition, context.AccessLevel);
+            string sql = entityType.GetItemQuery(context, this, UserId, condition, accessLevel);
             
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
@@ -364,7 +370,7 @@ namespace Terradue.Portal {
                 throw new EntityNotFoundException(String.Format("{0} not found", itemTerm), entityType, itemTerm);
             }
 
-            bool authorized = Load(entityType, reader, context.AccessLevel);
+            bool authorized = Load(entityType, reader, accessLevel);
 
             context.CloseQueryResult(reader, dbConnection);
 
@@ -917,6 +923,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         protected void GrantPermissions(bool forGroup, int singleId, IEnumerable<int> multipleIds, bool removeOthers) {
+            if (!CanManage) throw new EntityUnauthorizedException(String.Format("Not authorized to change permissions on {0}", GetItemTerm()), EntityType, this, UserId);
+
             EntityType entityType = this.EntityType;
             int permissionSubjectTableIndex = -1;
 

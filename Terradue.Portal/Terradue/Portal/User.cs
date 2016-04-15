@@ -301,11 +301,9 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance representing the user with the specified ID.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">the user ID</param>
         /// <returns>the created User object</returns>
-        */
         public static User FromId(IfyContext context, int id) {
             User result = GetInstance(context);
             result.Id = id;
@@ -315,22 +313,33 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new User instance representing the user with the specified unique name.</summary>
-        /*!
+        /// <summary>Creates a new User instance representing the user with the specified ID, ignoring permission- and privliege-based restrictions.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">the user ID</param>
+        /// <returns>the created User object</returns>
+        public static User ForceFromId(IfyContext context, int id) {
+            User result = GetInstance(context);
+            result.Id = id;
+            result.Load(EntityAccessLevel.Administrator);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="name">the unique user username</param>
         /// <returns>the created User object</returns>
-        */
         public static User FromUsername(IfyContext context, string username) {
             User result = GetInstance(context);
             result.Identifier = username;
-            result.Load();
+            result.Load(EntityAccessLevel.Administrator);
             return result;
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Returns a User instance representing the user with the specified ID or username.</summary>
+        /// <summary>Returns a User instance representing the user with the specified ID or username, ignoring permission- and privliege-based restrictions.</summary>
         /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="s">a search value that must match the User ID (preferred) or username</param>
@@ -341,7 +350,7 @@ namespace Terradue.Portal {
             User result = GetInstance(context);
             result.Id = id;
             result.Identifier = s;
-            result.Load();
+            result.Load(EntityAccessLevel.Administrator);
             return result;
         }
         
