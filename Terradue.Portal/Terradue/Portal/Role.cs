@@ -79,7 +79,6 @@ namespace Terradue.Portal {
 
         public void IncludePrivileges(IEnumerable<int> privilegeIds) {
             if (privilegeIds == null) return;
-            context.Execute(String.Format("DELETE FROM role_priv WHERE id_priv IN ({0});", String.Join(",", privilegeIds))); // avoid duplicates
             string valuesStr = String.Empty;
             bool hasIds = false;
             foreach (int privilegeId in privilegeIds) {
@@ -87,7 +86,10 @@ namespace Terradue.Portal {
                 valuesStr += String.Format("({0},{1})", Id, privilegeId);
                 hasIds = true;
             }
-            if (hasIds) context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) VALUES {0};", valuesStr));
+            if (hasIds) {
+                context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0} AND id_priv IN ({1});", Id, String.Join(",", privilegeIds))); // avoid duplicates
+                context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) VALUES {0};", valuesStr));
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -251,7 +253,7 @@ namespace Terradue.Portal {
                 hasIds = true;
             }
             if (hasIds) {
-                context.Execute(String.Format("DELETE FROM role_grant WHERE {0} IN ({1}) AND id_domain{2};", forGroup ? "id_grp" : "id_usr", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
+                context.Execute(String.Format("DELETE FROM role_grant WHERE id_role={0} AND {1} IN ({2}) AND id_domain{3};", Id, forGroup ? "id_grp" : "id_usr", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
                 context.Execute(String.Format("INSERT INTO role_grant ({0}, id_role, id_domain) VALUES {1};", forGroup ? "id_grp" : "id_usr", valuesStr));
             }
         }

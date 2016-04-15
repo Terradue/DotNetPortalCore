@@ -86,7 +86,7 @@ namespace Terradue.Portal {
             if (roleIds == null || roleIds.Length == 0) return new int[] {0};
 
             List<int> domainIds = new List<int>();
-            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM role_grant AS rg LEFT JOIN usr_grp AS ug ON rg.id_role IN ({1}) AND rg.id_grp=ug.id_grp WHERE rg.id_usr={0} OR ug.id_usr={0} ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", roleIds));
+            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM role_grant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE rg.id_role IN ({1}) AND (rg.id_usr={0} OR ug.id_usr={0}) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", roleIds));
             //Console.WriteLine("DOMAINS: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);

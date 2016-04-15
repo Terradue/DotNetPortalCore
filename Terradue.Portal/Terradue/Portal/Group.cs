@@ -171,9 +171,10 @@ namespace Terradue.Portal {
             foreach (int userId in userIds) {
                 if (hasIds) valuesStr += ", ";
                 valuesStr += String.Format("({0},{1})", userId, Id);
+                hasIds = true;
             }
             if (hasIds) {
-                context.Execute(String.Format("DELETE FROM usr_grp WHERE id_usr IN ({0});", String.Join(",", userIds))); // avoid duplicates
+                context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0} AND id_usr IN ({1});", Id, String.Join(",", userIds))); // avoid duplicates
                 context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));        
             }
         }
