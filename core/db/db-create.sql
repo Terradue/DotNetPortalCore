@@ -1657,6 +1657,9 @@ CREATE TABLE series_priv (
     id_series int unsigned NOT NULL COMMENT 'FK: Series',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
+    can_search bool COMMENT 'If true, user/group has search permission',
+    can_download bool COMMENT 'If true, user/group has download permission',
+    can_process bool COMMENT 'If true, user/group has processing permission',
     CONSTRAINT fk_series_priv_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
     CONSTRAINT fk_series_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_series_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE

@@ -277,6 +277,24 @@ namespace Terradue.Portal {
         public string CatalogueBaseUrl { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to search within this series.</summary>
+        [EntityPermissionField("can_search")]
+        public bool CanSearch { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to download products from this series.</summary>
+        [EntityPermissionField("can_download")]
+        public bool CanDownload { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to use products of this series for processing.</summary>
+        [EntityPermissionField("can_process")]
+        public bool CanProcess { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets or sets a reference to the input files request parameter that depends on the series.</summary>
         public RequestParameter DataSetParameter { get; set; }

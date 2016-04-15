@@ -696,6 +696,7 @@ namespace Terradue.Portal {
                 }
 
                 if (table == PermissionSubjectTable) {
+                    permissionSubjectTableIndex = i;
                     s = String.Format("JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
                             table.PermissionTable,
                             i == 0 ? String.Empty : i.ToString(),
@@ -840,7 +841,9 @@ namespace Terradue.Portal {
                     }
                 }
             }
-            if (accessLevel != EntityAccessLevel.Administrator && grantSelectSql == null) grantSelectSql = ", true";
+            if (accessLevel != EntityAccessLevel.Administrator && grantSelectSql == null) {
+                grantSelectSql = accessLevel == EntityAccessLevel.Permission ? ", false" : ", true";
+            }
 
             // Build WHERE clause
             if (list && TopTable.TypeReferenceField != null) {
