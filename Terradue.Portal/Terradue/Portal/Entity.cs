@@ -741,8 +741,20 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified users according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="users">An array of users to which the permission setting applies.</param>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToUsers(IEnumerable<User> users) {
+            List<int> userIds = new List<int>();
+            foreach (User user in users) userIds.Add(user.Id);
+            GrantPermissions(false, 0, userIds, false);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the permissions on the resource represented by the instance for the specified users according to the permission properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified users according to the permission properties.</summary>
         /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
         /// <param name="userIds">An array of IDs of the users to which the permission setting applies.</param>
         public void GrantPermissionsToUsers(int[] userIds) {
@@ -755,8 +767,21 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified users according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="users">An array of users to which the permission setting applies.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other users not contained in <c>users</c> are removed.</param>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToUsers(IEnumerable<User> users, bool removeOthers) {
+            List<int> userIds = new List<int>();
+            foreach (User user in users) userIds.Add(user.Id);
+            GrantPermissions(false, 0, userIds, removeOthers);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the permissions on the resource represented by the instance for the specified users according to the permission properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified users according to the permission properties.</summary>
         /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
         /// <param name="userIds">An array of IDs of the users to which the permission setting applies.</param>
         /// <param name="removeOthers">Determines whether permission settings for other users not contained in <c>userIds</c> are removed.</param>
@@ -771,8 +796,20 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified user groups according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
+        /// <param name="groups">An array of groups to which the permission setting applies.</param>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToGroups(IEnumerable<Group> groups) {
+            List<int> groupIds = new List<int>();
+            foreach (Group group in groups) groupIds.Add(group.Id);
+            GrantPermissions(true, 0, groupIds, false);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the permissions on the resource represented by the instance for the specified user groups according to the permission properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified user groups according to the permission properties.</summary>
         /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
         /// <param name="groupIds">An array of IDs of the groups to which the permission setting applies.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -786,8 +823,21 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified user groups according to the permission properties.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
+        /// <param name="groups">An array of groups to which the permission setting applies.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other groups not contained in <c>groups</c> are removed.</param>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void GrantPermissionsToGroups(IEnumerable<Group> groups, bool removeOthers) {
+            List<int> groupIds = new List<int>();
+            foreach (Group group in groups) groupIds.Add(group.Id);
+            GrantPermissions(true, 0, groupIds, removeOthers);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the permissions on the resource represented by the instance for the specified user groups according to the permission properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified user groups according to the permission properties.</summary>
         /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several groups.</remarks>
         /// <param name="groupIds">An array of IDs of the groups to which the permission setting applies.</param>
         /// <param name="removeOthers">Determines whether permission settings for other groups not contained in <c>groupIds</c> are removed.</param>
@@ -802,7 +852,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets the permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
+        /// <summary>Sets the permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
         /// <remarks>
         ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
         ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
@@ -823,7 +873,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Sets global permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
+        /// <summary>Sets global permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
         /// <remarks>
         ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
         ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
@@ -840,10 +890,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Determines whether this instance has global permission.
-        /// </summary>
-        /// <returns><c>true</c> if this instance has global permission; otherwise, <c>false</c>.</returns>
+        /// <summary>Determines whether global permissions are granted for this resource.</summary>
         public bool DoesGrantGlobalPermission() {
             return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
         }
@@ -855,13 +902,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Sets global permissions on the resource represented by the instance that will apply to all users according to the permission properties.</summary>
+        /// <summary>Sets global permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
         /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.</remarks>
         /// <param name="removeOthers">Determines whether permission settings at user and group level are removed.</param>
         public void GrantGlobalPermissions(bool removeOthers) {
             GrantPermissions(false, 0, null, removeOthers);
         }
-        
+
         [Obsolete("Use AssignPermissionsGlobally (changed for terminology consistency)")]
         public void StoreGlobalPrivileges(bool removeOthers) {
             GrantGlobalPermissions(removeOthers);
@@ -869,7 +916,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        private void GrantPermissions(bool forGroup, int singleId, int[] multipleIds, bool removeOthers) {
+        protected void GrantPermissions(bool forGroup, int singleId, IEnumerable<int> multipleIds, bool removeOthers) {
             EntityType entityType = this.EntityType;
             int permissionSubjectTableIndex = -1;
 
@@ -884,8 +931,8 @@ namespace Terradue.Portal {
             // Add entity-specific fields to SELECT clause
             string names = String.Format("id_{0}, id_usr, id_grp", entityType.PermissionSubjectTable.Name);
             string values = String.Empty;
-            string totalValues = null;
-            string deleteCondition = null;
+            string totalValues = String.Empty;
+            string deleteCondition = String.Empty;
             foreach (FieldInfo field in entityType.Fields) {
                 if (field.TableIndex != permissionSubjectTableIndex || field.FieldType != EntityFieldType.PermissionField) continue;
                 names += String.Format(", {0}", field.FieldName);
@@ -898,17 +945,14 @@ namespace Terradue.Portal {
                 if (removeOthers) deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
                 else deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
             } else if (multipleIds != null) {
-                for (int i = 0; i < multipleIds.Length; i++) {
-                    if (i == 0) totalValues = String.Empty;
-                    else totalValues += ", ";
-                    if (i == 0) deleteCondition = String.Empty;
-                    else deleteCondition += ", ";
-
-                    totalValues += String.Format("({0}, {1}, {2}{3})", Id, forGroup ? "NULL" : multipleIds[i].ToString(), forGroup ? multipleIds[i].ToString() : "NULL", values);
-                    if (!removeOthers) deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
+                bool hasIds = false;
+                foreach (int id in multipleIds) {
+                    totalValues += String.Format("{4}({0}, {1}, {2}{3})", Id, forGroup ? "NULL" : id.ToString(), forGroup ? id.ToString() : "NULL", values, hasIds ? ", " : String.Empty);
+                    if (!removeOthers) deleteCondition = String.Format("{2}{0}={1}", forGroup ? "id_grp" : "id_usr", singleId, hasIds ? ", " : String.Empty);
+                    hasIds = true;
                 }
                 if (removeOthers) deleteCondition = String.Format("{0} IS NOT NULL", forGroup ? "id_grp" : "id_usr");
-                else if (multipleIds.Length != 0) deleteCondition = String.Format("{0} IN ({1})", forGroup ? "id_grp" : "id_usr", deleteCondition);
+                else if (hasIds) deleteCondition = String.Format("{0} IN ({1})", forGroup ? "id_grp" : "id_usr", deleteCondition);
                 else deleteCondition = "false";
             } else {
                 totalValues = String.Format("({0}, NULL, NULL{1})", Id, values);

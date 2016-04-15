@@ -183,7 +183,7 @@ namespace Terradue.Portal {
         /// <param name="user">The user who is the beneficary.</param>
         /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the users obtain this role globally.</param>
         public void GrantToUser(User user, Domain domain) {
-            Grant(true, new int[] {user.Id}, domain == null ? 0 : domain.Id);
+            Grant(false, new int[] {user.Id}, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ namespace Terradue.Portal {
         public void GrantToUsers(IEnumerable<User> users, Domain domain) {
             List<int> userIds = new List<int>();
             foreach (User user in users) userIds.Add(user.Id);
-            Grant(true, userIds, domain == null ? 0 : domain.Id);
+            Grant(false, userIds, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ namespace Terradue.Portal {
         /// <param name="userIds">An array of the database IDs of the users who are the beneficiaries.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the users obtain this role globally.</param>
         public void GrantToUsers(IEnumerable<int> userIds, int domainId) {
-            Grant(true, userIds, domainId);
+            Grant(false, userIds, domainId);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ namespace Terradue.Portal {
         /// <param name="user">The user who is the beneficary.</param>
         /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the users obtain this role globally.</param>
         public void GrantToGroup(Group group, Domain domain) {
-            Grant(false, new int[] {group.Id}, domain == null ? 0 : domain.Id);
+            Grant(true, new int[] {group.Id}, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ namespace Terradue.Portal {
         public void GrantToGroups(IEnumerable<Group> groups, Domain domain) {
             List<int> groupIds = new List<int>();
             foreach (Group group in groups) groupIds.Add(group.Id);
-            Grant(false, groupIds, domain == null ? 0 : domain.Id);
+            Grant(true, groupIds, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -232,16 +232,16 @@ namespace Terradue.Portal {
         /// <param name="groupIds">An array of the database IDs of the groups whose users are the beneficiaries.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the groups obtain this role globally.</param>
         public void GrantToGroups(IEnumerable<int> groupIds, int domainId) {
-            Grant(false, groupIds, domainId);
+            Grant(true, groupIds, domainId);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Assigns this role to the specified users or groups for the specified domain or globally.</summary>
-        /// <param name="addUsers">If <c>true</c>, the methods considers the given IDs as users IDs, otherwise as group IDs.</param>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given IDs as group IDs, otherwise as user IDs.</param>
         /// <param name="ids">An array of the database IDs of the users or groups.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the beneficiaries obtain this role globally.</param>
-        public void Grant(bool addUsers, IEnumerable<int> ids, int domainId) {
+        protected void Grant(bool forGroup, IEnumerable<int> ids, int domainId) {
             if (ids == null) return;
             string valuesStr = String.Empty;
             bool hasIds = false;
@@ -251,8 +251,8 @@ namespace Terradue.Portal {
                 hasIds = true;
             }
             if (hasIds) {
-                context.Execute(String.Format("DELETE FROM role_grant WHERE {0} IN ({1}) AND id_domain{2};", addUsers ? "id_usr" : "id_grp", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
-                context.Execute(String.Format("INSERT INTO role_grant ({0}, id_role, id_domain) VALUES {1};", addUsers ? "id_usr" : "id_grp", valuesStr));
+                context.Execute(String.Format("DELETE FROM role_grant WHERE {0} IN ({1}) AND id_domain{2};", forGroup ? "id_grp" : "id_usr", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
+                context.Execute(String.Format("INSERT INTO role_grant ({0}, id_role, id_domain) VALUES {1};", forGroup ? "id_grp" : "id_usr", valuesStr));
             }
         }
 
