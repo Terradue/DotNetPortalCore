@@ -182,33 +182,71 @@ namespace Terradue.Portal.Test {
                 laboratory.Name = "Laboratory 1";
                 laboratory.Store();*/
 
-                // Sarah grants global processing permission on "demSeries"
                 context.StartImpersonation(sarah.Id);
+                Console.WriteLine("Sarah accesses \"demSeries\"");
                 demSeries = Series.FromId(context, demSeries.Id); // reload "demSeries" with Sarah's account
-                demSeries.CanProcess = true;
-                demSeries.GrantGlobalPermissions();
+                Console.WriteLine("  -> ACCESSED (OK)");
 
-                // Sarah tries to grant her group (-> she can't)
-                context.ConsoleDebug = true;
+                Console.WriteLine("Check whether Sarah can use data of \"demSeries\" for processing");
+                demSeries.CanProcess = true;
+                Console.WriteLine("  -> YES (OK)");
+
+                Console.WriteLine("Sarah grants global permissions on \"demSeries\"");
+                demSeries.GrantGlobalPermissions();
+                Console.WriteLine("  -> DONE (OK)");
+
+                Console.WriteLine("Sarah (member of RLD TEP group) accesses \"xstSeries\"");
                 xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Sarah's account
+                Console.WriteLine("  -> ACCESSED (OK)");
+
                 try {
+                    Console.WriteLine("Sarah tries to grant permissions on \"xstSeries\" to her group");
                     xstSeries.GrantPermissionsToGroups(new Group[] {moveGroup});
+                    Console.WriteLine("  -> DONE (ERROR!)");
                     Assert.IsTrue(false); // force failure (we should never arrive here)
                 } catch (Exception e) {
                     Assert.IsTrue(e is EntityUnauthorizedException);
+                    Console.WriteLine("  -> REJECTED (OK)");
+                }
+
+                context.EndImpersonation();
+
+                context.StartImpersonation(marco.Id);
+                try {
+                    Console.WriteLine("Marco tries to access \"xstSeries\"");
+                    xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Marco's account
+                    Console.WriteLine("  -> ACCESSED (ERROR!)");
+                    Assert.IsTrue(false); // force failure (we should never arrive here)
+                } catch (Exception e) {
+                    Assert.IsTrue(e is EntityUnauthorizedException);
+                    Console.WriteLine("  -> REJECTED (OK)");
                     context.ConsoleDebug = false;
                 }
-                context.ConsoleDebug = false;
-
                 context.EndImpersonation();
 
                 // RLD user grants download and processing permission to Sarah's group
                 context.StartImpersonation(rldUser.Id);
+                Console.WriteLine("RLD user accesses \"xstSeries\"");
+                xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with RLD user's account
+                Console.WriteLine("  -> ACCESSED (OK)");
+                Console.WriteLine("RLD user grants permissions on \"xstSeries\" to Sarah's group");
                 xstSeries.CanDownload = true;
                 xstSeries.CanProcess = true;
                 xstSeries.GrantPermissionsToGroups(new Group[] {moveGroup});
+                Console.WriteLine("  -> AUTHORIZED (OK)");
                 context.EndImpersonation();
 
+                // Marco tries to load XST series -> now he can, and he has download and process permissions
+                context.StartImpersonation(marco.Id);
+                Console.WriteLine("Marco (member of Sarah's group) tries again to access \"xstSeries\"");
+                xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Marco's account
+                Console.WriteLine("  -> ACCESSED (OK)");
+                Console.WriteLine("Check whether Marco can use data of \"demSeries\" for downloading and processing");
+                Assert.IsFalse(xstSeries.CanSearch);
+                Assert.IsTrue(xstSeries.CanDownload);
+                Assert.IsTrue(xstSeries.CanProcess);
+                Console.WriteLine("  -> AUTHORIZED (OK)");
+                context.EndImpersonation();
 
 
 
