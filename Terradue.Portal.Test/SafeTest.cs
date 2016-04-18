@@ -95,7 +95,7 @@ namespace Terradue.Portal.Test {
             safe.GenerateKeys();
             safe.Store();
 
-            string putty = safe.GetKeysForPutty(password);
+            string putty = safe.GetKeysForPutty();
 
             safe.ClearKeys();
             safe.Store();
@@ -113,6 +113,10 @@ namespace Terradue.Portal.Test {
             string sshpriv64 = safe.GetBase64SSHPrivateKey();
             Assert.That(sshpriv64.Contains("-----BEGIN RSA PRIVATE KEY-----"));
             Assert.That(sshpriv64.Contains("-----END RSA PRIVATE KEY-----"));                        
+
+            string sshprivSSL64 = safe.GetBase64SSHPrivateKeyOpenSSL();
+            Assert.That(sshprivSSL64.Contains("-----BEGIN RSA PRIVATE KEY-----"));
+            Assert.That(sshprivSSL64.Contains("-----END RSA PRIVATE KEY-----"));                        
 
             safe.ClearKeys();
             safe.Store();
