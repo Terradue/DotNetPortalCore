@@ -126,13 +126,50 @@ namespace Terradue.Portal {
             var sb = new StringBuilder();
             var privateLines = SpliceText(privateBlob, 64);
             sb.AppendLine("-----BEGIN RSA PRIVATE KEY-----");
-            foreach (var line in privateLines)
-            {
-                sb.AppendLine(line);
-            }
+            foreach (var line in privateLines) sb.AppendLine(line);
             sb.AppendLine("-----END RSA PRIVATE KEY-----");
             return sb.ToString();
         }
+
+        public string GetBase64SSHPrivateKeyOpenSSL(){
+            var sb = new StringBuilder();
+
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(this.PrivateKey);
+
+            if (rsa.PublicOnly) throw new ArgumentException("CSP does not contain a private key", "csp");
+            var parameters = rsa.ExportParameters(true);
+            using (var stream = new MemoryStream())
+            {
+                var writer = new BinaryWriter(stream);
+                writer.Write((byte)0x30); // SEQUENCE
+                using (var innerStream = new MemoryStream())
+                {
+                    var innerWriter = new BinaryWriter(innerStream);
+                    EncodeIntegerBigEndian(innerWriter, new byte[] { 0x00 }); // Version
+                    EncodeIntegerBigEndian(innerWriter, parameters.Modulus);
+                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent);
+                    EncodeIntegerBigEndian(innerWriter, parameters.D);
+                    EncodeIntegerBigEndian(innerWriter, parameters.P);
+                    EncodeIntegerBigEndian(innerWriter, parameters.Q);
+                    EncodeIntegerBigEndian(innerWriter, parameters.DP);
+                    EncodeIntegerBigEndian(innerWriter, parameters.DQ);
+                    EncodeIntegerBigEndian(innerWriter, parameters.InverseQ);
+                    var length = (int)innerStream.Length;
+                    EncodeLength(writer, length);
+                    writer.Write(innerStream.GetBuffer(), 0, length);
+                }
+
+                var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
+                var privateLines = SpliceText(new string(base64), 64);
+                sb.AppendLine("-----BEGIN RSA PRIVATE KEY-----");
+                foreach (var line in privateLines) sb.AppendLine(line);
+                sb.AppendLine("-----END RSA PRIVATE KEY-----");
+            }
+
+            return sb.ToString();
+        }
+
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -158,7 +195,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The keys for putty.</returns>
         /// <param name="password">Password.</param>
-        public string GetKeysForPutty(string password){
+        public string GetKeysForPutty(){
             if (PrivateKey == null) throw new Exception("Private key has not been generated");
 
             //get RSA
@@ -263,59 +300,65 @@ namespace Terradue.Portal {
             return Regex.Matches(text, ".{1," + lineLength + "}").Cast<Match>().Select(m => m.Value).ToArray();
         }
 
-    }
-
-    public class CipherUtility
-    {
-        public static string Encrypt<T>(string value, string password, string salt)
-            where T : SymmetricAlgorithm, new()
+        private static void EncodeLength(BinaryWriter stream, int length)
         {
-            DeriveBytes rgb = new Rfc2898DeriveBytes(password, Encoding.Unicode.GetBytes(salt));
-
-            SymmetricAlgorithm algorithm = new T();
-
-            byte[] rgbKey = rgb.GetBytes(algorithm.KeySize >> 3);
-            byte[] rgbIV = rgb.GetBytes(algorithm.BlockSize >> 3);
-
-            ICryptoTransform transform = algorithm.CreateEncryptor(rgbKey, rgbIV);
-
-            using (MemoryStream buffer = new MemoryStream())
+            if (length < 0) throw new ArgumentOutOfRangeException("length", "Length must be non-negative");
+            if (length < 0x80)
             {
-                using (CryptoStream stream = new CryptoStream(buffer, transform, CryptoStreamMode.Write))
-                {
-                    using (StreamWriter writer = new StreamWriter(stream, Encoding.Unicode))
-                    {
-                        writer.Write(value);
-                    }
-                }
-
-                return Convert.ToBase64String(buffer.ToArray());
+                // Short form
+                stream.Write((byte)length);
             }
-        }
-
-        public static string Decrypt<T>(string text, string password, string salt)
-            where T : SymmetricAlgorithm, new()
-        {
-            DeriveBytes rgb = new Rfc2898DeriveBytes(password, Encoding.Unicode.GetBytes(salt));
-
-            SymmetricAlgorithm algorithm = new T();
-
-            byte[] rgbKey = rgb.GetBytes(algorithm.KeySize >> 3);
-            byte[] rgbIV = rgb.GetBytes(algorithm.BlockSize >> 3);
-
-            ICryptoTransform transform = algorithm.CreateDecryptor(rgbKey, rgbIV);
-
-            using (MemoryStream buffer = new MemoryStream(Convert.FromBase64String(text)))
+            else
             {
-                using (CryptoStream stream = new CryptoStream(buffer, transform, CryptoStreamMode.Read))
+                // Long form
+                var temp = length;
+                var bytesRequired = 0;
+                while (temp > 0)
                 {
-                    using (StreamReader reader = new StreamReader(stream, Encoding.Unicode))
-                    {
-                        return reader.ReadToEnd();
-                    }
+                    temp >>= 8;
+                    bytesRequired++;
+                }
+                stream.Write((byte)(bytesRequired | 0x80));
+                for (var i = bytesRequired - 1; i >= 0; i--)
+                {
+                    stream.Write((byte)(length >> (8 * i) & 0xff));
                 }
             }
         }
+
+        private static void EncodeIntegerBigEndian(BinaryWriter stream, byte[] value, bool forceUnsigned = true)
+        {
+            stream.Write((byte)0x02); // INTEGER
+            var prefixZeros = 0;
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (value[i] != 0) break;
+                prefixZeros++;
+            }
+            if (value.Length - prefixZeros == 0)
+            {
+                EncodeLength(stream, 1);
+                stream.Write((byte)0);
+            }
+            else
+            {
+                if (forceUnsigned && value[prefixZeros] > 0x7f)
+                {
+                    // Add a prefix zero to force unsigned if the MSB is 1
+                    EncodeLength(stream, value.Length - prefixZeros + 1);
+                    stream.Write((byte)0);
+                }
+                else
+                {
+                    EncodeLength(stream, value.Length - prefixZeros);
+                }
+                for (var i = prefixZeros; i < value.Length; i++)
+                {
+                    stream.Write(value[i]);
+                }
+            }
+        }
+
     }
 }
 
