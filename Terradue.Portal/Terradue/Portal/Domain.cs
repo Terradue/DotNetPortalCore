@@ -72,7 +72,7 @@ namespace Terradue.Portal {
 
         /// <summary>Determines the scope (global or domain-restricted) for which the specified user has has been granted at least one of the specified roles.</summary>
         /// <returns>
-        ///     <para>The domains for user. The code using this method for privilege-based authorisation checks, has to distinguish the following cases:</para>
+        ///     <para>The database IDs of the domains for which the user has at least one of the roles. The code using this method for privilege-based authorisation checks, has to distinguish the following cases:</para>
         ///     <list type="bullet">
         ///         <item>An empty array means that the user is not authorised.</item>
         ///         <item>An array containing one or more IDs means that the user is authorised for items that belong to the domains with these database IDs.</item>
@@ -81,9 +81,10 @@ namespace Terradue.Portal {
         /// </returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user for which the domain restriction check is performed.</param>
-        /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c> or empty, the check is skipped resulting in no domain restriction.</param>
+        /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c> or empty, the check is skipped resulting in no domain restriction (return value <c>null</c>. If the array is empty, the grant is empty (return value is an empty array).</param>
         public static int[] GetGrantScopeForUser(IfyContext context, int userId, int[] roleIds) {
-            if (roleIds == null || roleIds.Length == 0) return new int[] {0};
+            if (roleIds == null) return null;
+            if (roleIds.Length == 0) return new int[] {0};
 
             List<int> domainIds = new List<int>();
             string sql = String.Format("SELECT DISTINCT rg.id_domain FROM role_grant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE rg.id_role IN ({1}) AND (rg.id_usr={0} OR ug.id_usr={0}) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", roleIds));

@@ -43,73 +43,6 @@ namespace Terradue.Portal {
 
 
 
-    public interface IEntityCollection {
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Indicates or determines whether the entity collection should contain only items owned by the current user.</summary>
-        /// <remarks>This setting has only effect if the underlying Entity type has an owner reference.</remarks>
-        bool OwnedItemsOnly { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads the entity collection where each item has the correct instance type.</summary>
-        /// <remarks>Only entity collections loaded with this method can be stored back into the database.</remarks>
-        void Load();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads the entity collection where items have a generic instance type.</summary>
-        /// <remarks>If the collections's entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
-        void LoadReadOnly();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Stores the entity list.</summary>
-        void Store();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Stores the entity list removing the items that are not contained in the collection.</summary>
-        void StoreExactly();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads a list of items that are accessible by the specified groups.</summary>
-        /// <param name="groupIds">An array of database IDs of groups</param>
-        void LoadGroupAccessibleItems(int[] groupIds);
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Temporarilly unlinks all items from the collection to prepare the addition of new and substitution of existing items.</summary>
-        /// <remarks>The items are not deleted from the collection, but their flag IsInCollection is set to <i>false</i>. This allows to recognize items that are not contained any longer in the collection after the update of the list has taken place.</remarks>
-        void PrepareUpdate();
-
-    }
-
-    
-
-    /// <summary>Interface that defines methods for different types of collections of entities of the same type.</summary>
-    /// <remarks>This interface defines the minimum functionality that an entity collection must provide regarding reading and writing access for the collection and for loading and storing the items of the collection in the database.</remarks>
-    public interface IEntityCollection<T> : IEntityCollection {
-        
-        IEnumerable<T> Items { get; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Includes an item in the collection.</summary>
-        /// <parameter name="item">The item to be included.</parameter>
-        void Include(T item);
-        
-    }
-
-    
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-
-
     public abstract class EntityCollection {
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -146,13 +79,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public abstract bool CanSearch { get; protected set; }
+        /// <summary>Indictes whether a .</summary>
+        /// <remarks></remarks>
+        public abstract bool CanSearch { get; }
 
     }
 
 
 
-    
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
 
     /// <summary>A list of entities of a specific type.</summary>
     public abstract class EntityCollection<T> : EntityCollection, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
@@ -187,7 +126,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override bool CanSearch { get; protected set; }
+        public override bool CanSearch {
+            get { return true; }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 

@@ -40,10 +40,9 @@ namespace Terradue.Portal {
         protected IfyContext context;
         private int domainId;
         private Domain domain;
-        private int ownerId;
+        private int userId;
+        private Privilege[] itemPrivileges;
         private EntityCollection collection;
-
-        private bool canCreate = false, canChange = false, canDelete = false;
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -57,19 +56,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>The database ID, i.e. the numeric key value of an entity item.</summary>
-        /// <remarks>0 is not (yet) persistently stored in the database.</remarks>
+        /// <summary>The database ID, i.e. the numeric primary key value of this entity item.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public int Id { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates or decides (protected) whether the item exists in the database.</summary>
+        /// <summary>Indicates or decides (protected) whether a database record exists for this item.</summary>
         public bool Exists { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Unique identifier of an entity item.</summary>
+        /// <summary>Unique identifier of this entity item.</summary>
         /// <remarks>
         ///     It must be unique among all items of an entity type. It can be a meaningful string describing the item, similar to variable identifiers in programming languages, or a machine-generated Universally Unique Identifier (UUID).
         ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
@@ -80,7 +78,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Human-readable name of an entity item item.</summary>
+        /// <summary>Human-readable name of this entity item item.</summary>
         /// <remarks>
         ///     The value of this property a short text corresponding to a title or caption of the item, according to the nature of the entity type. It should be of a length that fits without line break in a table cell so that it can be displayed easily in lists.
         ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
@@ -92,6 +90,11 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the domain to which the item belongs.</summary>
+        /// <remarks>
+        ///     The value is only meaningful if the related entity type has a domain reference. The value <c>0</c> means that this item belongs to no domain and is considered "global", requiring appropriate privileges.
+        ///     If the corresponding <see cref="EntityTableAttribute.DomainReferenceField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>0</c> when it is loaded.
+        ///     Otherwise, the value <c>0</c> means that this item belongs to no domain and is "global"
+        /// </remarks>
         public virtual int DomainId {
             get {
                 return (domain == null ? domainId : domain.Id); 
@@ -102,10 +105,13 @@ namespace Terradue.Portal {
             }
         }
 
-        /// <summary>Domain</summary>
+        /// <summary>Gets or sets the domain to which the item belongs.</summary>
+        /// <remarks>
+        ///     The value is only meaningful if the related entity type has a domain reference. The <c>null</c> value means that this item belongs to no domain and is considered "global", requiring appropriate privileges.
+        ///     If the corresponding <see cref="EntityTableAttribute.DomainReferenceField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
+        /// </remarks>
         /// <description>Domain to which the item belongs.</description>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
-        /// <returns>belonging Domain</returns>
         public virtual Domain Domain {
             get {
                 if (domain == null && domainId != 0) domain = Domain.FromId(context, domainId);
@@ -124,24 +130,32 @@ namespace Terradue.Portal {
         ///     The owner is the user who owns the item, this information is stored in the database. Note that not all entity types allow ownership. In this case the value of this property has no meaning.
         ///     Do not confuse with UserId.
         /// </remarks>
-        public virtual int OwnerId {
+        public virtual int OwnerId { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the ID of the user who is the subject to restrictions.</summary>
+        /// <remarks>The value of this property is used for obtaining privilege information. By default this is the requesting user (e.g. currently logged in on the website). Do not confuse with OwnerId.</remarks>
+        public virtual int UserId {
             get {
-                return this.ownerId;
+                return userId;
             }
             set {
-                this.ownerId = value;
-                if (EntityType == null) return;
-                canChange = UserId != 0 && UserId == OwnerId;
-                canDelete = UserId != 0 && UserId == OwnerId;
+                userId = value;
+                itemPrivileges = null;
             }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the ID of the user who is the subject to restrictions.</summary>
-        /// <remarks>The value of this property is used for obtaining privilege information. By default this is the requesting user (e.g. currently logged in on the website). Do not confuse with OwnerId.</remarks>
-        public virtual int UserId { get; set; }
-        
+        /// <summary>Gets the privileges the user has on this item.</summary>
+        public Privilege[] ItemPrivileges {
+            get {
+                if (itemPrivileges == null) itemPrivileges = Role.GetUserPrivileges(context, UserId, this);
+                return itemPrivileges;
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets (only once) the EntityCollection instance that was used to create this item, if applicable.</summary>
@@ -163,21 +177,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private bool privilegesLoaded;
-        public Privilege[] ItemPrivileges { get; protected set; }
-        public void LoadItemPrivileges() {
-            ItemPrivileges = Role.GetUserPrivileges(context, UserId, this);
-            privilegesLoaded = true;
-        }
-
-
-        /// <summary>Indicates or determines whether the user is authorized to use the item representad by the entity instance.</summary>
+        /// <summary>Indicates whether the current user is authorized to view this item.</summary>
+        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
         public virtual bool CanView {
             get {
                 if (AccessLevel == EntityAccessLevel.Administrator) return true;
                 if (AccessLevel == EntityAccessLevel.Privilege) {
                     if (Privilege.Get(EntityType, EntityOperationType.View) == null) return true;
-                    if (!privilegesLoaded) LoadItemPrivileges();
                     return Privilege.Get(EntityOperationType.View, ItemPrivileges) != null;
                 }
                 return false;
@@ -186,14 +192,17 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Indicates whether a new item can be created.</summary>
+        /// <summary>Indicates whether the current user is authorized to persistently store this item as a new record in the database.</summary>
+        /// <remarks>
+        ///     CanCreate and CanChange are complementary, CanCreate is only meaningful if the item does not exist yet in the database. 
+        ///     The property CanStore determines whether the current user is authorized to either create the record or change it, depending on whether the record already exists. The current user is the one with UserId as its database ID.
+        /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanCreate {
             get {
                 if (AccessLevel == EntityAccessLevel.Administrator) return true;
                 if (AccessLevel == EntityAccessLevel.Privilege) {
                     if (Privilege.Get(EntityType, EntityOperationType.Create) == null) return true;
-                    if (!privilegesLoaded) LoadItemPrivileges();
                     return Privilege.Get(EntityOperationType.Create, ItemPrivileges) != null;
                 }
                 return false;
@@ -202,14 +211,17 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether an existing item can be modified.</summary>
+        /// <summary>Indicates whether the current user is authorized to persistently store the modifications applied to this item's database record.</summary>
+        /// <remarks>
+        ///     CanCreate and CanChange are complementary, CanChange is only meaningful if the item already exists yet in the database. 
+        ///     The property CanStore determines whether the current user is authorized to either create the record or change it, depending on whether the record already exists. The current user is the one with UserId as its database ID.
+        /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanChange { 
             get {
                 if (AccessLevel == EntityAccessLevel.Administrator) return true;
                 if (AccessLevel == EntityAccessLevel.Privilege) {
                     if (Privilege.Get(EntityType, EntityOperationType.Change) == null) return true;
-                    if (!privilegesLoaded) LoadItemPrivileges();
                     return Privilege.Get(EntityOperationType.Change, ItemPrivileges) != null;
                 }
                 return false;
@@ -219,25 +231,26 @@ namespace Terradue.Portal {
         [Obsolete("Obsolete, please use CanChange instead")]
         public bool CanModify { 
             get { return CanChange; }
-            set { canChange = value; }
+            set { }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates whether the current user is authorized to either create a new database record for this item or change it, depending on whether it already exists.</summary>
         public virtual bool CanStore {
             get { return !Exists && CanCreate || Exists && CanChange; }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether an existing item can be deleted.</summary>
+        /// <summary>Indicates whether the current user is authorized to perform operations such as assinging permissions on this item.</summary>
+        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanManage { 
             get {
                 if (AccessLevel == EntityAccessLevel.Administrator) return true;
                 if (AccessLevel == EntityAccessLevel.Privilege) {
                     if (Privilege.Get(EntityType, EntityOperationType.Manage) == null) return true;
-                    if (!privilegesLoaded) LoadItemPrivileges();
                     return Privilege.Get(EntityOperationType.Manage, ItemPrivileges) != null;
                 }
                 return false;
@@ -246,14 +259,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether an existing item can be deleted.</summary>
+        /// <summary>Indicates whether the current user is authorized to permanently delete this item from the database.</summary>
+        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual bool CanDelete { 
             get {
                 if (AccessLevel == EntityAccessLevel.Administrator) return true;
                 if (AccessLevel == EntityAccessLevel.Privilege) {
                     if (Privilege.Get(EntityType, EntityOperationType.Delete) == null) return true;
-                    if (!privilegesLoaded) LoadItemPrivileges();
                     return Privilege.Get(EntityOperationType.Delete, ItemPrivileges) != null;
                 }
                 return false;
@@ -311,6 +324,8 @@ namespace Terradue.Portal {
         public virtual void Load(int id) {
             Id = id;
             Identifier = null;
+            Name = null;
+            Domain = null;
             Load();
         }
 
@@ -320,12 +335,14 @@ namespace Terradue.Portal {
         public virtual void Load(string identifier) {
             Id = 0;
             Identifier = identifier;
+            Name = null;
+            Domain = null;
             Load();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Reads the information of an item from the database based on the permissions of a user.</summary>
+        /// <summary>Reads the information of an item from the database based on the permissions of the current user.</summary>
         /// </remarks>
         ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
         ///     The database table(s) and fields to be used must be linked to the corresponding class(es) and its/their properties via the appropriate attributes.
@@ -337,6 +354,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Reads the information of an item from the database based on the permissions of the current user and the specified access level.</summary>
+        /// <param name="accessLevel">The strictness of permission and privilege checks to be applied.</param>
         public virtual void Load(EntityAccessLevel accessLevel) {
             EntityType entityType = this.EntityType;
             bool hasAutoLoadFields = false;
@@ -398,24 +417,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetItemTerm() {
-            EntityType entityType = this.EntityType;
-            bool useIdentifier = entityType.TopTable.HasIdentifierField && Identifier != null;
-            return String.Format("{0} {2}{1}{3}",
-                entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString(),
-                useIdentifier ? "\"" : "[",
-                useIdentifier ? "\"" : "]"
-            );
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         /// <summary>Reads the information of an item using the specified IDataReader.</summary>
         /// <param name="entityType">The entity type of this entity item.</param>
         /// <param name="reader">The IDataReader from which the entity item is loaded.</param>
-        /// <param name="queryMode">The query mode that was used to create the query for the reader. Depending on the query, the selected fields differ.</param>
-        /// <returns><c>true</c> if the user is allowed to access the item.</returns>
+        /// <param name="accessLevel">The access level that was used to create the query for the reader. Depending on the query, the selected fields differ.</param>
+        /// <returns><c>true</c> if the user is allowed to access the item or <c>false</c> otherwise.</returns>
         /// <remarks>
         ///     The method is called from other core methods that build the appropriate query. It should not be called directly by other code unless the query is correctly built using one of the methods in EntityType class that provide queries.
         /// </remarks>
@@ -493,7 +499,7 @@ namespace Terradue.Portal {
             else if (accessLevel == EntityAccessLevel.Permission) AccessLevel = hasPermission ? EntityAccessLevel.Permission : EntityAccessLevel.None;
             else AccessLevel = EntityAccessLevel.None;
 
-            privilegesLoaded = false;
+            itemPrivileges = null;
 
             return hasPermission || hasPrivilege;
         }
@@ -524,6 +530,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Store the specified entityRelationshipType and referringItem.</summary>
+        /// <param name="entityRelationshipType">Entity relationship type.</param>
+        /// <param name="referringItem">Referring item.</param>
         public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {
             EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
@@ -1164,61 +1173,20 @@ namespace Terradue.Portal {
 
         [Obsolete("Use Can* properties directly")]
         public virtual void GetAllowedAdministratorOperations() {
-            if (context.UserLevel == UserLevel.Administrator) return;
-
-            canCreate = false;
-            canChange = false;
-            canDelete = false;
-            //CanView = false;
-
-
-            IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(EntityType.GetAdministratorOperationsQuery(context.UserId, Id), dbConnection);
-
-            while (reader.Read()) {
-                switch (reader.GetChar(0)) {
-                    case 'v':
-                    case 'V':
-                        //CanView = true;
-                        break;
-                    case 'c':
-                        canCreate = true;
-                        break;
-                    case 'm':
-                        canChange = true;
-                        break;
-                    case 'p':
-                        //CanMakePublic = true;
-                        break;
-                    case 'd':
-                        canDelete = true;
-                        break;
-                }
-            }
-            context.CloseQueryResult(reader, dbConnection);
         }
 
-        public string[] GetValues() {
-            return null;
-        }
+        //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetExplanation() {
-            return null;
-        }
-
-        public bool CheckValue(string value, out string defaultValue, out string selectedCaption) {
-            defaultValue = null;
-            selectedCaption = null;
-            return false;
-        }
-
-        public bool[] CheckValues(string[] values, out string[] defaultValues) {
-            defaultValues = null;
-            return null;
-        }
-
-        public int WriteValues(XmlWriter output) {
-            return 0;
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        public string GetItemTerm() {
+            EntityType entityType = this.EntityType;
+            bool useIdentifier = entityType.TopTable.HasIdentifierField && Identifier != null;
+            return String.Format("{0} {2}{1}{3}",
+                entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
+                entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString(),
+                useIdentifier ? "\"" : "[",
+                useIdentifier ? "\"" : "]"
+            );
         }
 
     }
