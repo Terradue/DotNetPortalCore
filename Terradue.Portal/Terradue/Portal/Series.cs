@@ -221,7 +221,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the ID of the catalogue hosting the series.</summary>
+        /// <summary>Gets or sets the database ID of the catalogue hosting this series.</summary>
         /// \ingroup Series
         [EntityDataField("id_catalogue", IsForeignKey = true)]
         public int CatalogueId {
@@ -236,10 +236,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Catalogue.
-        /// </summary>
-        /// <value>The catalogue.</value>
+        /// <summary>Gets or sets the catalogue hosting this series.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Catalogue Catalogue {
             get {
@@ -259,19 +256,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the date/time when the last update was made to this series or its entries.</summary>
         [EntityDataField("last_update_time")]
         public DateTime LastUpdateTime { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the catalogue base URL.</summary>
+        /// <summary>Gets the unique identifier of the catalogue hosting this series.</summary>
         /// \ingroup Series
         [EntityForeignField("name", CATALOGUE_TABLE)]
         public string CatalogueIdentifier { get; protected set; } 
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Gets the catalogue base URL.</summary>
+        /// <summary>Gets the URL part shared by all series hosted by the catalogue like this series.</summary>
         /// \ingroup Series
         [EntityForeignField("base_url", CATALOGUE_TABLE)]
         public string CatalogueBaseUrl { get; protected set; }
@@ -280,7 +278,7 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates or decides whether the current user is authorised to search within this series.</summary>
         [EntityPermissionField("can_search")]
-        public bool CanSearch { get; set; }
+        public bool CanSearchWithin { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -369,7 +367,7 @@ namespace Terradue.Portal {
         /// <summary>Returns a Series instance representing the series with the specified ID or name.</summary>
         /// \ingroup Series
         /// <param name="context">The execution environment context.</param>
-        /// <param name="s">a search value that must match the series ID (preferred) or name</param>
+        /// <param name="s">a search value that must match the series ID (preferred) or name.</param>
         public static Series FromString(IfyContext context, string s) {
             int id = 0;
             Int32.TryParse(s, out id);

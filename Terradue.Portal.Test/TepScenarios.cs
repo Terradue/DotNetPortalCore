@@ -242,7 +242,7 @@ namespace Terradue.Portal.Test {
                 xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Marco's account
                 Console.WriteLine("  -> ACCESSED (OK)");
                 Console.WriteLine("Check whether Marco can use data of \"demSeries\" for downloading and processing");
-                Assert.IsFalse(xstSeries.CanSearch);
+                Assert.IsFalse(xstSeries.CanSearchWithin);
                 Assert.IsTrue(xstSeries.CanDownload);
                 Assert.IsTrue(xstSeries.CanProcess);
                 Console.WriteLine("  -> AUTHORIZED (OK)");
