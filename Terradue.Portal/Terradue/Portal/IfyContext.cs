@@ -1573,7 +1573,6 @@ namespace Terradue.Portal {
 
         public IDataReader GetQueryResult(string sql, IDbConnection dbConnection) {
             AddDebug(3, sql);
-            if (ConsoleDebug) Console.WriteLine("**** " + sql);
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
