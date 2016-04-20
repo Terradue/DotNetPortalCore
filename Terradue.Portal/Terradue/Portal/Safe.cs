@@ -24,7 +24,7 @@ namespace Terradue.Portal {
     [EntityTable("safe", EntityTableConfiguration.Custom, HasOwnerReference = true, HasPermissionManagement = true)]
     public class Safe : Entity {
 
-        private static string SALT = "salt";
+        //private static string SALT = "salt";
 
         /// <summary>Gets the public key</summary>
         [EntityDataField("public_key")]

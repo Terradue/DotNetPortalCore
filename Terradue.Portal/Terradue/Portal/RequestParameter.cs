@@ -1089,13 +1089,13 @@ namespace Terradue.Portal {
             }
             
             XmlElement element = (service as ScriptBasedService).GetParameterElement(Name);
-            if (element == null || !GetXmlInformation(element, false, true, true)) context.ReturnError(new ArgumentException("Parameter not defined"), null);
+            if (element == null || !GetXmlInformation(element, false, true, true)) throw new ArgumentException("Parameter not defined");
             
             IEditableValueSet storedValueSet = ValueSet as IEditableValueSet;
 
-            if (!configurable || storedValueSet == null) context.ReturnError(new ArgumentException("Service parameter does not maintain a value list"), null);
+            if (!configurable || storedValueSet == null) throw new ArgumentException("Service parameter does not maintain a value list");
             
-            if (Range < ValueSelectRange.Extensible && operationType != OperationType.ViewList && operationType != OperationType.ViewItem) context.ReturnError(new ArgumentException("Service parameter value list cannot be modified"), null);
+            if (Range < ValueSelectRange.Extensible && operationType != OperationType.ViewList && operationType != OperationType.ViewItem) throw new ArgumentException("Service parameter value list cannot be modified");
 
             storedValueSet.SingleValueOutput = true;
         

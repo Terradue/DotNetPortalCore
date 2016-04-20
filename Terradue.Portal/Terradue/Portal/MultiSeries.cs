@@ -23,7 +23,7 @@ namespace Terradue.Portal {
 
             ose = new OpenSearchEngine();
             AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
-            Type type = aosee.GetTransformType();
+            //Type type = aosee.GetTransformType();
             ose.RegisterExtension((OpenSearchEngineExtension<AtomFeed>)aosee);
             
             // series = new EntityList<Terradue.Portal.Series>(context, this); // OLD
@@ -155,7 +155,7 @@ namespace Terradue.Portal {
                         AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
                         return osr.TotalResults;
 
-                    } catch (Exception e) {
+                    } catch (Exception) {
                         // no error managment, set the number of product to 0
                         return 0;
                     }

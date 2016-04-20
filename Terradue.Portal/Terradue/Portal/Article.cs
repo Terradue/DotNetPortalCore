@@ -139,9 +139,9 @@ namespace Terradue.Portal {
         #region IAtomizable implementation
         public Terradue.OpenSearch.Result.AtomItem ToAtomItem(System.Collections.Specialized.NameValueCollection parameters) {
 
-            string identifier = null;
+            //string identifier = null;
             string name = (this.Title != null ? this.Title : this.Identifier);
-            string description = null;
+            //string description = null;
             string text = (this.TextContent != null ? this.TextContent : "");
             var entityType = EntityType.GetEntityType(typeof(Article));
             Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
@@ -157,8 +157,8 @@ namespace Terradue.Portal {
                     return null;
             }
 
-            WpsProcessOffering process = null;
-            WpsProvider provider = null;
+            //WpsProcessOffering process = null;
+            //WpsProvider provider = null;
             AtomItem result = new AtomItem();
 
             result.Id = id.ToString();

@@ -441,7 +441,7 @@ namespace Terradue.Portal {
             foreach (WpsProcessOffering process in processes) {
                 try {
                     process.Store();
-                } catch (Exception e) {
+                } catch (Exception) {
                     //do nothing, process already in db, skip it
                 }
             }
@@ -907,7 +907,7 @@ namespace Terradue.Portal {
                 string identifier = (fileElem != null && fileElem.HasAttribute("name") ? fileElem.Attributes["name"].Value : null);
                 XmlElement sizeElem = fileElem.SelectSingleNode("m:size", nsm) as XmlElement;
                 if (sizeElem != null) {
-                    int size;
+                    //int size;
                     //InTryParse();
                 }
                 task.OutputFiles.Add(new DataSetInfo(resource, identifier, 0, context.Now));
@@ -1004,7 +1004,7 @@ namespace Terradue.Portal {
 
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
-            AtomItem atomEntry = null;
+            //AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
             Uri id = null;
             if (this.Id == 0)
@@ -1090,7 +1090,7 @@ namespace Terradue.Portal {
             osd.Url = urls.ToArray();
 
 
-            OpenSearchDescriptionUrl urld = osd.Url[0];
+            //OpenSearchDescriptionUrl urld = osd.Url[0];
 
             query.Set("format", "json");
             urlb.Query = query.ToString();

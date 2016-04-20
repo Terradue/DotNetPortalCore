@@ -607,7 +607,6 @@ namespace Terradue.Portal {
             bool[] result = new bool[values.Length];
             defaultValues = new string[0]; // !!! should contain default values
 
-            //context.ReturnError(query);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(GetListQuery(), dbConnection);
             while (reader.Read()) {
@@ -946,7 +945,7 @@ namespace Terradue.Portal {
                 pattern = Regex.Replace(pattern, @"[/\\]+", Path.DirectorySeparatorChar.ToString());
 
                 Match match = Regex.Match(pattern, @"^([^\*]+)\" + Path.DirectorySeparatorChar + @"(([^\*\" + Path.DirectorySeparatorChar + @"]*)\*([^\*\" + Path.DirectorySeparatorChar + @"]*))$");
-                if (!match.Success) context.ReturnError(new ArgumentException("Invalid file pattern"), null);
+                if (!match.Success) throw new ArgumentException("Invalid file pattern");
     
                 this.path = match.Groups[1].Value;
                 this.pattern = match.Groups[2].Value;
@@ -1313,7 +1312,7 @@ namespace Terradue.Portal {
         /// <returns><i>true</i> if the element with the caption <i>caption</i> has been written to <i>output</i></returns>
         */
         public virtual bool WriteValue(string caption, XmlWriter output) {
-            if (caption == null) context.ReturnError(new ArgumentException("Missing caption"), null);
+            if (caption == null) throw new ArgumentException("Missing caption");
 
             bool found = false;
             IDbConnection dbConnection = context.GetDbConnection();
@@ -1326,7 +1325,7 @@ namespace Terradue.Portal {
                 found = true;
             }
             context.CloseQueryResult(reader, dbConnection);
-            if (!found) context.ReturnError(new ArgumentException("Parameter value not found"), null);
+            if (!found) throw new ArgumentException("Parameter value not found");
             return true;
         }
         
@@ -1334,7 +1333,7 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new value for the request parameter with the received caption (i.e. a new record in the database).</summary>
         public virtual bool CreateValue(string caption, string value) {
-            if (caption == null || value == null) context.ReturnError(new ArgumentException("Missing caption or value"), null);
+            if (caption == null || value == null) throw new ArgumentException("Missing caption or value");
 
             if (context.GetQueryIntegerValue("SELECT COUNT(*) FROM serviceconfig WHERE id_usr=" + context.UserId + " AND id_service=" + Service.Id + " AND name=" + StringUtils.EscapeSql(Name) + " AND caption="  + StringUtils.EscapeSql(caption) + ";") == 0) {
                 context.Execute("INSERT INTO serviceconfig (id_usr, id_service, name, caption, value) VALUES (" + context.UserId + ", " + Service.Id + ", " + StringUtils.EscapeSql(Name) + ", " + StringUtils.EscapeSql(caption) + ", " + StringUtils.EscapeSql(value) + ");");
@@ -1348,7 +1347,7 @@ namespace Terradue.Portal {
 
         /// <summary>Modifies the value for the request parameter with the received caption (i.e. an existing record in the database).</summary>
         public virtual bool ModifyValue(string caption, string value) {
-            if (caption == null || value == null) context.ReturnError(new ArgumentException("Missing caption or value"), null);
+            if (caption == null || value == null) throw new ArgumentException("Missing caption or value");
 
             context.Execute("UPDATE serviceconfig SET value=" + StringUtils.EscapeSql(value) + " WHERE id_usr=" + context.UserId + " AND id_service=" + Service.Id + " AND name=" + StringUtils.EscapeSql(Name) + " AND caption="  + StringUtils.EscapeSql(caption) + ";");
             return true;
@@ -1358,7 +1357,7 @@ namespace Terradue.Portal {
 
         /// <summary>Deletes the value with the specified caption (i.e. the record in the databse).</summary>
         public virtual bool DeleteValue(string caption) {
-            if (caption == null) context.ReturnError(new ArgumentException("Missing caption"), null);
+            if (caption == null) throw new ArgumentException("Missing caption");
 
             context.Execute("DELETE FROM serviceconfig WHERE id_usr=" + context.UserId + " AND id_service=" + Service.Id + " AND name=" + StringUtils.EscapeSql(Name) + " AND caption="  + StringUtils.EscapeSql(caption) + ";"); 
             return true;
@@ -1579,7 +1578,7 @@ namespace Terradue.Portal {
                 pattern = Regex.Replace(pattern, @"[/\\]+", Path.DirectorySeparatorChar.ToString());
 
                 Match match = Regex.Match(pattern, @"^([^\*]+)\" + Path.DirectorySeparatorChar + @"(([^\*\" + Path.DirectorySeparatorChar + @"]*)\*([^\*\" + Path.DirectorySeparatorChar + @"]*))$");
-                if (!match.Success) context.ReturnError(new ArgumentException("Invalid file pattern"), null);
+                if (!match.Success) throw new ArgumentException("Invalid file pattern");
     
                 this.path = match.Groups[1].Value;
                 this.pattern = match.Groups[2].Value;
@@ -1594,7 +1593,7 @@ namespace Terradue.Portal {
                 userPattern = Regex.Replace(userPattern.Replace("$(USER)", context.Username), @"[/\\]+", Path.DirectorySeparatorChar.ToString());
 
                 Match match = Regex.Match(userPattern, @"^([^\*]+)\" + Path.DirectorySeparatorChar + @"(([^\*\" + Path.DirectorySeparatorChar + @"]*)\*([^\*\" + Path.DirectorySeparatorChar + @"]*))$");
-                if (!match.Success) context.ReturnError(new ArgumentException("Invalid file pattern"), null);
+                if (!match.Success) throw new ArgumentException("Invalid file pattern");
     
                 this.userPath = match.Groups[1].Value;
                 this.userPattern = match.Groups[2].Value;
@@ -1714,7 +1713,7 @@ namespace Terradue.Portal {
         /// <returns><i>true</i> if the element with the caption <i>caption</i> has been written to <i>output</i></returns>
         */
         public bool WriteValue(string caption, XmlWriter output) {
-            if (caption == null) context.ReturnError(new ArgumentException("Missing filename"), null);
+            if (caption == null) throw new ArgumentException("Missing filename");
             
             GetFullFilename(caption, userPattern != null && caption.EndsWith("*")); 
 
@@ -1733,12 +1732,8 @@ namespace Terradue.Portal {
                 output.WriteEndElement(); // </value>
                 file.Close();
 
-            } catch (DirectoryNotFoundException e) {
-                context.ReturnError(e, "directoryNotFound");
-            } catch (FileNotFoundException e) {
-                context.ReturnError(e, "fileNotFound");
-            } catch (Exception e) {
-                context.ReturnError(new Exception("IO Error: " + e.Message), "ioError");
+            } catch (Exception) {
+                throw;
             }
             return true;
         }
@@ -1752,7 +1747,7 @@ namespace Terradue.Portal {
         /// <returns><i>true</i> if the element with the caption <i>caption</i> has been written to <i>output</i></returns>
         */
         public bool WriteValue(string caption, StreamWriter output) {
-            if (caption == null) context.ReturnError(new ArgumentException("Missing filename"), null);
+            if (caption == null) throw new ArgumentException("Missing filename");
             
             GetFullFilename(caption, userPattern != null && caption.EndsWith("*"));
 
@@ -1768,12 +1763,8 @@ namespace Terradue.Portal {
                 }
                 file.Close();
 
-            } catch (DirectoryNotFoundException e) {
-                context.ReturnError(e, "directoryNotFound");
-            } catch (FileNotFoundException e) {
-                context.ReturnError(e, "fileNotFound");
-            } catch (Exception e) {
-                context.ReturnError(new Exception("IO Error: " + e.Message), "ioError");
+            } catch (Exception) {
+                throw;
             }
             return true;
         }
@@ -1789,9 +1780,9 @@ namespace Terradue.Portal {
             If the file existed before, it is overwritten.
         */
         public bool CreateValue(string caption, string value) {
-            if (caption == null || value == null) context.ReturnError(new ArgumentException("Missing filename or content"), null);
+            if (caption == null || value == null) throw new ArgumentException("Missing filename or content");
             
-            if (userPattern == null) context.ReturnError("No user-defined files permitted");
+            if (userPattern == null) throw new InvalidOperationException("No user-defined files permitted");
 
             GetFullFilename(caption, userPattern != null);
 
@@ -1800,12 +1791,8 @@ namespace Terradue.Portal {
                 StreamWriter file = new StreamWriter(fullFilename);
                 file.Write(value);
                 file.Close();
-            } catch (DirectoryNotFoundException e) {
-                context.ReturnError(e, "directoryNotFound");
-            } catch (FileNotFoundException e) {
-                context.ReturnError(e, "fileNotFound");
-            } catch (Exception e) {
-                context.ReturnError(new Exception("IO Error: " + e.Message), "ioError");
+            } catch (Exception) {
+                throw;
             }
             return true;
         }
@@ -1832,9 +1819,9 @@ namespace Terradue.Portal {
         /// <returns><i>true</i> if the file was deleted successfully</returns>
         */
         public bool DeleteValue(string caption) {
-            if (caption == null) context.ReturnError(new ArgumentException("Missing filename"), null);
+            if (caption == null) throw new ArgumentException("Missing filename");
 
-            if (userPattern != null && !caption.EndsWith("*")) context.ReturnError(new UnauthorizedAccessException("You cannot delete this file"), null);
+            if (userPattern != null && !caption.EndsWith("*")) throw new UnauthorizedAccessException("You cannot delete this file");
 
             GetFullFilename(caption, userPattern != null); 
 
@@ -1842,12 +1829,8 @@ namespace Terradue.Portal {
                 fullFilename = fullFilename.Replace("*", String.Empty);
                 File.Delete(fullFilename);
 
-            } catch (DirectoryNotFoundException e) {
-                context.ReturnError(e, "directoryNotFound");
-            } catch (FileNotFoundException e) {
-                context.ReturnError(e, "fileNotFound");
-            } catch (Exception e) {
-                context.ReturnError(new Exception("IO Error: " + e.Message), "ioError");
+            } catch (Exception) {
+                throw;
             }
             return true;
         }
@@ -1859,8 +1842,8 @@ namespace Terradue.Portal {
             // Send error if filename is missing or invalid
             if (fullFilename != null) return;
             
-            if (caption == null) context.ReturnError(new ArgumentException("Missing filename"), null);
-            else if (!Regex.Match(caption, @"^[ -\.0-9a-z_]{0,50}$", RegexOptions.IgnoreCase).Success) context.ReturnError(new ArgumentException("Invalid filename"), null);
+            if (caption == null) throw new ArgumentException("Missing filename");
+            else if (!Regex.Match(caption, @"^[ -\.0-9a-z_]{0,50}$", RegexOptions.IgnoreCase).Success) throw new ArgumentException("Invalid filename");
             
             if (userOwned) {
                 fullFilename = userPath + Path.DirectorySeparatorChar + userPattern;

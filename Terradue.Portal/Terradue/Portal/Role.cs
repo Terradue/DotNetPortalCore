@@ -142,10 +142,7 @@ namespace Terradue.Portal {
             List<Privilege> result = new List<Privilege>();
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql.ToString(), dbConnection);
-            while (reader.Read()) {
-                Privilege privilege = Privilege.Get(reader.GetInt32(0));
-                result.Add(Privilege.Get(reader.GetInt32(0)));
-            }
+            while (reader.Read()) result.Add(Privilege.Get(reader.GetInt32(0)));
             context.CloseQueryResult(reader, dbConnection);
 
             return result.ToArray();

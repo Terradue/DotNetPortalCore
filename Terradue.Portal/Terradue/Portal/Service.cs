@@ -92,13 +92,8 @@ namespace Terradue.Portal {
     public abstract class Service : Entity, IAtomizable {
         private const int CLASS_TABLE = 1;
 
-        private double minPriority = 0, maxPriority = 0;
+        //private double minPriority = 0, maxPriority = 0;
         private bool serviceChecked, validService;
-
-
-        private string fileRootDir;
-        private string relativeUrl;
-        private int defaultComputingResourceId, defaultSeriesId;
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -389,8 +384,8 @@ namespace Terradue.Portal {
         public virtual bool Check(int userId) {
             if (serviceChecked) return validService;
 
-            minPriority = 0;
-            maxPriority = 1;
+            //minPriority = 0;
+            //maxPriority = 1;
 
             UserId = userId;
             validService = true;
@@ -399,9 +394,9 @@ namespace Terradue.Portal {
                 if (UserId == context.UserId) {
                     validService = (context.UserLevel >= UserLevel.Administrator);
                     if (validService) context.AddWarning("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
-                    else context.ReturnError("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    else throw new EntityUnauthorizedException("You are not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 } else {
-                    context.ReturnError("The owner is not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    throw new EntityUnauthorizedException("The owner is not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 }
             }
 

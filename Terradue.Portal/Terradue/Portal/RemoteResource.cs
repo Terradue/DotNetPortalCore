@@ -235,7 +235,7 @@ namespace Terradue.Portal {
                         AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
                         return osr.TotalResults;
 
-                    } catch (Exception e) {
+                    } catch (Exception) {
                         // no error managment, set the number of product to 0
                         return 0;
                     }

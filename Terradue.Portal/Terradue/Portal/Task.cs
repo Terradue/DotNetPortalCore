@@ -173,9 +173,7 @@ namespace Terradue.Portal {
         public List<DataSetInfo> outputFiles;
 
         private Scheduler scheduler;
-        private bool canChangeOwner, canChangeAttributes, canChangePublishServer;
         private bool submitChecked, canSubmitNow, canSubmitDelayed;
-        private bool newTask;
 
         // private TaskGroup taskGroup;
         private int oldPublishServerId;
@@ -731,7 +729,7 @@ namespace Terradue.Portal {
             result.Id = id;
             result.Load();
             if (service != null) {
-                if (result.ServiceId != service.Id) context.ReturnError("The requested task does not derive from this service");
+                if (result.ServiceId != service.Id) throw new InvalidOperationException("The requested task does not derive from this service");
                 result.Service = service;
             }
             if (complete) result.LoadJobs();
@@ -761,7 +759,7 @@ namespace Terradue.Portal {
             result.Identifier = identifier;
             result.Load();
             if (service != null) {
-                if (result.ServiceId != service.Id) context.ReturnError("The requested task does not derive from this service");
+                if (result.ServiceId != service.Id) throw new InvalidOperationException("The requested task does not derive from this service");
                 result.Service = service;
             }
             if (complete) result.LoadJobs();
@@ -967,7 +965,7 @@ namespace Terradue.Portal {
                 try {
                     context.Execute(sql);
                 } catch (Exception e) {
-                    context.ReturnError("Could not create temporal data for task " + Identifier + ": " + e.Message);
+                    throw new Exception("Could not create temporal data for task " + Identifier + ": ", e);
                 }
             }*/
 
@@ -1053,7 +1051,7 @@ namespace Terradue.Portal {
 
         public void StoreParameters(ServiceParameterSet parameters) {
             // Insert custom task parameters (not task attributes) that have a value into database
-            bool hasStartTime = false, hasEndTime = false;
+            //bool hasStartTime = false, hasEndTime = false;
             DateTime startTime = DateTime.MinValue, endTime = DateTime.MinValue;
             foreach (ServiceParameter param in parameters) {
                 //context.AddInfo(param.Name + " : " param.Type);
@@ -1061,13 +1059,13 @@ namespace Terradue.Portal {
                 switch (param.Type) {
                     case "starttime" :
                     case "startdate" :
-                        hasStartTime = true;
+                        //hasStartTime = true;
                         DateTime.TryParse(param.Value, out startTime);
                         IsTemporal = true;
                         break;
                     case "endtime" :
                     case "enddate" :
-                        hasEndTime = true;
+                        //hasEndTime = true;
                         DateTime.TryParse(param.Value, out endTime);
                         IsTemporal = true;
                         break;
@@ -1101,7 +1099,7 @@ namespace Terradue.Portal {
             }
             
             // If a publishing-related attribute has changed (publish server or compression), modify the job parameters on the Grid engine.
-            if (Started && canChangePublishServer && (PublishServerId != oldPublishServerId || Compression != oldCompression)) {
+            if (Started && (PublishServerId != oldPublishServerId || Compression != oldCompression)) {
                 for (int i = 0; i < Jobs.Count; i++) if (Jobs[i].Publishes) Jobs[i].UpdateRemote();  
             }
             
@@ -1204,7 +1202,6 @@ namespace Terradue.Portal {
             if (asyncSubmit) {
                 StartTime = context.Now;
                 AsynchronousOperation = (context.TaskSubmissionRetrying == SubmissionRetryingType.AskUser && !SubmitDelayed && !CanSubmitNow ? TaskOperationType.ConfirmDelay : TaskOperationType.Submit);
-                //context.ReturnError(context.TaskSubmissionRetrying + " " + SubmissionRetryingType.AskUser + " " + SubmitDelayed + " " + AsynchronousOperation); 
                 if (MessageCode != 0) {
                     context.AddWarning(
                             MessageText + "; " + (AsynchronousOperation == TaskOperationType.ConfirmDelay ? "for automatic task submission as soon as possible press \"Submit When Possible\"" : "task will be submitted automatically as soon as possible"), 
@@ -1582,22 +1579,6 @@ namespace Terradue.Portal {
         ///     </list>
         /// </remarks>
         protected virtual void CheckCanModify() {
-            //AcceptsInitialization = ((OperationType & (ServiceOperationType.Modify | ServiceOperationType.Submit)) != 0);
-            
-            // Only administrators can change the owner of a task
-            canChangeOwner = (context.UserLevel >= UserLevel.Administrator && SchedulerId == 0);
-            
-            // Priority, computing resource etc. can only be changed if the task has not been submitted yet (even if it is still pending)
-            canChangeAttributes = !Submitted;
-            
-            // The publish server can be changed only when none of the Publish jobs has been started yet
-            canChangePublishServer = true;
-            for (int i = 0; i < Jobs.Count && canChangePublishServer; i++) {
-                canChangePublishServer &= (!Jobs[i].Publishes || Jobs[i].Status == ProcessingStatus.Created || Jobs[i].Status == ProcessingStatus.Failed);
-            }
-
-            // So the task itself can be changed only if any of the above can be changed
-            //CanModify = (canChangeOwner || canChangeAttributes || canChangePublishServer);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -1715,7 +1696,6 @@ namespace Terradue.Portal {
         /// <param name="clean">determines ???</param>
         /// <returns>the created job</returns>
         public virtual Job AddPublishJob(string name, bool clean) {
-            //if (id != 0) context.ReturnError("Job cannot be added to existing task");
             return AddPublishJob(name, Job.PublishJobType, null as string, clean);
         }
         
@@ -1727,7 +1707,6 @@ namespace Terradue.Portal {
         /// <param name="clean">determines ???</param>
         /// <returns>the created job</returns>
         public virtual Job AddPublishJob(string name, string inputFile, bool clean) {
-            //if (id != 0) context.ReturnError("Job cannot be added to existing task");
             return AddPublishJob(name, Job.PublishJobType, inputFile, clean);
         }
         
@@ -1739,7 +1718,6 @@ namespace Terradue.Portal {
         /// <param name="clean">determines ???</param>
         /// <returns>the created job</returns>
         public virtual Job AddPublishJob(string name, string[] inputFiles, bool clean) {
-            //if (id != 0) context.ReturnError("Job cannot be added to existing task");
             Job publishJob = Jobs.Add(name, Job.PublishJobType);
             if (inputFiles != null) publishJob.AddInputFiles(inputFiles);
             publishJob.AddParameter("clean", clean.ToString().ToLower());
@@ -1755,7 +1733,6 @@ namespace Terradue.Portal {
         /// <param name="clean">determines ???</param>
         /// <returns>the created job</returns>
         public virtual Job AddPublishJob(string name, string jobType, string inputFile, bool clean) {
-            //if (id != 0) context.ReturnError("Job cannot be added to existing task");
             Job publishJob = Jobs.Add(name, jobType);
             if (inputFile != null) publishJob.AddInputFile(inputFile);
             publishJob.AddParameter("clean", clean.ToString().ToLower());
@@ -1772,7 +1749,6 @@ namespace Terradue.Portal {
         /// <param name="clean">determines ???</param>
         /// <returns>the created job</returns>
         public virtual Job AddPublishJob(string name, string jobType, string[] inputFiles, bool clean) {
-            //if (id != 0) context.ReturnError("Job cannot be added to existing task");
             Job publishJob = Jobs.Add(name, jobType);
             if (inputFiles != null) publishJob.AddInputFiles(inputFiles);
             publishJob.AddParameter("clean", clean.ToString().ToLower());
@@ -2144,6 +2120,34 @@ namespace Terradue.Portal {
 
     }
 
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    public class ProcessingException : Exception {
+
+        public ComputingResource ComputingResource { get; protected set; }
+
+        public Task Task { get; protected set; }
+
+        public Job Job { get; protected set; }
+
+        public ProcessingException(string message, ComputingResource computingResource, Task task) : base(message) {
+            this.ComputingResource = computingResource;
+            this.Task = task;
+        }
+
+        public ProcessingException(string message, ComputingResource computingResource, Job job) : base(message) {
+            this.ComputingResource = computingResource;
+            this.Job = job;
+            if (job != null) this.Task = job.Task;
+        }
+
+    }
     
 
     //-------------------------------------------------------------------------------------------------------------------------

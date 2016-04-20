@@ -719,16 +719,16 @@ namespace Terradue.Portal {
             string result = null;//GetOpenSearchResult();
 
             // If result is acceptable (i.e. not empty or too small or similar), call callback function
-            if (/*RunConfiguration.CheckResult()*/true) {
+            //if (/*RunConfiguration.CheckResult()*/true) {
                 // call function
                 if (OnRun == null) throw new InvalidOperationException(String.Format("No run action method defined for scheduler {0}", Identifier));
                 OnRun.Invoke(result);
                 //RunConfiguration.Store();
                 return SchedulingStatus.Running;
 
-            } else {
-                return SchedulingStatus.None;
-            } 
+            //} else {
+            //    return SchedulingStatus.None;
+            //} 
         }
 
         //---------------------------------------------------------------------------------------------------------------------

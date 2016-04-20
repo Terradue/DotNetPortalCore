@@ -36,21 +36,18 @@ namespace Terradue.Portal {
     /// <summary>Represents an application that is able to process all requests required for a Web Processing Service (Open Geospatial Consortium).</summary>
     public class WpsApplication : Application {
         
-        private bool errorOpen = false;
+        //private bool errorOpen = false;
         
         //public const string Wps100NamespaceUri = ;
         
         private XmlDocument configurationDocument;
-        private XmlDocument requestDocument;
-        private XmlElement requestElement;
-        private XmlNamespaceManager namespaceManager;
-        private TaskTemplate taskTemplate;
-        private Task task;
+        //private TaskTemplate taskTemplate;
+        //private Task task;
         private List<string> unavailableServices;
         
-        private bool storeExecuteResponse = false, outputAsReference = false, lineage = false, status = false;
-        private string lineageXml = null;
-        private string xslTransformation;
+        //private bool storeExecuteResponse = false, outputAsReference = false, lineage = false, status = false;
+        //private string lineageXml = null;
+        //private string xslTransformation;
         private RequestParameter fileListParameter;
         
         public int SeriesId { get; set; }
@@ -181,18 +178,18 @@ namespace Terradue.Portal {
                 reader.Close();
                 throw new WpsNoApplicableCodeException(String.Format("The requested task does not exist or was not created with this Web Processing Service"));
             }
-            int taskId = reader.GetInt32(0);
-            string templateName = reader.GetString(1);
-            storeExecuteResponse = context.GetBooleanValue(reader, 2);
-            status = context.GetBooleanValue(reader, 3);
-            lineageXml = context.GetValue(reader, 4);
-            lineage = (lineageXml != null);
-            outputAsReference = context.GetBooleanValue(reader, 5);
-            xslTransformation = context.GetValue(reader, 6);
+            //int taskId = reader.GetInt32(0);
+            //string templateName = reader.GetString(1);
+            //storeExecuteResponse = context.GetBooleanValue(reader, 2);
+            //status = context.GetBooleanValue(reader, 3);
+            //lineageXml = context.GetValue(reader, 4);
+            //lineage = (lineageXml != null);
+            //outputAsReference = context.GetBooleanValue(reader, 5);
+            //xslTransformation = context.GetValue(reader, 6);
             context.CloseQueryResult(reader, dbConnection);
             try {
-                task = Task.FromId(context, taskId);
-                taskTemplate = ReadConfigurationFile(templateName);
+                //task = Task.FromId(context, taskId);
+                //taskTemplate = ReadConfigurationFile(templateName);
             } catch (Exception e) {
                 throw new WpsNoApplicableCodeException(String.Format("Could not retrieve task information: {0}", e.Message));
             }

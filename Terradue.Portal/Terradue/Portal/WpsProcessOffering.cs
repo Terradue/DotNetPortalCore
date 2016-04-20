@@ -216,13 +216,13 @@ namespace Terradue.Portal {
                 memStream.Seek(0, SeekOrigin.Begin);
                 execResponse = (OpenGis.Wps.ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Deserialize(memStream);
                 return execResponse;
-            } catch (InvalidOperationException ioe) {
+            } catch (InvalidOperationException) {
                 //bug 52 NORTH - to be removed once AIR updated
                 memStream.Seek(0, SeekOrigin.Begin);
                 try {
                     exceptionReport = (OpenGis.Wps.ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExceptionReport)).Deserialize(memStream);
                     return exceptionReport;
-                } catch (Exception e) {
+                } catch (Exception) {
                     memStream.Seek(0, SeekOrigin.Begin);
                     using (StreamReader reader = new StreamReader(memStream)) {
                         string errormsg = reader.ReadToEnd();
@@ -321,11 +321,11 @@ namespace Terradue.Portal {
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
             Uri id = null;
-            if(this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier);
+            if (this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier);
             else  id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
-            try{
+            try {
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
-            }catch(Exception e){
+            } catch(Exception) {
                 atomEntry = new AtomItem();
             }
             OwsContextAtomEntry entry = new OwsContextAtomEntry(atomEntry);

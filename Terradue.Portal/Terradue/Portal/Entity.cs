@@ -35,7 +35,7 @@ namespace Terradue.Portal {
     /// The data location and structure are defined in the extended object which represent real-world entities.
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    public abstract partial class Entity : IValueSet {
+    public abstract partial class Entity {
 
         protected IfyContext context;
         private int domainId;
@@ -358,7 +358,6 @@ namespace Terradue.Portal {
         /// <param name="accessLevel">The strictness of permission and privilege checks to be applied.</param>
         public virtual void Load(EntityAccessLevel accessLevel) {
             EntityType entityType = this.EntityType;
-            bool hasAutoLoadFields = false;
 
             // Build WHERE clause
             string condition = null;
@@ -1238,6 +1237,27 @@ namespace Terradue.Portal {
             this.EntityType = entityType;
             this.Entity = entity;
             this.UserId = userId;
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    public class EntityUnavailableException : Exception {
+
+        public EntityType EntityType { get; protected set; }
+
+        public Entity Entity { get; protected set; }
+
+        public EntityUnavailableException(string message, EntityType entityType, Entity entity) : base(message) {
+            this.EntityType = entityType;
+            this.Entity = entity;
         }
 
     }

@@ -1230,7 +1230,7 @@ namespace Terradue.Portal {
                     string userCertContent = GetCertificatePemContent(userId);
                     if (userCertContent != null) request.Headers.Add("SSL_CLIENT_CERT_PROXY", userCertContent);
                 }
-            } catch (Exception e) {
+            } catch (Exception) {
                 throw;
             }
 

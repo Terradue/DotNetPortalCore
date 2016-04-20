@@ -474,7 +474,7 @@ namespace Terradue.Portal {
             if (!base.CanStartTask(task)) return false;
             
             // Check whether computing resource and working/result directories are available
-            /* !!! if (!computingResource.Available && context.UserLevel >= UserLevel.Administrator) context.ReturnError("The selected computing resource is currently not available");*/
+            /* !!! if (!computingResource.Available && context.UserLevel >= UserLevel.Administrator) throw new EntityUnvailableException("The selected computing resource is currently not available");*/
             if (context.UserLevel >= UserLevel.Administrator && WorkingDir == null) {
                 context.AddError("No working directory available on selected computing resource");
                 return false;
@@ -492,8 +492,7 @@ namespace Terradue.Portal {
             }
 
             if (GridEngineWebService == null) {
-                context.ReturnError(context.UserLevel >= UserLevel.Administrator ? "Bad Grid engine web service configuration" : "Submission not possible, please retry later");
-                return false;
+                throw new ProcessingException(context.UserLevel >= UserLevel.Administrator ? "Bad Grid engine web service configuration" : "Submission not possible, please retry later", this, task);
             }
             
             return true;
@@ -587,8 +586,6 @@ namespace Terradue.Portal {
                 taskDetailsDoc = new XmlDocument();
                 taskDetailsDoc.Load(url);
             } catch (Exception e) {
-                // status = 10;
-                // context.ReturnError("Job information not available");
                 if (context.DebugLevel >= 1) context.AddDebug(1, "Could not get details of task " + task.Identifier + ": " + e.Message);
                 return false;
             }

@@ -867,7 +867,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         protected bool GetUserData(string username) {
-            bool result = false;
             if (username == null) throw new ArgumentNullException("Username missing");
 
             User user = User.FromUsername(this, username);
@@ -963,10 +962,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Checks the availability of the web portal as defined in the Control Panel.</summary>
-        /*!
-            The exception is only thrown if caused by a fatal runtime error that has not been dealt with before by application-specific error handling (i.e. ReturnError() method).
-        /// <param name="e">the exception to be thrown if considered fatal</param>
-        */
         public void CheckAvailability() {
             if (IsWebSiteAvailable) return;
             if (UserLevel == Terradue.Portal.UserLevel.Administrator) {
@@ -1009,7 +1004,7 @@ namespace Terradue.Portal {
                 //webResponseStream = webResponse.GetResponseStream();
             } catch (WebException e) {
                 webResponse = (HttpWebResponse)e.Response;
-            } catch (Exception e) {
+            } catch (Exception) {
                 throw;
             }
             
@@ -1296,7 +1291,7 @@ namespace Terradue.Portal {
 
             int statusCode;
             string statusDescription;
-            
+
             if (exception is ArgumentException || exception is FormatException) {
                 statusCode = 400;
                 statusDescription = "Bad Request";
@@ -1336,7 +1331,7 @@ namespace Terradue.Portal {
             Error = true;
             throw exception;
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public override void WriteSeparator() {}
@@ -1499,7 +1494,7 @@ namespace Terradue.Portal {
             xmlReader.MoveToContent();
 
             XmlReaderSettings settings = new XmlReaderSettings();
-            settings.ProhibitDtd = false;
+            //settings.ProhibitDtd = false;
             XmlReader xslReader = XmlReader.Create(filename, settings);
 
             try {

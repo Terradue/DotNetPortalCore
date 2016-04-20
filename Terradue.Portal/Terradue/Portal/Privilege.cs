@@ -16,14 +16,8 @@ namespace Terradue.Portal {
     /// <summary>
     /// Activity privilege class.
     /// </summary>
-    [Obsolete("Use EntityOperationType where possible")]
     public class OperationPriv {
 
-        public const string VIEW = "v";
-        public const string CREATE = "c";
-        public const string MODIFY = "m";
-        public const string DELETE = "d";
-        public const string MAKE_PUBLIC = "p";
         public const string LOGIN = "l";
 
     }
@@ -48,7 +42,7 @@ namespace Terradue.Portal {
         // Static list of privilege metadata; loaded at application startup and used as reference for lookup throughout the runtime
         private static Dictionary<int, Privilege> privileges = new Dictionary<int, Privilege>();
 
-        private static Dictionary<EntityType, Dictionary<string, string>> entityTypePrivileges;// = new Dictionary<Type, EntityType>();
+        //private static Dictionary<EntityType, Dictionary<string, string>> entityTypePrivileges;// = new Dictionary<Type, EntityType>();
 
         //---------------------------------------------------------------------------------------------------------------------
 

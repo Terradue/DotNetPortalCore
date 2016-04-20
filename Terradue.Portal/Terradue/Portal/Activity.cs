@@ -102,7 +102,7 @@ namespace Terradue.Portal {
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
                     this.Privilege = Privilege.Get(EntityType.GetEntityTypeFromId(this.EntityTypeId), Privilege.GetOperationType(operation));
-                } catch (Exception e) {
+                } catch (Exception) {
                 }
             }
             this.OwnerId = entity.OwnerId;
@@ -163,15 +163,15 @@ namespace Terradue.Portal {
             if (this.EntityId == 0) return null;
 
             Entity entity = null;
-            try{
+            try {
                 entity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
                 entity.Load(this.EntityId);
-            }catch(Exception e){
+            } catch (Exception) {
                 return null;
             }
             User owner = User.ForceFromId(context, this.OwnerId);
 
-            string identifier = null;
+            //string identifier = null;
             string name = (entity.Name != null ? entity.Name : entity.Identifier);
             string description = null;
             string text = (this.TextContent != null ? this.TextContent : "");
@@ -200,7 +200,7 @@ namespace Terradue.Portal {
                     break;
             }
 
-            AtomItem atomEntry = null;
+            //AtomItem atomEntry = null;
             AtomItem result = new AtomItem();
 
             result.Id = id.ToString();

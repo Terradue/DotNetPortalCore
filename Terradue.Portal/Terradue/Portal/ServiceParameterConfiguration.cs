@@ -36,8 +36,7 @@ namespace Terradue.Portal {
     public class ServiceParameterConfiguration : Entity {
         
         private string values;
-        private RequestParameterCollection requestParameters;
-        
+
         //public string
         
         public Service Service { get; protected set; }
@@ -89,13 +88,6 @@ namespace Terradue.Portal {
             result.Service = requestParameter.Service;
             result.SubjectType = subjectType;
             result.SubjectId = subjectId;
-
-            /*XmlElement element = result.Service.GetParameterElement(result.ServiceParameter.Name);
-            if (element == null || !result.ServiceParameter.GetXmlInformation(element, false, false, true)) {
-                context.ReturnError(new ArgumentException("Parameter not defined"), null);
-            }*/ // TODO-NEW-SERVICE
-            
-            //if (result.ServiceParameter
 
             if (subjectType != 0) {
                 result.LoadConfiguration(

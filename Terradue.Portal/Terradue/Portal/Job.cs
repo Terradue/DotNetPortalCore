@@ -95,8 +95,7 @@ namespace Terradue.Portal {
         public Job Add(string name, string jobType) {
             Job job = Job.ForTask(context, task, name, jobType);
             if (dict.ContainsKey(name)) {
-                throw new Exception("Duplicate job name \"" + name + "\"");
-                return job;
+                throw new InvalidOperationException("Duplicate job name \"" + name + "\"");
             }
             dict.Add(name, job);
             Array.Resize(ref items, items.Length + 1);
@@ -185,7 +184,6 @@ namespace Terradue.Portal {
                 // This indicates a wrong job creation routine and is a fatal error for the creation of the task.  
                 if (!allInputJobsBefore) {
                     throw new Exception("There are cyclic job dependencies involving " + (items.Length - i) + " jobs.");
-                    break;
                 }
             }
             jobs.Clear();
@@ -211,10 +209,7 @@ namespace Terradue.Portal {
     public class Job : Entity, IFlowNode {
         
         public static string PublishJobType = "Publish";
-        private ServiceOperationType operationType;
-        
-        private bool canChangeParameters;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the ID of the task to which the job belongs.</summary>
@@ -624,7 +619,7 @@ namespace Terradue.Portal {
             base.Load();
             Exists = true;
 
-            if (Task != null && TaskId != Task.Id) context.ReturnError("The requested job does not belong to the task", "invalidJob");
+            if (Task != null && TaskId != Task.Id) throw new InvalidOperationException("The requested job does not belong to the task");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -983,8 +978,7 @@ namespace Terradue.Portal {
             //s = ;
             //context.AddInfo("ws jobResubmit: " + s);
             if (Status < ProcessingStatus.Active) {
-                context.ReturnError("The job is not running");
-                return false;
+                throw new ProcessingException("The job is not running", null, this);
             }
             
             if (!Loaded) LoadParameters();
@@ -1007,8 +1001,7 @@ namespace Terradue.Portal {
             //s = ;
             //context.AddInfo("ws jobResubmit: " + s);
             if (Status == ProcessingStatus.Completed) {
-                context.ReturnError("The job is already completed");
-                return false;
+                throw new ProcessingException("The job is already completed", null, this);
             }
 
             bool result = Task.ComputingResource.CompleteJob(this);
