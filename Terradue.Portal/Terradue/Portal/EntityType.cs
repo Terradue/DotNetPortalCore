@@ -737,7 +737,7 @@ namespace Terradue.Portal {
 
                     // Get the list of domains for which the user has the view privilege on items of the entity type
                     // The domain restriction check needs to be performed only if the privilege is defined (otherwise everybody has the privilege)
-                    int[] domainIds = Domain.GetGrantScopeForUser(context, userId, roleIds);
+                    int[] domainIds = Domain.GetGrantScope(context, userId, groupIds, roleIds);
                     if (context.ConsoleDebug) Console.WriteLine("DOMAINS: {0}", domainIds == null ? "GLOBAL GRANT" : String.Join(",", domainIds));
 
                     // no domain (unauthorised) -> select "not granted" for all items
