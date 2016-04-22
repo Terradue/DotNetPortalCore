@@ -28,7 +28,7 @@ INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword
     (2, 2, 'Terradue.Portal.Action, Terradue.Portal', NULL, 'Agent Action', 'Agent Actions', 'actions'),
     (3, 3, 'Terradue.Portal.Application, Terradue.Portal', NULL, 'External Application', 'External Applications', 'applications'),
     (4, 4, 'Terradue.Portal.Domain, Terradue.Portal', NULL, 'Domains', 'Domain', 'domains'),
-    (5, 5, 'Terradue.Portal.ManagerRole, Terradue.Portal', NULL, 'Manager Role', 'Manager Roles', 'manager-roles'),
+    (5, 5, 'Terradue.Portal.Role, Terradue.Portal', NULL, 'Role', 'Roles', 'roles'),
     (6, 6, 'Terradue.Portal.OpenIdProvider, Terradue.Portal', NULL, 'OpenID Provider', 'OpenID Providers', 'openid-providers'),
     (7, 7, 'Terradue.Portal.LookupList, Terradue.Portal', NULL, 'Shared Lookup List', 'Shared Lookup Lists', 'lookup-lists'),
     (8, 8, 'Terradue.Portal.ServiceClass, Terradue.Portal', NULL, 'Service Class', 'Service Classes', 'service-classes'),
@@ -87,8 +87,8 @@ END;
 
 CREATE TABLE priv (
     id int unsigned NOT NULL auto_increment,
-    identifier varchar(50) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-    name varchar(50) NOT NULL,
+    identifier varchar(50) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT 'Unique identifier',
+    name varchar(50) NOT NULL COMMENT 'Human-readable name',
     id_type int unsigned COMMENT 'FK: Entity type',
     operation char(1) COLLATE latin1_general_cs COMMENT 'Operation type (one-letter code)',
     pos smallint unsigned COMMENT 'Position for ordering',
@@ -96,60 +96,60 @@ CREATE TABLE priv (
     CONSTRAINT pk_priv PRIMARY KEY (id),
     CONSTRAINT fk_priv_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
     UNIQUE INDEX (identifier)
-) Engine=InnoDB COMMENT 'Manager privileges';
+) Engine=InnoDB COMMENT 'Privileges';
 -- CHECKPOINT C-02a
 
--- Initializing manager privileges ... \
-INSERT INTO priv (identifier, id_type, operation, pos, name) VALUES
-    ('usr-c', 11, 'c', 1, 'Users: create'),
-    ('usr-s', 11, 's', 2, 'Users: search'),
-    ('usr-v', 11, 'v', 3, 'Users: view'),
-    ('usr-m', 11, 'm', 4, 'Users: change'),
-    ('usr-M', 11, 'M', 5, 'Users: manage'),
-    ('usr-d', 11, 'd', 6, 'Users: delete'),
-    ('grp-c', 12, 'c', 7, 'Groups: create'),
-    ('grp-s', 12, 's', 8, 'Groups: search'),
-    ('grp-v', 12, 'v', 9, 'Groups: view'),
-    ('grp-m', 12, 'm', 10, 'Groups: change'),
-    ('grp-M', 12, 'M', 11, 'Groups: manage'),
-    ('grp-d', 12, 'd', 12, 'Groups: delete'),
-    ('cr-c', 14, 'c', 13, 'Computing resources: create'),
-    ('cr-s', 14, 's', 14, 'Computing resources: search'),
-    ('cr-v', 14, 'v', 15, 'Computing resources: view'),
-    ('cr-m', 14, 'm', 16, 'Computing resources: change'),
-    ('cr-M', 14, 'M', 17, 'Computing resources: manage'),
-    ('cr-d', 14, 'd', 18, 'Computing resources: delete'),
-    ('catalogue-c', 15, 'c', 19, 'Catalogues: create'),
-    ('catalogue-s', 15, 's', 20, 'Catalogues: search'),
-    ('catalogue-v', 15, 'v', 21, 'Catalogues: view'),
-    ('catalogue-m', 15, 'm', 22, 'Catalogues: change'),
-    ('catalogue-M', 15, 'M', 23, 'Catalogues: manage'),
-    ('catalogue-d', 15, 'd', 24, 'Catalogues: delete'),
-    ('series-c', 16, 'c', 25, 'Series: create'),
-    ('series-s', 16, 's', 26, 'Series: search'),
-    ('series-v', 16, 'v', 27, 'Series: view'),
-    ('series-m', 16, 'm', 28, 'Series: change'),
-    ('series-M', 16, 'M', 29, 'Series: manage'),
-    ('series-d', 16, 'd', 30, 'Series: delete'),
-    ('pubserver-c', 18, 'c', 31, 'Publish servers: create'),
-    ('pubserver-s', 18, 's', 32, 'Publish servers: search'),
-    ('pubserver-v', 18, 'v', 33, 'Publish servers: view'),
-    ('pubserver-m', 18, 'm', 34, 'Publish servers: change'),
-    ('pubserver-M', 18, 'M', 35, 'Publish servers: manage'),
-    ('pubserver-d', 18, 'd', 36, 'Publish servers: delete'),
-    ('service-c', 19, 'c', 37, 'Processing services: create'),
-    ('service-s', 19, 's', 38, 'Processing services: search'),
-    ('service-v', 19, 'v', 39, 'Processing services: view'),
-    ('service-m', 19, 'm', 40, 'Processing services: change'),
-    ('service-M', 19, 'M', 41, 'Processing services: manage'),
-    ('service-d', 19, 'd', 42, 'Processing services: delete'),
-    ('scheduler-M', 20, 'M', 43, 'Schedulers: control'),
-    ('task-M', 22, 'M', 44, 'Tasks: control'),
-    ('news-c', NULL, 'c', 45, 'News items: create'),
-    ('news-s', NULL, 's', 46, 'News items: search'),
-    ('news-v', NULL, 'v', 47, 'News items: view'),
-    ('news-m', NULL, 'm', 48, 'News items: change'),
-    ('news-d', NULL, 'd', 49, 'News items: delete')
+-- Initializing privileges ... \
+INSERT INTO priv (identifier, name, id_type, operation, pos) VALUES
+    ('usr-c', 'Users: create', 11, 'c', 1),
+    ('usr-s', 'Users: search', 11, 's', 2),
+    ('usr-v', 'Users: view', 11, 'v', 3),
+    ('usr-m', 'Users: change', 11, 'm', 4),
+    ('usr-M', 'Users: manage', 11, 'M', 5),
+    ('usr-d', 'Users: delete', 11, 'd', 6),
+    ('grp-c', 'Groups: create', 12, 'c', 7),
+    ('grp-s', 'Groups: search', 12, 's', 8),
+    ('grp-v', 'Groups: view', 12, 'v', 9),
+    ('grp-m', 'Groups: change', 12, 'm', 10),
+    ('grp-M', 'Groups: manage', 12, 'M', 11),
+    ('grp-d', 'Groups: delete', 12, 'd', 12),
+    ('cr-c', 'Computing resources: create', 14, 'c', 13),
+    ('cr-s', 'Computing resources: search', 14, 's', 14),
+    ('cr-v', 'Computing resources: view', 14, 'v', 15),
+    ('cr-m', 'Computing resources: change', 14, 'm', 16),
+    ('cr-M', 'Computing resources: manage', 14, 'M', 17),
+    ('cr-d', 'Computing resources: delete', 14, 'd', 18),
+    ('catalogue-c', 'Catalogues: create', 15, 'c', 19),
+    ('catalogue-s', 'Catalogues: search', 15, 's', 20),
+    ('catalogue-v', 'Catalogues: view', 15, 'v', 21),
+    ('catalogue-m', 'Catalogues: change', 15, 'm', 22),
+    ('catalogue-M', 'Catalogues: manage', 15, 'M', 23),
+    ('catalogue-d', 'Catalogues: delete', 15, 'd', 24),
+    ('series-c', 'Series: create', 16, 'c', 25),
+    ('series-s', 'Series: search', 16, 's', 26),
+    ('series-v', 'Series: view', 16, 'v', 27),
+    ('series-m', 'Series: change', 16, 'm', 28),
+    ('series-M', 'Series: manage', 16, 'M', 29),
+    ('series-d', 'Series: delete', 16, 'd', 30),
+    ('pubserver-c', 'Publish servers: create', 18, 'c', 31),
+    ('pubserver-s', 'Publish servers: search', 18, 's', 32),
+    ('pubserver-v', 'Publish servers: view', 18, 'v', 33),
+    ('pubserver-m', 'Publish servers: change', 18, 'm', 34),
+    ('pubserver-M', 'Publish servers: manage', 18, 'M', 35),
+    ('pubserver-d', 'Publish servers: delete', 18, 'd', 36),
+    ('service-c', 'Processing services: create', 19, 'c', 37),
+    ('service-s', 'Processing services: search', 19, 's', 38),
+    ('service-v', 'Processing services: view', 19, 'v', 39),
+    ('service-m', 'Processing services: change', 19, 'm', 40),
+    ('service-M', 'Processing services: manage', 19, 'M', 41),
+    ('service-d', 'Processing services: delete', 19, 'd', 42),
+    ('scheduler-M', 'Schedulers: control', 20, 'M', 43),
+    ('task-M', 'Tasks: control', 22, 'M', 44),
+    ('news-c', 'News items: create', NULL, 'c', 45),
+    ('news-s', 'News items: search', NULL, 's', 46),
+    ('news-v', 'News items: view', NULL, 'v', 47),
+    ('news-m', 'News items: change', NULL, 'm', 48),
+    ('news-d', 'News items: delete', NULL, 'd', 49)
 ;
 -- RESULT
 -- CHECKPOINT C-02b
@@ -363,24 +363,24 @@ CREATE TABLE domain (
 CREATE TABLE role (
     id int unsigned NOT NULL auto_increment,
     identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
-    name varchar(100) COMMENT 'Name',
+    name varchar(100) NOT NULL COMMENT 'Human-readable name',
     description text COMMENT 'Description',
     count INT NULL COMMENT 'number of products',
     CONSTRAINT pk_role PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
-) Engine=InnoDB COMMENT 'Manager roles';
+) Engine=InnoDB COMMENT 'Roles for users or groups';
 -- CHECKPOINT C-08
 
 /*****************************************************************************/
 
 CREATE TABLE role_priv (
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role',
-    id_priv int unsigned NOT NULL COMMENT 'FK: Manager privilege',
+    id_role int unsigned NOT NULL COMMENT 'FK: Role',
+    id_priv int unsigned NOT NULL COMMENT 'FK: Privilege',
     int_value int COMMENT 'Value (optional)',
     CONSTRAINT pk_role_priv PRIMARY KEY (id_role, id_priv),
     CONSTRAINT fk_role_priv_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_priv_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of manager privileges to roles';
+) Engine=InnoDB COMMENT 'Associations of privileges to roles';
 -- CHECKPOINT C-09
 
 /*****************************************************************************/
@@ -466,16 +466,16 @@ INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN
 
 /*****************************************************************************/
 
-CREATE TABLE role_grant (
+CREATE TABLE rolegrant (
     id_usr int unsigned COMMENT 'FK: User (id_usr or id_grp must be set)',
     id_grp int unsigned COMMENT 'FK: Group (id_usr or id_grp must be set)',
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user/group is assigned',
+    id_role int unsigned NOT NULL COMMENT 'FK: Role to which the user/group is assigned',
     id_domain int unsigned COMMENT 'FK: Domain for which the user/group has the role',
-    CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_grp_role_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_role_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of users/groups to manager roles for domains';
+    CONSTRAINT fk_rolegrant_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of users/groups to roles for domains';
 -- CHECKPOINT C-24
 
 /*****************************************************************************/
@@ -1526,7 +1526,7 @@ CREATE TABLE cr_priv (
     CONSTRAINT fk_cr_priv_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE,
     CONSTRAINT fk_cr_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_cr_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on computing resources';
+) Engine=InnoDB COMMENT 'User/group permissions on computing resources';
 -- CHECKPOINT C-29
 
 /*****************************************************************************/
@@ -1657,13 +1657,13 @@ CREATE TABLE series_priv (
     id_series int unsigned NOT NULL COMMENT 'FK: Series',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    can_search bool COMMENT 'If true, user/group has search permission',
-    can_download bool COMMENT 'If true, user/group has download permission',
-    can_process bool COMMENT 'If true, user/group has processing permission',
+    can_search boolean COMMENT 'If true, user/group has product search permission',
+    can_download boolean COMMENT 'If true, user/group has download permission',
+    can_process boolean COMMENT 'If true, user/group has processing permission',
     CONSTRAINT fk_series_priv_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
     CONSTRAINT fk_series_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_series_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on series';
+) Engine=InnoDB COMMENT 'User/group permissions on series';
 -- CHECKPOINT C-36
 
 /*****************************************************************************/
@@ -1698,7 +1698,7 @@ CREATE TABLE producttype_priv (
     CONSTRAINT fk_producttype_priv_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
     CONSTRAINT fk_producttype_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_producttype_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on product types';
+) Engine=InnoDB COMMENT 'User/group permissions on product types';
 -- CHECKPOINT C-38
 
 /*****************************************************************************/
@@ -1753,7 +1753,7 @@ CREATE TABLE resourceset_priv (
     CONSTRAINT fk_resourceset_priv_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
     CONSTRAINT fk_resourceset_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_resourceset_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on resource sets';
+) Engine=InnoDB COMMENT 'User/group permissions on resource sets';
 -- CHECKPOINT C-42
 
 /*****************************************************************************/
@@ -1804,7 +1804,7 @@ CREATE TABLE pubserver_priv (
     CONSTRAINT fk_pubserver_priv_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
     CONSTRAINT fk_pubserver_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_pubserver_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on publish servers';
+) Engine=InnoDB COMMENT 'User/group permissions on publish servers';
 -- CHECKPOINT C-45
 
 /*****************************************************************************/
@@ -1857,7 +1857,7 @@ CREATE TABLE service_priv (
     CONSTRAINT fk_service_priv_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_service_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on services';
+) Engine=InnoDB COMMENT 'User/group permissions on services';
 -- CHECKPOINT C-47
 
 /*****************************************************************************/
@@ -2279,7 +2279,7 @@ CREATE TABLE safe_priv (
     CONSTRAINT fk_safe_priv_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
     CONSTRAINT fk_safe_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     CONSTRAINT fk_safe_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on safe';
+) Engine=InnoDB COMMENT 'User/group permissions on safes';
 -- CHECKPOINT C-71
 
 /*****************************************************************************/
