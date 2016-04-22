@@ -438,6 +438,7 @@ namespace Terradue.Portal {
                 List<Module> oldModules = new List<Module>(modules);
                 List<ServiceItem> oldServices = new List<ServiceItem>(services);
                 Site oldSite = site;
+                ClearCheckpoint();
 
                 ProcessScripts();
 
