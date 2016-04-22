@@ -54,8 +54,6 @@ namespace Terradue.Portal {
         private List<ServiceItem> services;
         private int itemId;
 
-        private IDataReader dbReader;
-
         //---------------------------------------------------------------------------------------------------------------------
 
         public bool Interactive { get; set; }
@@ -412,7 +410,7 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 if (!e.Message.Contains("Unknown database")) throw;
             }
-            
+
             if (schemaExists) {
                 if (DefinitionMode == DataDefinitionMode.Create) {
                     if (Interactive) Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", DbMainSchema);
@@ -430,7 +428,7 @@ namespace Terradue.Portal {
                 if (Interactive) Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", DbMainSchema);
                 return;
             }
-            
+
             if (DefinitionMode == DataDefinitionMode.Create) CreateSchemas();
             CheckState();
 
@@ -440,7 +438,7 @@ namespace Terradue.Portal {
                 List<Module> oldModules = new List<Module>(modules);
                 List<ServiceItem> oldServices = new List<ServiceItem>(services);
                 Site oldSite = site;
-                ClearCheckpoint();
+
                 ProcessScripts();
 
                 core.RestoreFrom(oldCore);
@@ -460,7 +458,7 @@ namespace Terradue.Portal {
                         }
                     }
                 }
-                site.RestoreFrom(oldSite);
+                if (site != null) site.RestoreFrom(oldSite);
             }
 
             WriteSeparator();
@@ -560,7 +558,6 @@ namespace Terradue.Portal {
                 throw new Exception("No directory information specified");
             }
             if (InstallationBaseDirectory != null) {
-                DirectoryInfo dirInfo = new DirectoryInfo(InstallationBaseDirectory);
                 if (SiteName != null) {
                     SiteBaseDirectory = String.Format("{0}{2}sites{2}{1}", InstallationBaseDirectory, SiteName, Path.DirectorySeparatorChar);
                 }
@@ -625,7 +622,8 @@ namespace Terradue.Portal {
 
         protected void CheckState() {
             bool moduleOk = false;
-            bool i;
+
+            // Create "module" table if it does not exist at all
             try {
                 GetQueryIntegerValue("SELECT id FROM $MAIN$.module LIMIT 0;");
             } catch (Exception) {
@@ -641,6 +639,7 @@ namespace Terradue.Portal {
                 moduleOk = true;
             }
 
+            // Create "install" table if it does not exist at all
             int count = 0;
             try {
                 count = GetQueryIntegerValue("SELECT COUNT(*) FROM $MAIN$.install;");
@@ -655,6 +654,7 @@ namespace Terradue.Portal {
                 );
             }
 
+            // Make sure there exactly only one record in "install" table
             if (count != 1) {
                 Execute("DELETE FROM $MAIN$.install;");
                 Execute("INSERT INTO $MAIN$.install () VALUES ();");
@@ -662,6 +662,7 @@ namespace Terradue.Portal {
 
             try {
                 if (!moduleOk) {
+                    GetQueryStringValue("SELECT version_checkpoint FROM $MAIN$.module LIMIT 0;");
                     Execute("ALTER TABLE $MAIN$.module ADD COLUMN c_version varchar(10) COMMENT 'Cleanup version (in case of interrupted upgrade)', DROP COLUMN version_checkpoint;");
                     moduleOk = true;
                 }
@@ -725,8 +726,8 @@ namespace Terradue.Portal {
                 LastFailurePhase = reader.GetInt32(0);
                 LastFailureInService = reader.GetValue(1) != DBNull.Value && reader.GetBoolean(1);
                 LastFailureItemIdentifier = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(2);
-                LastFailureItemVersion = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(3);
-                LastFailureItemCheckpoint = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(4);
+                LastFailureItemVersion = reader.GetValue(3) == DBNull.Value ? null : reader.GetString(3);
+                LastFailureItemCheckpoint = reader.GetValue(4) == DBNull.Value ? null : reader.GetString(4);
             }
             reader.Close();
         }
@@ -863,8 +864,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public void ExecuteSpecificAction(string identifier) {
-            switch (identifier) {
-            }
+            //switch (identifier) {
+            //}
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -945,7 +946,7 @@ namespace Terradue.Portal {
                 string newCheckpoint = comment.Substring(11);
                 if (AfterFailureCheckpoint) {
                     SetCheckpoint(item, newCheckpoint);
-                } else if (!AfterFailureCheckpoint && CurrentPhase == LastFailurePhase && item == LastFailureItem && newCheckpoint == LastFailureItemCheckpoint) {
+                } else if (CurrentPhase == LastFailurePhase && item == LastFailureItem && newCheckpoint == LastFailureItemCheckpoint) {
                     AfterFailureCheckpoint = true;
                 }
             } else if (AfterFailureCheckpoint) {

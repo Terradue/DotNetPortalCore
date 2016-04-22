@@ -179,7 +179,7 @@ namespace Terradue.Portal {
         /// <summary>Runs the latest database upgrade scripts for this software item.</summary>
         public virtual bool Upgrade() {
             if (Tool.LastFailurePhase > ProcessPhaseType.InstallAndUpgrade) return false;
-            if (Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && (!Tool.AfterFailureCheckpoint || this != Tool.LastFailureItem)) return false;
+            if (Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && !Tool.AfterFailureCheckpoint && this != Tool.LastFailureItem) return false;
 
             bool isFailureItem = Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && this == Tool.LastFailureItem;
 
