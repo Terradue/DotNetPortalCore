@@ -12,6 +12,7 @@ namespace Terradue.Portal.Test {
 
         Domain moveDomain, rldDomain;
         Role clusterProvisionRole, expertRole, contentAuthorityRole, softwareVendorRole, endUserRole, memberRole, dataProviderRole;
+        Role ictProviderRole;
         Group moveGroup, rldGroup;
         User sarah, marco, jean, sofia, emma, rldUser;
         Series demSeries, xstSeries;
@@ -141,6 +142,13 @@ namespace Terradue.Portal.Test {
                     dataProviderRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
                     dataProviderRole.GrantToUser(rldUser, null);
 
+                    ictProviderRole = new Role(context);
+                    ictProviderRole.Identifier = "ict-provider-role";
+                    ictProviderRole.Name = "ICT provider";
+                    ictProviderRole.Store();
+                    ictProviderRole.IncludePrivileges(Privilege.Get(EntityType.GetEntityType(typeof(Series))));
+                    ictProviderRole.GrantToUser(rldUser, null);
+
                     // Data +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
                     demSeries = new Series(context);
@@ -156,6 +164,17 @@ namespace Terradue.Portal.Test {
                     xstSeries.Store();
                     xstSeries.GrantPermissionsToGroups(new Group[] {rldGroup});
 
+                    Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
+                    Console.WriteLine("CP: {0}", cloudProvider.EntityType.Id);
+                    cloudProvider.Identifier = "cloud-provider";
+                    cloudProvider.Name = "Cloud Provider";
+                    cloudProvider.Store();
+
+                    Terradue.Sandbox.Laboratory laboratory = Terradue.Sandbox.Laboratory.ForProvider(context, cloudProvider);
+
+                    laboratory.Identifier = "laboratory";
+                    laboratory.Name = "Laboratory";
+                    laboratory.Store();
 
                 } else {
 
@@ -168,19 +187,6 @@ namespace Terradue.Portal.Test {
 
             try {
                 context.AccessLevel = EntityAccessLevel.Privilege;
-                /*context.ConsoleDebug = true;
-                Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
-                Console.WriteLine("CP: {0}", cloudProvider.EntityType.Id);
-                cloudProvider.Identifier = "cloud-provider-1";
-                cloudProvider.Name = "Cloud Provider 1";
-                cloudProvider.Store();
-
-
-                Terradue.Sandbox.Laboratory laboratory = Terradue.Sandbox.Laboratory.ForProvider(context, cloudProvider);
-
-                laboratory.Identifier = "laboratory-1";
-                laboratory.Name = "Laboratory 1";
-                laboratory.Store();*/
 
                 context.StartImpersonation(sarah.Id);
                 Console.WriteLine("Sarah accesses \"demSeries\"");
@@ -220,7 +226,6 @@ namespace Terradue.Portal.Test {
                 } catch (Exception e) {
                     Assert.IsTrue(e is EntityUnauthorizedException);
                     Console.WriteLine("  -> REJECTED (OK)");
-                    context.ConsoleDebug = false;
                 }
                 context.EndImpersonation();
 

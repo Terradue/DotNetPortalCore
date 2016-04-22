@@ -51,7 +51,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the EntityAccessLevel by which this entity item was created or loaded.</summary>
+        /// <summary>Gets or sets (protected) the EntityAccessLevel by which this entity item was created or loaded.</summary>
         public EntityAccessLevel AccessLevel { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -69,8 +69,8 @@ namespace Terradue.Portal {
 
         /// <summary>Unique identifier of this entity item.</summary>
         /// <remarks>
-        ///     It must be unique among all items of an entity type. It can be a meaningful string describing the item, similar to variable identifiers in programming languages, or a machine-generated Universally Unique Identifier (UUID).
-        ///     The identifier should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
+        ///     The identifier must be unique among all items of an entity type. It can be a meaningful string describing the item, similar to variable identifiers in programming languages, or a machine-generated Universally Unique Identifier (UUID).
+        ///     It should be short and usable in RESTful URLs. Therefore it should not contain spaces or special characters, except those often found in URLs, such as hyphens or underscores.
         ///     Not all entity types require string identifiers, in some cases the numeric <see cref="Id"/> is sufficient. If the corresponding <see cref="EntityTableAttribute.IdentifierField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -127,7 +127,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the ID of the owner of the item.</summary>
         /// <remarks>
-        ///     The owner is the user who owns the item, this information is stored in the database. Note that not all entity types allow ownership. In this case the value of this property has no meaning.
+        ///     The owner is the user who owns the item, this information is stored in the database, usually in a column named <c>id_usr</c>. Note that some entity types do not foresee item ownership. In these cases the value of this property has no meaning.
         ///     Do not confuse with UserId.
         /// </remarks>
         public virtual int OwnerId { get; set; }
@@ -142,7 +142,7 @@ namespace Terradue.Portal {
             }
             set {
                 userId = value;
-                itemPrivileges = null;
+                itemPrivileges = null; // force reload of user's item privileges the next time a privilege value is requested
             }
         }
         
@@ -929,7 +929,12 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>Sets the permissions on the resource represented by this instance for the specified beneficiaries according to the permission properties.</summary>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given IDs as group IDs, otherwise as user IDs.</param>
+        /// <param name="singleId">The database ID of a single user or group, used alternatively with multipleIds.</param>
+        /// <param name="multipleIds">An array of database IDs of multiple users or groups, used alternatively with singleId.</param>
+        /// <param name="removeOthers">Determines whether permission settings at user and group level are removed.</param>
         protected void GrantPermissions(bool forGroup, int singleId, IEnumerable<int> multipleIds, bool removeOthers) {
             if (!CanManage) throw new EntityUnauthorizedException(String.Format("Not authorized to change permissions on {0}", GetItemTerm()), EntityType, this, UserId);
 
