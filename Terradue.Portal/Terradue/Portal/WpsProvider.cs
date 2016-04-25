@@ -492,15 +492,8 @@ namespace Terradue.Portal {
             if (url == null)
                 throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
-            var uriB = new UriBuilder(url);
-            uriB.Query = "service=WPS&request=GetCapabilities";
-
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
-            request.Method = "GET";
-
-            if (url.Contains("gpod.eo.esa.int")) {
-                request.Headers.Add("X-UserID", "tepqwwps");
-            }
+            string query = "Service=WPS&Request=GetCapabilities";
+            HttpWebRequest request = CreateWebRequest(url, query);
 
             WPSCapabilitiesType response = null;
 
@@ -514,24 +507,52 @@ namespace Terradue.Portal {
 
         }
 
+        public static HttpWebRequest CreateWebRequest(string url, string query = null){
+            HttpWebRequest request;
+
+            if (url.Contains("@")) {//we assume there is username password
+                var http = url.StartsWith("https://") ? "https://" : "http://";
+                string body = url.Substring(url.IndexOf("@") + 1);
+                string userinfo = url.Substring(0, url.IndexOf("@"));
+                userinfo = userinfo.TrimStart(http.ToCharArray());
+                string newurl = http + body;
+                var uriB = new UriBuilder(newurl);
+                if (query != null) uriB.Query = query;
+                request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
+
+                int index = userinfo.IndexOf(":");
+                string username = userinfo.Substring(0, index);
+                string password = userinfo.Substring(index + 1);
+                request.Credentials = new NetworkCredential(username, password);
+            } else {
+                var uriB = new UriBuilder(url);
+                if (query != null) uriB.Query = query;
+                request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
+            }
+
+            request.Method = "GET";
+
+            if (url.Contains("gpod.eo.esa.int")) {
+                request.Headers.Add("X-UserID", "tepqwwps");
+            }
+
+            return request;
+        }
+
         /// <summary>
         /// Gets the WPS describe process from URL.
         /// </summary>
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url) {
+        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url, string query = null) {
 
             if (url == null)
                 throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-            request.Method = "GET";
-            ProcessDescriptions response = null;
+            HttpWebRequest request = CreateWebRequest(url, query);
 
-            if (url.Contains("gpod.eo.esa.int")) {
-                request.Headers.Add("X-UserID", "tepqwwps");
-            }
+            ProcessDescriptions response = null;
 
             try {
                 var httpResponse = (HttpWebResponse)request.GetResponse();
@@ -578,11 +599,11 @@ namespace Terradue.Portal {
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
-                    var uri = new UriBuilder(this.BaseUrl);
-                    uri.Query = "service=WPS&request=DescribeProcess&version=" + process.processVersion + "&identifier=" + wpsProcess.RemoteIdentifier;
-
-                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(uri.Uri.AbsoluteUri);
-                    wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
+                    try{
+                        ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(this.BaseUrl, "Service=WPS&Request=DescribeProcess&version=" + process.processVersion + "&Identifier=" + wpsProcess.RemoteIdentifier);
+                        wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
+                    }catch(Exception e){
+                    }
                 }
                 wpsProcessList.Add(wpsProcess);
             }

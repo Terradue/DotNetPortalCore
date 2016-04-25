@@ -119,24 +119,23 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public object DescribeProcess(){
-            //build describeProcess url
-            var uriDescr = new UriBuilder(Provider.BaseUrl);
-            var query = "service=WPS&request=DescribeProcess";
+
+            var query = "Service=WPS&Request=DescribeProcess";
 
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
-            query += "&identifier=" + identifier;
+            query += "&Identifier=" + identifier;
             
             if (Version != null) 
-                query += "&version=" + Version;
+                query += "&Version=" + Version;
 
-            uriDescr.Query = query;
+            HttpWebRequest describeHttpRequest = WpsProvider.CreateWebRequest(Provider.BaseUrl, query);
 
-            HttpWebRequest describeHttpRequest = (HttpWebRequest)WebRequest.Create(uriDescr.Uri.AbsoluteUri);
+//            HttpWebRequest describeHttpRequest = (HttpWebRequest)WebRequest.Create(uriDescr.Uri.AbsoluteUri);
 
             //if gpod service, we need to add extra infos to the request
-            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
-                describeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
-            }
+//            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
+//                describeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
+//            }
 
             MemoryStream memStream = new MemoryStream();
             //call describe url
