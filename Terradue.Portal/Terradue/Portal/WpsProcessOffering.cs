@@ -287,6 +287,8 @@ namespace Terradue.Portal {
             string providerUrl = null;
             string identifier = null;
 
+            log.Debug("WpsProcessOffering - ToAtomItem");
+
             if (this.ProviderId == 0 || this.Provider.Proxy) {
                 providerUrl = context.BaseUrl + "/wps/WebProcessingService";
                 identifier = this.Identifier;
@@ -313,33 +315,47 @@ namespace Terradue.Portal {
             if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
                 if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
             }
+
+            var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
+            log.Debug("capabilities = " + capurl);
                 
-            Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
-                                          "&request=GetCapabilities");
+            Uri capabilitiesUri = new Uri(capurl);
 
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
             Uri id = null;
-            if(this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier);
-            else  id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
+            var idurl = context.BaseUrl;
+            if (this.ProviderId == 0) {
+                idurl = context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier;
+            } else {
+                idurl = context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier;
+            }
+            log.Debug("id url = " + idurl);
+            id = new Uri(idurl);
+
             try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
             }catch(Exception e){
                 atomEntry = new AtomItem();
             }
+            log.Debug("Adding owscontext");
             OwsContextAtomEntry entry = new OwsContextAtomEntry(atomEntry);
             var offering = new OwcOffering();
             List<OwcOperation> operations = new List<OwcOperation>();
 
+            var describeurl = providerUrl + "?service=WPS" +
+                              "&request=DescribeProcess" +
+                              "&version=" + this.Version +
+                              "&identifier=" + identifier;
+            log.Debug("describeprocess url = " + describeurl);
+            Uri describeUri = new Uri(describeurl);
 
-            Uri describeUri = new Uri(providerUrl + "?service=WPS" +
-                                      "&request=DescribeProcess" +
-                                      "&version=" + this.Version +
-                                      "&identifier=" + identifier);
-            Uri executeUri = new Uri(providerUrl + "?service=WPS" +
-                                     "&request=Execute" +
-                                     "&version=" + this.Version +
-                                     "&identifier=" + identifier);
+            var executeurl = providerUrl + "?service=WPS" +
+                "&request=Execute" +
+                "&version=" + this.Version +
+                "&identifier=" + identifier;
+            log.Debug("execute url = " + executeurl);
+            Uri executeUri = new Uri(executeurl);
 
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
@@ -359,6 +375,7 @@ namespace Terradue.Portal {
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             if (!string.IsNullOrEmpty(this.IconUrl)) {
+                log.Debug("icon link = " + IconUrl);
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
 

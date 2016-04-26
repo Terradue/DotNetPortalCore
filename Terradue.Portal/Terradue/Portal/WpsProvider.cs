@@ -459,6 +459,7 @@ namespace Terradue.Portal {
                         existsPrInDb = true;
                         pDB.Name = pR.Name;
                         pDB.Description = pR.Description;
+                        pDB.Version = pR.Version;
                         pDB.Store();
                         break;
                     }
@@ -600,7 +601,7 @@ namespace Terradue.Portal {
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
                     try{
-                        ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(this.BaseUrl, "Service=WPS&Request=DescribeProcess&version=" + process.processVersion + "&Identifier=" + wpsProcess.RemoteIdentifier);
+                        ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(this.BaseUrl, "Service=WPS&Request=DescribeProcess&Version=" + process.processVersion + "&Identifier=" + wpsProcess.RemoteIdentifier);
                         wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
                     }catch(Exception e){
                     }
