@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Terradue.Portal</id>
-    <version>2.6.47</version>
+    <version>2.6.48</version>
     <title>Terradue.Portal</title>
     <authors>Terradue</authors>
     <!--<projectUrl>https://github.com/Terradue/DotNetOpenSearch</projectUrl>
