@@ -170,6 +170,8 @@ namespace Terradue.Portal {
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
             executeInput.Identifier = new CodeType{ Value = identifier };
 
+            if (!string.IsNullOrEmpty(Version) && !Version.Equals(executeInput.version)) executeInput.version = Version;
+
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
             HttpWebRequest executeHttpRequest = (HttpWebRequest)WebRequest.Create(uriExec.Uri.AbsoluteUri);
 
