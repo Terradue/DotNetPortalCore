@@ -6905,7 +6905,7 @@ namespace OpenGis.Wps
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
-        [System.Xml.Serialization.XmlElementAttribute("BoundingBoxData", typeof(BoundingBoxType))]
+        [System.Xml.Serialization.XmlElementAttribute("BoundingBoxData", typeof(BoundingBoxType), Namespace = "http://www.opengis.net/ows/1.1")]
         [System.Xml.Serialization.XmlElementAttribute("ComplexData", typeof(ComplexDataType))]
         [System.Xml.Serialization.XmlElementAttribute("LiteralData", typeof(LiteralDataType))]
         public object Item
