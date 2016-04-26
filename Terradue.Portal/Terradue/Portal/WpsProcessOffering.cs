@@ -173,7 +173,7 @@ namespace Terradue.Portal {
             if (!string.IsNullOrEmpty(Version) && !Version.Equals(executeInput.version)) executeInput.version = Version;
 
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
-            HttpWebRequest executeHttpRequest = (HttpWebRequest)WebRequest.Create(uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = WpsProvider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
 
             executeHttpRequest.Method = "POST";
             executeHttpRequest.ContentType = "application/xml";
