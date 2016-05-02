@@ -511,30 +511,15 @@ namespace Terradue.Portal {
         public static HttpWebRequest CreateWebRequest(string url, string query = null){
             HttpWebRequest request;
 
-            if (url.Contains("@")) {//we assume there is username password
-                var http = url.StartsWith("https://") ? "https://" : "http://";
-                string body = url.Substring(url.IndexOf("@") + 1);
-                string userinfo = url.Substring(0, url.IndexOf("@"));
-                userinfo = userinfo.TrimStart(http.ToCharArray());
-                string newurl = http + body;
-                var uriB = new UriBuilder(newurl);
-                if (query != null) uriB.Query = query;
-                request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
+            var uri = new UriBuilder(url);
+            if (!string.IsNullOrEmpty(query)) uri.Query = query;
+            if (!string.IsNullOrEmpty(uri.Query) && uri.Query.StartsWith("?")) uri.Query = uri.Query.Substring(1);
 
-                int index = userinfo.IndexOf(":");
-                string username = userinfo.Substring(0, index);
-                string password = userinfo.Substring(index + 1);
-                request.Credentials = new NetworkCredential(username, password);
-            } else {
-                var uriB = new UriBuilder(url);
-                if (query != null) uriB.Query = query;
-                request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
-            }
-
+            request = (HttpWebRequest)HttpWebRequest.Create(uri.Uri.AbsoluteUri);
             request.Method = "GET";
 
-            if (url.Contains("gpod.eo.esa.int")) {
-                request.Headers.Add("X-UserID", "tepqwwps");
+            if (!string.IsNullOrEmpty(uri.UserName) && !string.IsNullOrEmpty(uri.Password)) {
+                request.Credentials = new NetworkCredential(uri.UserName, uri.Password);
             }
 
             return request;

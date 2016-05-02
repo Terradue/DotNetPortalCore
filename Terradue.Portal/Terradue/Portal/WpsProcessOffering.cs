@@ -130,13 +130,6 @@ namespace Terradue.Portal {
 
             HttpWebRequest describeHttpRequest = WpsProvider.CreateWebRequest(Provider.BaseUrl, query);
 
-//            HttpWebRequest describeHttpRequest = (HttpWebRequest)WebRequest.Create(uriDescr.Uri.AbsoluteUri);
-
-            //if gpod service, we need to add extra infos to the request
-//            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
-//                describeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
-//            }
-
             MemoryStream memStream = new MemoryStream();
             //call describe url
             HttpWebResponse describeResponse = null;
