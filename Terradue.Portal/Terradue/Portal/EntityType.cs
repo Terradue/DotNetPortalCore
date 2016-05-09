@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Terradue.Util;
 
 
@@ -645,11 +646,27 @@ namespace Terradue.Portal {
         /// <param name="template">A template object of the same type as the list item entity type with properties set to filtering values.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <returns>The SQL query.</returns>
-        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
-            string condition = (template == null ? null : GetTemplateCondition(template, false));
+        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly) {
+            string condition = null;
+            if (template != null) {
+                condition = GetTemplateCondition(template, false);
+            } else if (filterValues != null) {
+                string filterCondition = GetFilterSql(filterValues);
+                if (filterCondition != null) {
+                    if (condition == null) condition = String.Empty;
+                    else condition += " AND ";
+                    condition += filterCondition;
+                }
+            }
+
             return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
         
+        [Obsolete("Use GetListQuery overload")]
+        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
+            return GetListQuery(context, userId, template, null, idsOnly);
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets full or IDs-only the SQL query for selecting an item list containing items referred to by another item on behalf of the specified user.</summary>
@@ -917,6 +934,69 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string GetFilterSql(Dictionary<FieldInfo, string> filterValues) {
+            if (filterValues == null) return null;
+
+            string result = null;
+            bool hasCondition = false;
+
+            foreach (FieldInfo field in filterValues.Keys) {
+                string condition = null;
+                string searchTerm = filterValues[field];
+
+                string alias = null;
+                if (field.FieldType == EntityFieldType.ForeignField) {
+                    ForeignTableInfo foreignTableInfo = null;
+                    foreach (ForeignTableInfo fti in ForeignTables) {
+                        if (fti.ReferringTable == Tables[field.TableIndex] && fti.SubIndex == field.TableSubIndex) {
+                            foreignTableInfo = fti;
+                            break;
+                        }
+                    }
+                    if (foreignTableInfo == null) continue;
+                    if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
+                }
+                if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
+                string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+
+                if (field.Property.PropertyType == typeof(string)) {
+                    condition = GetStringConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType == typeof(bool)) {
+                    if (String.IsNullOrEmpty(searchTerm)) continue;
+                    searchTerm = searchTerm.ToLower();
+
+                    condition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
+                } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
+                    condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType == typeof(DateTime)) { 
+                    condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType.IsEnum) {
+                }
+
+                if (condition == null) continue;
+
+                if (hasCondition) result += " AND ";
+                else result = String.Empty;
+
+                result += condition;
+
+                hasCondition = true;
+            }
+
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public FieldInfo GetField(string propertyName) {
+            foreach (FieldInfo field in Fields) {
+                if (field.Property.Name == propertyName) return field;
+            }
+            return null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Returns an entity instance of the represented type from its ID.</summary>
         /// <returns>The entity instance, that has to be fully loaded by the calling code.</returns>
         /// <param name="context">The execution environment context.</param>
@@ -1179,6 +1259,240 @@ namespace Terradue.Portal {
             isSqlPrepared = true;
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string that can consist of several string values and takes also into account wildcard characters.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain wildcards such as <em>*</em> or <em>?</em>.</param>
+        public static string GetStringConditionSql(string name, string searchTerm) {
+            if (searchTerm == null) return null;
+
+            string result = "", exclude = "";
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = StringUtils.SplitSimply(searchTerm, ',');
+            bool interval = false, like;
+            string cl = null, cr = null, cn = null;
+            for (int i = 0; i < terms.Length; i++) {
+                like = false;
+
+                cn = terms[i];//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+                if (Regex.Match(cn, @"[\*\?]").Success) {
+                    int shift = 0, shift2 = 0;
+                    string cn2 = cn;
+                    MatchCollection matches = Regex.Matches(cn, @"(\\.|[\*\?_%])");
+                    int index;
+                    for (int j = 0; j < matches.Count; j++) {
+                        switch (matches[j].Value) {
+                            case "\\*" :
+                            case "\\?" :
+                                index = matches[j].Index + shift--;
+                                cn = cn.Substring(0, index) + cn.Substring(index + 1);
+                                index = matches[j].Index + shift2--;
+                                cn2 = cn2.Substring(0, index) + cn2.Substring(index + 1);
+                                break;
+                            case "*" :
+                            case "?" :
+                                like = true;
+                                index = matches[j].Index + shift; 
+                                cn = cn.Substring(0, index) + (matches[j].Value == "*" ? "%" : "_") + cn.Substring(index + 1);
+                                break;
+                            case "%" :
+                            case "_" :
+                                index = matches[j].Index + shift++; 
+                                cn = cn.Substring(0, index) + "\\" + cn.Substring(index);
+                                break;
+                            default:
+                                if (matches[j].Value == "\\\\") break;
+                                index = matches[j].Index + shift--; 
+                                cn = cn.Substring(0, index) + cn.Substring(index + 1);
+                                break;
+                        }
+                    }
+                    if (!like) cn = cn2;
+                }
+
+                int tl = cn.Length;
+                cl = cn[0].ToString();
+                cr = cn[tl - 1].ToString();
+                if (tl > 1 && (cl == "[" || cl == "]" || cl == "(")) cn = cn.Substring(1, --tl); else cl = "";
+                if (tl > 1 && cn[tl - 2] != '\\' && (cr == "]" || cr == "[" || cr == ")")) cn = cn.Substring(0, --tl); else cr = "";
+
+                if (like && (cl == "" || cr == "")) {
+                    cn = cl + cn + cr;
+                    cl = "";
+                    cr = "";
+                }
+
+                if (cl != "") cl = (cl == "[" ? ">=" : ">");
+                if (cr != "") cr = (cr == "]" ? "<=" : "<");
+
+                cn = "'" + cn.Replace("'", "''") + "'";
+
+                if (!like && cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
+                else if (!like && cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
+                else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + (like ? " NOT LIKE " : "!=") + cn;
+                else result += (result == "" ? "" : " OR ") + name + (like ? " LIKE " : "=") + cn;
+
+                interval = (!like && cl != "" && cr == "");
+            }
+            if (result != "") result = "(" + result + ")";
+            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
+            if (result == "") result = null;
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string related to a numeric search.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
+        public static string GetNumericConditionSql(string name, string searchTerm) {
+            if (searchTerm == null) return null;
+
+            string result = "", exclude = "";
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = searchTerm.Split(',');
+            bool interval = false;
+            string cl = null, cr = null, cn = null;
+            for (int i = 0; i < terms.Length; i++) {
+                match = Regex.Match(terms[i], @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
+                if (!match.Success) {
+                    interval = false;
+                    continue;
+                }
+
+                cl = match.Groups[1].Value;
+                cr = match.Groups[5].Value;
+                cn = match.Groups[2].Value;
+                if (cl != "") cl = (cl == "[" ? ">=" : ">");
+                if (cr != "") cr = (cr == "]" ? "<=" : "<");
+
+                if (cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
+                else if (cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
+                else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + "!=" + cn;
+                else result += (result == "" ? "" : " OR ") + name + "=" + cn;
+
+                interval = (cl != "" && cr == "");
+            }
+            if (result != "") result = "(" + result + ")";
+            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
+            if (result == "") result = null;
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string related to a temporal search.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple numeric values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
+        public static string GetDateTimeConditionSql(string expression, string value) {
+            return GetDateTimeConditionSql(expression, value, TimeZoneInfo.Utc);
+        }
+
+        public static string GetDateTimeConditionSql(string name, string searchTerm, TimeZoneInfo timeZoneInfo) {
+            if (searchTerm == null) return null;
+
+            string result = "", exclude = "";
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = searchTerm.Split(',');
+            bool interval = false;
+            string cl = null, cr = null, cn = null, ln = null;
+            for (int i = 0; i < terms.Length; i++) {
+                match = Regex.Match(terms[i], @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
+                if (!match.Success) continue;
+
+                // Check for ISO 8601 interval slash syntax (1) or mathematcial interval syntax (2)
+                if (match.Groups[2].Value.IndexOf('/') != -1) { // (1)
+                    string[] parts = StringUtils.Split(match.Groups[2].Value, '/');
+                    if (parts.Length != 2) continue;
+
+                    DateTime dt;
+                    if (!DateTime.TryParse(parts[0], out dt)) continue;
+                    try {
+                        dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                    } catch (Exception) {}
+                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss") + "'";
+
+                    DateTime ldt = dt;
+                    ln = cn;
+
+                    if (!DateTime.TryParse(parts[1], out dt)) {
+                        try {
+                            dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                        } catch (Exception) {}
+
+                        match = Regex.Match(parts[1], @"^P((\d+)Y)?((\d+)M)?((\d+)D)?((\d+)H)?((\d+)S)?$");
+                        if (!match.Success) continue;
+
+                        int[] times = new int[6];
+                        for (int j = 0; j < 6; j++) Int32.TryParse(match.Groups[2 * j + 2].Value, out times[j]);
+
+                        dt = ldt.AddYears(times[0]);
+                        dt = dt.AddMonths(times[1]);
+                        dt = dt.AddDays(times[2]);
+                        dt = dt.AddHours(times[3]);
+                        dt = dt.AddMinutes(times[4]);
+                        dt = dt.AddSeconds(times[5]);
+                    }
+
+                    //if (dt.TimeOfDay.TotalSeconds == 0) dt = dt.Add(new TimeSpan(1, 0, 0, 0));
+                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss") + "'";
+                    result += (result == "" ? "" : " OR ") + "(" + name + ">=" + ln + " AND " + name + "<" + cn + ")";
+
+                    interval = false;
+
+                } else { // (2)
+                    cl = match.Groups[1].Value;
+                    cr = match.Groups[3].Value;
+                    cn = match.Groups[2].Value;
+
+                    DateTime dt;
+
+                    if (!DateTime.TryParse(cn, out dt)) {
+                        interval = false;
+                        continue;
+                    }
+                    try {
+                        dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                    } catch (Exception) {}
+
+                    if (cl != "") cl = (cl == "[" ? ">=" : ">");
+                    if (cr != "") cr = (cr == "]" ? "<=" : "<");
+
+                    ln = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
+
+                    if ((cr == "<=" || cl != "" && cr != "" || cl == "" && cr == "") && !Regex.Match(cn, "T.+").Success) {
+                        dt = dt.AddDays(1);
+                        if (cr == "<=") cr = "<";
+                    }
+                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
+
+                    if (cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
+                    else if (cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
+                    else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + "<" + ln + " AND " + name + ">=" + cn;
+                    else if (cn == ln) result += (result == "" ? "" : " OR ") + name + "=" + cn;
+                    else result += (result == "" ? "" : " OR ") + name + ">=" + ln + " AND " + name + "<" + cn;
+
+                    interval = (cl != "" && cr == "");
+                }
+            }
+            if (result != "") result = "(" + result + ")";
+            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
+            if (result == "") result = null;
+            return result;
+        }
     }
 
 

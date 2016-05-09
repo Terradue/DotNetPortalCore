@@ -99,6 +99,7 @@ namespace Terradue.Portal {
         private EntityType entityType;
         private T template;
         private OpenSearchEngine ose;
+        private Dictionary<FieldInfo, string> filterValues;
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +171,9 @@ namespace Terradue.Portal {
 
             Clear();
 
-            string sql = (OwnedItemsOnly ? entityType.GetListQueryForOwnedItems(context, UserId, true) : entityType.GetListQueryWithTemplate(context, UserId, template, true));
+            string sql;
+            if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -215,7 +218,7 @@ namespace Terradue.Portal {
             string sql;
             if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false);
             else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false);
-            else sql = entityType.GetListQueryWithTemplate(context, UserId, template, false);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, false);
 
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
@@ -411,6 +414,35 @@ namespace Terradue.Portal {
                     propertyInfo.SetValue(item, value, null);
                 }
             }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified property.</summary>
+        /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void SetFilter(string propertyName, string searchTerm) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassName, propertyName));
+            SetFilter(field, searchTerm);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
+        /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void SetFilter(FieldInfo field, string searchTerm) {
+            if (field == null) throw new ArgumentNullException("No filtering field specified");
+            if (!entityType.Fields.Contains(field)) throw new InvalidOperationException("Invalid filtering field specified");
+            if (filterValues == null) filterValues = new Dictionary<FieldInfo, string>();
+            filterValues[field] = searchTerm;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ClearFilters() {
+            filterValues = null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -642,6 +674,7 @@ namespace Terradue.Portal {
                 OpenSearchableChange (this, data);
             }
         }
+
     }
     
 
@@ -914,5 +947,5 @@ namespace Terradue.Portal {
         }
         
     }
-    
+
 }
