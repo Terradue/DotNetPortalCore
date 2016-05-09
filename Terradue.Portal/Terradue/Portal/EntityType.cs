@@ -1268,7 +1268,7 @@ namespace Terradue.Portal {
         public static string GetStringConditionSql(string name, string searchTerm) {
             if (searchTerm == null) return null;
 
-            string result = "", exclude = "";
+            string result = String.Empty, exclude = String.Empty;
 
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
@@ -1290,25 +1290,25 @@ namespace Terradue.Portal {
                             case "\\*" :
                             case "\\?" :
                                 index = matches[j].Index + shift--;
-                                cn = cn.Substring(0, index) + cn.Substring(index + 1);
+                                cn = String.Format("{0}{1}", cn.Substring(0, index), cn.Substring(index + 1));
                                 index = matches[j].Index + shift2--;
-                                cn2 = cn2.Substring(0, index) + cn2.Substring(index + 1);
+                                cn2 = String.Format("{0}{1}", cn2.Substring(0, index), cn2.Substring(index + 1));
                                 break;
                             case "*" :
                             case "?" :
                                 like = true;
                                 index = matches[j].Index + shift; 
-                                cn = cn.Substring(0, index) + (matches[j].Value == "*" ? "%" : "_") + cn.Substring(index + 1);
+                                cn = String.Format("{0}{1}{2}", cn.Substring(0, index), matches[j].Value == "*" ? "%" : "_", cn.Substring(index + 1));
                                 break;
                             case "%" :
                             case "_" :
                                 index = matches[j].Index + shift++; 
-                                cn = cn.Substring(0, index) + "\\" + cn.Substring(index);
+                                cn = String.Format("{0}\\{1}", cn.Substring(0, index), cn.Substring(index));
                                 break;
                             default:
                                 if (matches[j].Value == "\\\\") break;
                                 index = matches[j].Index + shift--; 
-                                cn = cn.Substring(0, index) + cn.Substring(index + 1);
+                                cn = String.Format("{0}{1}", cn.Substring(0, index), cn.Substring(index + 1));
                                 break;
                         }
                     }
@@ -1318,30 +1318,30 @@ namespace Terradue.Portal {
                 int tl = cn.Length;
                 cl = cn[0].ToString();
                 cr = cn[tl - 1].ToString();
-                if (tl > 1 && (cl == "[" || cl == "]" || cl == "(")) cn = cn.Substring(1, --tl); else cl = "";
-                if (tl > 1 && cn[tl - 2] != '\\' && (cr == "]" || cr == "[" || cr == ")")) cn = cn.Substring(0, --tl); else cr = "";
+                if (tl > 1 && (cl == "[" || cl == "]" || cl == "(")) cn = cn.Substring(1, --tl); else cl = String.Empty;
+                if (tl > 1 && cn[tl - 2] != '\\' && (cr == "]" || cr == "[" || cr == ")")) cn = cn.Substring(0, --tl); else cr = String.Empty;
 
-                if (like && (cl == "" || cr == "")) {
-                    cn = cl + cn + cr;
-                    cl = "";
-                    cr = "";
+                if (like && (cl == String.Empty || cr == String.Empty)) {
+                    cn = String.Format("{0}{1}{2}", cl, cn, cr);
+                    cl = String.Empty;
+                    cr = String.Empty;
                 }
 
-                if (cl != "") cl = (cl == "[" ? ">=" : ">");
-                if (cr != "") cr = (cr == "]" ? "<=" : "<");
+                if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
 
-                cn = "'" + cn.Replace("'", "''") + "'";
+                cn = String.Format("'{0}'", cn.Replace("'", "''"));
 
-                if (!like && cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
-                else if (!like && cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
-                else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + (like ? " NOT LIKE " : "!=") + cn;
-                else result += (result == "" ? "" : " OR ") + name + (like ? " LIKE " : "=") + cn;
+                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
+                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, like ? " LIKE " : "=", cn);
 
-                interval = (!like && cl != "" && cr == "");
+                interval = (!like && cl != String.Empty && cr == String.Empty);
             }
-            if (result != "") result = "(" + result + ")";
-            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
-            if (result == "") result = null;
+            if (result != String.Empty) result = String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
             return result;
         }
 
@@ -1354,7 +1354,7 @@ namespace Terradue.Portal {
         public static string GetNumericConditionSql(string name, string searchTerm) {
             if (searchTerm == null) return null;
 
-            string result = "", exclude = "";
+            string result = String.Empty, exclude = String.Empty;
 
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
@@ -1372,19 +1372,19 @@ namespace Terradue.Portal {
                 cl = match.Groups[1].Value;
                 cr = match.Groups[5].Value;
                 cn = match.Groups[2].Value;
-                if (cl != "") cl = (cl == "[" ? ">=" : ">");
-                if (cr != "") cr = (cr == "]" ? "<=" : "<");
+                if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
 
-                if (cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
-                else if (cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
-                else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + "!=" + cn;
-                else result += (result == "" ? "" : " OR ") + name + "=" + cn;
+                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
+                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
 
-                interval = (cl != "" && cr == "");
+                interval = (cl != String.Empty && cr == String.Empty);
             }
-            if (result != "") result = "(" + result + ")";
-            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
-            if (result == "") result = null;
+            if (result != String.Empty) result = String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
             return result;
         }
 
@@ -1401,7 +1401,7 @@ namespace Terradue.Portal {
         public static string GetDateTimeConditionSql(string name, string searchTerm, TimeZoneInfo timeZoneInfo) {
             if (searchTerm == null) return null;
 
-            string result = "", exclude = "";
+            string result = String.Empty, exclude = String.Empty;
 
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
@@ -1423,7 +1423,7 @@ namespace Terradue.Portal {
                     try {
                         dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
                     } catch (Exception) {}
-                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss") + "'";
+                    cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
 
                     DateTime ldt = dt;
                     ln = cn;
@@ -1448,8 +1448,8 @@ namespace Terradue.Portal {
                     }
 
                     //if (dt.TimeOfDay.TotalSeconds == 0) dt = dt.Add(new TimeSpan(1, 0, 0, 0));
-                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss") + "'";
-                    result += (result == "" ? "" : " OR ") + "(" + name + ">=" + ln + " AND " + name + "<" + cn + ")";
+                    cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
+                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
 
                     interval = false;
 
@@ -1468,29 +1468,29 @@ namespace Terradue.Portal {
                         dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
                     } catch (Exception) {}
 
-                    if (cl != "") cl = (cl == "[" ? ">=" : ">");
-                    if (cr != "") cr = (cr == "]" ? "<=" : "<");
+                    if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                    if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
 
                     ln = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
 
-                    if ((cr == "<=" || cl != "" && cr != "" || cl == "" && cr == "") && !Regex.Match(cn, "T.+").Success) {
+                    if ((cr == "<=" || cl != String.Empty && cr != String.Empty || cl == String.Empty && cr == String.Empty) && !Regex.Match(cn, "T.+").Success) {
                         dt = dt.AddDays(1);
                         if (cr == "<=") cr = "<";
                     }
                     cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
 
-                    if (cl != "" && cr == "") result += (result == "" ? "" : " OR ") + name + cl + cn;
-                    else if (cl == "" && cr != "") result += (interval ? " AND " : (result == "" ? "" : " OR ")) + name + cr + cn;
-                    else if (cl == ">" && cr == "<") exclude += (exclude == "" ? "" : " AND ") + name + "<" + ln + " AND " + name + ">=" + cn;
-                    else if (cn == ln) result += (result == "" ? "" : " OR ") + name + "=" + cn;
-                    else result += (result == "" ? "" : " OR ") + name + ">=" + ln + " AND " + name + "<" + cn;
+                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                    else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
+                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
+                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
 
-                    interval = (cl != "" && cr == "");
+                    interval = (cl != String.Empty && cr == String.Empty);
                 }
             }
-            if (result != "") result = "(" + result + ")";
-            if (exclude != "") result += (result == "" ? "" : " AND ") + exclude;
-            if (result == "") result = null;
+            if (result != String.Empty) String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
             return result;
         }
     }
