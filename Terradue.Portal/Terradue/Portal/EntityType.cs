@@ -814,7 +814,7 @@ namespace Terradue.Portal {
         /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="operation">The operation that, in combination with the entity type represented by this instance, defines the privilege.</param>
-        /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privileg; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
+        /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privilege; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
         public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType operation, bool inverse) {
             List<int> result = new List<int>();
             string condition = String.Format("p.id_type={0} AND ", TopTypeId);

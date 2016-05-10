@@ -1042,8 +1042,91 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
+        /// <returns>A list of database IDs of the authorized users.</returns>
+        public int[] GetAuthorizedUserIds() {
+            return GetAuthorizedSubjects(false);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the users who are authorized to view this entity.</summary>
+        /// <returns>The authorized users.</returns>
+        public List<User> GetAuthorizedUsers() {
+            List<User> result = new List<User>();
+            int[] userIds = GetAuthorizedSubjects(false);
+            foreach (int id in userIds) result.Add(User.FromId(context, id));
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
+        /// <returns>A list of database IDs of the authorized users.</returns>
+        public int[] GetAuthorizedGroupIds() {
+            return GetAuthorizedSubjects(true);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the groups who are authorized to view this entity.</summary>
+        /// <returns>The authorized groups.</returns>
+        public List<Group> GetAuthorizedGroups() {
+            List<Group> result = new List<Group>();
+            int[] groupIds = GetAuthorizedSubjects(true);
+            foreach (int id in groupIds) result.Add(Group.FromId(context, id));
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the users or groups who are authorized to view this entity via role privilege or item-specific permission.</summary>
+        /// <returns>The database IDs of the users or groups with view permission or privilege on this item.</returns>
+        /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
+        protected int[] GetAuthorizedSubjects(bool forGroups) {
+            HashSet<int> ids = new HashSet<int>();
+
+            // Get roles that have view access on item's domain (i.e. any other operation than Search)
+            int[] roleIds = EntityType.GetRolesForPrivilege(context, EntityOperationType.Search, true);
+            if (roleIds != null) {
+                if (roleIds.Length != 0) {
+                    string sql = String.Format("SELECT DISTINCT {0} FROM rolegrant AS rg{1} WHERE rg.id_role IN ({2})",
+                        forGroups ? "rg.id_grp" : "CASE WHEN rg.id_usr IS NULL THEN ug.id_usr ELSE rg.id_usr END",
+                        forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp",
+                        String.Join(",", roleIds)
+                    );
+                    IDbConnection dbConnection = context.GetDbConnection();
+                    IDataReader reader = context.GetQueryResult(sql, dbConnection);
+                    while (reader.Read()) ids.Add(reader.GetInt32(0));
+                    context.CloseQueryResult(reader, dbConnection);
+                }
+
+            }
+
+            if (EntityType.HasPermissionManagement) {
+                string sql = String.Format("SELECT {3} FROM {1} WHERE id_{2}={0};",
+                    Id,
+                    EntityType.PermissionSubjectTable.PermissionTable,
+                    EntityType.PermissionSubjectTable.Name,
+                    forGroups ? "id_grp" : "id_usr"
+                );
+                IDbConnection dbConnection = context.GetDbConnection();
+                IDataReader reader = context.GetQueryResult(sql, dbConnection);
+                while (reader.Read()) ids.Add(reader.GetInt32(0));
+                context.CloseQueryResult(reader, dbConnection);
+            }
+
+
+            int[] result = new int[ids.Count];
+            ids.CopyTo(result);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Gets the list of groups that have any permissions on this entity item.</summary>
         /// <returns>The database IDs of the groups with privileges.</returns>
+        [Obsolete("Use GetAuthorizedGroupIds")]
         public List<int> GetGroupsWithPermissions() {
             List<int> ids = new List<int>();
             string sql = String.Format("SELECT id_grp FROM {1} WHERE id_{2}={0};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name);
@@ -1061,6 +1144,7 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the list of users that have any permissions on this entity item.</summary>
         /// <returns>The database IDs of the users with privileges.</returns>
+        [Obsolete("Use GetAuthorizedUserIds")]
         public List<int> GetUsersWithPermissions() {
             List<int> ids = new List<int>();
             string sql = String.Format("SELECT id_usr FROM {1} WHERE id_{2}={0};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name);

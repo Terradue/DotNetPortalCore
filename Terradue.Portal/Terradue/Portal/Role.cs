@@ -34,7 +34,6 @@ namespace Terradue.Portal {
 
         private const string PrivilegeBaseJoinSql = "priv AS p INNER JOIN role_priv AS rp ON p.id=rp.id_priv INNER JOIN role AS r ON rp.id_role=r.id INNER JOIN rolegrant AS rg ON rp.id_role=rg.id_role LEFT JOIN usr_grp AS ug ON rg.id_usr={0} AND ug.id_usr IS NULL OR rg.id_grp=ug.id_grp AND ug.id_usr={0}";
         private const string PrivilegeValueSelectSql = "CASE WHEN int_value IS NULL THEN 0 ELSE int_value END AS v1";
-        //private const string PrivilegeBaseQuery = "SELECT p.id, CASE WHEN int_value IS NULL THEN 0 ELSE int_value END AS v1 FROM usr AS u LEFT JOIN usr_grp AS ug ON u.id=ug.id_usr LEFT JOIN grp AS g ON ug.id_grp=g.id INNER JOIN rolegrant AS rg ON rg.id_usr=u.id OR rg.id_grp=g.id INNER JOIN role_priv AS rp ON rp.id_role=rg.id_role INNER JOIN priv AS p ON rp.id_priv=p.id";
 
         //---------------------------------------------------------------------------------------------------------------------
 
