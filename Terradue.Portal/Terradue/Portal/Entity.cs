@@ -1081,19 +1081,49 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the users or groups who are authorized to view this entity via role privilege or item-specific permission.</summary>
-        /// <returns>The database IDs of the users or groups with view permission or privilege on this item.</returns>
+        /// <returns>The database IDs of the users or groups with view permission or privilege on this item. If <c>null</c> is returned, the item provides global permissions, i.e. all users are authorized to view the item.</returns>
         /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
         protected int[] GetAuthorizedSubjects(bool forGroups) {
             HashSet<int> ids = new HashSet<int>();
 
+            if (EntityType.HasPermissionManagement) {
+                string sql = String.Format("SELECT NULL FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
+                    Id,
+                    EntityType.PermissionSubjectTable.PermissionTable,
+                    EntityType.PermissionSubjectTable.Name
+                );
+                IDbConnection dbConnection = context.GetDbConnection();
+                IDataReader reader = context.GetQueryResult(sql, dbConnection);
+                bool globalPermission = reader.Read();
+                context.CloseQueryResult(reader);
+                if (!globalPermission) {
+                    sql = String.Format("SELECT {5} FROM {1} AS p{2} WHERE id_{3}={0} AND {4}",
+                        Id,
+                        EntityType.PermissionSubjectTable.PermissionTable,
+                        forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
+                        EntityType.PermissionSubjectTable.Name,
+                        forGroups ? "p.id_grp IS NOT NULL" : "(p.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
+                        forGroups ? "p.id_grp" : "CASE WHEN p.id_usr IS NULL THEN ug.id_usr ELSE p.id_usr END"
+                    );
+                    reader = context.GetQueryResult(sql, dbConnection);
+                    while (reader.Read()) ids.Add(reader.GetInt32(0));
+                    context.CloseQueryResult(reader);
+                }
+                context.CloseDbConnection(dbConnection);
+                if (globalPermission) return null;
+            }
+
             // Get roles that have view access on item's domain (i.e. any other operation than Search)
             int[] roleIds = EntityType.GetRolesForPrivilege(context, EntityOperationType.Search, true);
             if (roleIds != null) {
+                string domainCondition = EntityType.TopTable.HasDomainReference ? "true" : DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("id_domain={0}", DomainId);
                 if (roleIds.Length != 0) {
-                    string sql = String.Format("SELECT DISTINCT {0} FROM rolegrant AS rg{1} WHERE rg.id_role IN ({2})",
-                        forGroups ? "rg.id_grp" : "CASE WHEN rg.id_usr IS NULL THEN ug.id_usr ELSE rg.id_usr END",
+                    string sql = String.Format("SELECT DISTINCT {4} FROM rolegrant AS rg{3} WHERE rg.id_role IN ({0}) AND {1} AND {2} ",
+                        String.Join(",", roleIds),
+                        forGroups ? "rg.id_grp IS NOT NULL" : "(rg.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
+                        domainCondition,
                         forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp",
-                        String.Join(",", roleIds)
+                        forGroups ? "rg.id_grp" : "CASE WHEN rg.id_usr IS NULL THEN ug.id_usr ELSE rg.id_usr END"
                     );
                     IDbConnection dbConnection = context.GetDbConnection();
                     IDataReader reader = context.GetQueryResult(sql, dbConnection);
@@ -1102,20 +1132,6 @@ namespace Terradue.Portal {
                 }
 
             }
-
-            if (EntityType.HasPermissionManagement) {
-                string sql = String.Format("SELECT {3} FROM {1} WHERE id_{2}={0};",
-                    Id,
-                    EntityType.PermissionSubjectTable.PermissionTable,
-                    EntityType.PermissionSubjectTable.Name,
-                    forGroups ? "id_grp" : "id_usr"
-                );
-                IDbConnection dbConnection = context.GetDbConnection();
-                IDataReader reader = context.GetQueryResult(sql, dbConnection);
-                while (reader.Read()) ids.Add(reader.GetInt32(0));
-                context.CloseQueryResult(reader, dbConnection);
-            }
-
 
             int[] result = new int[ids.Count];
             ids.CopyTo(result);
