@@ -580,8 +580,8 @@ namespace Terradue.Portal {
 
             OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
 
-            if (osd.Url [0] != null) {
-                nvc = HttpUtility.ParseQueryString(osd.Url [0].Template);
+            if (osu[0] != null) {
+                nvc = HttpUtility.ParseQueryString(new Uri(osu[0].Template).Query);
             }
 
             return nvc;
