@@ -201,6 +201,17 @@ namespace Terradue.Portal.Test {
                 demSeries.GrantGlobalPermissions();
                 Console.WriteLine("  -> DONE (OK)");
 
+                context.EndImpersonation();
+                context.StartImpersonation(marco.Id);
+                demSeries = Series.FromId(context, demSeries.Id); // reload "demSeries" with Marco's account
+                demSeries.CanDownload = true;
+                Assert.Throws<EntityUnauthorizedException>(delegate { 
+                    demSeries.GrantGlobalPermissions();
+                });
+
+                context.EndImpersonation();
+                context.StartImpersonation(sarah.Id);
+               
                 Console.WriteLine("Sarah (member of RLD TEP group) accesses \"xstSeries\"");
                 xstSeries = Series.FromId(context, xstSeries.Id); // reload "xstSeries" with Sarah's account
                 Console.WriteLine("  -> ACCESSED (OK)");
