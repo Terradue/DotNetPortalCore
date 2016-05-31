@@ -101,6 +101,10 @@ namespace Terradue.Portal {
         private OpenSearchEngine ose;
         private Dictionary<FieldInfo, string> filterValues;
 
+        public EntityType EntityType {
+            get { return entityType; }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets a template object of the collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
@@ -348,6 +352,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public abstract void Clear();
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public abstract T GetItem(int id);
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -696,7 +704,6 @@ namespace Terradue.Portal {
         /// <summary>
         /// Gets the items.
         /// </summary>
-        /// <value>The items.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override IEnumerable<T> Items {
             get { return items; }
@@ -707,7 +714,6 @@ namespace Terradue.Portal {
         /// <summary>
         /// Gets the number of items in the collection.
         /// </summary>
-        /// <value>The count.</value>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override int Count {
             get { return items.Count; }
@@ -740,6 +746,17 @@ namespace Terradue.Portal {
         public override void Clear() {
             items.Clear();
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override T GetItem(int id) {
+            if (id != 0) {
+                foreach (T item in Items) {
+                    if (item.Id == id) return item;
+                }
+            }
+            return CreateItem(null);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -783,54 +800,75 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique string identifier.</summary>
-    /// <remarks>The key type of the dictionary is <i>string</i>. The key value of an item is the identifier of the item (property Entity.Identifier).</remarks>
+    /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique numeric database (or temporary) ID or by their string identifier.</summary>
+    /// <remarks>The key type of the dictionary can be both <i>int</i> or <i>string</i>. The key value of an item is the identifier of the item (property Entity.Identifier).</remarks>
     public class EntityDictionary<T> : EntityCollection<T> where T : Entity {
 
-        private Dictionary<string, T> items;
-        
+        private Dictionary<int, T> itemsById;
+        private Dictionary<string, T> itemsByIdentifier;
+        private int temporaryId = 0;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public T this[int id] {
+            get { return itemsById[id]; }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public T this[string identifier] {
-            get { return items[identifier]; }
+            get {
+                if (!EntityType.TopTable.HasIdentifierField) throw new InvalidOperationException(String.Format("An instance of {0} cannot be addressed by an identifier", EntityType.SingularCaption));
+                return itemsByIdentifier[identifier];
+            }
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public override IEnumerable<T> Items {
-            get { return items.Values; }
+            get { return itemsById.Values; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public override int Count {
-            get { return items.Count; }
+            get { return itemsById.Count; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         public EntityDictionary(IfyContext context) : base(context) {
-            this.items = new Dictionary<string, T>();
+            this.itemsById = new Dictionary<int, T>();
+            this.itemsByIdentifier = new Dictionary<string, T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public EntityDictionary(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
-            this.items = new Dictionary<string, T>();
+            this.itemsById = new Dictionary<int, T>();
+            this.itemsByIdentifier = new Dictionary<string, T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Removes all items from the list.</summary>
         public override void Clear() {
-            items.Clear();
+            itemsById.Clear();
+            itemsByIdentifier.Clear();
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public override T GetItem(int id) {
+            if (id != 0) return itemsById[id];
+            return CreateItem(null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public override T GetItem(string identifier) {
-            if (identifier != null) return items[identifier];
+            if (EntityType.TopTable.HasIdentifierField && identifier != null) return itemsByIdentifier[identifier];
             return CreateItem(identifier);
         }
 
@@ -840,15 +878,38 @@ namespace Terradue.Portal {
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
-            items[item.Identifier] = item;
+            int itemId = (item.Exists ? item.Id : --temporaryId);
+            itemsById[itemId] = item;
+            itemsByIdentifier[item.Identifier] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool ContainsId(int id) {
+            if (id == 0) return false;
+            return itemsById.ContainsKey(id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public bool ContainsIdentifier(string identifier) {
             if (identifier == null) return false;
-            return items.ContainsKey(identifier);
+            return itemsByIdentifier.ContainsKey(identifier);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Updates the internal dictionary for the numeric IDs replacing temporary IDs with actual database IDs for items that have been stored recently.</summary>
+        public void UpdateIndex() {
+            foreach (int key in itemsById.Keys) {
+                if (key > 0) continue;
+                T item = itemsById[key];
+                if (item.Exists) {
+                    itemsById.Remove(key);
+                    itemsById[item.Id] = item;
+                }
+            }
         }
 
     }
@@ -863,6 +924,7 @@ namespace Terradue.Portal {
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their numeric ID.</summary>
     /// <remarks>The key type of the dictionary is <i>int</i>. The key value of an item is the database ID of the item (property Entity.Id).</remarks>
+    [Obsolete("EntityDictionary<T> supports also a numeric indexer for the items' IDs")]
     public class EntityIdDictionary<T> : EntityCollection<T> where T : Entity {
 
         private Dictionary<int, T> items;
@@ -918,7 +980,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public virtual T GetItem(int id) {
+        public override T GetItem(int id) {
             if (id != 0) return items[id];
             return CreateItem(null);
         }
