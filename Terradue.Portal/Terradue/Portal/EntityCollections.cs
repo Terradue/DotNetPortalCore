@@ -107,7 +107,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets a template object of the collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
+        /// <summary>Gets a template object of this collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
         /// <remarks>The template object is created automatically if it is accessed.</remarks>
         public T Template {
             get {
@@ -118,15 +118,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets an IEnumerable of all items contained in this collection.</summary>
         public abstract IEnumerable<T> Items { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the number of items in the collection.</summary>
+        /// <summary>Gets the number of items in this collection.</summary>
         public abstract int Count { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether this collection is currently being loaded.</summary>
+        /// <remarks>This property is used internally for optimization of duplicate checking and similar.</remarks>
         protected bool IsLoading { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -163,7 +166,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the entity list where each item has the correct instance type.</summary>
+        /// <summary>Loads the entity collection so that each item has the correct instance type.</summary>
         /// <remarks>Only entity lists loaded with this method can be stored back into the database.</remarks>
         public virtual void Load() {
             Identifier = entityType.Keyword;
@@ -207,8 +210,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the entity list where items have a generic instance type.</summary>
-        /// <remarks>If the collections's entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
+        /// <summary>Loads the entity collection so that each item have the same generic instance type.</summary>
+        /// <remarks>If this collections's underlying entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
         public virtual void LoadReadOnly() {
             IsReadOnly = true;
             LoadList();
@@ -355,27 +358,21 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public abstract T GetItem(int id);
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public abstract T GetItem(string identifier);
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         public T CreateItem(string identifier) {
             return entityType.GetEntityInstanceFromIdentifier(context, identifier) as T;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns a new instance of the item of the underlying type.
+        /// <returns>The created item.</returns>
         public T CreateItem() {
             return entityType.GetEntityInstance(context) as T;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>Includes an item in the collection.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         public void Include(T item) {
             AlignWithTemplate(item, true);
@@ -384,20 +381,22 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>In a derived class, includes an item in the collection.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected abstract void IncludeInternal(T item);
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns a list of the items contained in this collection.</summary>
         public virtual List<T> GetItemsAsList() {
             return new List<T>(Items);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Sets the template.</summary>
-        /// <param name="item">The item.</param>
+        /// <summary>Aligns the properties of the specified item with the values in the template.</summary>
+        /// <param name="item">The item whose properties are to be aligned with the template.</param>
+        /// <param name="all">Decides whether all properties are aligned or only those that link to other entities.</param>
         protected void AlignWithTemplate(T item, bool all) {
             if (template == null) return;
 
@@ -701,9 +700,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the items.
-        /// </summary>
+        /// <summary>Gets an IEnumerable of all items contained in this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override IEnumerable<T> Items {
             get { return items; }
@@ -711,9 +708,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the number of items in the collection.
-        /// </summary>
+        /// <summary>Gets the number of items in this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override int Count {
             get { return items.Count; }
@@ -721,18 +716,27 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityList instance instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         public EntityList(IfyContext context) : base(context) {
             this.items = new List<T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityList instance instance for items related to another entity item.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entityType">The entity type to which the items of this dictionary refer.</param>
+        /// <param name="referringItem">The referring item to which the items in the dictionary are related (items belonging to an item of another entity type, e.g. resources of a specific resource set). This parameter is ignored if the underlying entity type's base table has no <c>ReferringItemField</c>.</param>
         public EntityList(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
             this.items = new List<T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityDictionary instance instance for items owned by the specified user.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The user who must be the owner of the items in the list.</param>
         public static EntityList<T> ForUser(IfyContext context, int userId) {
             EntityList<T> result = new EntityList<T>(context);
             result.UserId = userId;
@@ -741,7 +745,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Removes all items from the list.</summary>
+        /// <summary>Removes all items from this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override void Clear() {
             items.Clear();
@@ -749,30 +753,8 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(int id) {
-            if (id != 0) {
-                foreach (T item in Items) {
-                    if (item.Id == id) return item;
-                }
-            }
-            return CreateItem(null);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (identifier != null) {
-                foreach (T item in Items) {
-                    if (item.Identifier == identifier) return item;
-                }
-            }
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>Includes an item in this list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected override void IncludeInternal(T item) {
@@ -801,32 +783,41 @@ namespace Terradue.Portal {
     
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique numeric database (or temporary) ID or by their string identifier.</summary>
-    /// <remarks>The key type of the dictionary can be both <i>int</i> or <i>string</i>. The key value of an item is the identifier of the item (property Entity.Identifier).</remarks>
+    /// <remarks>
+    ///     <para>The key type of the dictionary can be both <i>int</i> or <i>string</i>.</para>
+    ///     <para>An <i>int</i> key is an item's database ID that corresponds to the property <see cref="Entity.Id"/> or, if the item does not exist in the database, a temporary negative number.</para>
+    ///     <para>A <i>string</i> key is an item's unique identifier <see cref="Entity.Identifier"/>. Not all entity types support identifiers; in those cases the <i>string</i> index is not usable.</para>
+    /// </remarks>
     public class EntityDictionary<T> : EntityCollection<T> where T : Entity {
 
         private Dictionary<int, T> itemsById;
         private Dictionary<string, T> itemsByIdentifier;
-        private int temporaryId = 0;
+        private int temporaryId = 0; // decreases by 1 with every new added item that is not yet stored in the database
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets an IEnumerable of all items contained in this dictionary.</summary>
+        public override IEnumerable<T> Items {
+            get { return itemsById.Values; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the dictionary item with the specified numeric value.</summary>
+        /// <remarks>The numeric value is the database ID if the item exists or, otherwise, a temporary negative value.</remarks>
         public T this[int id] {
             get { return itemsById[id]; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets the dictionary item with the specified alphanumeric identifier.</summary>
+        /// <remarks>This accessor is only available if the underlying entity type supports identifiers.</remarks>
         public T this[string identifier] {
             get {
                 if (!EntityType.TopTable.HasIdentifierField) throw new InvalidOperationException(String.Format("An instance of {0} cannot be addressed by an identifier", EntityType.SingularCaption));
                 return itemsByIdentifier[identifier];
             }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override IEnumerable<T> Items {
-            get { return itemsById.Values; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -837,6 +828,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityDictionary instance instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         public EntityDictionary(IfyContext context) : base(context) {
             this.itemsById = new Dictionary<int, T>();
             this.itemsByIdentifier = new Dictionary<string, T>();
@@ -844,6 +837,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityDictionary instance instance related to another entity item.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entityType">The entity type to which the items of this dictionary refer.</param>
+        /// <param name="referringItem">The referring item to which the items in the dictionary are related (items belonging to an item of another entity type, e.g. resources of a specific resource set). This parameter is ignored if the underlying entity type's base table has no <c>ReferringItemField</c>.</param>
         public EntityDictionary(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
             this.itemsById = new Dictionary<int, T>();
             this.itemsByIdentifier = new Dictionary<string, T>();
@@ -851,7 +848,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Removes all items from the list.</summary>
+        /// <summary>Removes all items from this dictionary.</summary>
         public override void Clear() {
             itemsById.Clear();
             itemsByIdentifier.Clear();
@@ -859,22 +856,8 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(int id) {
-            if (id != 0) return itemsById[id];
-            return CreateItem(null);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (EntityType.TopTable.HasIdentifierField && identifier != null) return itemsByIdentifier[identifier];
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the dictionary.</summary>
+        /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
             item.IsInCollection = true;
@@ -886,16 +869,27 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool ContainsId(int id) {
-            if (id == 0) return false;
-            return itemsById.ContainsKey(id);
+        /// <summary>Checks whether this dictionary contains an item with the specified numeric key.</summary>
+        /// <returns><c>true</c> if the item was found, <c>false</c> otherwise.</returns>
+        /// <param name="key">The numeric key under which the item can be found in this dictionary. The numeric key is either the item's database ID or a temporary negative value.</param>
+        public bool Contains(int key) {
+            if (key == 0) return false;
+            return itemsById.ContainsKey(key);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Checks whether this dictionary contains an item with the specified alphanumeric key.</summary>
+        /// <returns><c>true</c> if the item was found, <c>false</c> otherwise.</returns>
+        /// <param name="key">The alphanumeric key under which the item can be found in this dictionary.</param>
+        public bool Contains(string key) {
+            if (key == null) return false;
+            return itemsByIdentifier.ContainsKey(key);
+        }
+
+        [Obsolete("Use matching overload of Contains")]
         public bool ContainsIdentifier(string identifier) {
-            if (identifier == null) return false;
-            return itemsByIdentifier.ContainsKey(identifier);
+            return Contains(identifier);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -968,26 +962,8 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (identifier != null) {
-                foreach (T item in Items) {
-                    if (item.Identifier == identifier) return item;
-                }
-            }
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(int id) {
-            if (id != 0) return items[id];
-            return CreateItem(null);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the dictionary.</summary>
+        /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
             T newItem = null;

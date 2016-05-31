@@ -206,9 +206,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        */
         public User(IfyContext context) : base(context) {}
         
         //---------------------------------------------------------------------------------------------------------------------
