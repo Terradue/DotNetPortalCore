@@ -75,7 +75,7 @@ namespace Terradue.Portal.Test {
         }
 
         [Test()]
-        public void Deserialize() {
+        public void DeserializeCapabilities() {
             System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/geohazards-capabilities.xml", System.IO.FileMode.Open);
             XmlSerializer serializer = new XmlSerializer(typeof(WPSCapabilitiesType));
             WPSCapabilitiesType capabilities = (WPSCapabilitiesType)serializer.Deserialize(atom);
@@ -86,9 +86,50 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual("Geohazards Tep", capabilities.ServiceProvider.ProviderName);
             Assert.AreEqual(3, capabilities.OperationsMetadata.Operation.Count);
             Assert.AreEqual(28, capabilities.ProcessOfferings.Process.Count);
-            Assert.AreEqual("2ceb1e69-6ab2-4dab-9f7e-4a594924267c", capabilities.ProcessOfferings.Process[0].Identifier);
-            Assert.AreEqual("ASAR PF", capabilities.ProcessOfferings.Process[0].Title);
-            Assert.AreEqual("The ENVISAT ASAR PF is the ESA operational Level-1 processor developed by MDA. This processor, integrated on the ESA's Grid Processing On Demand , perform on-demand production of L1 products.", capabilities.ProcessOfferings.Process[0].Abstract);
+            Assert.AreEqual("2ceb1e69-6ab2-4dab-9f7e-4a594924267c", capabilities.ProcessOfferings.Process[0].Identifier.Value);
+            Assert.AreEqual("ASAR PF", capabilities.ProcessOfferings.Process[0].Title.Value);
+            Assert.AreEqual("The ENVISAT ASAR PF is the ESA operational Level-1 processor developed by MDA. This processor, integrated on the ESA's Grid Processing On Demand , perform on-demand production of L1 products.", capabilities.ProcessOfferings.Process[0].Abstract.Value);
+
+            var stream = new MemoryStream();
+            System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+            ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
+            ns.Add("ows", "http://www.opengis.net/ows/1.1");
+            ns.Add("xlink", "http://www.w3.org/1999/xlink");
+            serializer.Serialize(stream, capabilities,ns);
+            stream.Seek(0, SeekOrigin.Begin);
+            string capabilitiesText;
+            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            {
+                capabilitiesText = reader.ReadToEnd();
+            }
+            Assert.IsNotNull(capabilitiesText);
+        }
+
+        [Test()]
+        public void DeserializeExecute() {
+            System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/execute.xml", System.IO.FileMode.Open);
+            XmlSerializer serializer = new XmlSerializer(typeof(Execute));
+            Execute execute = (Execute)serializer.Deserialize(atom);
+
+            Assert.AreEqual("b4d3a590-c29c-46db-9b55-7e82cf74ab2e", execute.Identifier.Value);
+            Assert.AreEqual(14, execute.DataInputs.Count);
+            Assert.True(execute.DataInputs[1].Data.Item is BoundingBoxType);
+            Assert.AreEqual("-54.58 35.532",((BoundingBoxType)execute.DataInputs[1].Data.Item).LowerCorner);
+            Assert.AreEqual("-16.875 59.356",((BoundingBoxType)execute.DataInputs[1].Data.Item).UpperCorner);
+
+            var stream = new MemoryStream();
+            System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+            ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
+            ns.Add("ows", "http://www.opengis.net/ows/1.1");
+            ns.Add("xlink", "http://www.w3.org/1999/xlink");
+            serializer.Serialize(stream, execute,ns);
+            stream.Seek(0, SeekOrigin.Begin);
+            string executeText;
+            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            {
+                executeText = reader.ReadToEnd();
+            }
+            Assert.IsNotNull(executeText);
         }
     }
 }
