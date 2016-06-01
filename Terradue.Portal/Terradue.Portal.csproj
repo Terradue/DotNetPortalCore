@@ -66,7 +66,7 @@
       <HintPath>..\packages\NuGet4Mono.Extensions.0.3.0\lib\net40\NuGet4Mono.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.11.15\lib\net40\Terradue.OpenSearch.dll</HintPath>
+      <HintPath>..\packages\Terradue.OpenSearch.1.12.1\lib\net40\Terradue.OpenSearch.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -146,7 +146,7 @@
     <Compile Include="Terradue\Portal\Privilege.cs" />
     <Compile Include="Terradue\Portal\UserUsage.cs" />
     <Compile Include="Terradue\Portal\OpenSearch\SmartGenericOpenSearchable.cs" />
-    <Compile Include="Terradue\Portal\_Documentation.cs" />
+    <Compile Include="Terradue\Portal\generated\WpsNamespaces.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
