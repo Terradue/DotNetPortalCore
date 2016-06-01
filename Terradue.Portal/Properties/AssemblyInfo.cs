@@ -34,7 +34,7 @@ using NuGet4Mono.Extensions;
 [assembly: AssemblyLicenseUrl("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("2.6.43")]
-[assembly: AssemblyInformationalVersion("2.6.43")]
+[assembly: AssemblyVersion("2.6.53")]
+[assembly: AssemblyInformationalVersion("2.6.53")]
 
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
