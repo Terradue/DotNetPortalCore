@@ -543,7 +543,7 @@ namespace Terradue.Portal {
             EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
             
-            if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", entityType.GetItemTerm(this)), EntityType, this, UserId);
+            if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", entityType.SingularCaption), EntityType, this, UserId);
 
             // Check whether identifier or name already exists
             if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.AutoCheckIdentifiers) {

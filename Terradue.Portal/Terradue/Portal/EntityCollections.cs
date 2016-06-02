@@ -246,7 +246,7 @@ namespace Terradue.Portal {
             IsLoading = true;
             foreach (int id in ids) {
                 if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
-                if (source.Contains(id)) {
+                if (!source.Contains(id)) {
                     if (ignoreMissingItems) continue;
                     throw new EntityNotFoundException("{0} not found in source collection", EntityType, EntityType.GetItemTerm(id));
                 }
@@ -904,7 +904,7 @@ namespace Terradue.Portal {
             base.IncludeInternal(item);
             int itemId = (item.Exists ? item.Id : --temporaryId);
             itemsById[itemId] = item;
-            itemsByIdentifier[item.Identifier] = item;
+            if (EntityType.TopTable.HasIdentifierField) itemsByIdentifier[item.Identifier] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
         

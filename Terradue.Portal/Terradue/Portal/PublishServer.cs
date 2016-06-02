@@ -216,6 +216,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public override void Store() {
+            if (Name == null) Name = Identifier;
             base.Store();
             string credentials = (Username == null ? String.Empty : HttpUtility.UrlEncode(Username) + (Password == null ? String.Empty : ":" + HttpUtility.UrlEncode(Password)) + "@");
             UploadUrl = String.Format("{0}://{1}{2}{3}{4}",
