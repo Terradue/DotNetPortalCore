@@ -14,6 +14,7 @@ using MySql.Data.MySqlClient;
 using Terradue.OpenSearch;
 using Terradue.OpenSearch.Engine;
 using Terradue.OpenSearch.Engine.Extensions;
+using Terradue.OpenSearch.Filters;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
@@ -28,7 +29,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Filters;
 
 
 
@@ -123,6 +123,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the <see cref="EntityDictionary"/> that is used as an alternative source for the content reusing existing item instances.</summary>
+        protected EntityDictionary<T> ItemSource { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Gets the number of items in this collection.</summary>
         public abstract int Count { get; }
 
@@ -196,11 +201,9 @@ namespace Terradue.Portal {
                 if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
                 item.UserId = UserId;
-                item.Collection = this;
                 item.UserId = UserId;
                 item.Load(id);
                 IncludeInternal(item);
-                if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
             }
             IsLoading = false;
             if (template != null) foreach (T item in this) AlignWithTemplate(item, false);
@@ -210,11 +213,46 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the entity collection so that each item have the same generic instance type.</summary>
+        /// <summary>Loads the items of the entity collection so that each item has the same instance type, the base type or a generic type.</summary>
         /// <remarks>If this collections's underlying entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
         public virtual void LoadReadOnly() {
             IsReadOnly = true;
             LoadList();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Loads the items of the entity collection from another collection rather than from the database.</summary>
+        /// <param name="source">The source collection from which the items are obtained.</param>
+        /// <param name="ignoreMissingItems">Decides whether items that should be contained in the resulting collection but are missing in the source collection are ignored or whether an exception is thrown.</param>
+        public void LoadFromSource(EntityDictionary<T> source, bool ignoreMissingItems) {
+            this.IsReadOnly = true;
+            this.ItemSource = source;
+
+            string sql;
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, true);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true);
+            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+
+            List<int> ids = new List<int>();
+
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IsLoading = true;
+            while (reader.Read()) ids.Add(reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
+
+            IsLoading = true;
+            foreach (int id in ids) {
+                if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
+                if (source.Contains(id)) {
+                    if (ignoreMissingItems) continue;
+                    throw new EntityNotFoundException("{0} not found in source collection", EntityType, EntityType.GetItemTerm(id));
+                }
+                IncludeInternal(source[id]);
+            }
+            IsLoading = false;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -234,7 +272,6 @@ namespace Terradue.Portal {
             IsLoading = true;
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Collection = this;
                 item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
@@ -256,7 +293,6 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Collection = this;
                 item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
@@ -291,7 +327,7 @@ namespace Terradue.Portal {
         /// <remarks></remearks>
         protected virtual void StoreList(bool removeOthers, bool onlyNewItems) {
 
-            if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity list");
+            if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity collection");
 
             bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
@@ -381,9 +417,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, includes an item in the collection.</summary>
+        /// <summary>Includes an item in the collection according to the of internal mechanism the derived class.</summary>
         /// <parameter name="item">The item to be included.</parameter>
-        protected abstract void IncludeInternal(T item);
+        protected virtual void IncludeInternal(T item) {
+            if (!IsReadOnly && item.Collection == null) {
+                item.Collection = this;
+                item.IsInCollection = true;
+            }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -758,6 +799,7 @@ namespace Terradue.Portal {
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected override void IncludeInternal(T item) {
+            base.IncludeInternal(item);
             T newItem = null;
             if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
@@ -765,7 +807,6 @@ namespace Terradue.Portal {
                 }
             }
             if (newItem != null) items.Remove(newItem);
-            item.IsInCollection = true;
             items.Add(item);
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
@@ -860,7 +901,7 @@ namespace Terradue.Portal {
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
-            item.IsInCollection = true;
+            base.IncludeInternal(item);
             int itemId = (item.Exists ? item.Id : --temporaryId);
             itemsById[itemId] = item;
             itemsByIdentifier[item.Identifier] = item;
@@ -966,6 +1007,7 @@ namespace Terradue.Portal {
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
+            base.IncludeInternal(item);
             T newItem = null;
             if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
@@ -973,7 +1015,6 @@ namespace Terradue.Portal {
                 }
             }
             if (newItem != null) items.Remove(newItem.Id);
-            item.IsInCollection = true;
             items[item.Id] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }

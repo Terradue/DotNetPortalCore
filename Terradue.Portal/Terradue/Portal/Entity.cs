@@ -391,7 +391,7 @@ namespace Terradue.Portal {
 
             if (!reader.Read()) {
                 context.CloseQueryResult(reader, dbConnection);
-                string itemTerm = GetItemTerm();
+                string itemTerm = EntityType.GetItemTerm(this);
                 throw new EntityNotFoundException(String.Format("{0} not found", itemTerm), entityType, itemTerm);
             }
 
@@ -404,7 +404,7 @@ namespace Terradue.Portal {
             if (!authorized) {
                 string message = String.Format("{0} is not authorized to use {1} ({2})",
                     UserId == 0 ? "Unauthenticated user" : UserId == context.UserId ? String.Format("User \"{0}\"", context.Username) : String.Format("User [{0}]", UserId),
-                    GetItemTerm(),
+                    entityType.GetItemTerm(this),
                     context.AccessLevel == EntityAccessLevel.Permission ? "no permission" : "no permission or grant"
                 );
 
@@ -543,7 +543,7 @@ namespace Terradue.Portal {
             EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             bool hasAutoStoreFields = false;
             
-            if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", GetItemTerm()), EntityType, this, UserId);
+            if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", entityType.GetItemTerm(this)), EntityType, this, UserId);
 
             // Check whether identifier or name already exists
             if (entityType.TopTable == entityType.TopStoreTable && entityType.TopTable.HasIdentifierField && entityType.AutoCheckIdentifiers) {
@@ -943,7 +943,7 @@ namespace Terradue.Portal {
         /// <param name="multipleIds">An array of database IDs of multiple users or groups, used alternatively with singleId.</param>
         /// <param name="removeOthers">Determines whether permission settings at user and group level are removed.</param>
         protected void GrantPermissions(bool forGroup, int singleId, IEnumerable<int> multipleIds, bool removeOthers) {
-            if (!CanManage) throw new EntityUnauthorizedException(String.Format("Not authorized to change permissions on {0}", GetItemTerm()), EntityType, this, UserId);
+            if (!CanManage) throw new EntityUnauthorizedException(String.Format("Not authorized to change permissions on {0}", EntityType.GetItemTerm(this)), EntityType, this, UserId);
 
             EntityType entityType = this.EntityType;
             int permissionSubjectTableIndex = -1;
@@ -1181,7 +1181,7 @@ namespace Terradue.Portal {
         public virtual void Delete() {
             if (!Exists) throw new InvalidOperationException("Cannot delete, no item loaded");
 
-            if (!CanDelete) throw new EntityUnauthorizedException(String.Format("Not authorized to delete {0}", GetItemTerm()), EntityType, this, UserId);
+            if (!CanDelete) throw new EntityUnauthorizedException(String.Format("Not authorized to delete {0}", EntityType.GetItemTerm(this)), EntityType, this, UserId);
 
             //activity
             Activity activity = new Activity(context, this, EntityOperationType.Delete);
@@ -1284,20 +1284,6 @@ namespace Terradue.Portal {
 
         [Obsolete("Use Can* properties directly")]
         public virtual void GetAllowedAdministratorOperations() {
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
-        public string GetItemTerm() {
-            EntityType entityType = this.EntityType;
-            bool useIdentifier = entityType.TopTable.HasIdentifierField && Identifier != null;
-            return String.Format("{0} {2}{1}{3}",
-                entityType.SingularCaption == null ? entityType.ClassType.Name : entityType.SingularCaption,
-                entityType.TopTable.HasIdentifierField ? Identifier : Id.ToString(),
-                useIdentifier ? "\"" : "[",
-                useIdentifier ? "\"" : "]"
-            );
         }
 
     }

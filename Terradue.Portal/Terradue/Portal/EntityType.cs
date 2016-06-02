@@ -750,7 +750,7 @@ namespace Terradue.Portal {
 
                     // If list is empty, the view (or similar) privilege is defined, but there is no role that includes that privilege
                     // Therefore, the item cannot be loaded (by nobody except an administrator).
-                    if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : item.GetItemTerm()), this, null, userId);
+                    if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : GetItemTerm(item)), this, null, userId);
 
                     // Get the list of domains for which the user has the view privilege on items of the entity type
                     // The domain restriction check needs to be performed only if the privilege is defined (otherwise everybody has the privilege)
@@ -1151,6 +1151,30 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the item.</param>
         public void DeleteItem(IfyContext context, string identifier) {
             context.Execute(String.Format("DELETE FROM {1} WHERE {2}={0};", StringUtils.EscapeSql(identifier), TopTable.Name, TopTable.IdentifierField));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="item">The item for which the term is to be created.</param>
+        public string GetItemTerm(Entity item) {
+            return TopTable.HasIdentifierField && item.Identifier != null ? GetItemTerm(item.Identifier) : GetItemTerm(item.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="id">The item's database ID.</param>
+        public string GetItemTerm(int id) {
+            return String.Format("{0} [{1}]", SingularCaption == null ? ClassType.Name : SingularCaption, id.ToString());
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="identifier">The item's unique identifier.</param>
+        public string GetItemTerm(string identifier) {
+            return String.Format("{0} \"{1}\"", SingularCaption == null ? ClassType.Name : SingularCaption, identifier);
         }
 
         //---------------------------------------------------------------------------------------------------------------------

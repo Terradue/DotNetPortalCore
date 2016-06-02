@@ -301,6 +301,7 @@ namespace Terradue.Portal {
     public class RemoteResourceEntityCollection : EntityList<RemoteResource> {
 
         protected override void IncludeInternal(RemoteResource item) {
+            base.IncludeInternal(item);
             if (!IsLoading && item.Location == null) throw new InvalidOperationException("The location of a remote resource cannot be null");
             RemoteResource newItem = null;
             if (!IsLoading && !AllowDuplicates) {
