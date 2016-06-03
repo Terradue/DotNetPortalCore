@@ -1878,7 +1878,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected FieldInfo(PropertyInfo @property, int tableIndex, string fieldName) {
+        public FieldInfo(PropertyInfo @property, int tableIndex, string fieldName) {
             this.Property = @property;
             this.TableIndex = tableIndex;
             this.FieldName = fieldName;

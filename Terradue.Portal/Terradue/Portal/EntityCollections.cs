@@ -470,8 +470,17 @@ namespace Terradue.Portal {
         /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
         public void SetFilter(string propertyName, string searchTerm) {
-            FieldInfo field = entityType.GetField(propertyName);
-            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassName, propertyName));
+            FieldInfo field = null;
+            if (propertyName == "Id") {
+                field = new FieldInfo(entityType.ClassType.GetProperty("Id"), 0, entityType.TopTable.IdField);
+            } else if (propertyName == "Identifier") {
+                if (entityType.TopTable.HasIdentifierField) field = new FieldInfo(entityType.ClassType.GetProperty("Identifier"), 0, entityType.TopTable.IdentifierField);
+            } else if (propertyName == "Name") {
+                if (entityType.TopTable.HasNameField) field = new FieldInfo(entityType.ClassType.GetProperty("Name"), 0, entityType.TopTable.NameField);
+            } else {
+                field = entityType.GetField(propertyName);
+            }
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
             SetFilter(field, searchTerm);
         }
 
@@ -482,7 +491,7 @@ namespace Terradue.Portal {
         /// <param name="searchTerm">The filter search string according to the property type.</param>
         public void SetFilter(FieldInfo field, string searchTerm) {
             if (field == null) throw new ArgumentNullException("No filtering field specified");
-            if (!entityType.Fields.Contains(field)) throw new InvalidOperationException("Invalid filtering field specified");
+            if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
             if (filterValues == null) filterValues = new Dictionary<FieldInfo, string>();
             filterValues[field] = searchTerm;
         }
