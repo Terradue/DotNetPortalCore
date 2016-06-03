@@ -76,18 +76,18 @@ namespace Terradue.Portal.Test {
             p2.Hostname = "anothertest.org";
             p2.Port = 123;
             p2.Store();
-            PublishServer p3 = new PublishServer(context);
-            p3.Name = "pf3";
-            p3.Protocol = "ftp";
-            p3.Hostname = "experiment.org";
-            p3.Port = 234;
-            p3.Store();
-            PublishServer p4 = new PublishServer(context);
-            p4.Name = "pf4";
-            p4.Protocol = "ftp";
-            p4.Hostname = "try.org";
-            p4.Port = 345;
-            p4.Store();
+            PublishServer p3a = new PublishServer(context);
+            p3a.Name = "pf3a";
+            p3a.Protocol = "ftp";
+            p3a.Hostname = "experiment.org";
+            p3a.Port = 234;
+            p3a.Store();
+            PublishServer p3b = new PublishServer(context);
+            p3b.Name = "pf3b";
+            p3b.Protocol = "ftp";
+            p3b.Hostname = "try.org";
+            p3b.Port = 345;
+            p3b.Store();
             context.EndImpersonation();
 
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
@@ -107,14 +107,19 @@ namespace Terradue.Portal.Test {
             pd3.SetFilter("Port", "[234");
             pd3.Load();
             Assert.IsTrue(pd3.Count == 2);
-            Assert.IsTrue(pd3.Contains(p3.Id) && pd3.Contains(p4.Id));
+            Assert.IsTrue(pd3.Contains(p3a.Id) && pd3.Contains(p3b.Id));
 
             EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
             pd4.SetFilter("Port", "]100,300[");
             pd4.Load();
             Assert.IsTrue(pd4.Count == 2);
-            Assert.IsTrue(pd4.Contains(p2.Id) && pd4.Contains(p3.Id));
+            Assert.IsTrue(pd4.Contains(p2.Id) && pd4.Contains(p3a.Id));
 
+            EntityDictionary<PublishServer> pd5 = new EntityDictionary<PublishServer>(context);
+            pd5.SetFilter("Name", "pf3*");
+            pd5.Load();
+            Assert.IsTrue(pd5.Count == 2);
+            Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
         }
     }
 
