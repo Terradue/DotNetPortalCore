@@ -4,7 +4,7 @@
 @{
     Terradue.Portal Software Package
 
-    \xrefitem sw_version "Versions" "Software Package Version" 2.6.42
+    \xrefitem sw_version "Versions" "Software Package Version" 2.6.55
 
     \xrefitem sw_link "Links" "Software Package List" [Terradue.Portal](https://git.terradue.com/sugar/terradue-portal)
 
@@ -34,7 +34,7 @@ using NuGet4Mono.Extensions;
 [assembly: AssemblyLicenseUrl("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("2.6.54")]
-[assembly: AssemblyInformationalVersion("2.6.54")]
+[assembly: AssemblyVersion("2.6.55")]
+[assembly: AssemblyInformationalVersion("2.6.55")]
 
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
