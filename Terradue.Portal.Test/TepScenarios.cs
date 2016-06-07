@@ -165,7 +165,6 @@ namespace Terradue.Portal.Test {
                     xstSeries.GrantPermissionsToGroups(new Group[] {rldGroup});
 
                     Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
-                    Console.WriteLine("CP: {0}", cloudProvider.EntityType.Id);
                     cloudProvider.Identifier = "cloud-provider";
                     cloudProvider.Name = "Cloud Provider";
                     cloudProvider.Store();
@@ -175,6 +174,7 @@ namespace Terradue.Portal.Test {
                     laboratory.Identifier = "laboratory";
                     laboratory.Name = "Laboratory";
                     laboratory.Store();
+                    context.AccessLevel = EntityAccessLevel.Permission;
 
                 } else {
 
