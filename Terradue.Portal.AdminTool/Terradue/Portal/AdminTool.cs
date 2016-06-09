@@ -460,8 +460,8 @@ namespace Terradue.Portal {
                 LastFailurePhase = reader.GetInt32(0);
                 LastFailureInService = reader.GetValue(1) != DBNull.Value && reader.GetBoolean(1);
                 LastFailureItemIdentifier = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(2);
-                LastFailureItemVersion = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(3);
-                LastFailureItemCheckpoint = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(4);
+                LastFailureItemVersion = reader.GetValue(3) == DBNull.Value ? null : reader.GetString(3);
+                LastFailureItemCheckpoint = reader.GetValue(4) == DBNull.Value ? null : reader.GetString(4);
             }
             reader.Close();
         }
