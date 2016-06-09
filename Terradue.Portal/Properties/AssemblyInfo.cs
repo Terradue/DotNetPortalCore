@@ -2,13 +2,13 @@
 
 \namespace Terradue.Portal
 @{
-    Terradue.Portal Software Package
+    Terradue.Portal is a low level library that provides with the core entities and interfaces for a CMS
 
     \xrefitem sw_version "Versions" "Software Package Version" 2.6.55
 
     \xrefitem sw_link "Links" "Software Package List" [Terradue.Portal](https://git.terradue.com/sugar/terradue-portal)
 
-    \xrefitem sw_license "License" "Software License" [incubating](https://git.terradue.com/sugar/terradue-portal)
+    \xrefitem sw_license "License" "Software License" [AGPL](https://git.terradue.com/sugar/terradue-portal/LICENSE)
 
     \xrefitem sw_req "Require" "Software Dependencies" \ref Terradue.OpenSearch
 
@@ -34,7 +34,7 @@ using NuGet4Mono.Extensions;
 [assembly: AssemblyLicenseUrl("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("2.6.55")]
-[assembly: AssemblyInformationalVersion("2.6.55")]
+[assembly: AssemblyVersion("2.6.56")]
+[assembly: AssemblyInformationalVersion("2.6.56")]
 
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
