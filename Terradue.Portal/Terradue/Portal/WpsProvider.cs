@@ -153,7 +153,11 @@ activate WS
 WS -> DB: load job info from request identifier
 WS -> P: call "real" statusLocation url
 WS -> WS: update href in response to put local server url instead of real provider
-WS -> WC: return updated statusLocation response
+WS -> P: GET results
+activate P
+P -> WS: results, results status and results logs
+deactivate P
+WS -> WC: return results, results status and results logs
 deactivate WS
 
 \enduml
