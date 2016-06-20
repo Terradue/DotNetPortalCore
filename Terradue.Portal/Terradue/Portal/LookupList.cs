@@ -118,12 +118,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition { 
-            get { return String.Format("t.name={0}", StringUtils.EscapeSql(Name)); }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         public override void Store() {
             string sql;
             if (Id == 0) {
@@ -169,6 +163,13 @@ namespace Terradue.Portal {
                 context.Execute(sql);
             }
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override string GetIdentifyingConditionSql() { 
+            return String.Format("t.name={0}", StringUtils.EscapeSql(Name));
+        }
+
     }
 }
 

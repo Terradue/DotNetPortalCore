@@ -57,11 +57,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition{
-            get { 
-                if (UserId != 0) return String.Format("t.id_usr={0}",UserId); 
-                return null;
-            }
+        public override string GetIdentifyingConditionSql() {
+            if (UserId != 0) return String.Format("t.id_usr={0}", UserId); 
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

@@ -85,10 +85,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Human-readable name of this entity item item.</summary>
+        /// <summary>Human-readable name of this entity item.</summary>
         /// <remarks>
         ///     The value of this property a short text corresponding to a title or caption of the item, according to the nature of the entity type. It should be of a length that fits without line break in a table cell so that it can be displayed easily in lists.
-        ///     If subclass refer to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
+        ///     If a subclass refers to the human-readable name as something different (e.g. <c>Title</c>, <c>Caption</c>, <c>HumanReadableName</c> or similar), it can be helpful for users of those classes to define such a property as a proxy property for <c>Name></c>, i.e. reading from and writing to <c>Name</c>.
         ///     Not all entity types require human-readable names. If the corresponding <see cref="EntityTableAttribute.NameField"/> of the Entity subclass is unset, the property value is ignored when an item is stored and <c>null</c> when it is loaded.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -153,6 +153,13 @@ namespace Terradue.Portal {
             }
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>If overridden in a derived class, gets a textual representation of this item.</summary>
+        public virtual string TextContent { 
+            get { return null; }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the privileges the user has on this item.</summary>
@@ -282,17 +289,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public virtual string AlternativeIdentifyingCondition { 
+        [Obsolete("Use GetIdentifyingConditionSql")]
+        public virtual string AlternativeIdentifyingCondition {
             get { return null; }
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public virtual string TextContent { 
-            get { return null; }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------        -----------------------------------------
         
         /// <summary>Creates a new Entity instance.</summary>
         /// <param name="context">The execution environment context.</param>
@@ -371,7 +373,7 @@ namespace Terradue.Portal {
             if (Id != 0) condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
             else if (entityType.TopTable.HasIdentifierField && Identifier != null) condition = String.Format("t.{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
             //else if (!entityType.TopTable.HasAutomaticIds) condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
-            else condition = AlternativeIdentifyingCondition;
+            else condition = GetIdentifyingConditionSql();
             if (condition == null) throw new EntityNotAvailableException("No identifying attribute specified for item");
 
             // Do not restrict query (a single item is requested)
@@ -749,6 +751,17 @@ namespace Terradue.Portal {
             if (hasAutoStoreFields) StoreComplexFields(false);
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>If overridden in a derived class, returns an alternative SQL conditional expression to select a single item by attribute values or combinations of attribute values if the main identifying attributes are unset.</summary>
+        /// <remarks>
+        ///     This method is called by <see cref="Load"/> if neither the <see cref="Id"/> nor <see cref="Identifier"/> properties are set. It is expected in that case that there other properties that together form a secondary key have values.
+        ///     This way of selecting entity items should, however, not be used frequently. Selected items by their primary keys or, if supported, unique secondary keys is the preferred way. This is done by FromId and FromIdentifier methods present in many Entity subclasses.</remarks>
+        /// <returns>The SQL conditional expression that can be used to select a single item. Fields of the entity's main table should be qualified with the alias <c>t</c> to avoid ambiguity errors.</returns>
+        public virtual string GetIdentifyingConditionSql() { 
+            return AlternativeIdentifyingCondition; // TODO: property still present for backward compatibilty; remove with a later version (replace with: return null)
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sets the permissions for the user specified in the item's UserId property according to the permission properties.</summary>
@@ -1454,64 +1467,28 @@ namespace Terradue.Portal {
 
     
 
-    /// <summary>Output types</summary>
-    public enum OutputType {
-        
-        /// <summary><b>item list</b> output type</summary>
-        List,
-
-        /// <summary><b>single item</b> output type</summary>
-        Item,
-
-        /// <summary><b>composite item</b>, a special case of the <b>single item</b> output type</summary>
-        Composite
-    }
-
-    
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-    
-
-    /// <summary>Generic operation types for entities</summary>
+    /// <summary>Generic operation types for entities.</summary>
     public enum OperationType {
-        /// <summary>View the item list</summary>
+        /// <summary>View the item list.</summary>
         ViewList,
 
-        /// <summary>View a single item</summary>
+        /// <summary>View a single item.</summary>
         ViewItem,
 
-        /// <summary>Define a new item</summary>
+        /// <summary>Define a new item.</summary>
         Define,
 
-        /// <summary>Create a new item</summary>
+        /// <summary>Create a new item.</summary>
         Create,
 
-        /// <summary>Modify an existing item</summary>
+        /// <summary>Modify an existing item.</summary>
         Modify,
 
-        /// <summary>Define an existing item</summary>
+        /// <summary>Delete an existing item.</summary>
         Delete,
 
-        /// <summary>Other operation</summary>
+        /// <summary>Other operation.</summary>
         Other
-    }
-
-    
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-    
-
-    public enum ViewingState {
-        Unknown,
-        ShowingList,
-        DefiningItem,
-        ShowingItem
     }
 
 }

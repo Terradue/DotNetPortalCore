@@ -602,15 +602,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition {
-            get {
-                if (Task == null) return null;
-                return String.Format("t.id_task={0} AND t.name={1}", Task.Id, StringUtils.EscapeSql(Name));
-            }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         /// <summary>Loads the job information from the database.</summary>
         /*!
         /// <param name="condition">SQL conditional expression without WHERE keyword</param>
@@ -643,6 +634,13 @@ namespace Terradue.Portal {
             Exists = true;
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override string GetIdentifyingConditionSql() {
+            if (Task == null) return null;
+            return String.Format("t.id_task={0} AND t.name={1}", Task.Id, StringUtils.EscapeSql(Name));
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public static string GetSqlQuery(string condition, string sorting) {
