@@ -329,11 +329,11 @@ namespace Terradue.Portal {
 
             if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity collection");
 
-            bool isRelationship = (entityType is EntityRelationshipType);
+            //bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
-                else item.Store();
+                /*if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
+                else*/ item.Store();
             }
 
             // TODO: This was done before the storage of the contained items (previous block).
@@ -342,7 +342,7 @@ namespace Terradue.Portal {
             string sql = null;
 
             if (entityType is EntityRelationshipType) {
-                sql = String.Format("{1}={0}", ReferringItem.Id, entityType.TopStoreTable.ReferringItemField);
+                sql = String.Format("{1}={0}", ReferringItem.Id, storeTable.ReferringItemField);
 
             } else {
                 if (removeOthers) {

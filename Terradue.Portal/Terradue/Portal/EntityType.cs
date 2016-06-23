@@ -1532,7 +1532,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public override EntityTableAttribute TopStoreTable {
-            get { return Tables[Tables.Count - 1]; }
+            get { return Tables[TopStoreTableIndex]; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------

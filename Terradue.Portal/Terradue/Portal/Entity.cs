@@ -305,28 +305,9 @@ namespace Terradue.Portal {
                 this.AccessLevel = context.AccessLevel;
                 this.UserId = context.UserId;
                 this.OwnerId = UserId;
-                InitializeRelationships(context);
             }
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public void InitializeRelationships(IfyContext context) {
-            EntityType entityType = this.EntityType;
-            foreach (FieldInfo field in entityType.Fields) {
-                if (field.FieldType == EntityFieldType.RelationshipField) {
-                    ConstructorInfo ci = field.Property.PropertyType.GetConstructor(new Type[] {
-                        typeof(IfyContext),
-                        typeof(EntityType),
-                        typeof(Entity)
-                    });
-                    EntityRelationshipType entityRelationshipType = EntityRelationshipType.GetOrAddEntityRelationshipType(field.Property);
-                    object o = ci.Invoke(new object[] { context, entityRelationshipType, this });
-                    field.Property.SetValue(this, o, null);
-                }
-            }
-        }
-        
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Reads the information of the item with the specified ID from the database.</summary>
@@ -533,7 +514,7 @@ namespace Terradue.Portal {
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void Store() {
-            Store(null, null);
+/*            Store(null, null);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -541,8 +522,9 @@ namespace Terradue.Portal {
         /// <summary>Store the specified entityRelationshipType and referringItem.</summary>
         /// <param name="entityRelationshipType">Entity relationship type.</param>
         /// <param name="referringItem">Referring item.</param>
-        public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {
-            EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
+        public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {*/
+            //EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
+            EntityType entityType = this.EntityType;
             bool hasAutoStoreFields = false;
             
             if (!CanStore) throw new EntityUnauthorizedException(String.Format("Not authorized to {0} {1}", Exists ? "change" : "create", entityType.SingularCaption), EntityType, this, UserId);
@@ -572,7 +554,8 @@ namespace Terradue.Portal {
             
             // Do the INSERT if the item does not yet exist (1), or an UPDATE if it exists (2)
             // Note: the domain is only stored when the item is created
-            if (!Exists || entityRelationshipType != null && referringItem != null) { // (1) - INSERT
+            //if (!Exists || entityRelationshipType != null && referringItem != null) { // (1) - INSERT
+            if (!Exists) { // (1) - INSERT
                 for (int i = entityType.TopStoreTableIndex; i < entityType.Tables.Count; i++) {
                     string names = null;
                     string values = null;
@@ -679,10 +662,10 @@ namespace Terradue.Portal {
                         values += value;
                     }
 
-                    if (entityRelationshipType != null && referringItem != null && i == entityRelationshipType.TopStoreTableIndex) {
+/*                    if (entityRelationshipType != null && referringItem != null && i == entityRelationshipType.TopStoreTableIndex) {
                         names = String.Format("{0}, {1}", entityRelationshipType.TopStoreTable.ReferringItemField, names);
                         values = String.Format("{0}, {1}", referringItem.Id, values);
-                    }
+                    }*/
 
                     string sql = String.Format("INSERT INTO {0} ({1}) VALUES ({2});", entityType.Tables[i].Name, names, values);
                     if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);

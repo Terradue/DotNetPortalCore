@@ -324,6 +324,7 @@ namespace Terradue.Portal {
     /// <summary>Attribute that allows to link a referenced table to the entity's main table or a subtable.</summary>
     /// <remarks>This attribute is used in combination with the EntityForeignFieldAttribute attributes at property level.</remarks>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+    [Obsolete("No longer supported")]
     public class EntityExtensionTableAttribute : EntityForeignTableAttribute {
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -354,6 +355,7 @@ namespace Terradue.Portal {
     /// \ingroup Persistence
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [AttributeUsage(AttributeTargets.Property, Inherited = false)]
+    [Obsolete("No longer supported")]
     public class EntityRelationshipAttribute : System.Attribute {
 
         public string Name { get; set; }
