@@ -4,10 +4,11 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 namespace Terradue.Portal.Test {
+    
     public class BaseTest : AdminTool {
 
         protected IfyContext context;
-        string connectionString;
+        private string connectionString;
 
         public static string GetConnectionString(string databaseName) {
             StreamReader sr = new StreamReader(Directory.GetCurrentDirectory() + "/../../db-conn.txt");
@@ -35,8 +36,6 @@ namespace Terradue.Portal.Test {
                 Console.Error.WriteLine(e.Message);
                 throw;
             }
-
-
         }
 
         [TestFixtureTearDown]

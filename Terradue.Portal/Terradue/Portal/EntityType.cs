@@ -506,6 +506,8 @@ namespace Terradue.Portal {
             EntityType baseEntityType = GetEntityType(type.BaseType);
             if (baseEntityType == null) {
                 GetEntityStructure(type.BaseType);
+                TopType = this;
+                TopTypeId = this.Id;
             } else {
                 CopyFrom(baseEntityType);
             }
