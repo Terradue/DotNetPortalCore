@@ -102,7 +102,6 @@ namespace Terradue.Portal.Test {
             Assert.IsTrue(pd2.Count == 1);
             Assert.IsTrue(pd2.Contains(p2.Id));
 
-            context.ConsoleDebug = true;
             EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
             pd3.SetFilter("Port", "[234");
             pd3.Load();

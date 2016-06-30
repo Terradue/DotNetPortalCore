@@ -333,15 +333,12 @@ namespace Terradue.Portal.Test {
                 series.UserId = shareReceiver.Id;
                 series.Load("shared-series");
                 Assert.IsTrue(series.AccessLevel == EntityAccessLevel.Permission);
-                context.ConsoleDebug = true;
                 try {
                     series.Load("unshared-series");
                     Assert.IsTrue(false); // force failure (we should never arrive here)
                 } catch (Exception e) {
                     Assert.IsTrue(e is EntityUnauthorizedException);
                 }
-                context.ConsoleDebug = true;
-
 
             } catch (Exception e) {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);

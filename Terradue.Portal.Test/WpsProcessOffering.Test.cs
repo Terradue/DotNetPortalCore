@@ -15,6 +15,7 @@ namespace Terradue.Portal.Test {
         public override void FixtureSetup() {
             base.FixtureSetup();
             context.BaseUrl = "http://localhost:8080/api";
+            context.AccessLevel = EntityAccessLevel.Administrator;
         }
 
         private WpsProvider CreateProvider(string identifier, string name, string url, bool proxy){
@@ -75,7 +76,6 @@ namespace Terradue.Portal.Test {
             WpsProvider provider2 = CreateProvider("test-wps-2","test provider 2", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process2 = CreateProcess(provider2, "com.test.provider.2", "test provider 2");
             process2.Store();
-
             EntityList<WpsProcessOffering> processes = provider.GetWpsProcessOfferings();
             Assert.That(processes.Count == 1);
         }

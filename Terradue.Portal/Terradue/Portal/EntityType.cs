@@ -324,7 +324,7 @@ namespace Terradue.Portal {
             foreach (FieldInfo field in source.Fields) Fields.Add(field);
             TopType = source.TopType;
             TopTypeId = source.TopTypeId;
-            PersistentTypeId = source.PersistentTypeId;
+            if (PersistentTypeId == 0) PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;
             TopTable = source.TopTable;
             PermissionSubjectTable = source.PermissionSubjectTable;
@@ -1123,8 +1123,8 @@ namespace Terradue.Portal {
         public Entity GetEntityInstance(IfyContext context) {
             System.Reflection.ConstructorInfo constructorInfo = null;
             if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});
+            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
             if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && ClassType != null) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
             if (constructorInfo == null) throw new NullReferenceException(String.Format("No suitable constructor found for {0}", ClassType.FullName));
             return (Entity)constructorInfo.Invoke(new object[]{context});
         }
