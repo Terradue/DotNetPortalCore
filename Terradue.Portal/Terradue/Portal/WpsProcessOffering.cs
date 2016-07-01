@@ -152,7 +152,7 @@ namespace Terradue.Portal {
             return describeProcess;
         }
 
-        public object Execute(Execute executeInput){
+        public HttpWebRequest PrepareExecuteRequest(Execute executeInput){
             //build "real" execute url
             var uriExec = new UriBuilder(Provider.BaseUrl);
             uriExec.Query = "";
@@ -190,41 +190,61 @@ namespace Terradue.Portal {
                 writer.Close();
             }
 
+            using(StringWriter textWriter = new StringWriter())
+            {
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
+                var xmlinput = textWriter.ToString();
+                log.Debug("Execute request : " + xmlinput);
+            }
+
+            return executeHttpRequest;
+        }
+
+        private ExceptionReport ExecuteError(Stream stream){
+            stream.Seek(0, SeekOrigin.Begin);
+            try {
+                return (ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(ExceptionReport)).Deserialize(stream);
+            } catch (Exception e) {
+                using (StreamReader reader = new StreamReader(stream)) {
+                    string errormsg = reader.ReadToEnd();
+                    log.Error(errormsg);
+                    throw new Exception(errormsg);
+                }
+            }
+        }
+
+        public object Execute(Execute executeInput){
+            
+            var executeHttpRequest = PrepareExecuteRequest(executeInput);        
+
             OpenGis.Wps.ExecuteResponse execResponse = null;
             OpenGis.Wps.ExceptionReport exceptionReport = null;
+            HttpWebResponse executeResponse = null;
             MemoryStream memStream = new MemoryStream();
             try {
-                //call the "real" execute url
-                var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
+                executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
                 executeResponse.GetResponseStream().CopyTo(memStream);
-                memStream.Seek(0, SeekOrigin.Begin);
 
                 if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                    using (StreamReader reader = new StreamReader(memStream)) {
-                        string errormsg = reader.ReadToEnd();
-                        log.Error(errormsg);
-                        throw new Exception(errormsg);//TODO
-                    }
+                    log.Debug("Execute response code : " + executeResponse.StatusCode);
+                    return ExecuteError(memStream);
                 }
-                executeResponse.GetResponseStream().CopyTo(memStream);
+
                 memStream.Seek(0, SeekOrigin.Begin);
-                execResponse = (OpenGis.Wps.ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Deserialize(memStream);
+                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
                 return execResponse;
+            } catch (WebException we){
+                using (WebResponse response = we.Response){
+                    HttpWebResponse httpResponse = (HttpWebResponse) response;
+                    httpResponse.GetResponseStream().CopyTo(memStream);
+                    log.Debug("Execute response code : " + httpResponse.StatusCode);
+                    return ExecuteError(memStream);
+                }
             } catch (InvalidOperationException ioe) {
                 //bug 52 NORTH - to be removed once AIR updated
-                memStream.Seek(0, SeekOrigin.Begin);
-                try {
-                    exceptionReport = (OpenGis.Wps.ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExceptionReport)).Deserialize(memStream);
-                    return exceptionReport;
-                } catch (Exception e) {
-                    memStream.Seek(0, SeekOrigin.Begin);
-                    using (StreamReader reader = new StreamReader(memStream)) {
-                        string errormsg = reader.ReadToEnd();
-                        log.Error(errormsg);
-                        throw new Exception(errormsg);//TODO
-                    }
-                }
+                return ExecuteError(memStream);
             } catch (Exception e) {
+                log.Error("Execute request failed");
                 throw e;
             }
         }
