@@ -1612,6 +1612,7 @@ CREATE TABLE wpsprovider (
     id int unsigned NOT NULL,
     url varchar(100) COMMENT 'Base WPS access point',
     proxy boolean NOT NULL DEFAULT false COMMENT 'If true, wps is proxied',
+    contact varchar(200) COMMENT 'WPS contact point (link or email)',
     CONSTRAINT pk_wpsprovider PRIMARY KEY (id),
     CONSTRAINT fk_wpsprovider_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Web Processing Service (WPS) providers';
@@ -2356,6 +2357,7 @@ CREATE TABLE article (
     time datetime COMMENT 'Publication date/time',
     url varchar(200) COMMENT 'External URL',
     author varchar(100) COMMENT 'Author name',
+    author_img varchar(100) COMMENT 'Author image',
     tags varchar(100) COMMENT 'Descriptive tags',
     id_type int unsigned COMMENT 'FK: Entity type',
     CONSTRAINT pk_article PRIMARY KEY (id)
