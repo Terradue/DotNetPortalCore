@@ -289,6 +289,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the contact url or email.
+        /// </summary>
+        /// <value>The contact.</value>
+        [EntityDataField("contact")]
+        public string Contact { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         protected OpenSearchEngine ose;
 
         public OpenSearchEngine OpenSearchEngine {
@@ -441,7 +450,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreProcessOfferings() {
 
-            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
             foreach (WpsProcessOffering process in processes) {
                 try {
                     process.Store();
@@ -452,7 +461,7 @@ namespace Terradue.Portal {
         }
 
         public void UpdateProcessOfferings() {
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
@@ -555,13 +564,14 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Gets the wps process offerings from URL.
         /// </summary>
         /// <returns>The wps process offerings from URL.</returns>
         /// <param name="baseurl">Baseurl.</param>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl) {
+        /// <param name="updateProviderInfo">If set to <c>true</c> update provider info.</param>
+        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl, bool updateProviderInfo = false) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
@@ -596,6 +606,29 @@ namespace Terradue.Portal {
                     }
                 }
                 wpsProcessList.Add(wpsProcess);
+            }
+
+            if (updateProviderInfo) {
+                if (capabilities.ServiceProvider != null) {
+                    if (capabilities.ServiceProvider.ServiceContact != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress.Count > 0
+                        && !string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0])) {
+                        this.Contact = string.Format("{0}{1}{2}",
+                                                     capabilities.ServiceProvider.ServiceContact.IndividualName,
+                                                     string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.IndividualName) || string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0]) ? "" : " - ",
+                                                     capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0]);
+                        this.Store();
+                    } else {
+                        this.Contact = string.Format("{0}{1}{2}",
+                                                     capabilities.ServiceProvider.ProviderName,
+                                                     string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderName) || string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderSite.href) ? "" : " - ",
+                                                     capabilities.ServiceProvider.ProviderSite.href);
+                        this.Store();
+                    }
+                }
             }
             return wpsProcessList;
         }
