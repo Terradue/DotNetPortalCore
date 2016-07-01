@@ -622,11 +622,13 @@ namespace Terradue.Portal {
                                                      capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0]);
                         this.Store();
                     } else {
-                        this.Contact = string.Format("{0}{1}{2}",
+                        if (capabilities.ServiceProvider.ProviderSite != null) {
+                            this.Contact = string.Format("{0}{1}{2}",
                                                      capabilities.ServiceProvider.ProviderName,
                                                      string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderName) || string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderSite.href) ? "" : " - ",
                                                      capabilities.ServiceProvider.ProviderSite.href);
-                        this.Store();
+                            this.Store();
+                        }
                     }
                 }
             }
