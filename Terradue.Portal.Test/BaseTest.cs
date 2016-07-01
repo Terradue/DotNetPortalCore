@@ -5,33 +5,42 @@ using NUnit.Framework;
 
 namespace Terradue.Portal.Test {
     
-    public class BaseTest : AdminTool {
+    public class BaseTest {
 
         protected IfyContext context;
         private string connectionString;
 
-        public static string GetConnectionString(string databaseName) {
+        protected string DatabaseName { get; set; }
+        protected string BaseDirectory { get; set; }
+
+        public string GetConnectionString() {
             StreamReader sr = new StreamReader(Directory.GetCurrentDirectory() + "/../../db-conn.txt");
             string result = sr.ReadToEnd().Trim();
-            if (databaseName != null) {
-                Match match = Regex.Match(result, "Database=[^;]+");
-                if (match.Success) result = result.Replace(match.Value, "Database=" + databaseName);
-                else result += "; Database=" + databaseName;
-            }
             sr.Close();
+            bool replaceDatabaseName = (DatabaseName != null);
+            Match match = Regex.Match(result, "Database=([^;]+)");
+            if (replaceDatabaseName) {
+                if (match.Success) result = result.Replace(match.Value, "Database=" + DatabaseName);
+                else result += "; Database=" + DatabaseName;
+            } else {
+                if (match.Success) DatabaseName = match.Groups[1].Value;
+                else throw new Exception("No database name specified");
+            }
             return result;
         }
 
         [TestFixtureSetUp]
         public virtual void FixtureSetup() {
-            connectionString = GetConnectionString(null);
+            connectionString = GetConnectionString();
+            if (BaseDirectory == null) BaseDirectory = Directory.GetCurrentDirectory() + "/../..";
 
-            AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
+            AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, BaseDirectory, null, connectionString);
             adminTool.Process();
 
             try {
                 context = IfyContext.GetLocalContext(connectionString, false);
                 context.Open();
+                context.LoadConfiguration();
             } catch (Exception e) {
                 Console.Error.WriteLine(e.Message);
                 throw;
@@ -39,11 +48,10 @@ namespace Terradue.Portal.Test {
         }
 
         [TestFixtureTearDown]
-        public virtual void TestFixtureTearDown() {
+        public virtual void FixtureTearDown() {
+
+            context.Execute(String.Format("DROP DATABASE {0};", DatabaseName));
             context.Close();
-            OpenConnection(connectionString);
-            Execute("DROP DATABASE $MAIN$;");
-            CloseConnection();
         }
     }
 }

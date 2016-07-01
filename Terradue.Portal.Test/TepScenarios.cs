@@ -5,10 +5,9 @@ using NUnit.Framework;
 namespace Terradue.Portal.Test {
 
     [TestFixture]
-    public class TepScenarios {
-        
+    public class TepScenarios : BaseTest {
+
         bool rebuildData = true;
-        IfyContext context;
 
         Domain moveDomain, rldDomain;
         Role clusterProvisionRole, expertRole, contentAuthorityRole, softwareVendorRole, endUserRole, memberRole, dataProviderRole;
@@ -17,20 +16,13 @@ namespace Terradue.Portal.Test {
         User sarah, marco, jean, sofia, emma, rldUser;
         Series demSeries, xstSeries;
 
-        [TestFixtureSetUp]
-        public void CreateEnvironment() {
+        public TepScenarios() {
+            DatabaseName = "scenariodb";
+            BaseDirectory = Directory.GetCurrentDirectory() + "/../extended-db";
         }
 
         [Test]
         public void TepTest() {
-            string connectionString = BaseTest.GetConnectionString("scenariodb");
-            if (rebuildData) {
-                AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../extended-db", null, connectionString);
-                adminTool.Process();
-            }
-            context = new IfyLocalContext(connectionString, false);
-            context.Open();
-
             try {
                 if (rebuildData) {
 
@@ -272,11 +264,6 @@ namespace Terradue.Portal.Test {
                 throw;
             }
                 
-        }
-
-        [TestFixtureTearDown]
-        public void DestroyEnvironment() {
-            context.Close();
         }
 
     }

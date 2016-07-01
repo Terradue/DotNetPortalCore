@@ -5,12 +5,10 @@ using NUnit.Framework;
 namespace Terradue.Portal.Test {
 
     [TestFixture]
-    public class RolePrivilegeTests {
+    public class RolePrivilegeTests : BaseTest {
 
         bool rebuildData = true;
         string connectionString;
-
-        IfyContext context;
 
         Domain domain1, domain2;
         Group group1, group2;
@@ -22,16 +20,8 @@ namespace Terradue.Portal.Test {
         Role seriesShareRole;
         Domain seriesShareDomain;
 
-        [TestFixtureSetUp]
-        public void CreateEnvironment() {
-            connectionString = BaseTest.GetConnectionString(null);
-            if (rebuildData) {
-                AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, Directory.GetCurrentDirectory() + "/../..", null, connectionString);
-                adminTool.Process();
-            }
-            context = new IfyLocalContext(connectionString, false);
-            context.Open();
-
+        [Test]
+        public void _CreateData() {
             try {
                 if (rebuildData) {
 
@@ -344,11 +334,6 @@ namespace Terradue.Portal.Test {
                 Console.WriteLine("{0} - {1}", e.Message, e.StackTrace);
                 throw;
             }
-        }
-
-        [TestFixtureTearDown]
-        public void DestroyEnvironment() {
-            context.Close();
         }
 
     }
