@@ -274,7 +274,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Service instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Service(IfyContext context) : base(context) {
-            this.Available = true;
+            this.Available = false;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
