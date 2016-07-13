@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ns:ExecuteResponse service="WPS" serviceInstance="http://sb-10-16-10-20.dev.terradue.int:8080/wps/WebProcessingService?REQUEST=GetCapabilities&amp;SERVICE=WPS" statusLocation="http://sb-10-16-10-20.dev.terradue.int:8080/wps/RetrieveResultServlet?id=c993a1c1-adc3-40ee-b77e-807d600c34d1" version="1.0.0" xml:lang="en-US" xmlns:ns="http://www.opengis.net/wps/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd">
+	<ns:Process ns:processVersion="1.0.0">
+		<ns1:Identifier xmlns:ns1="http://www.opengis.net/ows/1.1">com.terradue.wps_oozie.process.OozieAbstractAlgorithm</ns1:Identifier>
+		<ns1:Title xmlns:ns1="http://www.opengis.net/ows/1.1">ADORE DORIS interferometric processor</ns1:Title>
+	</ns:Process>
+	<ns:Status creationTime="2016-07-13T10:07:58.027+02:00">
+		<ns:ProcessAccepted>Process Accepted</ns:ProcessAccepted>
+	</ns:Status>
+</ns:ExecuteResponse>

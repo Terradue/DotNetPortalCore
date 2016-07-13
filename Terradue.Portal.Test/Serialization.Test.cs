@@ -106,6 +106,41 @@ namespace Terradue.Portal.Test {
         }
 
         [Test()]
+        public void DeserializeDescribeProcess() {
+            System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/describeprocess.xml", System.IO.FileMode.Open);
+            XmlSerializer serializer = new XmlSerializer(typeof(ProcessDescriptions));
+            ProcessDescriptions describe = (ProcessDescriptions)serializer.Deserialize(atom);
+
+            Assert.AreEqual("com.terradue.wps_oozie.process.OozieAbstractAlgorithm", describe.ProcessDescription[0].Identifier.Value);
+            Assert.AreEqual("SRTM Digital Elevation Model", describe.ProcessDescription[0].Title.Value);
+            Assert.AreEqual(2, describe.ProcessDescription[0].DataInputs.Count);
+            Assert.AreEqual("Level0_ref", describe.ProcessDescription[0].DataInputs[0].Identifier.Value);
+            Assert.AreEqual("string", describe.ProcessDescription[0].DataInputs[0].LiteralData.DataType.Value);
+            Assert.AreEqual("https://data.terradue.com/gs/catalogue/tepqw/gtfeature/search?format=json&uid=ASA_IM__0PNPAM20120407_082248_000001263113_00251_52851_2317.N1", describe.ProcessDescription[0].DataInputs[0].LiteralData.DefaultValue);
+            Assert.AreEqual("format", describe.ProcessDescription[0].DataInputs[1].Identifier.Value);
+            Assert.AreEqual("string", describe.ProcessDescription[0].DataInputs[1].LiteralData.DataType.Value);
+            Assert.AreEqual("gamma", describe.ProcessDescription[0].DataInputs[1].LiteralData.DefaultValue);
+            Assert.AreEqual(2, describe.ProcessDescription[0].ProcessOutputs.Count);
+            Assert.AreEqual("result_distribution", describe.ProcessDescription[0].ProcessOutputs[0].Identifier.Value);
+            Assert.True(describe.ProcessDescription[0].ProcessOutputs[0].Item is SupportedComplexDataType);
+            Assert.AreEqual("result_osd", describe.ProcessDescription[0].ProcessOutputs[1].Identifier.Value);
+
+            var stream = new MemoryStream();
+            System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+            ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
+            ns.Add("ows", "http://www.opengis.net/ows/1.1");
+            ns.Add("xlink", "http://www.w3.org/1999/xlink");
+            serializer.Serialize(stream, describe,ns);
+            stream.Seek(0, SeekOrigin.Begin);
+            string executeText;
+            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            {
+                executeText = reader.ReadToEnd();
+            }
+            Assert.IsNotNull(executeText);
+        }
+
+        [Test()]
         public void DeserializeExecute() {
             System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/execute.xml", System.IO.FileMode.Open);
             XmlSerializer serializer = new XmlSerializer(typeof(Execute));
@@ -118,6 +153,32 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual("-16.875 59.356",((BoundingBoxType)execute.DataInputs[1].Data.Item).UpperCorner);
 
             var stream = new MemoryStream();
+            System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
+            ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
+            ns.Add("ows", "http://www.opengis.net/ows/1.1");
+            ns.Add("xlink", "http://www.w3.org/1999/xlink");
+            serializer.Serialize(stream, execute,ns);
+            stream.Seek(0, SeekOrigin.Begin);
+            string executeText;
+            using (StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            {
+                executeText = reader.ReadToEnd();
+            }
+            Assert.IsNotNull(executeText);
+        }
+
+        [Test()]
+        public void DeserializeExecuteResponse() {
+            System.IO.FileStream atom = new System.IO.FileStream("../../Terradue.Portal/Schemas/examples/executeresponse.xml", System.IO.FileMode.Open);
+            XmlSerializer serializer = new XmlSerializer(typeof(ExecuteResponse));
+            ExecuteResponse execute = (ExecuteResponse)serializer.Deserialize(atom);
+
+            Assert.AreEqual("com.terradue.wps_oozie.process.OozieAbstractAlgorithm", execute.Process.Identifier.Value);
+            Assert.AreEqual("ADORE DORIS interferometric processor", execute.Process.Title.Value);
+            Assert.True(execute.Status.Item is ProcessAcceptedType);
+
+            var stream = new MemoryStream();
+
             System.Xml.Serialization.XmlSerializerNamespaces ns = new System.Xml.Serialization.XmlSerializerNamespaces();
             ns.Add("wps", "http://www.opengis.net/wps/1.0.0");
             ns.Add("ows", "http://www.opengis.net/ows/1.1");

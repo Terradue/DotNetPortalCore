@@ -205,6 +205,7 @@ namespace Terradue.Portal {
             try {
                 return (ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(ExceptionReport)).Deserialize(stream);
             } catch (Exception e) {
+                stream.Seek(0, SeekOrigin.Begin);
                 using (StreamReader reader = new StreamReader(stream)) {
                     string errormsg = reader.ReadToEnd();
                     log.Error(errormsg);
@@ -241,6 +242,7 @@ namespace Terradue.Portal {
                     return ExecuteError(memStream);
                 }
             } catch (InvalidOperationException ioe) {
+                log.Error("InvalidOperationException : " + ioe.Message + " - " + ioe.StackTrace);
                 //bug 52 NORTH - to be removed once AIR updated
                 return ExecuteError(memStream);
             } catch (Exception e) {
