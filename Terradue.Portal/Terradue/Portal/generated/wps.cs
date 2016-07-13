@@ -12130,7 +12130,7 @@ namespace OpenGis.Wps
         [System.Xml.Serialization.XmlElementAttribute("ProcessPaused", typeof(ProcessStartedType))]
         [System.Xml.Serialization.XmlElementAttribute("ProcessStarted", typeof(ProcessStartedType))]
         [System.Xml.Serialization.XmlElementAttribute("ProcessSucceeded", typeof(ProcessSucceededType))]
-        //[System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemElementName")]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemElementName")]
         public object Item
         {
             get
