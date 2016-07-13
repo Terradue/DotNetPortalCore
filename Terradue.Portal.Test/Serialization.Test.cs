@@ -113,14 +113,14 @@ namespace Terradue.Portal.Test {
 
             Assert.AreEqual("com.terradue.wps_oozie.process.OozieAbstractAlgorithm", describe.ProcessDescription[0].Identifier.Value);
             Assert.AreEqual("SRTM Digital Elevation Model", describe.ProcessDescription[0].Title.Value);
-            Assert.AreEqual(2, describe.ProcessDescription[0].DataInputs.Length);
+            Assert.AreEqual(2, describe.ProcessDescription[0].DataInputs.Count);
             Assert.AreEqual("Level0_ref", describe.ProcessDescription[0].DataInputs[0].Identifier.Value);
             Assert.AreEqual("string", describe.ProcessDescription[0].DataInputs[0].LiteralData.DataType.Value);
             Assert.AreEqual("https://data.terradue.com/gs/catalogue/tepqw/gtfeature/search?format=json&uid=ASA_IM__0PNPAM20120407_082248_000001263113_00251_52851_2317.N1", describe.ProcessDescription[0].DataInputs[0].LiteralData.DefaultValue);
             Assert.AreEqual("format", describe.ProcessDescription[0].DataInputs[1].Identifier.Value);
             Assert.AreEqual("string", describe.ProcessDescription[0].DataInputs[1].LiteralData.DataType.Value);
             Assert.AreEqual("gamma", describe.ProcessDescription[0].DataInputs[1].LiteralData.DefaultValue);
-            Assert.AreEqual(2, describe.ProcessDescription[0].ProcessOutputs.Length);
+            Assert.AreEqual(2, describe.ProcessDescription[0].ProcessOutputs.Count);
             Assert.AreEqual("result_distribution", describe.ProcessDescription[0].ProcessOutputs[0].Identifier.Value);
             Assert.True(describe.ProcessDescription[0].ProcessOutputs[0].Item is SupportedComplexDataType);
             Assert.AreEqual("result_osd", describe.ProcessDescription[0].ProcessOutputs[1].Identifier.Value);
