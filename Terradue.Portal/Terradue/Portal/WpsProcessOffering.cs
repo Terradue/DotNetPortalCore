@@ -318,6 +318,7 @@ namespace Terradue.Portal {
                 }
             }
 
+            if (identifier == null) identifier = "";
             string name = (this.Name != null ? this.Name : identifier);
             string description = this.Description;
             string text = (this.TextContent != null ? this.TextContent : "");
