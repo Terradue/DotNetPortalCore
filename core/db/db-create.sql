@@ -531,7 +531,7 @@ INSERT INTO lookuplist (id, system, name) VALUES
 CREATE TABLE lookup (
     id_list smallint unsigned NOT NULL COMMENT 'FK: Lookup list',
     pos smallint unsigned COMMENT 'Position for ordering',
-    caption varchar(50) NOT NULL COMMENT 'Caption for value',
+    caption varchar(70) NOT NULL COMMENT 'Caption for value',
     value text NOT NULL COMMENT 'Value',
     CONSTRAINT fk_lookup_list FOREIGN KEY (id_list) REFERENCES lookuplist(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Values in lookup lists';
@@ -1591,6 +1591,7 @@ CREATE TABLE wpsprovider (
     id int unsigned NOT NULL,
     url varchar(100) COMMENT 'Base WPS access point',
     proxy boolean NOT NULL DEFAULT false COMMENT 'If true, wps is proxied',
+    contact varchar(200) COMMENT 'WPS contact point (link or email)',
     CONSTRAINT pk_wpsprovider PRIMARY KEY (id),
     CONSTRAINT fk_wpsprovider_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Web Processing Service (WPS) providers';
@@ -2338,6 +2339,7 @@ CREATE TABLE article (
     time datetime COMMENT 'Publication date/time',
     url varchar(200) COMMENT 'External URL',
     author varchar(100) COMMENT 'Author name',
+    author_img varchar(100) COMMENT 'Author image',
     tags varchar(100) COMMENT 'Descriptive tags',
     id_type int unsigned COMMENT 'FK: Entity type',
     CONSTRAINT pk_article PRIMARY KEY (id)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NUnit.Framework;
 using System.Linq;
 using Mono.Addins;
@@ -73,10 +73,12 @@ namespace Terradue.Portal.Test {
             WpsProvider provider = CreateProvider("test-wps-1","test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process = CreateProcess(provider, "com.test.provider.1", "test provider 1");
             process.Store();
+            Assert.IsFalse(process.Available);
             WpsProvider provider2 = CreateProvider("test-wps-2","test provider 2", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process2 = CreateProcess(provider2, "com.test.provider.2", "test provider 2");
             process2.Store();
-            EntityList<WpsProcessOffering> processes = provider.GetWpsProcessOfferings();
+            Assert.IsFalse(process2.Available);
+            EntityList<WpsProcessOffering> processes = provider.GetWpsProcessOfferings(false);
             Assert.That(processes.Count == 1);
         }
 

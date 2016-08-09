@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+	<ows:Identifier>b4d3a590-c29c-46db-9b55-7e82cf74ab2e</ows:Identifier>
+	<wps:DataInputs>
+		<wps:Input>
+			<ows:Identifier>files</ows:Identifier>
+			<wps:Reference xlink:href="https://data.terradue.com/gs/catalogue/tepqw/gtfeature/search?format=json&amp;uid=S1A_EW_RAW__0SDV_20150827T082753_20150827T082859_007446_00A424_9C4F" />
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>bbox</ows:Identifier>
+			<wps:Data>
+				<wps:BoundingBoxData dimensions="2">
+					<ows:LowerCorner>-54.58 35.532</ows:LowerCorner>
+					<ows:UpperCorner>-16.875 59.356</ows:UpperCorner>
+				</wps:BoundingBoxData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>latCm</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[45]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>lonCm</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[45]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>proc_type</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[MTA]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>CutRaw</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[false]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>SogliaSpaziale</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[400]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>SogliaTemporale</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[1500]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>SMF</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[80]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>Soglia_doppler</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[1000]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>Soglia_dopp</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[2000]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>filtWeight</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[0.5]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>quanto</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[0.7]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+		<wps:Input>
+			<ows:Identifier>windTemp</ows:Identifier>
+			<wps:Data>
+				<wps:LiteralData><![CDATA[200]]></wps:LiteralData>
+			</wps:Data>
+		</wps:Input>
+	</wps:DataInputs>
+	<wps:ResponseForm>
+		<wps:ResponseDocument storeExecuteResponse="true" status="true">
+			<wps:Output mimeType="application/rdf+xml">
+				<ows:Identifier>ResultDescription</ows:Identifier>
+			</wps:Output>
+		</wps:ResponseDocument>
+	</wps:ResponseForm>
+</wps:Execute>

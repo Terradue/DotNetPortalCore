@@ -87,6 +87,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the article author image.</summary>
+        /// \xrefitem uml "UML" "UML Diagram"
+        [EntityDataField("author_img")]
+        public string AuthorImage{ get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Gets or sets the tags for the article.</summary>
         /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("tags")]

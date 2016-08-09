@@ -153,7 +153,11 @@ activate WS
 WS -> DB: load job info from request identifier
 WS -> P: call "real" statusLocation url
 WS -> WS: update href in response to put local server url instead of real provider
-WS -> WC: return updated statusLocation response
+WS -> P: GET results
+activate P
+P -> WS: results, results status and results logs
+deactivate P
+WS -> WC: return results, results status and results logs
 deactivate WS
 
 \enduml
@@ -282,6 +286,15 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("proxy")]
         public bool Proxy { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets or sets the contact url or email.
+        /// </summary>
+        /// <value>The contact.</value>
+        [EntityDataField("contact")]
+        public string Contact { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -437,7 +450,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreProcessOfferings() {
 
-            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
             foreach (WpsProcessOffering process in processes) {
                 try {
                     process.Store();
@@ -448,7 +461,7 @@ namespace Terradue.Portal {
         }
 
         public void UpdateProcessOfferings() {
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl);
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
@@ -459,6 +472,7 @@ namespace Terradue.Portal {
                         existsPrInDb = true;
                         pDB.Name = pR.Name;
                         pDB.Description = pR.Description;
+                        pDB.Version = pR.Version;
                         pDB.Store();
                         break;
                     }
@@ -492,15 +506,8 @@ namespace Terradue.Portal {
             if (url == null)
                 throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
-            var uriB = new UriBuilder(url);
-            uriB.Query = "service=WPS&request=GetCapabilities";
-
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(uriB.Uri.AbsoluteUri);
-            request.Method = "GET";
-
-            if (url.Contains("gpod.eo.esa.int")) {
-                request.Headers.Add("X-UserID", "tepqwwps");
-            }
+            string query = "Service=WPS&Request=GetCapabilities";
+            HttpWebRequest request = CreateWebRequest(url, query);
 
             WPSCapabilitiesType response = null;
 
@@ -514,24 +521,37 @@ namespace Terradue.Portal {
 
         }
 
+        public static HttpWebRequest CreateWebRequest(string url, string query = null){
+            HttpWebRequest request;
+
+            var uri = new UriBuilder(url);
+            if (!string.IsNullOrEmpty(query)) uri.Query = query;
+            if (!string.IsNullOrEmpty(uri.Query) && uri.Query.StartsWith("?")) uri.Query = uri.Query.Substring(1);
+
+            request = (HttpWebRequest)HttpWebRequest.Create(uri.Uri.AbsoluteUri);
+            request.Method = "GET";
+
+            if (!string.IsNullOrEmpty(uri.UserName) && !string.IsNullOrEmpty(uri.Password)) {
+                request.Credentials = new NetworkCredential(uri.UserName, uri.Password);
+            }
+
+            return request;
+        }
+
         /// <summary>
         /// Gets the WPS describe process from URL.
         /// </summary>
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url) {
+        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url, string query = null) {
 
             if (url == null)
                 throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-            request.Method = "GET";
-            ProcessDescriptions response = null;
+            HttpWebRequest request = CreateWebRequest(url, query);
 
-            if (url.Contains("gpod.eo.esa.int")) {
-                request.Headers.Add("X-UserID", "tepqwwps");
-            }
+            ProcessDescriptions response = null;
 
             try {
                 var httpResponse = (HttpWebResponse)request.GetResponse();
@@ -544,13 +564,14 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Gets the wps process offerings from URL.
         /// </summary>
         /// <returns>The wps process offerings from URL.</returns>
         /// <param name="baseurl">Baseurl.</param>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl) {
+        /// <param name="updateProviderInfo">If set to <c>true</c> update provider info.</param>
+        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl, bool updateProviderInfo = false) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
@@ -578,13 +599,38 @@ namespace Terradue.Portal {
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
-                    var uri = new UriBuilder(this.BaseUrl);
-                    uri.Query = "service=WPS&request=DescribeProcess&version=" + process.processVersion + "&identifier=" + wpsProcess.RemoteIdentifier;
-
-                    ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(uri.Uri.AbsoluteUri);
-                    wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
+                    try{
+                        ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(this.BaseUrl, "Service=WPS&Request=DescribeProcess&Version=" + process.processVersion + "&Identifier=" + wpsProcess.RemoteIdentifier);
+                        wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
+                    }catch(Exception e){
+                    }
                 }
                 wpsProcessList.Add(wpsProcess);
+            }
+
+            if (updateProviderInfo) {
+                if (capabilities.ServiceProvider != null) {
+                    if (capabilities.ServiceProvider.ServiceContact != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress != null
+                        && capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress.Count > 0
+                        && !string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0])) {
+                        this.Contact = string.Format("{0}{1}{2}",
+                                                     capabilities.ServiceProvider.ServiceContact.IndividualName,
+                                                     string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.IndividualName) || string.IsNullOrEmpty(capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0]) ? "" : " - ",
+                                                     capabilities.ServiceProvider.ServiceContact.ContactInfo.Address.ElectronicMailAddress[0]);
+                        this.Store();
+                    } else {
+                        if (capabilities.ServiceProvider.ProviderSite != null) {
+                            this.Contact = string.Format("{0}{1}{2}",
+                                                     capabilities.ServiceProvider.ProviderName,
+                                                     string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderName) || string.IsNullOrEmpty(capabilities.ServiceProvider.ProviderSite.href) ? "" : " - ",
+                                                     capabilities.ServiceProvider.ProviderSite.href);
+                            this.Store();
+                        }
+                    }
+                }
             }
             return wpsProcessList;
         }

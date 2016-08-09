@@ -12130,7 +12130,7 @@ namespace OpenGis.Wps
         [System.Xml.Serialization.XmlElementAttribute("ProcessPaused", typeof(ProcessStartedType))]
         [System.Xml.Serialization.XmlElementAttribute("ProcessStarted", typeof(ProcessStartedType))]
         [System.Xml.Serialization.XmlElementAttribute("ProcessSucceeded", typeof(ProcessSucceededType))]
-        //[System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemElementName")]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemElementName")]
         public object Item
         {
             get
@@ -18001,9 +18001,9 @@ namespace OpenGis.Wps
 
         private List<string> outputFormatField;
 
-        private List<string> items1Field;
+        private string[] items1Field;
 
-        private List<Items1ChoiceType> items1ElementNameField;
+        private Items1ChoiceType[] items1ElementNameField;
 
         private static System.Xml.Serialization.XmlSerializer serializer;
 
@@ -18036,8 +18036,8 @@ namespace OpenGis.Wps
 
         [System.Xml.Serialization.XmlElementAttribute("AvailableCRS", typeof(string), DataType = "anyURI")]
         [System.Xml.Serialization.XmlElementAttribute("SupportedCRS", typeof(string), DataType = "anyURI")]
-        //[System.Xml.Serialization.XmlChoiceIdentifierAttribute("Items1ElementName")]
-        public List<string> Items1
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("Items1ElementName")]
+        public string[] Items1
         {
             get
             {
@@ -18051,7 +18051,7 @@ namespace OpenGis.Wps
 
         [System.Xml.Serialization.XmlElementAttribute("Items1ElementName")]
         [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public List<Items1ChoiceType> Items1ElementName
+        public Items1ChoiceType[] Items1ElementName
         {
             get
             {

@@ -119,24 +119,16 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public object DescribeProcess(){
-            //build describeProcess url
-            var uriDescr = new UriBuilder(Provider.BaseUrl);
-            var query = "service=WPS&request=DescribeProcess";
+
+            var query = "Service=WPS&Request=DescribeProcess";
 
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
-            query += "&identifier=" + identifier;
+            query += "&Identifier=" + identifier;
             
             if (Version != null) 
-                query += "&version=" + Version;
+                query += "&Version=" + Version;
 
-            uriDescr.Query = query;
-
-            HttpWebRequest describeHttpRequest = (HttpWebRequest)WebRequest.Create(uriDescr.Uri.AbsoluteUri);
-
-            //if gpod service, we need to add extra infos to the request
-            if (Provider.BaseUrl.Contains("gpod.eo.esa.int")) {
-                describeHttpRequest.Headers.Add("X-UserID", context.GetConfigValue("GpodWpsUser"));
-            }
+            HttpWebRequest describeHttpRequest = WpsProvider.CreateWebRequest(Provider.BaseUrl, query);
 
             MemoryStream memStream = new MemoryStream();
             //call describe url
@@ -160,7 +152,7 @@ namespace Terradue.Portal {
             return describeProcess;
         }
 
-        public object Execute(Execute executeInput){
+        public HttpWebRequest PrepareExecuteRequest(Execute executeInput){
             //build "real" execute url
             var uriExec = new UriBuilder(Provider.BaseUrl);
             uriExec.Query = "";
@@ -171,8 +163,10 @@ namespace Terradue.Portal {
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
             executeInput.Identifier = new CodeType{ Value = identifier };
 
+            if (!string.IsNullOrEmpty(Version) && !Version.Equals(executeInput.version)) executeInput.version = Version;
+
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
-            HttpWebRequest executeHttpRequest = (HttpWebRequest)WebRequest.Create(uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = WpsProvider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
 
             executeHttpRequest.Method = "POST";
             executeHttpRequest.ContentType = "application/xml";
@@ -196,41 +190,63 @@ namespace Terradue.Portal {
                 writer.Close();
             }
 
+            using(StringWriter textWriter = new StringWriter())
+            {
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
+                var xmlinput = textWriter.ToString();
+                log.Debug("Execute request : " + xmlinput);
+            }
+
+            return executeHttpRequest;
+        }
+
+        private ExceptionReport ExecuteError(Stream stream){
+            stream.Seek(0, SeekOrigin.Begin);
+            try {
+                return (ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(ExceptionReport)).Deserialize(stream);
+            } catch (Exception e) {
+                stream.Seek(0, SeekOrigin.Begin);
+                using (StreamReader reader = new StreamReader(stream)) {
+                    string errormsg = reader.ReadToEnd();
+                    log.Error(errormsg);
+                    throw new Exception(errormsg);
+                }
+            }
+        }
+
+        public object Execute(Execute executeInput){
+            
+            var executeHttpRequest = PrepareExecuteRequest(executeInput);        
+
             OpenGis.Wps.ExecuteResponse execResponse = null;
             OpenGis.Wps.ExceptionReport exceptionReport = null;
+            HttpWebResponse executeResponse = null;
             MemoryStream memStream = new MemoryStream();
             try {
-                //call the "real" execute url
-                var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
+                executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
                 executeResponse.GetResponseStream().CopyTo(memStream);
-                memStream.Seek(0, SeekOrigin.Begin);
 
                 if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                    using (StreamReader reader = new StreamReader(memStream)) {
-                        string errormsg = reader.ReadToEnd();
-                        log.Error(errormsg);
-                        throw new Exception(errormsg);//TODO
-                    }
+                    log.Debug("Execute response code : " + executeResponse.StatusCode);
+                    return ExecuteError(memStream);
                 }
-                executeResponse.GetResponseStream().CopyTo(memStream);
+
                 memStream.Seek(0, SeekOrigin.Begin);
-                execResponse = (OpenGis.Wps.ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Deserialize(memStream);
+                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
                 return execResponse;
-            } catch (InvalidOperationException) {
-                //bug 52 NORTH - to be removed once AIR updated
-                memStream.Seek(0, SeekOrigin.Begin);
-                try {
-                    exceptionReport = (OpenGis.Wps.ExceptionReport)new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExceptionReport)).Deserialize(memStream);
-                    return exceptionReport;
-                } catch (Exception) {
-                    memStream.Seek(0, SeekOrigin.Begin);
-                    using (StreamReader reader = new StreamReader(memStream)) {
-                        string errormsg = reader.ReadToEnd();
-                        log.Error(errormsg);
-                        throw new Exception(errormsg);//TODO
-                    }
+            } catch (WebException we){
+                using (WebResponse response = we.Response){
+                    HttpWebResponse httpResponse = (HttpWebResponse) response;
+                    httpResponse.GetResponseStream().CopyTo(memStream);
+                    log.Debug("Execute response code : " + httpResponse.StatusCode);
+                    return ExecuteError(memStream);
                 }
+            } catch (InvalidOperationException ioe) {
+                log.Error("InvalidOperationException : " + ioe.Message + " - " + ioe.StackTrace);
+                //bug 52 NORTH - to be removed once AIR updated
+                return ExecuteError(memStream);
             } catch (Exception e) {
+                log.Error("Execute request failed");
                 throw e;
             }
         }
@@ -288,6 +304,8 @@ namespace Terradue.Portal {
             string providerUrl = null;
             string identifier = null;
 
+            log.Debug("WpsProcessOffering - ToAtomItem");
+
             if (this.ProviderId == 0 || this.Provider.Proxy) {
                 providerUrl = context.BaseUrl + "/wps/WebProcessingService";
                 identifier = this.Identifier;
@@ -300,6 +318,7 @@ namespace Terradue.Portal {
                 }
             }
 
+            if (identifier == null) identifier = "";
             string name = (this.Name != null ? this.Name : identifier);
             string description = this.Description;
             string text = (this.TextContent != null ? this.TextContent : "");
@@ -314,33 +333,47 @@ namespace Terradue.Portal {
             if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
                 if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
             }
+
+            var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
+            log.Debug("capabilities = " + capurl);
                 
-            Uri capabilitiesUri = new Uri(providerUrl + "?service=WPS" + 
-                                          "&request=GetCapabilities");
+            Uri capabilitiesUri = new Uri(capurl);
 
             AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProcessOffering));
             Uri id = null;
-            if (this.ProviderId == 0) id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier);
-            else  id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
-            try {
+            var idurl = context.BaseUrl;
+            if (this.ProviderId == 0) {
+                idurl = context.BaseUrl + "/" + entityType.Keyword + "/search?wpsUrl=" + HttpUtility.UrlEncode(this.Provider.BaseUrl) + "&pId=" + this.RemoteIdentifier;
+            } else {
+                idurl = context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier;
+            }
+            log.Debug("id url = " + idurl);
+            id = new Uri(idurl);
+
+            try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
             } catch(Exception) {
                 atomEntry = new AtomItem();
             }
+            log.Debug("Adding owscontext");
             OwsContextAtomEntry entry = new OwsContextAtomEntry(atomEntry);
             var offering = new OwcOffering();
             List<OwcOperation> operations = new List<OwcOperation>();
 
+            var describeurl = providerUrl + "?service=WPS" +
+                              "&request=DescribeProcess" +
+                              "&version=" + this.Version +
+                              "&identifier=" + identifier;
+            log.Debug("describeprocess url = " + describeurl);
+            Uri describeUri = new Uri(describeurl);
 
-            Uri describeUri = new Uri(providerUrl + "?service=WPS" +
-                                      "&request=DescribeProcess" +
-                                      "&version=" + this.Version +
-                                      "&identifier=" + identifier);
-            Uri executeUri = new Uri(providerUrl + "?service=WPS" +
-                                     "&request=Execute" +
-                                     "&version=" + this.Version +
-                                     "&identifier=" + identifier);
+            var executeurl = providerUrl + "?service=WPS" +
+                "&request=Execute" +
+                "&version=" + this.Version +
+                "&identifier=" + identifier;
+            log.Debug("execute url = " + executeurl);
+            Uri executeUri = new Uri(executeurl);
 
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
@@ -360,6 +393,7 @@ namespace Terradue.Portal {
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             if (!string.IsNullOrEmpty(this.IconUrl)) {
+                log.Debug("icon link = " + IconUrl);
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
 
