@@ -600,10 +600,12 @@ namespace Terradue.Portal {
             NameValueCollection nvc = new NameValueCollection ();
             OpenSearchDescription osd = this.GetOpenSearchDescription ();
 
-            //OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
+//            OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
+//            if (osu[0] != null) nvc = HttpUtility.ParseQueryString(new Uri(osu[0].Template).Query);
+            
 
-            if (osu[0] != null) {
-                nvc = HttpUtility.ParseQueryString(new Uri(osu[0].Template).Query);
+            if (osd.Url[0] != null) {
+                nvc = HttpUtility.ParseQueryString(osd.Url[0].Template);
             }
 
             return nvc;
