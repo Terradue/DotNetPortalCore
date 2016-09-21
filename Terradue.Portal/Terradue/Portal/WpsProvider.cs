@@ -409,20 +409,12 @@ namespace Terradue.Portal {
             requestStream.Write(byteArray, 0, byteArray.Length);
             requestStream.Close();
 
-            /*string s = requestStream.ToString();
-
-            if (Directory.Exists("/Users/floeschau/Work/dev/projects/ngEO/")) {
-                StreamWriter streamWriter = new StreamWriter("/Users/floeschau/Work/dev/projects/ngEO/request.xml");
-                streamWriter.Write(s);
-                streamWriter.Close();
-            }*/
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream stream = response.GetResponseStream();
-            XmlDocument executeResponseDoc = new XmlDocument();
-            executeResponseDoc.Load(stream);
-            stream.Close();
-            response.Close();
+            XmlDocument executeResponseDoc = new XmlDocument ();
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse ()) {
+                Stream stream = response.GetResponseStream ();
+                executeResponseDoc.Load (stream);
+                stream.Close();
+            }
 
             XmlNamespaceManager nsm = new XmlNamespaceManager(executeResponseDoc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
@@ -507,13 +499,14 @@ namespace Terradue.Portal {
                 throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
             string query = "Service=WPS&Request=GetCapabilities";
-            HttpWebRequest request = CreateWebRequest(url, query);
+            HttpWebRequest request = CreateWebRequest(url, new UriBuilder(url), query, "GET");
 
             WPSCapabilitiesType response = null;
 
             try {
-                var httpResponse = (HttpWebResponse)request.GetResponse();
-                response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer(typeof(WPSCapabilitiesType)).Deserialize(httpResponse.GetResponseStream());
+                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                    response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (httpResponse.GetResponseStream ());
+                }
             } catch (Exception e) {
                 throw e;
             }
@@ -521,21 +514,59 @@ namespace Terradue.Portal {
 
         }
 
-        public static HttpWebRequest CreateWebRequest(string url, string query = null){
+        /// <summary>
+        /// Creates the web request.
+        /// </summary>
+        /// <returns>The web request.</returns>
+        /// <param name="url">URL.</param>
+        /// <param name="uri">URI.</param>
+        /// <param name="method">Method.</param>
+        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri, string method = "GET") { 
+
             HttpWebRequest request;
+            request = (HttpWebRequest)HttpWebRequest.Create (url);
+            request.Method = method;
 
-            var uri = new UriBuilder(url);
-            if (!string.IsNullOrEmpty(query)) uri.Query = query;
-            if (!string.IsNullOrEmpty(uri.Query) && uri.Query.StartsWith("?")) uri.Query = uri.Query.Substring(1);
-
-            request = (HttpWebRequest)HttpWebRequest.Create(uri.Uri.AbsoluteUri);
-            request.Method = "GET";
-
-            if (!string.IsNullOrEmpty(uri.UserName) && !string.IsNullOrEmpty(uri.Password)) {
-                request.Credentials = new NetworkCredential(uri.UserName, uri.Password);
+            if (!string.IsNullOrEmpty (uri.UserName) && !string.IsNullOrEmpty (uri.Password)) {
+                request.Credentials = new NetworkCredential (uri.UserName, uri.Password);
             }
 
             return request;
+        }
+
+        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri, string query, string method = "GET"){
+            var uri2 = new UriBuilder (url);
+            if (!string.IsNullOrEmpty (query)) uri2.Query = query;
+            if (!string.IsNullOrEmpty (uri2.Query) && uri2.Query.StartsWith ("?")) uri2.Query = uri2.Query.Substring (1);
+
+            return CreateWebRequest (uri2.Uri.AbsoluteUri, uri, method);
+        }
+
+        /// <summary>
+        /// Creates the web request (integrates username/password defined for the WpsProvider).
+        /// </summary>
+        /// <returns>The web request.</returns>
+        /// <param name="url">URL.</param>
+        /// <param name="query">Query.</param>
+        /// <param name="method">Method.</param>
+        public HttpWebRequest CreateWebRequest (string url, string query, string method = "GET"){
+            
+            var uri = new UriBuilder (url);
+            if (!string.IsNullOrEmpty (query)) uri.Query = query;
+            if (!string.IsNullOrEmpty (uri.Query) && uri.Query.StartsWith ("?")) uri.Query = uri.Query.Substring (1);
+
+            return CreateWebRequest(uri.Uri.AbsoluteUri, method);
+        }
+
+        /// <summary>
+        /// Creates the web request (integrates username/password defined for the WpsProvider)
+        /// </summary>
+        /// <returns>The web request.</returns>
+        /// <param name="url">URL.</param>
+        /// <param name="method">Method.</param>
+        public HttpWebRequest CreateWebRequest (string url, string method = "GET"){
+            this.context.LogDebug (this, "CreateWebRequest : " + method + " " + url);
+            return CreateWebRequest (url, new UriBuilder (this.BaseUrl), method);
         }
 
         /// <summary>
@@ -549,13 +580,14 @@ namespace Terradue.Portal {
             if (url == null)
                 throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
-            HttpWebRequest request = CreateWebRequest(url, query);
+            HttpWebRequest request = WpsProvider.CreateWebRequest (url, new UriBuilder (url), query);
 
             ProcessDescriptions response = null;
 
             try {
-                var httpResponse = (HttpWebResponse)request.GetResponse();
-                response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(httpResponse.GetResponseStream());
+                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                    response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (httpResponse.GetResponseStream ());
+                }
             } catch (Exception e) {
                 throw e;
             }
@@ -728,13 +760,16 @@ namespace Terradue.Portal {
             new XmlSerializer(typeof(Execute)).Serialize(requestStream, exec);
             requestStream.Close();
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            ExecuteResponse execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(response.GetResponseStream());
-
-            if (execResponse.statusLocation != null)
-                task.StatusUrl = execResponse.statusLocation;
-            if (execResponse.Status.Item == null)
-                return false;
+            ExecuteResponse execResponse;
+            using (var response = (HttpWebResponse)request.GetResponse ()) {
+                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer (typeof (ExecuteResponse)).Deserialize (response.GetResponseStream ());
+            }
+            if (execResponse != null) {
+                if (execResponse.statusLocation != null)
+                    task.StatusUrl = execResponse.statusLocation;
+                if (execResponse.Status.Item == null)
+                    return false;
+            }
 
             task.ActualStatus = GetStatusFromExecuteResponse(execResponse.Status.Item);
             if (task.Finished)
