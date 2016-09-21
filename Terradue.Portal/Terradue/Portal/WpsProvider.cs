@@ -499,7 +499,7 @@ namespace Terradue.Portal {
                 throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
             string query = "Service=WPS&Request=GetCapabilities";
-            HttpWebRequest request = CreateWebRequest(url, new UriBuilder(url), query, "GET");
+            HttpWebRequest request = CreateWebRequest(url, new UriBuilder(url), query);
 
             WPSCapabilitiesType response = null;
 
@@ -521,11 +521,11 @@ namespace Terradue.Portal {
         /// <param name="url">URL.</param>
         /// <param name="uri">URI.</param>
         /// <param name="method">Method.</param>
-        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri, string method = "GET") { 
+        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri) { 
 
             HttpWebRequest request;
             request = (HttpWebRequest)HttpWebRequest.Create (url);
-            request.Method = method;
+            request.Method = "GET";
 
             if (!string.IsNullOrEmpty (uri.UserName) && !string.IsNullOrEmpty (uri.Password)) {
                 request.Credentials = new NetworkCredential (uri.UserName, uri.Password);
@@ -534,12 +534,12 @@ namespace Terradue.Portal {
             return request;
         }
 
-        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri, string query, string method = "GET"){
+        public static HttpWebRequest CreateWebRequest (string url, UriBuilder uri, string query){
             var uri2 = new UriBuilder (url);
             if (!string.IsNullOrEmpty (query)) uri2.Query = query;
             if (!string.IsNullOrEmpty (uri2.Query) && uri2.Query.StartsWith ("?")) uri2.Query = uri2.Query.Substring (1);
 
-            return CreateWebRequest (uri2.Uri.AbsoluteUri, uri, method);
+            return CreateWebRequest (uri2.Uri.AbsoluteUri, uri);
         }
 
         /// <summary>
@@ -549,13 +549,13 @@ namespace Terradue.Portal {
         /// <param name="url">URL.</param>
         /// <param name="query">Query.</param>
         /// <param name="method">Method.</param>
-        public HttpWebRequest CreateWebRequest (string url, string query, string method = "GET"){
+        public HttpWebRequest CreateWebRequest (string url, string query){
             
             var uri = new UriBuilder (url);
             if (!string.IsNullOrEmpty (query)) uri.Query = query;
             if (!string.IsNullOrEmpty (uri.Query) && uri.Query.StartsWith ("?")) uri.Query = uri.Query.Substring (1);
 
-            return CreateWebRequest(uri.Uri.AbsoluteUri, method);
+            return CreateWebRequest(uri.Uri.AbsoluteUri);
         }
 
         /// <summary>
@@ -564,9 +564,9 @@ namespace Terradue.Portal {
         /// <returns>The web request.</returns>
         /// <param name="url">URL.</param>
         /// <param name="method">Method.</param>
-        public HttpWebRequest CreateWebRequest (string url, string method = "GET"){
-            this.context.LogDebug (this, "CreateWebRequest : " + method + " " + url);
-            return CreateWebRequest (url, new UriBuilder (this.BaseUrl), method);
+        public HttpWebRequest CreateWebRequest (string url){
+            this.context.LogDebug (this, "CreateWebRequest : " + url);
+            return CreateWebRequest (url, new UriBuilder (this.BaseUrl));
         }
 
         /// <summary>
