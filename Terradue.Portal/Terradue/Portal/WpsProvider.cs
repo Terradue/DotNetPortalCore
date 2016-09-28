@@ -526,6 +526,7 @@ namespace Terradue.Portal {
 
             HttpWebRequest request;
             request = (HttpWebRequest)HttpWebRequest.Create (url);
+            request.Proxy = null;
             request.Method = "GET";
 
             if (!string.IsNullOrEmpty (uri.UserName) && !string.IsNullOrEmpty (uri.Password)) {
