@@ -220,7 +220,9 @@ namespace Terradue.Portal {
             MemoryStream memStream = new MemoryStream();
             try {
                 using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse ()) {
-                    executeResponse.GetResponseStream ().CopyTo (memStream);
+                    using (var stream = executeResponse.GetResponseStream ()){
+                        stream.CopyTo (memStream);
+                    }
 
                     if (executeResponse.StatusCode != HttpStatusCode.OK) {
                         log.Debug ("Execute response code : " + executeResponse.StatusCode);
@@ -234,7 +236,9 @@ namespace Terradue.Portal {
             } catch (WebException we){
                 using (WebResponse response = we.Response){
                     using (var httpResponse = (HttpWebResponse)response){
-                        httpResponse.GetResponseStream ().CopyTo (memStream);
+                        using (var stream = httpResponse.GetResponseStream ()){
+                            stream.CopyTo (memStream);
+                        }
                         log.Debug ("Execute response code : " + httpResponse.StatusCode);
                     }
                     return ExecuteError(memStream);
@@ -246,6 +250,8 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 log.Error("Execute request failed");
                 throw e;
+            } finally {
+                memStream.Close();
             }
         }
 

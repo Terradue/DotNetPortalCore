@@ -505,7 +505,8 @@ namespace Terradue.Portal {
 
             try {
                 using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                    response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (httpResponse.GetResponseStream ());
+                    using (var stream = httpResponse.GetResponseStream ())
+                        response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
                 }
             } catch (Exception e) {
                 throw e;
@@ -586,7 +587,8 @@ namespace Terradue.Portal {
 
             try {
                 using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                    response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (httpResponse.GetResponseStream ());
+                    using (var stream = httpResponse.GetResponseStream ())
+                        response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
                 }
             } catch (Exception e) {
                 throw e;
@@ -762,7 +764,8 @@ namespace Terradue.Portal {
 
             ExecuteResponse execResponse;
             using (var response = (HttpWebResponse)request.GetResponse ()) {
-                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer (typeof (ExecuteResponse)).Deserialize (response.GetResponseStream ());
+                using (var stream = response.GetResponseStream ())
+                    execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer (typeof (ExecuteResponse)).Deserialize (stream);
             }
             if (execResponse != null) {
                 if (execResponse.statusLocation != null)
