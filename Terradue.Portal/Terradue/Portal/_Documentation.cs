@@ -8,31 +8,58 @@
 
 Terradue.Portal along with its sibling projects Terradue.Portal.AdminTool and Terradue.Portal.Agent is the software at the backend of web portal for use in the area of geospatial data processing.
 
+Its main software artefact is Terradue.Portal.dll which can be used in the .NET runtime environment and a related database scripts for making.
+
+Terradue.Portal is required for all portals and can be extended by function-specific modules and site-specific modules. In a typical portal installation, there will be Terradue.Portal, several modules (e.g. for authentication functionality or connectors to cloud providers) and one site module (optional).
+
 Terradue.Portal contains a number of classes. The two central classes are
 
 <list type="bullet">
-   <item><strong>IfyContext</strong>: This class contains core functionality for user session handling and database access. To process a request, an instances of this class is necessary and it is used for the entire process.</item>
-   <item><strong>Entity</strong>: This class is the base class for all business objects. It provides functionality for loading and storing instances from and to the database.</item>
+   <item><strong>IfyContext</strong>: This class contains core functionality for user session handling and database access. To process a request, usually from a web client, an instance is used for the entire process.</item>
+   <item><strong>Entity</strong>: This class is the base class for all business objects, many of which are defined in Terradue.Portal itself. The Entity class provides functionality for loading and storing instances from and to the database.</item>
 </list>
 
-\section intro_sec The context
+\section intro_sec_context The context
 
-\subsection intro_sec Entity persistence
+\section intro_sec_pers Entity persistence
 
+As a general rule, Entity classes correspond to database tables and Entity instances correspond to records in those tables. This link is semi-automatic and realised by attributes on both classes and their properties.
 
-Entity instances usually correspond to records in the database. This is semi-automatic.
+The following concepts do not apply only to Terradue.Portal but to modules as well.
+
+\subsection Definition of the database
+
+The script db-create.sql contains the definition of the database that underlies Terradue.Portal. It is used by Terradue.Portal.AdminTool.exe, which installs and upgrades the database schema.
+
+Terradue.Portal defines a number of basic entity types and
+
+\subsection Definition of the classes
+
+Classes
+
+A new database schema version . Several changes can be
+
+\subsection Changes to the model
+
+There are several types of changes, the main changes are:
+
+* Introduction of new entity types
+* Modification to existing entity types
+* Subclassing of existing entity types (see section Inheritance).
+
+Several steps are necessary to do such a change:
+
+* Create the new class or change the existing class.
+* Change the main database creation script to included the new tables or the changes to existing tables.
+* Add a new database script for an incremental upgrade from the previous version that results in the same schema as the one defined by the main database creation script.
 
 \subsection intro_sec Inheritance
 
-Entities
-When a new class is derived from an Entity subclass, that class usually contains new properties that need to be made persistent.
-From a database modeling point of view, this should be done by adding an additional table, with a 1:1 relationship to the main table, in which the new fields are stored.
+The database model allows to create subclasses of entity subclasses. When a new class is derived from an Entity subclass, that class usually contains new properties that need to be made persistent.
 
-At that point the table of the 
+From the database modeling point of view, this should be done by adding an additional table, with a 1:1 relationship to the main table, in which the new fields are stored.
 
-
-
-This is the introduction2
+...
 
 
 \defgroup Core Core
