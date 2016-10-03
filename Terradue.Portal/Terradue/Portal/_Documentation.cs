@@ -2,6 +2,39 @@
 
 /*!
 
+\mainpage Terradue.Portal manual
+
+\section intro_sec Introduction
+
+Terradue.Portal along with its sibling projects Terradue.Portal.AdminTool and Terradue.Portal.Agent is the software at the backend of web portal for use in the area of geospatial data processing.
+
+Terradue.Portal contains a number of classes. The two central classes are
+
+<list type="bullet">
+   <item><strong>IfyContext</strong>: This class contains core functionality for user session handling and database access. To process a request, an instances of this class is necessary and it is used for the entire process.</item>
+   <item><strong>Entity</strong>: This class is the base class for all business objects. It provides functionality for loading and storing instances from and to the database.</item>
+</list>
+
+\section intro_sec The context
+
+\subsection intro_sec Entity persistence
+
+
+Entity instances usually correspond to records in the database. This is semi-automatic.
+
+\subsection intro_sec Inheritance
+
+Entities
+When a new class is derived from an Entity subclass, that class usually contains new properties that need to be made persistent.
+From a database modeling point of view, this should be done by adding an additional table, with a 1:1 relationship to the main table, in which the new fields are stored.
+
+At that point the table of the 
+
+
+
+This is the introduction2
+
+
 \defgroup Core Core
 @{
 
