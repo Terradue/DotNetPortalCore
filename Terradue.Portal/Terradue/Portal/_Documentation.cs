@@ -4,7 +4,7 @@
 
 \mainpage Terradue.Portal manual
 
-\section intro_sec Introduction
+\section sec_intro Introduction
 
 Terradue.Portal along with its sibling projects Terradue.Portal.AdminTool and Terradue.Portal.Agent is the software at the backend of web portal for use in the area of geospatial data processing.
 
@@ -19,47 +19,190 @@ Terradue.Portal contains a number of classes. The two central classes are
    <item><strong>Entity</strong>: This class is the base class for all business objects, many of which are defined in Terradue.Portal itself. The Entity class provides functionality for loading and storing instances from and to the database.</item>
 </list>
 
-\section intro_sec_context The context
+\section sec_context The context
 
-\section intro_sec_pers Entity persistence
+\section sec_entitypers Entity persistence
 
-As a general rule, Entity classes correspond to database tables and Entity instances correspond to records in those tables. This link is semi-automatic and realised by attributes on both classes and their properties.
+<para>As a general rule, Entity classes correspond to database tables and Entity instances correspond to records in those tables. This link is semi-automatic and realised by attributes on both classes and their properties.</para>
 
-The following concepts do not apply only to Terradue.Portal but to modules as well.
+<para>Entity items must have a <strong>unique numeric ID</strong> (this corresponds to the primary key in the database) and can have a <strong>unique text identifier</strong> and a <strong>human-readable name</strong>.</para>
 
-\subsection Definition of the database
+<para>In the following sections, the concept is illustrated by simple examples. This does not apply only to Terradue.Portal but to modules as well.</para>
+
+\subsection sec_dbdef Database definition
 
 The script db-create.sql contains the definition of the database that underlies Terradue.Portal. It is used by Terradue.Portal.AdminTool.exe, which installs and upgrades the database schema.
 
-Terradue.Portal defines a number of basic entity types and
+Terradue.Portal defines a number of basic entity types.
 
-\subsection Definition of the classes
+A simple type could be represented in this table:
 
-Classes
+<code>
+CREATE TABLE rect (
+    id int unsigned NOT NULL auto_increment,
+    width int unsigned NOT NULL COMMENT 'Width',
+    height int unsigned NOT NULL COMMENT 'Height',
+    CONSTRAINT pk_rect PRIMARY KEY (id)
+) Engine=InnoDB COMMENT 'Rectangles';
+</code>
+
+\subsection sec_classdef Class definition
 
 A new database schema version . Several changes can be
 
-\subsection Changes to the model
+For the above example, the class would look like this:
 
-There are several types of changes, the main changes are:
+<code>
+    [EntityTable("rect", EntityTableConfiguration.Custom)]
+    public class Rect : Entity {
 
-* Introduction of new entity types
-* Modification to existing entity types
-* Subclassing of existing entity types (see section Inheritance).
+        [EntityDataField("width")]
+        public int Width { get; set; }
 
-Several steps are necessary to do such a change:
+        [EntityDataField("height")]
+        public int Height { get; set; }
 
-* Create the new class or change the existing class.
-* Change the main database creation script to included the new tables or the changes to existing tables.
-* Add a new database script for an incremental upgrade from the previous version that results in the same schema as the one defined by the main database creation script.
+        // ...
 
-\subsection intro_sec Inheritance
+    }
+</code>
 
-The database model allows to create subclasses of entity subclasses. When a new class is derived from an Entity subclass, that class usually contains new properties that need to be made persistent.
+\subsection sec_changes Changes to the model
 
-From the database modeling point of view, this should be done by adding an additional table, with a 1:1 relationship to the main table, in which the new fields are stored.
+There are several types of changes, the main changes, which are explained in more details in the following sections, are:
 
-...
+<list type="bullet">
+    <item>Introduction of new entity types,</item>
+    <item>Modification to existing entity types, and</item>
+    <item>Subclassing of existing entity types (see section Inheritance).</item>
+</list>
+
+Several steps are necessary to do such a change (unlike above, the order is code-first here for more intuitive understanding):
+
+<list type="bullet">
+    <item><strong>(1)</strong> Create the new class or change the existing class.</item>
+    <item><strong>(2)</strong> Change the main database creation script to included the new tables or the changes to existing tables. Increment the schema's version number.</item>
+    <item><strong>(3)</strong> Add a new database script for an incremental upgrade from the previous version that results in the same schema as the one defined by the main database creation script.</item>
+</list>
+
+What these steps mean for each of the change types is explained in the following sections.
+
+\subsection sec_changes_1 Introduction of new entity types
+
+<para><strong>(1)</strong> Create the new class, in the same way as the sample class above.</para>
+<para><strong>(2)</strong> Add the corresponding table, defined in the same way as the sample table above, to the database creation script.</para>
+<para><strong>(3)</strong> Create a new database upgrade script that contains the same <c>CREATE TABLE</c> definition that was added to the database creation script.</para>
+
+\subsection sec_changes_2 Modification to existing entity types
+
+<para>Before modifying an existing entity, consider whether it might be better to create subclasses (see next section).</para>
+
+<para><strong>(1)</strong> Modify the existing class. For example, add a new property.</para>
+<code>
+    [EntityTable("rect", EntityTableConfiguration.Custom)]
+    public class Rect : Entity {
+
+        [EntityDataField("width")]
+        public int Width { get; set; }
+
+        [EntityDataField("height")]
+        public int Height { get; set; }
+
+        // NEW property: <==========
+        [EntityDataField("color")]
+        public int Color { get; set; }
+
+        // ...
+
+    }
+</code>
+
+<para><strong>(2)</strong> Modify the corresponding table in the database creation script so that it reflects the changes made to the class.</para>
+<code>
+CREATE TABLE rect (
+    id int unsigned NOT NULL auto_increment,
+    width int unsigned NOT NULL COMMENT 'Width',
+    height int unsigned NOT NULL COMMENT 'Height',
+    color int unsigned COMMENT 'Color', -- new column <==========
+    CONSTRAINT pk_rect PRIMARY KEY (id)
+) Engine=InnoDB COMMENT 'Rectangles';
+</code>
+
+<para><strong>(3)</strong> Create a new database upgrade script that contains a modification command that alters the existing table so that it is in line with the one now defined in the database creation script.</para>
+<code>
+-- Changing structure of table "rect" (adding column "color") ...\
+ALTER TABLE rect
+    ADD COLUMN color int unsigned COMMENT 'Color'
+;
+-- RESULT
+</code>
+<para>Note: the comments before and after the command are used by Terradue.Admin.Tool that will runs this script for a user-friendly output.
+
+\subsection sec_changes_3 Subclassing of existing entity types
+
+<para>Before creating subclasses, consider whether the changes could also be integrated in the base class (see previous section). Subclassing makes most sense if there are several different subclasses.</para>
+
+<para><strong>(1)</strong> Since there is now a subclass to the base class, the base class needs to be marked as an extensible class.</para>
+<code>
+    [EntityTable("rect", EntityTableConfiguration.Custom, HasExtensions = true)]
+    public class ColoredRect : Rect {
+
+        // ...
+
+    }
+</code>
+
+<para>Create a new class based on the existing class and add a new property.</para>
+<code>
+    [EntityTable("coloredrect", EntityTableConfiguration.Custom)]
+    public class ColoredRect : Rect {
+
+        [EntityDataField("color")]
+        public int Color { get; set; }
+
+        // ...
+
+    }
+</code>
+<para><strong>(2)</strong> Since there is now a subclass, type references are needed.<br/>In the database creation script, add both the base class and the subclass (extended class) as new types (via stored procedure <c>add_type</c>, which fills the table <em>type</em>) in the appropriate section of the script. Make sure the fully qualified names are correct.<br/>Then add a type reference in the base table.</para>
+<code>
+CALL add_type(NULL, 'Terradue.Portal.Rect, Terradue.Portal', NULL, 'Rectangle', 'Rectangles', 'rectangles');
+CALL add_type(NULL, 'Terradue.Portal.ColoredRect, Terradue.Portal', 'Terradue.Portal.Rect, Terradue.Portal', 'Colored rectangle', 'Colored rectangles', NULL);
+
+CREATE TABLE rect (
+    id int unsigned NOT NULL auto_increment,
+    id_type int unsigned NOT NULL COMMENT 'FK: Entity type extension',  -- new column <==========
+    width int unsigned NOT NULL COMMENT 'Width',
+    height int unsigned NOT NULL COMMENT 'Height',
+    CONSTRAINT pk_rect PRIMARY KEY (id),
+    CONSTRAINT fk_rect_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE  -- new FK constraint <==========
+) Engine=InnoDB COMMENT 'Rectangles';
+</code>
+<para>Add the table corresponding to the new class, defined in the same way as the sample table above, to the database creation script. The new table must have an <c>id</c> column that links it to the base table.</para>
+<code>
+CREATE TABLE coloredrect (
+    id int unsigned NOT NULL, -- PK is the same as base PK
+    color int unsigned COMMENT 'Color',
+    CONSTRAINT pk_rect PRIMARY KEY (id),
+    CONSTRAINT fk_coloredrect_rect FOREIGN KEY (id) REFERENCES rect(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Rectangles';
+</code>
+
+<para><strong>(3)</strong> Create a new database upgrade script that contains modification that produce the same situation as defined in the database creation script.<br/>Add the same <c>add_type</c> calls from the database creation script to the upgrade script and alter the base table adding a type reference to the base table.</para>
+<code>
+CALL add_type(NULL, 'Terradue.Portal.Rect, Terradue.Portal', NULL, 'Rectangle', 'Rectangles', 'rectangles');
+CALL add_type(NULL, 'Terradue.Portal.ColoredRect, Terradue.Portal', 'Terradue.Portal.Rect, Terradue.Portal', 'Colored rectangle', 'Colored rectangles', NULL);
+
+-- Changing structure of table "rect" (adding type reference) ...\
+ALTER TABLE rect
+    ADD COLUMN id_type int unsigned NOT NULL COMMENT 'FK: Entity type extension' AFTER id,
+    ADD CONSTRAINT fk_rect_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE
+;
+-- RESULT
+</code>
+<para>Note: the comments before and after the <c>ALTER TABLE</c> command are used by Terradue.Admin.Tool that will runs this script for a user-friendly output.</para>
+<para>Finally, add the same <c>CREATE TABLE</c> command from the database creation script.</para>
+
 
 
 \defgroup Core Core
