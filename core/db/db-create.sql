@@ -22,66 +22,78 @@ CREATE TABLE type (
 ) Engine=InnoDB COMMENT 'Entity types';
 -- CHECKPOINT C-01a
 
--- Initializing basic entity types ... \
-INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword) VALUES
-    (1, 1, 'Terradue.Portal.Configuration, Terradue.Portal', NULL, 'General Configuration', 'General Configuration', 'config'),
-    (2, 2, 'Terradue.Portal.Action, Terradue.Portal', NULL, 'Agent Action', 'Agent Actions', 'actions'),
-    (3, 3, 'Terradue.Portal.Application, Terradue.Portal', NULL, 'External Application', 'External Applications', 'applications'),
-    (4, 4, 'Terradue.Portal.Domain, Terradue.Portal', NULL, 'Domains', 'Domain', 'domains'),
-    (5, 5, 'Terradue.Portal.ManagerRole, Terradue.Portal', NULL, 'Manager Role', 'Manager Roles', 'manager-roles'),
-    (6, 6, 'Terradue.Portal.OpenIdProvider, Terradue.Portal', NULL, 'OpenID Provider', 'OpenID Providers', 'openid-providers'),
-    (7, 7, 'Terradue.Portal.LookupList, Terradue.Portal', NULL, 'Shared Lookup List', 'Shared Lookup Lists', 'lookup-lists'),
-    (8, 8, 'Terradue.Portal.ServiceClass, Terradue.Portal', NULL, 'Service Class', 'Service Classes', 'service-classes'),
-    (9, 9, 'Terradue.Portal.ServiceCategory, Terradue.Portal', NULL, 'Service Category', 'Service Categories', 'service-categories'),
-    (10, 10, 'Terradue.Portal.SchedulerClass, Terradue.Portal', NULL, 'Scheduler Class', 'Scheduler Classes', 'scheduler-classes'),
-    (11, 11, 'Terradue.Portal.User, Terradue.Portal', NULL, 'User', 'Users', 'users'),
-    (12, 12, 'Terradue.Portal.Group, Terradue.Portal', NULL, 'Group', 'Groups', 'groups'),
-    (13, 13, 'Terradue.Portal.LightGridEngine, Terradue.Portal', NULL, 'LGE Instance', 'LGE Instances', 'lge-instances'),
-    (14, 14, 'Terradue.Portal.ComputingResource, Terradue.Portal', NULL, 'Computing Resource', 'Computing Resources', 'computing-resources'),
-    (15, 15, 'Terradue.Portal.Catalogue, Terradue.Portal', NULL, 'Metadata catalogue', 'Metadata catalogues', 'catalogues'),
-    (16, 16, 'Terradue.Portal.Series, Terradue.Portal', NULL, 'Dataset Series', 'Dataset Series', 'series'),
-    (17, 17, 'Terradue.Portal.ProductType, Terradue.Portal', NULL, 'Product Type', 'Product Types', 'product-types'),
-    (18, 18, 'Terradue.Portal.PublishServer, Terradue.Portal', NULL, 'Publish Server', 'Publish Servers', 'publish-servers'),
-    (19, 19, 'Terradue.Portal.Service, Terradue.Portal', 'Terradue.Portal.GenericService, Terradue.Portal', 'Service', 'Services', 'services'),
-    (20, 20, 'Terradue.Portal.Scheduler, Terradue.Portal', NULL, 'Scheduler', 'Schedulers', 'schedulers'),
-    (21, 21, 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', NULL, 'Scheduler run configuration', 'Schedulers run configurations', 'schedulers-run-configs'),
-    (22, 22, 'Terradue.Portal.Task, Terradue.Portal', NULL, 'Task', 'Tasks', 'tasks'),
-    (23, 23, 'Terradue.Portal.Article, Terradue.Portal', NULL, 'News Article', 'News', 'news'),
-    (24, 24, 'Terradue.Portal.Image, Terradue.Portal', NULL, 'Image', 'Images', 'images'),
-    (25, 25, 'Terradue.Portal.Faq, Terradue.Portal', NULL, 'F.A.Q.', 'F.A.Q.', 'faqs'),
-    (26, 26, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects'),
-    (27, 27, 'Terradue.Portal.Activity, Terradue.Portal', NULL, 'Activity', 'Activities', 'activity')
-;
--- RESULT
--- CHECKPOINT C-01b
-
--- Initializing standard extended entity types ... \
-INSERT INTO type (id_super, pos, class, caption_sg, caption_pl) VALUES
-    (14, 1, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements'),
-    (14, 2, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers'),
-    (19, 1, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Script-based service', 'Script-based services'),
-    (19, 2, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'WPS process offering', 'WPS process offerings'),
-    (20, 1, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers'),
-    (21, 1, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations'),
-    (21, 2, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations')
-;
--- RESULT
--- CHECKPOINT C-01c
-
 CREATE PROCEDURE add_type(IN p_module_id int unsigned, IN p_class varchar(100), IN p_super_class varchar(100), IN p_caption_sg varchar(100), IN p_caption_pl varchar(100), IN p_keyword varchar(100))
-COMMENT 'Inserts or updates a basic entity type'
+COMMENT 'Creates a new entity type'
 BEGIN
     DECLARE type_id int;
     DECLARE type_pos int;
-    IF p_super_class IS NOT NULL THEN
+    IF p_super_class IS NULL THEN
+        SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type INTO type_pos;
+    ELSE
         SELECT id FROM type WHERE class = p_super_class INTO type_id;
         SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type WHERE id_super = type_id INTO type_pos;
-    ELSE
-        SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type INTO type_pos;
     END IF;
-    INSERT INTO type (id_module, id_super, pos, class, caption_sg, caption_pl, keyword) VALUES (p_module_id, type_id, type_pos, p_class, p_caption_sg, p_caption_pl, p_keyword);
+    INSERT INTO type (id_module, id_super, pos, class, caption_sg, caption_pl, keyword) VALUES (p_module_id, type_id, type_pos + 1, p_class, p_caption_sg, p_caption_pl, p_keyword);
 END;
+-- CHECKPOINT C-01b
+
+CREATE PROCEDURE change_type(IN p_class varchar(100), IN p_generic_class varchar(100), IN p_pos int unsigned)
+COMMENT 'Changes the generic class and/or the position of an entity type'
+BEGIN
+    DECLARE type_id int;
+    DECLARE super_id int;
+    DECLARE type_pos int;
+    SELECT id, id_super, pos FROM type WHERE class = p_class INTO type_id, super_id, type_pos;
+    UPDATE type SET generic_class = p_generic_class WHERE id = type_id;
+    IF p_pos > 0 THEN
+        UPDATE type SET pos = pos + 1 WHERE CASE WHEN super_id IS NULL THEN id_super IS NULL ELSE id_super = super_id END AND pos >= p_pos AND CASE WHEN type_pos IS NULL THEN true ELSE pos < type_pos END;
+		UPDATE type SET pos = p_pos WHERE id = type_id;
+    END IF;
+END;
+-- CHECKPOINT C-01c
+
+-- Initializing basic entity types ... \
+CALL add_type(NULL, 'Terradue.Portal.Configuration, Terradue.Portal', NULL, 'General Configuration', 'General Configuration', 'config');
+CALL add_type(NULL, 'Terradue.Portal.Action, Terradue.Portal', NULL, 'Agent Action', 'Agent Actions', 'actions');
+CALL add_type(NULL, 'Terradue.Portal.Application, Terradue.Portal', NULL, 'External Application', 'External Applications', 'applications');
+CALL add_type(NULL, 'Terradue.Portal.Domain, Terradue.Portal', NULL, 'Domains', 'Domain', 'domains');
+CALL add_type(NULL, 'Terradue.Portal.ManagerRole, Terradue.Portal', NULL, 'Manager Role', 'Manager Roles', 'manager-roles');
+CALL add_type(NULL, 'Terradue.Portal.OpenIdProvider, Terradue.Portal', NULL, 'OpenID Provider', 'OpenID Providers', 'openid-providers');
+CALL add_type(NULL, 'Terradue.Portal.LookupList, Terradue.Portal', NULL, 'Shared Lookup List', 'Shared Lookup Lists', 'lookup-lists');
+CALL add_type(NULL, 'Terradue.Portal.ServiceClass, Terradue.Portal', NULL, 'Service Class', 'Service Classes', 'service-classes');
+CALL add_type(NULL, 'Terradue.Portal.ServiceCategory, Terradue.Portal', NULL, 'Service Category', 'Service Categories', 'service-categories');
+CALL add_type(NULL, 'Terradue.Portal.SchedulerClass, Terradue.Portal', NULL, 'Scheduler Class', 'Scheduler Classes', 'scheduler-classes');
+CALL add_type(NULL, 'Terradue.Portal.User, Terradue.Portal', NULL, 'User', 'Users', 'users');
+CALL add_type(NULL, 'Terradue.Portal.Group, Terradue.Portal', NULL, 'Group', 'Groups', 'groups');
+CALL add_type(NULL, 'Terradue.Portal.LightGridEngine, Terradue.Portal', NULL, 'LGE Instance', 'LGE Instances', 'lge-instances');
+CALL add_type(NULL, 'Terradue.Portal.ComputingResource, Terradue.Portal', NULL, 'Computing Resource', 'Computing Resources', 'computing-resources');
+CALL add_type(NULL, 'Terradue.Portal.Catalogue, Terradue.Portal', NULL, 'Metadata catalogue', 'Metadata catalogues', 'catalogues');
+CALL add_type(NULL, 'Terradue.Portal.Series, Terradue.Portal', NULL, 'Dataset Series', 'Dataset Series', 'series');
+CALL add_type(NULL, 'Terradue.Portal.ProductType, Terradue.Portal', NULL, 'Product Type', 'Product Types', 'product-types');
+CALL add_type(NULL, 'Terradue.Portal.PublishServer, Terradue.Portal', NULL, 'Publish Server', 'Publish Servers', 'publish-servers');
+CALL add_type(NULL, 'Terradue.Portal.Service, Terradue.Portal', NULL, 'Service', 'Services', 'services');
+CALL change_type('Terradue.Portal.Service, Terradue.Portal', 'Terradue.Portal.GenericService, Terradue.Portal', 0);
+CALL add_type(NULL, 'Terradue.Portal.Scheduler, Terradue.Portal', NULL, 'Scheduler', 'Schedulers', 'schedulers');
+CALL add_type(NULL, 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', NULL, 'Scheduler run configuration', 'Schedulers run configurations', 'schedulers-run-configs');
+CALL add_type(NULL, 'Terradue.Portal.Task, Terradue.Portal', NULL, 'Task', 'Tasks', 'tasks');
+CALL add_type(NULL, 'Terradue.Portal.Article, Terradue.Portal', NULL, 'News Article', 'News', 'news');
+CALL add_type(NULL, 'Terradue.Portal.Image, Terradue.Portal', NULL, 'Image', 'Images', 'images');
+CALL add_type(NULL, 'Terradue.Portal.Faq, Terradue.Portal', NULL, 'F.A.Q.', 'F.A.Q.', 'faqs');
+CALL add_type(NULL, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects');
+CALL add_type(NULL, 'Terradue.Portal.Activity, Terradue.Portal', NULL, 'Activity', 'Activities', 'activity');
+-- RESULT
 -- CHECKPOINT C-01d
+
+-- Initializing extended entity types ... \
+CALL add_type(NULL, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'Terradue.Portal.ComputingResource, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements', NULL);
+CALL add_type(NULL, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Terradue.Portal.ComputingResource, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers', NULL);
+CALL add_type(NULL, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Terradue.Portal.Service, Terradue.Portal', 'Script-based service', 'Script-based services', NULL);
+CALL add_type(NULL, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'Terradue.Portal.Service, Terradue.Portal', 'WPS process offering', 'WPS process offerings', NULL);
+CALL add_type(NULL, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Terradue.Portal.Scheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers', NULL);
+CALL add_type(NULL, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations', NULL);
+CALL add_type(NULL, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations', NULL);
+-- RESULT
+-- CHECKPOINT C-01e
 
 /*****************************************************************************/
 

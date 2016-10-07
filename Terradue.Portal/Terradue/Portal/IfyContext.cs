@@ -1497,6 +1497,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool GetConfigBooleanValue(string name) {
+            return GetQueryBooleanValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public int GetConfigIntegerValue(string name) {
             return GetQueryIntegerValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
         }
@@ -1509,8 +1515,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool GetConfigBooleanValue(string name) {
-            return GetQueryBooleanValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
+        public double GetConfigDoubleValue(string name) {
+            return GetQueryDoubleValue(String.Format("SELECT value FROM config WHERE name={0};", StringUtils.EscapeSql(name)));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1521,14 +1527,26 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public void SetConfigValue(string name, bool value) {
+            Execute(String.Format("UPDATE config SET value={1} WHERE name={0};", StringUtils.EscapeSql(name), value.ToString().ToLower()));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public void SetConfigValue(string name, int value) {
             Execute(String.Format("UPDATE config SET value={1} WHERE name={0};", StringUtils.EscapeSql(name), value));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void SetConfigValue(string name, bool value) {
-            Execute(String.Format("UPDATE config SET value={1} WHERE name={0};", StringUtils.EscapeSql(name), value.ToString().ToLower()));
+        public void SetConfigValue(string name, long value) {
+            Execute(String.Format("UPDATE config SET value={1} WHERE name={0};", StringUtils.EscapeSql(name), value));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void SetConfigValue(string name, double value) {
+            Execute(String.Format("UPDATE config SET value={1} WHERE name={0};", StringUtils.EscapeSql(name), value));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
