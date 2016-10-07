@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Terradue.Portal.Test</RootNamespace>
     <AssemblyName>Terradue.Portal.Test</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -111,6 +110,7 @@
     <Compile Include="OpenSearchableTests.cs" />
     <Compile Include="EntityListOpenSearchTests.cs" />
     <Compile Include="WpsProcessOffering.Test.cs" />
+	<Compile Include="WpsProvider.Test.cs" />
     <Compile Include="SafeTest.cs" />
     <Compile Include="FeatureTest.cs" />
     <Compile Include="EntityTest.cs" />
@@ -119,7 +119,6 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="WpsProvider.Test.cs" />
     <None Include="Resources\.DS_Store" />
     <None Include="Resources\ne_110m_land\.DS_Store" />
     <None Include="Resources\ne_110m_land\ne_110m_land.dbf" />
