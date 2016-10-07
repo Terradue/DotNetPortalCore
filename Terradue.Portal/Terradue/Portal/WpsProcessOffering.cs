@@ -128,7 +128,10 @@ namespace Terradue.Portal {
             if (Version != null) 
                 query += "&Version=" + Version;
 
-            HttpWebRequest describeHttpRequest = this.Provider.CreateWebRequest(Provider.BaseUrl, query);
+            var uri = new UriBuilder (Provider.BaseUrl);
+            uri.Query = query;
+
+            HttpWebRequest describeHttpRequest = this.Provider.CreateWebRequest(uri.Uri.AbsoluteUri);
             ProcessDescriptions describeProcess = null;
 
             //call describe url
