@@ -24,11 +24,14 @@ using Terradue.Util;
 
 
 
+
+
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
+
 
 
 
@@ -284,7 +287,7 @@ namespace Terradue.Portal {
 
         /// <summary>Loads a list of items that are accessible by the specified groups.</summary>
         /// <param name="groupIds">An array of database IDs of groups</param>
-        public void LoadGroupAccessibleItems(int[] groupIds) {
+        public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
             string sql = entityType.GetGroupQuery(context, groupIds, false, null);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);

@@ -272,6 +272,9 @@ namespace Terradue.Portal {
     [EntityTable("wpsprovider", EntityTableConfiguration.Custom)]
     public class WpsProvider : ComputingResource, IAtomizable {
 
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+           (System.Reflection.MethodBase.GetCurrentMethod ().DeclaringType);
+
         /// <summary>Gets or sets the base access point of the WPS provider.</summary>
         /// <remarks>The value must not contain the <c>service</c> or <c>request</c> query string parameters.</remarks>
         [EntityDataField("url")]
@@ -409,20 +412,12 @@ namespace Terradue.Portal {
             requestStream.Write(byteArray, 0, byteArray.Length);
             requestStream.Close();
 
-            /*string s = requestStream.ToString();
-
-            if (Directory.Exists("/Users/floeschau/Work/dev/projects/ngEO/")) {
-                StreamWriter streamWriter = new StreamWriter("/Users/floeschau/Work/dev/projects/ngEO/request.xml");
-                streamWriter.Write(s);
-                streamWriter.Close();
-            }*/
-
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream stream = response.GetResponseStream();
-            XmlDocument executeResponseDoc = new XmlDocument();
-            executeResponseDoc.Load(stream);
-            stream.Close();
-            response.Close();
+            XmlDocument executeResponseDoc = new XmlDocument ();
+            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse ()) {
+                Stream stream = response.GetResponseStream ();
+                executeResponseDoc.Load (stream);
+                stream.Close();
+            }
 
             XmlNamespaceManager nsm = new XmlNamespaceManager(executeResponseDoc.NameTable);
             nsm.AddNamespace("wps", WpsApplication.NAMESPACE_URI_WPS);
@@ -450,7 +445,7 @@ namespace Terradue.Portal {
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public void StoreProcessOfferings() {
 
-            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
+            List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromRemote(true);
             foreach (WpsProcessOffering process in processes) {
                 try {
                     process.Store();
@@ -461,7 +456,7 @@ namespace Terradue.Portal {
         }
 
         public void UpdateProcessOfferings() {
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromUrl(this.BaseUrl, true);
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
@@ -501,41 +496,30 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>GetCapabilities.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static WPSCapabilitiesType GetWPSCapabilitiesFromUrl(string url) {
+        public WPSCapabilitiesType GetWPSCapabilities() {
 
-            if (url == null)
-                throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
+            if (string.IsNullOrEmpty (BaseUrl)) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
             string query = "Service=WPS&Request=GetCapabilities";
-            HttpWebRequest request = CreateWebRequest(url, query);
+            var uri = new UriBuilder (BaseUrl);
+            uri.Query = query;
+
+            context.LogDebug (this, "GetWPSCapabilities -- url = " + uri.Uri.AbsoluteUri);
+
+            HttpWebRequest request = CreateWebRequest(uri.Uri.AbsoluteUri);
 
             WPSCapabilitiesType response = null;
 
             try {
-                var httpResponse = (HttpWebResponse)request.GetResponse();
-                response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer(typeof(WPSCapabilitiesType)).Deserialize(httpResponse.GetResponseStream());
+                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                    using (var stream = httpResponse.GetResponseStream ())
+                        response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
+                }
             } catch (Exception e) {
                 throw e;
             }
             return response;
 
-        }
-
-        public static HttpWebRequest CreateWebRequest(string url, string query = null){
-            HttpWebRequest request;
-
-            var uri = new UriBuilder(url);
-            if (!string.IsNullOrEmpty(query)) uri.Query = query;
-            if (!string.IsNullOrEmpty(uri.Query) && uri.Query.StartsWith("?")) uri.Query = uri.Query.Substring(1);
-
-            request = (HttpWebRequest)HttpWebRequest.Create(uri.Uri.AbsoluteUri);
-            request.Method = "GET";
-
-            if (!string.IsNullOrEmpty(uri.UserName) && !string.IsNullOrEmpty(uri.Password)) {
-                request.Credentials = new NetworkCredential(uri.UserName, uri.Password);
-            }
-
-            return request;
         }
 
         /// <summary>
@@ -544,18 +528,25 @@ namespace Terradue.Portal {
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static ProcessDescriptionType GetWPSDescribeProcessFromUrl(string url, string query = null) {
+        public ProcessDescriptionType GetWPSDescribeProcess(string identifier, string version) {
 
-            if (url == null)
-                throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
+            if (string.IsNullOrEmpty(BaseUrl)) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
-            HttpWebRequest request = CreateWebRequest(url, query);
+            string query = string.Format("Service=WPS&Request=DescribeProcess&Identifier={0}&Version={1}",identifier,version);
+            var uri = new UriBuilder (BaseUrl);
+            uri.Query = query;
+
+            context.LogDebug (this, "GetWPSDescribeProcess -- url = " + uri.Uri.AbsoluteUri);
+
+            HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
 
             ProcessDescriptions response = null;
 
             try {
-                var httpResponse = (HttpWebResponse)request.GetResponse();
-                response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(httpResponse.GetResponseStream());
+                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                    using (var stream = httpResponse.GetResponseStream ())
+                        response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
+                }
             } catch (Exception e) {
                 throw e;
             }
@@ -571,9 +562,9 @@ namespace Terradue.Portal {
         /// <returns>The wps process offerings from URL.</returns>
         /// <param name="baseurl">Baseurl.</param>
         /// <param name="updateProviderInfo">If set to <c>true</c> update provider info.</param>
-        public List<WpsProcessOffering> GetWpsProcessOfferingsFromUrl(string baseurl, bool updateProviderInfo = false) {
+        public List<WpsProcessOffering> GetWpsProcessOfferingsFromRemote(bool updateProviderInfo = false) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
-            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilitiesFromUrl(baseurl);
+            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilities();
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
             string url = "";
             foreach (Operation operation in operations) {
@@ -600,7 +591,7 @@ namespace Terradue.Portal {
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
                     try{
-                        ProcessDescriptionType describeProcess = GetWPSDescribeProcessFromUrl(this.BaseUrl, "Service=WPS&Request=DescribeProcess&Version=" + process.processVersion + "&Identifier=" + wpsProcess.RemoteIdentifier);
+                        ProcessDescriptionType describeProcess = GetWPSDescribeProcess(wpsProcess.RemoteIdentifier, process.processVersion);
                         wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
                     }catch(Exception e){
                     }
@@ -677,6 +668,45 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Creates the web request (integrates username/password defined for the WpsProvider)
+        /// </summary>
+        /// <returns>The web request.</returns>
+        /// <param name="url">URL.</param>
+        /// <param name="method">Method.</param>
+        public HttpWebRequest CreateWebRequest (string url)
+        {
+            this.context.LogDebug (this, "CreateWebRequest : " + url);
+
+            //credentials in BaseUrl ?
+            NetworkCredential credentials = null;
+            var uri = new UriBuilder (this.BaseUrl);
+            if (!string.IsNullOrEmpty (uri.UserName) && !string.IsNullOrEmpty (uri.Password)) {
+                credentials = new NetworkCredential (uri.UserName, uri.Password);
+            }
+
+            var request = CreateWebRequest (url, credentials, context.Username);
+            return request;
+        }
+
+        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username)
+        {
+
+            HttpWebRequest request;
+            request = (HttpWebRequest)WebRequest.Create (url);
+            request.Proxy = null;
+            request.Method = "GET";
+
+            log.DebugFormat ("CreateWebRequest '{0}' with Header REMOTE_USER={1}", url, username);
+
+            if (!string.IsNullOrEmpty (username)) request.Headers.Add ("REMOTE_USER", username);
+            if (credentials != null) request.Credentials = credentials;
+
+            return request;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Executes the task.
         /// </summary>
         /// <returns><c>true</c>, if task was executed, <c>false</c> otherwise.</returns>
@@ -728,13 +758,17 @@ namespace Terradue.Portal {
             new XmlSerializer(typeof(Execute)).Serialize(requestStream, exec);
             requestStream.Close();
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            ExecuteResponse execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(response.GetResponseStream());
-
-            if (execResponse.statusLocation != null)
-                task.StatusUrl = execResponse.statusLocation;
-            if (execResponse.Status.Item == null)
-                return false;
+            ExecuteResponse execResponse;
+            using (var response = (HttpWebResponse)request.GetResponse ()) {
+                using (var stream = response.GetResponseStream ())
+                    execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer (typeof (ExecuteResponse)).Deserialize (stream);
+            }
+            if (execResponse != null) {
+                if (execResponse.statusLocation != null)
+                    task.StatusUrl = execResponse.statusLocation;
+                if (execResponse.Status.Item == null)
+                    return false;
+            }
 
             task.ActualStatus = GetStatusFromExecuteResponse(execResponse.Status.Item);
             if (task.Finished)

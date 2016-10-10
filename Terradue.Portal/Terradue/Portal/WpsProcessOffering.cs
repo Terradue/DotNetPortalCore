@@ -128,27 +128,27 @@ namespace Terradue.Portal {
             if (Version != null) 
                 query += "&Version=" + Version;
 
-            HttpWebRequest describeHttpRequest = WpsProvider.CreateWebRequest(Provider.BaseUrl, query);
+            var uri = new UriBuilder (Provider.BaseUrl);
+            uri.Query = query;
 
-            MemoryStream memStream = new MemoryStream();
+            HttpWebRequest describeHttpRequest = this.Provider.CreateWebRequest(uri.Uri.AbsoluteUri);
+            ProcessDescriptions describeProcess = null;
+
             //call describe url
-            HttpWebResponse describeResponse = null;
-            try{
-                describeResponse = (HttpWebResponse)describeHttpRequest.GetResponse();
-            }catch(WebException we){
-                throw we;//TODO
-            }
-            describeResponse.GetResponseStream().CopyTo(memStream);
-            memStream.Seek(0, SeekOrigin.Begin);
-            if (describeResponse.StatusCode != HttpStatusCode.OK) {
-                using (StreamReader reader = new StreamReader(memStream)) {
-                    string errormsg = reader.ReadToEnd();
-                    log.Error(errormsg);
-                    throw new Exception(errormsg);//TEMPORARY - 52 North bug
+            using (HttpWebResponse describeResponse = (HttpWebResponse)describeHttpRequest.GetResponse ()) {
+                using (var memStream = new MemoryStream ()) {
+                    describeResponse.GetResponseStream ().CopyTo (memStream);
+                    memStream.Seek (0, SeekOrigin.Begin);
+                    if (describeResponse.StatusCode != HttpStatusCode.OK) {
+                        using (StreamReader reader = new StreamReader (memStream)) {
+                            string errormsg = reader.ReadToEnd ();
+                            log.Error (errormsg);
+                            throw new Exception (errormsg);//TEMPORARY - 52 North bug
+                        }
+                    }
+                    describeProcess = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (memStream);
                 }
             }
-
-            ProcessDescriptions describeProcess = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer(typeof(ProcessDescriptions)).Deserialize(memStream);
             return describeProcess;
         }
 
@@ -166,7 +166,7 @@ namespace Terradue.Portal {
             if (!string.IsNullOrEmpty(Version) && !Version.Equals(executeInput.version)) executeInput.version = Version;
 
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
-            HttpWebRequest executeHttpRequest = WpsProvider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
 
             executeHttpRequest.Method = "POST";
             executeHttpRequest.ContentType = "application/xml";
@@ -220,15 +220,17 @@ namespace Terradue.Portal {
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
             OpenGis.Wps.ExceptionReport exceptionReport = null;
-            HttpWebResponse executeResponse = null;
             MemoryStream memStream = new MemoryStream();
             try {
-                executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse();
-                executeResponse.GetResponseStream().CopyTo(memStream);
+                using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse ()) {
+                    using (var stream = executeResponse.GetResponseStream ()){
+                        stream.CopyTo (memStream);
+                    }
 
-                if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                    log.Debug("Execute response code : " + executeResponse.StatusCode);
-                    return ExecuteError(memStream);
+                    if (executeResponse.StatusCode != HttpStatusCode.OK) {
+                        log.Debug ("Execute response code : " + executeResponse.StatusCode);
+                        return ExecuteError (memStream);
+                    }
                 }
 
                 memStream.Seek(0, SeekOrigin.Begin);
@@ -236,9 +238,12 @@ namespace Terradue.Portal {
                 return execResponse;
             } catch (WebException we){
                 using (WebResponse response = we.Response){
-                    HttpWebResponse httpResponse = (HttpWebResponse) response;
-                    httpResponse.GetResponseStream().CopyTo(memStream);
-                    log.Debug("Execute response code : " + httpResponse.StatusCode);
+                    using (var httpResponse = (HttpWebResponse)response){
+                        using (var stream = httpResponse.GetResponseStream ()){
+                            stream.CopyTo (memStream);
+                        }
+                        log.Debug ("Execute response code : " + httpResponse.StatusCode);
+                    }
                     return ExecuteError(memStream);
                 }
             } catch (InvalidOperationException ioe) {
@@ -248,52 +253,10 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 log.Error("Execute request failed");
                 throw e;
+            } finally {
+                memStream.Close();
             }
         }
-
-//        public void StoreTask(ExecuteResponse executeResponse){
-//            Uri uri = new Uri(executeResponse.statusLocation);
-//            string newId = Guid.NewGuid().ToString();
-//
-//            //create task
-//            string identifier = null;
-//            try {
-//                identifier = uri.Query.Substring(uri.Query.IndexOf("id=") + 3);
-//            } catch (Exception e) {
-//                //statusLocation url is different for gpod
-//                if (uri.AbsoluteUri.Contains("gpod.eo.esa.int")) {
-//                    identifier = uri.AbsoluteUri.Substring(uri.AbsoluteUri.LastIndexOf("status") + 7);
-//                } else
-//                    throw e;
-//            }
-//            Task wpsTask = new Task(context);
-//            wpsTask.Name = Name;
-//            wpsTask.RemoteIdentifier = identifier;
-//            wpsTask.Identifier = newId;
-//            wpsTask.OwnerId = context.UserId;
-//            wpsTask.UserId = context.UserId;
-////            wpsjob.ServiceIdentifier = Provider.Identifier;
-//            wpsTask.ServiceIdentifier = Identifier;
-//            wpsTask.StatusUrl = executeResponse.statusLocation;
-//            wpsTask.Store();
-//
-//            wpsTask.J
-//
-//            foreach (var d in executeInput.DataInputs) {
-//                TaskParam
-//                output.Add(new KeyValuePair<string, string>(d.Identifier.Value, ((LiteralDataType)(d.Data.Item)).Value));
-//            }
-//            wpsTask.Parameters = output;
-//            wpsTask.Store();
-//
-//            if (Provider.Proxy) {
-//                uri = new Uri(executeResponse.serviceInstance);
-//                executeResponse.serviceInstance = context.BaseUrl + uri.PathAndQuery;
-//                executeResponse.statusLocation = context.BaseUrl + "/wps/RetrieveResultServlet?id=" + newId;
-//            }
-//            new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.ExecuteResponse)).Serialize(stream, execResponse);
-//            context.Close();
-//        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
