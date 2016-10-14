@@ -138,25 +138,65 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Associates the specified users to this group.</summary>
+        /// <summary>Sets the specified users as the only users belonging to this group.</summary>
         /// <param name="users">The users to be associated.</param>
         public void SetUsers(IEnumerable<User> users) {
-            context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0};", Id));
-            foreach (User user in users) {
-                if (!user.Exists) user.Store();
-                context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES ({0},{1});", user.Id, this.Id));
-            }
+            AssignUsers(users, true);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Assigns the specified user to this group.</summary>
+        /// <param name="user">The user to be assigned.</param>
         public void AssignUser(User user) {
             AssignUsers(new int[] {user.Id});
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void AssignUsers(IEnumerable<User> users) {
+        /// <summary>Assigns the specified users to this group.</summary>
+        /// <param name="users">The users to be assigned.</param>
+        /// <param name="removeOthers">Whether or not the specified users will be the only ones in this group.</param>
+        public void AssignUsers(IEnumerable<User> users, bool removeOthers = false) {
+            List<int> userIds = new List<int>();
+            foreach (User user in users) userIds.Add(user.Id);
+            AssignUsers(userIds, removeOthers);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Assigns the specified users to this group.</summary>
+        /// <param name="user">The database IDs of the users to be assigned.</param>
+        /// <param name="removeOthers">Whether or not the specified users will be the only ones in this group.</param>
+        public void AssignUsers(IEnumerable<int> userIds, bool removeOthers = false) {
+            if (userIds == null) return;
+            string valuesStr = String.Empty;
+            bool hasIds = false;
+            foreach (int userId in userIds) {
+                if (hasIds) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1})", userId, Id);
+                hasIds = true;
+            }
+            if (removeOthers) context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0};", Id));
+            if (hasIds) {
+                if (!removeOthers) context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0} AND id_usr IN ({1});", Id, String.Join(",", userIds))); // avoid duplicates
+                context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));        
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Unassigns the specified user from this group.</summary>
+        /// <param name="user">The user to be unassigned.</param>
+        public void UnassignUser(User user) {
+            AssignUsers(new int[] {user.Id});
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Unassigns the specified users from this group.</summary>
+        /// <param name="user">The users to be unassigned.</param>
+        public void UnassignUsers(IEnumerable<User> users) {
             List<int> userIds = new List<int>();
             foreach (User user in users) userIds.Add(user.Id);
             AssignUsers(userIds);
@@ -164,7 +204,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void AssignUsers(IEnumerable<int> userIds) {
+        /// <summary>Unassigns the specified users from this group.</summary>
+        /// <param name="user">The database IDs of the users to be unassigned.</param>
+        public void UnassignUsers(IEnumerable<int> userIds) {
             if (userIds == null) return;
             string valuesStr = String.Empty;
             bool hasIds = false;
@@ -175,7 +217,6 @@ namespace Terradue.Portal {
             }
             if (hasIds) {
                 context.Execute(String.Format("DELETE FROM usr_grp WHERE id_grp={0} AND id_usr IN ({1});", Id, String.Join(",", userIds))); // avoid duplicates
-                context.Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) VALUES {0};", valuesStr));        
             }
         }
 
