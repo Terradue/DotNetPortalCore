@@ -101,7 +101,7 @@ namespace Terradue.Portal {
             }
         }
 
-        public OpenSearchRequest Create(string type, NameValueCollection parameters) {
+        public OpenSearchRequest Create(QuerySettings querySettings, NameValueCollection parameters) {
 
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/series/" + this.Identifier;
@@ -110,7 +110,7 @@ namespace Terradue.Portal {
                 select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, Series.ToArray(), type, new OpenSearchUrl(url.ToString()), true, this);
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, Series.ToArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public OpenSearchDescription GetOpenSearchDescription() {

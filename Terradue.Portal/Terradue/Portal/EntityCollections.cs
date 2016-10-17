@@ -639,7 +639,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public OpenSearchRequest Create(string type, System.Collections.Specialized.NameValueCollection parameters) {
+        public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/"+this.Identifier+"/";
             var array = (from key in parameters.AllKeys

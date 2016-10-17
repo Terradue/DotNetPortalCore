@@ -576,8 +576,8 @@ namespace Terradue.Portal {
 
         #region IOpenSearchable implementation
 
-        public virtual OpenSearchRequest Create(string type, NameValueCollection parameters) {
-            return OpenSearchRequest.Create(this, type, parameters);
+        public virtual OpenSearchRequest Create(QuerySettings querySettings, NameValueCollection parameters) {
+            return OpenSearchRequest.Create(this, querySettings, parameters);
         }
 
         public virtual QuerySettings GetQuerySettings(OpenSearchEngine ose) {
