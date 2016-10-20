@@ -54,8 +54,8 @@ namespace Terradue.Portal {
             }
         }
 
-        public OpenSearchRequest Create(string type, NameValueCollection parameters) {
-            return OpenSearchRequest.Create(this, type, parameters);
+        public OpenSearchRequest Create(QuerySettings querySettings, NameValueCollection parameters) {
+            return OpenSearchRequest.Create(this, querySettings, parameters);
         }
 
         public NameValueCollection GetOpenSearchParameters(string mimeType) {

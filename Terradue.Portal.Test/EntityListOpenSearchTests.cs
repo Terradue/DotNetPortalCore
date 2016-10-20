@@ -9,6 +9,7 @@ using Terradue.OpenSearch.Response;
 using System.Xml;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Result;
+using Terradue.OpenSearch;
 
 namespace Terradue.Portal.Test {
 
@@ -59,14 +60,14 @@ namespace Terradue.Portal.Test {
             }
 
             var nvc = new NameValueCollection();
-            var request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            var request = (AtomOpenSearchRequest)list.Create(new QuerySettings("application/atom+xml", ose.GetExtensionByExtensionName("atom").ReadNative) , nvc);
             AtomFeed feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "1");
             Assert.That(feed.Items.Last().Title.Text == "10");
 
             nvc.Add("startIndex", "2");
-            request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            request = (AtomOpenSearchRequest)list.Create(new QuerySettings("application/atom+xml", ose.GetExtensionByExtensionName("atom").ReadNative) , nvc);
             feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "2");
@@ -74,7 +75,7 @@ namespace Terradue.Portal.Test {
 
             nvc.Remove("startIndex");
             nvc.Add("q", "4");
-            request = (AtomOpenSearchRequest)list.Create("application/atom+xml", nvc);
+            request = (AtomOpenSearchRequest)list.Create(new QuerySettings("application/atom+xml", ose.GetExtensionByExtensionName("atom").ReadNative), nvc);
             feed = (AtomFeed)request.GetResponse().GetResponseObject();
 
             Assert.That(feed.Items.First().Title.Text == "4");
