@@ -148,6 +148,7 @@
     <Compile Include="Terradue\Portal\OpenSearch\SmartGenericOpenSearchable.cs" />
     <Compile Include="Terradue\Portal\generated\WpsNamespaces.cs" />
     <Compile Include="Terradue\Portal\_Documentation.cs" />
+    <Compile Include="Terradue\Portal\DBCookie.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
