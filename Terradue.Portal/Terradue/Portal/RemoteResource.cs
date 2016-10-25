@@ -145,7 +145,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public OpenSearchRequest Create(string type, System.Collections.Specialized.NameValueCollection parameters) {
+        public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
 
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/remoteresource/" + this.Identifier;
@@ -159,7 +159,7 @@ namespace Terradue.Portal {
                 return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
             }*/
 
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true, this);
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
