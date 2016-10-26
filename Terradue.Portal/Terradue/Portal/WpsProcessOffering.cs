@@ -3,7 +3,6 @@ using Terradue.OpenSearch;
 using Terradue.OpenSearch.Result;
 using System.Collections.Specialized;
 using Terradue.ServiceModel.Syndication;
-using Terradue.ServiceModel.Ogc.OwsContext;
 using System.Collections.Generic;
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -17,7 +16,7 @@ using System.Net;
 using System.IO;
 using OpenGis.Wps;
 using System.Xml;
-
+using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
 
 namespace Terradue.Portal {
 
@@ -338,9 +337,9 @@ namespace Terradue.Portal {
             log.Debug("execute url = " + executeurl);
             Uri executeUri = new Uri(executeurl);
 
-            operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri});
-            operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri});
-            operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri});
+            operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri.AbsoluteUri});
+            operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri.AbsoluteUri});
+            operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri.AbsoluteUri});
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };

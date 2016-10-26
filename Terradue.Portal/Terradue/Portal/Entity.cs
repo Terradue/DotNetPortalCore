@@ -59,7 +59,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets (protected) the EntityAccessLevel by which this entity item was created or loaded.</summary>
-        public EntityAccessLevel AccessLevel { get; protected set; }
+        public EntityAccessLevel AccessLevel { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 

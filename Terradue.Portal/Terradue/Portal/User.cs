@@ -242,7 +242,10 @@ namespace Terradue.Portal {
             Activity activity = null;
             int userId = GetUserId(context, username, authenticationType);
             if (userId != 0) {
+                var oldAccessLevel = context.AccessLevel;
+                context.AccessLevel = EntityAccessLevel.Administrator;
                 result = FromId(context, userId);
+                context.AccessLevel = oldAccessLevel;
                 activity = new Activity(context, result, OperationPriv.LOGIN);
                 activity.Store();
                 return result;

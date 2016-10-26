@@ -561,6 +561,7 @@ namespace Terradue.Portal {
             AuthenticationType selectedAuthenticationType = null;
             User identifiedUser = null;
 
+
             foreach (AuthenticationType authenticationType in authenticationTypes) {
                 if (!authenticationType.IsEnabled) continue;
 
@@ -583,7 +584,12 @@ namespace Terradue.Portal {
 
                 if (isNewUser || selectedAuthenticationType.AlwaysRefreshAccount) {
                     string authUsername = identifiedUser.Username;
+
+                    //if the Authentication type allows creation then we must use Administrator rights
+                    AccessLevel = EntityAccessLevel.Administrator;
+                    identifiedUser.AccessLevel = EntityAccessLevel.Administrator;
                     identifiedUser.Store();
+
                     if (isNewUser && selectedAuthenticationType.UsesExternalIdentityProvider) {
                         identifiedUser.LinkToAuthenticationProvider(selectedAuthenticationType, authUsername);
                     }
