@@ -1734,12 +1734,14 @@ CREATE TABLE productdata (
 CREATE TABLE resourceset (
     id int unsigned NOT NULL auto_increment,
     identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
+    id_domain int unsigned COMMENT 'FK: Owning domain',
     id_usr int unsigned COMMENT 'FK: Owning user (optional)',
     name varchar(50) COMMENT 'Name',
     is_default boolean DEFAULT false COMMENT 'If true, resource set is selected by default',
     access_key varchar(50) COMMENT 'Access key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
     CONSTRAINT pk_resourceset PRIMARY KEY (id),
+    CONSTRAINT fk_resourceset_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL,
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_resourceset_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Sets of remote resources';

@@ -204,3 +204,8 @@ ALTER TABLE safe_priv COMMENT = 'User/group permissions on safes';
 -- OK
 
 /*****************************************************************************/
+
+-- Add domain for resourceset table
+ALTER TABLE resourceset ADD COLUMN id_domain INT UNSIGNED NULL;
+ALTER TABLE resourceset ADD CONSTRAINT fk_resourceset_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL;
+-- RESULT
