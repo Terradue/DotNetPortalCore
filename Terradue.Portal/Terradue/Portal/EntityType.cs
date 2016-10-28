@@ -752,7 +752,9 @@ namespace Terradue.Portal {
 
                     // If list is empty, the view (or similar) privilege is defined, but there is no role that includes that privilege
                     // Therefore, the item cannot be loaded (by nobody except an administrator).
-                    if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : GetItemTerm(item)), this, null, userId);
+                    if (roleIds.Length == 0) roleIds = new int [] { 0 };
+                    //TODO: resolve the roleIds.Length == 0 situation elsewhere
+                    //if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : GetItemTerm(item)), this, null, userId);
 
                     // Get the list of domains for which the user has the view privilege on items of the entity type
                     // The domain restriction check needs to be performed only if the privilege is defined (otherwise everybody has the privilege)
@@ -820,7 +822,7 @@ namespace Terradue.Portal {
         public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType operation, bool inverse) {
             List<int> result = new List<int>();
             string condition = String.Format("p.id_type={0} AND ", TopTypeId);
-            condition += String.Format("p.operation{1}='{0}'", (char)operation, inverse ? "!" : String.Empty);
+            condition += String.Format("p.operation{1}='{0}';", (char)operation, inverse ? "!" : String.Empty);
             string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
             //Console.WriteLine("ROLES: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
