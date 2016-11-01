@@ -88,9 +88,6 @@
     <Reference Include="ProjNet">
       <HintPath>..\packages\ProjNet.1.2\lib\net20\ProjNet.dll</HintPath>
     </Reference>
-    <Reference Include="Terradue.OpenSearch">
-      <HintPath>..\packages\Terradue.OpenSearch.1.12.1\lib\net40\Terradue.OpenSearch.dll</HintPath>
-    </Reference>
     <Reference Include="Terradue.OpenSearch.RdfEO">
       <HintPath>..\packages\Terradue.OpenSearch.RdfEO.1.3.7\lib\net40\Terradue.OpenSearch.RdfEO.dll</HintPath>
     </Reference>
@@ -103,6 +100,9 @@
     <Reference Include="Terradue.Metadata.EarthObservation">
       <HintPath>..\packages\Terradue.Metadata.EarthObservation.1.4.3\lib\net40\Terradue.Metadata.EarthObservation.dll</HintPath>
     </Reference>
+    <Reference Include="Terradue.OpenSearch">
+      <HintPath>..\packages\Terradue.OpenSearch.1.13.2\lib\net40\Terradue.OpenSearch.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
@@ -110,11 +110,14 @@
     <Compile Include="OpenSearchableTests.cs" />
     <Compile Include="EntityListOpenSearchTests.cs" />
     <Compile Include="WpsProcessOffering.Test.cs" />
-	<Compile Include="WpsProvider.Test.cs" />
+    <Compile Include="WpsProvider.Test.cs" />
     <Compile Include="SafeTest.cs" />
     <Compile Include="FeatureTest.cs" />
     <Compile Include="EntityTest.cs" />
     <Compile Include="Serialization.Test.cs" />
+    <Compile Include="EntityCollectionTest.cs" />
+    <Compile Include="RolePrivilegeTests.cs" />
+    <Compile Include="TepScenarios.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
