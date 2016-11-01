@@ -743,7 +743,7 @@ namespace Terradue.Portal {
 
             if (accessLevel == EntityAccessLevel.Privilege) {
                 // For lists, get all roles with search privilege on items of the entity type (inverse = false); 
-                // for items, get all roles with any other privilege than search on items of the entity type (inverse = true) 
+                // for items, get all roles with any other privilege than search on items of the entity type (inverse = true)
                 int[] roleIds = GetRolesForPrivilege(context, EntityOperationType.Search, item != null);
                 if (context.ConsoleDebug) Console.WriteLine("ROLES: {0}", roleIds == null ? "PRIVILEGE NOT DEFINED" : String.Join(",", roleIds));
 
@@ -820,11 +820,32 @@ namespace Terradue.Portal {
         /// <param name="operation">The operation that, in combination with the entity type represented by this instance, defines the privilege.</param>
         /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privilege; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
         public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType operation, bool inverse) {
-            List<int> result = new List<int>();
             string condition = String.Format("p.id_type={0} AND ", TopTypeId);
             condition += String.Format("p.operation{1}='{0}';", (char)operation, inverse ? "!" : String.Empty);
             string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
-            //Console.WriteLine("ROLES: {0}", sql);
+            return GetRolesForPrivilege(context, sql);
+        }
+
+        /// <summary>Lists all roles that include the specified privileges for this entity type or, alternatively, any privilege for this entity type other than the specified ones.</summary>
+        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="operations">The operations that, in combination with the entity type represented by this instance, defines the privileges.</param>
+        /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privileges; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
+        public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType[] operations, bool inverse) {
+            string condition = String.Format("p.id_type={0} AND ", TopTypeId);
+            string ops = String.Empty;
+            foreach (EntityOperationType operation in operations) {
+                if (ops == null) ops = String.Empty;
+                else ops += ",";
+                ops += (char)operation;
+            }
+            condition += String.Format("p.operation{1} IN ('{0}');", ops, inverse ? " NOT" : String.Empty);
+            string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
+            return GetRolesForPrivilege(context, sql);
+        }
+
+        protected int[] GetRolesForPrivilege(IfyContext context, string sql) {
+            List<int> result = new List<int>();
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             bool privilegeExists = false;
