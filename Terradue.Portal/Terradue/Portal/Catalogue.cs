@@ -4,6 +4,7 @@ using System.Data;
 using System.Web;
 using Terradue.OpenSearch;
 using Terradue.OpenSearch.Engine;
+using Terradue.OpenSearch.Engine.Extensions;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
@@ -19,7 +20,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Engine.Extensions;
 
 
 

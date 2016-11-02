@@ -322,7 +322,7 @@ namespace Terradue.Portal {
                         break;
                     case "-r" :
                         if (argpos == args.Length - 1) return false;
-                        InstallationBaseDirectory = args[++argpos];
+                        SiteBaseDirectory = args[++argpos];
                         break;
                     case "-H" : 
                         if (argpos == args.Length - 1) return false;
@@ -555,7 +555,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void GetDirectories() {
-            if (InstallationBaseDirectory == null) {
+            if (InstallationBaseDirectory == null && SiteBaseDirectory == null) {
                 throw new Exception("No directory information specified");
             }
             if (InstallationBaseDirectory != null) {
