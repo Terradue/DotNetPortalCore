@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Terradue.Util;
 
 
 
@@ -66,6 +67,26 @@ namespace Terradue.Portal {
             result.Id = id;
             result.Load();
             return result;
+        }
+
+        /// <summary>Creates a new Domain instance representing the domain with the specified Identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">The domain Identifier.</param>
+        /// <returns>The created Domain object.</returns>
+        public static Domain FromIdentifier(IfyContext context, string identifier) {
+            Domain result = new Domain(context);
+            result.Identifier = identifier;
+            result.Load();
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the identifying condition sql.
+        /// </summary>
+        /// <returns>The identifying condition sql.</returns>
+        public override string GetIdentifyingConditionSql() {
+            if (Id == 0 && !string.IsNullOrEmpty (Identifier)) return String.Format ("t.name={0}", StringUtils.EscapeSql (Identifier));
+                return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
