@@ -524,7 +524,7 @@ namespace Terradue.Portal {
             body = body.Replace("$" + activationToken + "(USERNAME)", Username);
             body = body.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
             body = body.Replace("$" + activationToken + "(SITEURL)", context.HostUrl);
-            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.HostUrl).Replace("$(TOKEN)", activationToken));
+            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.GetConfigValue ("BaseUrl")).Replace("$(TOKEN)", activationToken));
             if (body.Contains("$" + activationToken + "(SERVICES)")) {
                 body = body.Replace("$" + activationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
             }
