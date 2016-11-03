@@ -49,7 +49,43 @@ namespace Terradue.Portal {
         public static Role GetInstance(IfyContext context) {
             return new Role(context);
         }
-        
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new Role instance representing the role with the specified ID.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">The role ID.</param>
+        /// <returns>The created Role object.</returns>
+        public static Role FromId (IfyContext context, int id)
+        {
+            Role result = new Role (context);
+            result.Id = id;
+            result.Load ();
+            return result;
+        }
+
+        /// <summary>Creates a new Role instance representing the role with the specified Identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">The role Identifier.</param>
+        /// <returns>The created Role object.</returns>
+        public static Role FromIdentifier (IfyContext context, string identifier)
+        {
+            Role result = new Role (context);
+            result.Identifier = identifier;
+            result.Load ();
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the identifying condition sql.
+        /// </summary>
+        /// <returns>The identifying condition sql.</returns>
+        public override string GetIdentifyingConditionSql ()
+        {
+            if (Id == 0 && !string.IsNullOrEmpty (Identifier)) return String.Format ("t.identifier={0}", StringUtils.EscapeSql (Identifier));
+            return null;
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public override void Store() {
