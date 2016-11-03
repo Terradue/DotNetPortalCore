@@ -544,6 +544,17 @@ namespace Terradue.Portal {
                     if (!(User.ForceFromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
                 }
 
+                if (!string.IsNullOrEmpty (parameters ["domain"])) {
+                    Domain domain;
+                    try {
+                        domain = Domain.FromIdentifier (context, parameters ["domain"]);
+                        if (s.Domain == null || s.Domain.Identifier != domain.Identifier) continue;
+                    } catch (Exception e){
+                        context.LogError (this, e.Message + "-" + e.StackTrace);
+                        continue;
+                    }
+                }
+
                 if (s is IAtomizable) {
                     AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
                     if(item != null) items.Add(item);
@@ -682,6 +693,9 @@ namespace Terradue.Portal {
             foreach (var key in nvc.AllKeys) {
                 query.Set(key, nvc[key]);
             }
+
+            //add domain
+            query.Set ("domain", "{t2:domain?}");
 
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
