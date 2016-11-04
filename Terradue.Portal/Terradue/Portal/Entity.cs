@@ -190,21 +190,6 @@ namespace Terradue.Portal {
         public bool IsInCollection { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Indicates whether the current user is authorized to view this item.</summary>
-        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
-        public virtual bool CanView {
-            get {
-                if (AccessLevel == EntityAccessLevel.Administrator) return true;
-                if (AccessLevel == EntityAccessLevel.Privilege) {
-                    if (Privilege.Get(EntityType, EntityOperationType.View) == null) return true;
-                    return Privilege.Get(EntityOperationType.View, ItemPrivileges) != null;
-                }
-                return false;
-            } 
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Indicates whether the current user is authorized to persistently store this item as a new record in the database.</summary>
         /// <remarks>
@@ -223,6 +208,36 @@ namespace Terradue.Portal {
             } 
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the current user is authorized to use this item.</summary>
+        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
+        public virtual bool CanUse {
+            get {
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.Use) == null) return true;
+                    return Privilege.Get(EntityOperationType.Use, ItemPrivileges) != null;
+                }
+                return false;
+            } 
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates whether the current user is authorized to view this item.</summary>
+        /// <remarks>The current user is the one with UserId as its database ID.</remarks>
+        public virtual bool CanView {
+            get {
+                if (AccessLevel == EntityAccessLevel.Administrator) return true;
+                if (AccessLevel == EntityAccessLevel.Privilege) {
+                    if (Privilege.Get(EntityType, EntityOperationType.View) == null) return true;
+                    return Privilege.Get(EntityOperationType.View, ItemPrivileges) != null;
+                }
+                return false;
+            } 
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the current user is authorized to persistently store the modifications applied to this item's database record.</summary>
@@ -1110,7 +1125,7 @@ namespace Terradue.Portal {
             }
 
             // Get roles that have view access on item's domain (i.e. any other operation than Search)
-            int[] roleIds = EntityType.GetRolesForPrivilege(context, EntityOperationType.Search, true);
+            int[] roleIds = EntityType.GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, true);
             if (roleIds != null) {
                 string domainCondition = EntityType.TopTable.HasDomainReference ? "true" : DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("id_domain={0}", DomainId);
                 if (roleIds.Length != 0) {

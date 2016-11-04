@@ -744,7 +744,7 @@ namespace Terradue.Portal {
             if (accessLevel == EntityAccessLevel.Privilege) {
                 // For lists, get all roles with search privilege on items of the entity type (inverse = false); 
                 // for items, get all roles with any other privilege than search on items of the entity type (inverse = true)
-                int[] roleIds = GetRolesForPrivilege(context, EntityOperationType.Search, item != null);
+                int[] roleIds = GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, item != null);
                 if (context.ConsoleDebug) Console.WriteLine("ROLES: {0}", roleIds == null ? "PRIVILEGE NOT DEFINED" : String.Join(",", roleIds));
 
                 // Do not perform domain-restriction check if view (or similar) privilege is not defined (roleIds == null)

@@ -250,6 +250,8 @@ namespace Terradue.Portal {
                     return EntityOperationType.Search;
                 case 'v':
                     return EntityOperationType.View;
+                case 'u':
+                    return EntityOperationType.Use;
                 case 'm':
                     return EntityOperationType.Change;
                 case 'M':
@@ -287,6 +289,10 @@ namespace Terradue.Portal {
         /// <summary>View an entity item.</summary>
         /// <remarks>This operation selects the details of entity items that are part of a user's grant. The <c>View</c> privilege on an entity type is implied by all other privileges on that entity type except <c>Search</c>.</remarks>
         View = 'v',
+
+        /// <summary>Use an entity item for its main purpose.</summary>
+        /// <remarks>This operation is applicable to entity types that represent resources that can be consumed by users (e.g. processing services or computing resources).</remarks>
+        Use = 'u',
 
         /// <summary>Change an existing entity item.</summary>
         /// <remarks>This operation makes persistent modifications to entity items that are part a user's grant.</remarks>
