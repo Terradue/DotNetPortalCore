@@ -833,13 +833,13 @@ namespace Terradue.Portal {
         /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privileges; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
         public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType[] operations, bool inverse) {
             string condition = String.Format("p.id_type={0} AND ", TopTypeId);
-            string ops = String.Empty;
+            string ops = null;
             foreach (EntityOperationType operation in operations) {
                 if (ops == null) ops = String.Empty;
                 else ops += ",";
-                ops += (char)operation;
+                ops += String.Format("'{0}'", (char)operation);
             }
-            condition += String.Format("p.operation{1} IN ('{0}');", ops, inverse ? " NOT" : String.Empty);
+            condition += String.Format("p.operation{1} IN ({0});", ops, inverse ? " NOT" : String.Empty);
             string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
             return GetRolesForPrivilege(context, sql);
         }
