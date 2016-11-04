@@ -2297,8 +2297,8 @@ CREATE TABLE activity (
     id_owner int unsigned COMMENT 'User owning the entity related to the activity',
     log_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
     CONSTRAINT pk_activity PRIMARY KEY (id),
-    INDEX (`id_usr`),
-    INDEX (`log_time`)
+    INDEX (id_usr),
+    INDEX (log_time)
 ) Engine=InnoDB COMMENT 'User activities';
 -- CHECKPOINT C-72
 
