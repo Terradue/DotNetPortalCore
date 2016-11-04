@@ -214,7 +214,10 @@ namespace Terradue.Portal {
         }
 
         public object Execute(Execute executeInput){
-            
+
+            //We first validate that the user can use the service
+            if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
+
             var executeHttpRequest = PrepareExecuteRequest(executeInput);        
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
