@@ -224,16 +224,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to specified user for the specified domain or globally.</summary>
-        /// <param name="user">The user who is the beneficary.</param>
-        /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the users obtain this role globally.</param>
+        /// <summary>Grants this role to the specified user for the specified domain or globally.</summary>
+        /// <param name="user">The user who is the beneficiary.</param>
+        /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the user obtains this role globally.</param>
         public void GrantToUser(User user, Domain domain) {
             Grant(false, new int[] {user.Id}, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to the specified users for the specified domain or globally.</summary>
+        /// <summary>Grants this role to the specified users for the specified domain or globally.</summary>
         /// <param name="users">An array of the users who are the beneficiaries.</param>
         /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the users obtain this role globally.</param>
         public void GrantToUsers(IEnumerable<User> users, Domain domain) {
@@ -244,7 +244,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to the specified users for the specified domain or globally.</summary>
+        /// <summary>Grants this role to the specified users for the specified domain or globally.</summary>
         /// <param name="userIds">An array of the database IDs of the users who are the beneficiaries.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the users obtain this role globally.</param>
         public void GrantToUsers(IEnumerable<int> userIds, int domainId) {
@@ -253,16 +253,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to specified user for the specified domain or globally.</summary>
-        /// <param name="user">The user who is the beneficary.</param>
-        /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the users obtain this role globally.</param>
+        /// <summary>Grants this role to the specified group for the specified domain or globally.</summary>
+        /// <param name="user">The group whose users are the beneficiaries.</param>
+        /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the group obtains this role globally.</param>
         public void GrantToGroup(Group group, Domain domain) {
             Grant(true, new int[] {group.Id}, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to the specified groups for the specified domain or globally.</summary>
+        /// <summary>Grants this role to the specified groups for the specified domain or globally.</summary>
         /// <param name="groups">An array of the groups whose users are the beneficiaries.</param>
         /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the groups obtain this role globally.</param>
         public void GrantToGroups(IEnumerable<Group> groups, Domain domain) {
@@ -273,7 +273,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to the specified groups for the specified domain or globally.</summary>
+        /// <summary>Grants this role to the specified groups for the specified domain or globally.</summary>
         /// <param name="groupIds">An array of the database IDs of the groups whose users are the beneficiaries.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the groups obtain this role globally.</param>
         public void GrantToGroups(IEnumerable<int> groupIds, int domainId) {
@@ -282,9 +282,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Assigns this role to the specified users or groups for the specified domain or globally.</summary>
+        /// <summary>Grants this role to the specified users or groups for the specified domain or globally.</summary>
         /// <param name="forGroup">If <c>true</c>, the methods considers the given IDs as group IDs, otherwise as user IDs.</param>
-        /// <param name="ids">An array of the database IDs of the users or groups.</param>
+        /// <param name="ids">An array of the database IDs of the users or groups that are the beneficiaries.</param>
         /// <param name="domainId">The database ID of the domain for which the role grant is valid. If the value is <c>0</c>, the beneficiaries obtain this role globally.</param>
         protected void Grant(bool forGroup, IEnumerable<int> ids, int domainId) {
             if (ids == null) return;
@@ -302,6 +302,82 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role to the specified user for the specified domain or globally.</summary>
+        /// <param name="user">The user who is no longer the beneficiary.</param>
+        /// <param name="domain">The domain for which the role grant is no longer valid. If the value is <c>null</c>, the user loses the global grant of this role, but keeps it for individually assigned domains.</param>
+        public void RevokeFromUser(User user, Domain domain) {
+            Revoke(false, new int[] {user.Id}, domain == null ? 0 : domain.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified users for the specified domain or globally.</summary>
+        /// <param name="users">An array of the users who are no longer the beneficiaries.</param>
+        /// <param name="domain">The domain for which the role grant is no longer valid. If the value is <c>null</c>, the users lose the global grant of this role, but keep it for individually assigned domains.</param>
+        public void RevokeFromUsers(IEnumerable<User> users, Domain domain) {
+            List<int> userIds = new List<int>();
+            foreach (User user in users) userIds.Add(user.Id);
+            Revoke(false, userIds, domain == null ? 0 : domain.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified users for the specified domain or globally.</summary>
+        /// <param name="userIds">An array of the database IDs of the users who are no longer the beneficiaries.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is no longer valid. If the value is <c>0</c>, the users lose the global grant of this role, but keep it for individually assigned domains.</param>
+        public void RevokeFromUsers(IEnumerable<int> userIds, int domainId) {
+            Revoke(false, userIds, domainId);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified group for the specified domain or globally.</summary>
+        /// <param name="user">The group whose users are no longer the beneficiaries.</param>
+        /// <param name="domain">The domain for which the role grant is no longer valid. If the value is <c>null</c>, the group loses the global grant of this role, but keeps it for individually assigned domains.</param>
+        public void RevokeFromGroup(Group group, Domain domain) {
+            Revoke(true, new int[] {group.Id}, domain == null ? 0 : domain.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified groups for the specified domain or globally.</summary>
+        /// <param name="groups">An array of the groups whose users are no longer the beneficiaries.</param>
+        /// <param name="domain">The domain for which the role grant is no longer valid. If the value is <c>null</c>, the groups lose the global grant of this role, but keep it for individually assigned domains.</param>
+        public void RevokeFromGroups(IEnumerable<Group> groups, Domain domain) {
+            List<int> groupIds = new List<int>();
+            foreach (Group group in groups) groupIds.Add(group.Id);
+            Revoke(true, groupIds, domain == null ? 0 : domain.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified groups for the specified domain or globally.</summary>
+        /// <param name="groupIds">An array of the database IDs of the groups whose users are no longer the beneficiaries.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is no longer valid. If the value is <c>0</c>, the groups lose the global grant of this role, but keep it for individually assigned domains.</param>
+        public void RevokeFromGroups(IEnumerable<int> groupIds, int domainId) {
+            Revoke(true, groupIds, domainId);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revokes this role from the specified users or groups for the specified domain or globally.</summary>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given IDs as group IDs, otherwise as user IDs.</param>
+        /// <param name="ids">An array of the database IDs of the users or groups that are the beneficiaries.</param>
+        /// <param name="domainId">The database ID of the domain for which the role grant is no longer valid. If the value is <c>0</c>, the beneficiaries lose the global grant of this role, but keep it for individually assigned domains.</param>
+        protected void Revoke(bool forGroup, IEnumerable<int> ids, int domainId) {
+            if (ids == null) return;
+            string valuesStr = String.Empty;
+            bool hasIds = false;
+            foreach (int id in ids) {
+                if (hasIds) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1},{2})", id, Id, domainId == 0 ? "NULL" : domainId.ToString());
+                hasIds = true;
+            }
+            if (hasIds) {
+                context.Execute(String.Format("DELETE FROM rolegrant WHERE id_role={0} AND {1} IN ({2}) AND id_domain{3};", Id, forGroup ? "id_grp" : "id_usr", String.Join(",", ids), domainId == 0 ? " IS NULL" : String.Format("={0}", domainId))); // avoid duplicates
+            }
+        }
 
     }
 
