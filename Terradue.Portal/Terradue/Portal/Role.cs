@@ -37,6 +37,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Description of this role.</summary>
+        [EntityDataField("description")]
+        public string Description { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new ManagerRole instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Role(IfyContext context) : base(context) {}
