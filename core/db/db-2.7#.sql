@@ -202,7 +202,7 @@ ALTER TABLE series_perm
     DROP FOREIGN KEY fk_series_priv_series,
     DROP FOREIGN KEY fk_series_priv_usr,
     DROP FOREIGN KEY fk_series_priv_grp,
-    ADD CONSTRAINT fk_series_perm_series FOREIGN KEY (id_series) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_series_perm_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_series_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_series_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
@@ -214,7 +214,7 @@ ALTER TABLE producttype_perm
     DROP FOREIGN KEY fk_producttype_priv_producttype,
     DROP FOREIGN KEY fk_producttype_priv_usr,
     DROP FOREIGN KEY fk_producttype_priv_grp,
-    ADD CONSTRAINT fk_producttype_perm_producttype FOREIGN KEY (id_producttype) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_producttype_perm_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_producttype_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_producttype_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
@@ -226,7 +226,7 @@ ALTER TABLE resourceset_perm
     DROP FOREIGN KEY fk_resourceset_priv_resourceset,
     DROP FOREIGN KEY fk_resourceset_priv_usr,
     DROP FOREIGN KEY fk_resourceset_priv_grp,
-    ADD CONSTRAINT fk_resourceset_perm_resourceset FOREIGN KEY (id_resourceset) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_resourceset_perm_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_resourceset_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_resourceset_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
@@ -238,7 +238,7 @@ ALTER TABLE pubserver_perm
     DROP FOREIGN KEY fk_pubserver_priv_pubserver,
     DROP FOREIGN KEY fk_pubserver_priv_usr,
     DROP FOREIGN KEY fk_pubserver_priv_grp,
-    ADD CONSTRAINT fk_pubserver_perm_pubserver FOREIGN KEY (id_pubserver) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_pubserver_perm_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_pubserver_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_pubserver_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
@@ -250,7 +250,7 @@ ALTER TABLE service_perm
     DROP FOREIGN KEY fk_service_priv_service,
     DROP FOREIGN KEY fk_service_priv_usr,
     DROP FOREIGN KEY fk_service_priv_grp,
-    ADD CONSTRAINT fk_service_perm_service FOREIGN KEY (id_service) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_service_perm_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_service_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_service_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
@@ -262,7 +262,7 @@ ALTER TABLE safe_perm
     DROP FOREIGN KEY fk_safe_priv_safe,
     DROP FOREIGN KEY fk_safe_priv_usr,
     DROP FOREIGN KEY fk_safe_priv_grp,
-    ADD CONSTRAINT fk_safe_perm_safe FOREIGN KEY (id_safe) REFERENCES cr(id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_safe_perm_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_safe_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_safe_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ;
