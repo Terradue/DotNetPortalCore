@@ -1759,7 +1759,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the name of the table containing the permissions on the entity items for users and groups.</summary>
-        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
+        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_perm</c> (previously it was <c>_priv</c>, but this was changed to make the distinction between privileges and permissions clearer).</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public string PermissionTable { get; set; }
 
@@ -1773,7 +1773,7 @@ namespace Terradue.Portal {
             get { return PermissionTable != null; }
             set { 
                 if (value) {
-                    if (PermissionTable == null) PermissionTable = Name + "_priv";
+                    if (PermissionTable == null) PermissionTable = Name + "_perm";
                 } else {
                     PermissionTable = null;
                 }

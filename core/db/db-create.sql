@@ -1523,14 +1523,14 @@ CREATE TABLE cr (
 
 /*****************************************************************************/
 
-CREATE TABLE cr_priv (
+CREATE TABLE cr_perm (
     id_cr int unsigned NOT NULL COMMENT 'FK: Computing resource',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
     credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
-    CONSTRAINT fk_cr_priv_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cr_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cr_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_cr_perm_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cr_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cr_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on computing resources';
 -- CHECKPOINT C-29
 
@@ -1659,16 +1659,16 @@ END;
 
 /*****************************************************************************/
 
-CREATE TABLE series_priv (
+CREATE TABLE series_perm (
     id_series int unsigned NOT NULL COMMENT 'FK: Series',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
     can_search boolean COMMENT 'If true, user/group has product search permission',
     can_download boolean COMMENT 'If true, user/group has download permission',
     can_process boolean COMMENT 'If true, user/group has processing permission',
-    CONSTRAINT fk_series_priv_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
-    CONSTRAINT fk_series_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_series_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_series_perm_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
+    CONSTRAINT fk_series_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_series_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on series';
 -- CHECKPOINT C-36
 
@@ -1697,13 +1697,13 @@ CREATE TABLE producttype (
 
 /*****************************************************************************/
 
-CREATE TABLE producttype_priv (
+CREATE TABLE producttype_perm (
     id_producttype int unsigned NOT NULL COMMENT 'FK: Product type',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_producttype_priv_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
-    CONSTRAINT fk_producttype_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_producttype_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_producttype_perm_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
+    CONSTRAINT fk_producttype_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_producttype_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on product types';
 -- CHECKPOINT C-38
 
@@ -1754,13 +1754,13 @@ CREATE TABLE resourceset (
 
 /*****************************************************************************/
 
-CREATE TABLE resourceset_priv (
+CREATE TABLE resourceset_perm (
     id_resourceset int unsigned NOT NULL COMMENT 'FK: Resource set',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_resourceset_priv_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
-    CONSTRAINT fk_resourceset_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_resourceset_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_resourceset_perm_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
+    CONSTRAINT fk_resourceset_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_resourceset_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on resource sets';
 -- CHECKPOINT C-42
 
@@ -1805,13 +1805,13 @@ CREATE TABLE pubserver (
 
 /*****************************************************************************/
 
-CREATE TABLE pubserver_priv (
+CREATE TABLE pubserver_perm (
     id_pubserver int unsigned NOT NULL COMMENT 'FK: Publish server',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_pubserver_priv_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
-    CONSTRAINT fk_pubserver_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_pubserver_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_pubserver_perm_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pubserver_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pubserver_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on publish servers';
 -- CHECKPOINT C-45
 
@@ -1857,14 +1857,14 @@ END;
 
 /*****************************************************************************/
 
-CREATE TABLE service_priv (
+CREATE TABLE service_perm (
     id_service int unsigned NOT NULL COMMENT 'FK: Service',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
     allow_scheduling boolean COMMENT 'If true, user can schedule the service',
-    CONSTRAINT fk_service_priv_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
-    CONSTRAINT fk_service_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_service_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_service_perm_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on services';
 -- CHECKPOINT C-47
 
@@ -2280,13 +2280,13 @@ CREATE TABLE safe (
 
 /*****************************************************************************/
 
-CREATE TABLE safe_priv (
+CREATE TABLE safe_perm (
     id_safe int unsigned NOT NULL COMMENT 'FK: Safe',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_safe_priv_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
-    CONSTRAINT fk_safe_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_safe_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+    CONSTRAINT fk_safe_perm_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
+    CONSTRAINT fk_safe_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_safe_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on safes';
 -- CHECKPOINT C-71
 

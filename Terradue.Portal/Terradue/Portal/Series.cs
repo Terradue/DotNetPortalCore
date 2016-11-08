@@ -508,29 +508,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-/*        public static SeriesCollection GetRestrictedList(IfyContext context) {
-            SeriesCollection result = new SeriesCollection();
-            string sql = String.Format("SELECT DISTINCT t.id, t.identifier, t.name, t.description, t.cat_description, t.cat_template FROM series AS t INNER JOIN series_priv AS p ON t.id=p.id_series INNER JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND (p.id_usr={0} OR ug.id_usr={0}) WHERE {1};",
-                                       context.UserId,
-                                       "true" // condition
-                                       );
-            IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
-            while (reader.Read()) {
-                Series series = Series.GetInstance(context);
-                series.Id = reader.GetInt32(0);
-                series.Identifier = context.GetValue(reader, 1);
-                series.Name = context.GetValue(reader, 2);
-                series.Description = context.GetValue(reader, 3);
-                series.RawCatalogueDescriptionUrl = context.GetValue(reader, 4);
-                series.RawCatalogueUrlTemplate = context.GetValue(reader, 5);
-                result.Add(series.Identifier, series);
-            }
-            context.CloseQueryResult(reader, dbConnection);
-
-            return result;
-        }
-*/        
         /// <summary>Generates the corresponding OpenSearch description.</summary>
         /// <returns>An OpenSearch description document.</returns>
         /// \ingroup Series

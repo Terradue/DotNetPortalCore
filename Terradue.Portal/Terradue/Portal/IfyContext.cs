@@ -499,7 +499,7 @@ namespace Terradue.Portal {
                 //return UserInformation == null ? false : UserInformation.SessionlessRequestsEnabled;
                 bool result = GetQueryBooleanValue(String.Format("SELECT allow_sessionless FROM usr WHERE id={0};", UserId));
                 if (result) return true;
-                return GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM service AS t INNER JOIN service_priv AS p ON t.id=p.id_service LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0} WHERE t.available=true AND p.allow_scheduling;", UserId)) != 0;
+                return GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM service AS t INNER JOIN service_perm AS p ON t.id=p.id_service LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0} WHERE t.available=true AND p.allow_scheduling;", UserId)) != 0;
             }
         }
         

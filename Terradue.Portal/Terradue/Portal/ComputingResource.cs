@@ -337,7 +337,7 @@ namespace Terradue.Portal {
         public virtual bool CanStartTask(Task task) {
             if (!UserCreditControl) return true;
             
-            int totalUserCredits = context.GetQueryIntegerValue(String.Format("SELECT credits FROM cr_priv WHERE id_usr={0};", task.UserId));
+            int totalUserCredits = context.GetQueryIntegerValue(String.Format("SELECT credits FROM cr_perm WHERE id_usr={0};", task.UserId));
             double consumedUserCredits = context.GetQueryDoubleValue(String.Format("SELECT SUM(resources * priority) FROM task AS t WHERE t.id_cr={0} AND t.id_usr={1} AND t.id_cr={1} AND t.status=20;", Id, task.UserId));
             
             if (task.Cost > totalUserCredits - consumedUserCredits) {
