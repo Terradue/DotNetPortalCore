@@ -574,19 +574,9 @@ namespace Terradue.Portal {
         /// <param name="mimeType">MIME type.</param>
         /// \ingroup Series
         public virtual NameValueCollection GetOpenSearchParameters(string mimeType) {
-            NameValueCollection nvc = new NameValueCollection ();
             OpenSearchDescription osd = this.GetOpenSearchDescription ();
-
-//            OpenSearchDescriptionUrl[] osu = osd.Url.Where(u => u.Type == mimeType).Select(u => u).ToArray();
-//            if (osu[0] != null) nvc = HttpUtility.ParseQueryString(new Uri(osu[0].Template).Query);
-            
-
-            if (osd.Url[0] != null) {
-                nvc = HttpUtility.ParseQueryString(osd.Url[0].Template);
-            }
-
-            return nvc;
-
+            Uri uri = new Uri (OpenSearchFactory.GetOpenSearchUrlByType (osd, mimeType).Template);
+            return HttpUtility.ParseQueryString (uri.Query);            
         }
 
         /// <summary>
