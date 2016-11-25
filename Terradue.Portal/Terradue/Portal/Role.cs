@@ -379,6 +379,34 @@ namespace Terradue.Portal {
             }
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Verify if the role is granted for a given user and domain.</summary>
+        /// <returns><c>true</c>, if granted to was ised, <c>false</c> otherwise.</returns>
+        /// <param name="usr">The user for which the role should be granted.</param>
+        /// <param name="domain">The domain for which the role should be granted.</param>
+        public bool IsGrantedTo(User usr, Domain domain) {
+            if (usr == null) throw new Exception ("Invalid user");
+            if (domain == null) throw new Exception ("Invalid domain");
+            string sql = string.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_usr={1} AND id_domain={2}", this.Id, usr.Id, domain.Id);
+            int count = context.GetQueryIntegerValue (sql);
+            return count > 0;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Verify if the role is granted for a given group and domain.</summary>
+        /// <returns><c>true</c>, if granted to was ised, <c>false</c> otherwise.</returns>
+        /// <param name="grp">The group for which the role should be granted.</param>
+        /// <param name="domain">The domain for which the role should be granted.</param>
+        public bool IsGrantedTo(Group grp, Domain domain) { 
+            if (grp == null) throw new Exception ("Invalid group");
+            if (domain == null) throw new Exception ("Invalid domain");
+            string sql = string.Format ("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_grp={1} AND id_domain={2}", this.Id, grp.Id, domain.Id);
+            int count = context.GetQueryIntegerValue (sql);
+            return count > 0;
+        }
+
     }
 
 }
