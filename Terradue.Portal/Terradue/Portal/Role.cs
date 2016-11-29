@@ -224,6 +224,30 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets the user roles for a specific domain.
+        /// </summary>
+        /// <returns>The user roles for domain.</returns>
+        /// <param name="context">Context.</param>
+        /// <param name="userId">User identifier.</param>
+        /// <param name="domainId">Domain identifier.</param>
+        public static Role[] GetUserRolesForDomain(IfyContext context, int userId, int domainId) {
+            List<Role> result = new List<Role> ();
+            string sql = string.Format("SELECT id_role FROM rolegrant WHERE id_usr={0} AND id_domain={1};", userId, domainId);
+
+            List<int> rolesId = new List<int> ();
+            IDbConnection dbConnection = context.GetDbConnection ();
+            IDataReader reader = context.GetQueryResult (sql, dbConnection);
+            while (reader.Read ()) rolesId.Add (reader.GetInt32 (0));
+            context.CloseQueryResult (reader, dbConnection);
+
+            foreach (var id in rolesId) result.Add (Role.FromId (context, id));
+
+            return result.ToArray ();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Grants this role to the specified user for the specified domain or globally.</summary>
         /// <param name="user">The user who is the beneficiary.</param>
         /// <param name="domain">The domain for which the role grant is valid. If the value is <c>null</c>, the user obtains this role globally.</param>
@@ -387,8 +411,7 @@ namespace Terradue.Portal {
         /// <param name="domain">The domain for which the role should be granted.</param>
         public bool IsGrantedTo(User usr, Domain domain) {
             if (usr == null) throw new Exception ("Invalid user");
-            if (domain == null) throw new Exception ("Invalid domain");
-            string sql = string.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_usr={1} AND id_domain={2}", this.Id, usr.Id, domain.Id);
+            string sql = string.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_usr={1}{2};", this.Id, usr.Id, domain == null ? "" : " AND id_domain=" + domain.Id);
             int count = context.GetQueryIntegerValue (sql);
             return count > 0;
         }
@@ -401,8 +424,7 @@ namespace Terradue.Portal {
         /// <param name="domain">The domain for which the role should be granted.</param>
         public bool IsGrantedTo(Group grp, Domain domain) { 
             if (grp == null) throw new Exception ("Invalid group");
-            if (domain == null) throw new Exception ("Invalid domain");
-            string sql = string.Format ("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_grp={1} AND id_domain={2}", this.Id, grp.Id, domain.Id);
+            string sql = string.Format ("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_grp={1}{2};", this.Id, grp.Id, domain == null ? "" : " AND id_domain=" + domain.Id);
             int count = context.GetQueryIntegerValue (sql);
             return count > 0;
         }
