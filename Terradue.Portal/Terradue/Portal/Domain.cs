@@ -35,11 +35,23 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        [EntityDataField("description")]
         /// <summary>Description</summary>
         /// <description>Human readable description of the domain</description>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("description")]
         public string Description { get; set; } 
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the type of this domain.</summary>
+        [EntityDataField("kind")]
+        public DomainKind Kind { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the icon URL of this domain.</summary>
+        [EntityDataField("icon_url")]
+        public string IconUrl { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -128,6 +140,28 @@ namespace Terradue.Portal {
             return domainIds.ToArray();
         }
         
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Kinds of domains.</summary>
+    public enum DomainKind {
+
+        None = 0,
+
+        User = 1,
+
+        Group = 2,
+
+        Private = 3,
+
+        Public = 4
     }
 
 }

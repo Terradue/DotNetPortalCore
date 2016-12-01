@@ -491,7 +491,7 @@ namespace Terradue.Portal {
         public int[] GetUsers(int domainId) {
             List<int> result = new List<int>();
 
-            string sql = String.Format("SELECT id_usr FROM rolegrant WHERE id_role={0} AND id_domain{1};", Id, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
+            string sql = String.Format("SELECT id_usr FROM rolegrant WHERE id_usr IS NOT NULL AND id_role={0} AND id_domain{1};", Id, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) result.Add(reader.GetInt32(0));
@@ -508,10 +508,26 @@ namespace Terradue.Portal {
         public int[] GetGroups(int domainId) {
             List<int> result = new List<int>();
 
-            string sql = String.Format("SELECT id_grp FROM rolegrant WHERE id_role={0} AND id_domain{1};", Id, domainId, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
+            string sql = String.Format("SELECT id_grp FROM rolegrant WHERE id_grp IS NOT NULL AND id_role={0} AND id_domain{1};", Id, domainId, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) result.Add(reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
+
+            return result.ToArray();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the privileges associated to this role.</summary>
+        /// <returns>An array of privileges.</returns>
+        public Privilege[] GetPrivileges() { 
+            List<Privilege> result = new List<Privilege> ();
+
+            string sql = string.Format("SELECT id_priv FROM role_priv WHERE id_role={0};", Id);
+            IDbConnection dbConnection = context.GetDbConnection ();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            while (reader.Read()) result.Add(Privilege.Get(reader.GetInt32(0)));
             context.CloseQueryResult(reader, dbConnection);
 
             return result.ToArray();
