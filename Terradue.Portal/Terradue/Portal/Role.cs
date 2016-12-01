@@ -449,6 +449,46 @@ namespace Terradue.Portal {
             return count > 0;
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the list of granted users for a role and a domain.
+        /// </summary>
+        /// <returns>The granted users ids.</returns>
+        /// <param name="domainId">Domain id.</param>
+        public int[] GetGrantedUsers(int domainId) {
+            List<int> result = new List<int> ();
+
+            string sql = string.Format ("SELECT id_usr FROM rolegrant WHERE id_role={0} AND id_domain={1};", this.Id, domainId);
+
+            IDbConnection dbConnection = context.GetDbConnection ();
+            IDataReader reader = context.GetQueryResult (sql, dbConnection);
+            while (reader.Read ()) result.Add (reader.GetInt32 (0));
+            context.CloseQueryResult (reader, dbConnection);
+
+            return result.ToArray ();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the list of granted groups for a role and a domain.
+        /// </summary>
+        /// <returns>The granted groups ids.</returns>
+        /// <param name="domainId">Domain id.</param>
+        public int [] GetGrantedGroups (int domainId)
+        {
+            List<int> result = new List<int> ();
+
+            string sql = string.Format ("SELECT id_grp FROM rolegrant WHERE id_role={0} AND id_domain={1};", this.Id, domainId);
+
+            IDbConnection dbConnection = context.GetDbConnection ();
+            IDataReader reader = context.GetQueryResult (sql, dbConnection);
+            while (reader.Read ()) result.Add (reader.GetInt32 (0));
+            context.CloseQueryResult (reader, dbConnection);
+
+            return result.ToArray ();
+        }
     }
 
 }
