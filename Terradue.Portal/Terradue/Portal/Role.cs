@@ -476,11 +476,29 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The granted groups ids.</returns>
         /// <param name="domainId">Domain id.</param>
-        public int [] GetGrantedGroups (int domainId)
-        {
+        public int[] GetGrantedGroups (int domainId) {
             List<int> result = new List<int> ();
 
             string sql = string.Format ("SELECT id_grp FROM rolegrant WHERE id_role={0} AND id_domain={1};", this.Id, domainId);
+
+            IDbConnection dbConnection = context.GetDbConnection ();
+            IDataReader reader = context.GetQueryResult (sql, dbConnection);
+            while (reader.Read ()) result.Add (reader.GetInt32 (0));
+            context.CloseQueryResult (reader, dbConnection);
+
+            return result.ToArray ();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets the privileges associated to this role.
+        /// </summary>
+        /// <returns>The privileges.</returns>
+        public int[] GetPrivileges() { 
+            List<int> result = new List<int> ();
+
+            string sql = string.Format ("SELECT id_priv FROM role_priv WHERE id_role={0};", this.Id);
 
             IDbConnection dbConnection = context.GetDbConnection ();
             IDataReader reader = context.GetQueryResult (sql, dbConnection);
