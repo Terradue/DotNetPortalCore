@@ -62,11 +62,10 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">The role ID.</param>
         /// <returns>The created Role object.</returns>
-        public static Role FromId (IfyContext context, int id)
-        {
-            Role result = new Role (context);
+        public static Role FromId(IfyContext context, int id) {
+            Role result = new Role(context);
             result.Id = id;
-            result.Load ();
+            result.Load();
             return result;
         }
 
@@ -74,11 +73,10 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">The role Identifier.</param>
         /// <returns>The created Role object.</returns>
-        public static Role FromIdentifier (IfyContext context, string identifier)
-        {
-            Role result = new Role (context);
+        public static Role FromIdentifier(IfyContext context, string identifier) {
+            Role result = new Role(context);
             result.Identifier = identifier;
-            result.Load ();
+            result.Load();
             return result;
         }
 
@@ -86,9 +84,8 @@ namespace Terradue.Portal {
         /// Gets the identifying condition sql.
         /// </summary>
         /// <returns>The identifying condition sql.</returns>
-        public override string GetIdentifyingConditionSql ()
-        {
-            if (Id == 0 && !string.IsNullOrEmpty (Identifier)) return String.Format ("t.identifier={0}", StringUtils.EscapeSql (Identifier));
+        public override string GetIdentifyingConditionSql() {
+            if (Id == 0 && !String.IsNullOrEmpty(Identifier)) return String.Format("t.identifier={0}", StringUtils.EscapeSql(Identifier));
             return null;
         }
 
@@ -124,7 +121,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Adds the privileges specified privileges to this role, optionally replacing the existing ones.</summary>
+        /// <summary>Adds the specified privileges to this role, optionally replacing the existing ones.</summary>
         /// <param name="privileges">An IEnumerable of database IDs of privileges to be included.</param>
         /// <param name="removeOthers">Whether or not all existing privileges are removed before adding the specified privileges are added. The default is <c>false</c>.</param>
         public void IncludePrivileges(IEnumerable<int> privilegeIds, bool removeOthers = false) {
@@ -141,6 +138,43 @@ namespace Terradue.Portal {
                 if (!removeOthers) context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0} AND id_priv IN ({1});", Id, String.Join(",", privilegeIds))); // avoid duplicates
                 context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) VALUES {0};", valuesStr));
             }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Removes the specified privilege from this role.</summary>
+        /// <param name="privilege">The privilege to be removed.</param>
+        public void ExcludePrivilege(Privilege privilege) {
+            ExcludePrivileges(new int[] { privilege.Id });
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Removes the specified privileges from this role.</summary>
+        /// <param name="privileges">An IEnumerable of privileges to be added.</param>
+        public void ExcludePrivileges(IEnumerable<Privilege> privileges) {
+            List<int> privilegeIds = new List<int>();
+            foreach (Privilege privilege in privileges) {
+                if (privilegeIds.Contains(privilege.Id)) continue;
+                privilegeIds.Add(privilege.Id);
+            }
+            ExcludePrivileges(privilegeIds);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Removes the specified privileges from this role.</summary>
+        /// <param name="privileges">An IEnumerable of database IDs of privileges to be included.</param>
+        public void ExcludePrivileges(IEnumerable<int> privilegeIds) {
+            if (privilegeIds == null) return;
+            string valuesStr = String.Empty;
+            bool hasIds = false;
+            foreach (int privilegeId in privilegeIds) {
+                if (hasIds) valuesStr += ", ";
+                valuesStr += String.Format("({0},{1})", Id, privilegeId);
+                hasIds = true;
+            }
+            if (hasIds) context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0} AND id_priv IN ({1});", Id, String.Join(",", privilegeIds))); // avoid duplicates
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -243,8 +277,8 @@ namespace Terradue.Portal {
         /// <param name="domainId">Domain identifier.</param>
         public static Role[] GetUserRolesForDomain(IfyContext context, int userId, int domainId) {
             List<Role> result = new List<Role> ();
-            string sql = string.Format("SELECT id_role FROM rolegrant WHERE id_usr={0} AND id_domain={1};", userId, domainId);
 
+            string sql = String.Format("SELECT id_role FROM rolegrant WHERE id_usr={0} AND id_domain={1};", userId, domainId);
             List<int> rolesId = new List<int> ();
             IDbConnection dbConnection = context.GetDbConnection ();
             IDataReader reader = context.GetQueryResult (sql, dbConnection);
@@ -451,43 +485,36 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the list of granted users for a role and a domain.
-        /// </summary>
-        /// <returns>The granted users ids.</returns>
-        /// <param name="domainId">Domain id.</param>
-        public int[] GetGrantedUsers(int domainId) {
-            List<int> result = new List<int> ();
+        /// <summary>Gets the list of database IDs of users to whom this role is granted on the specified domain or globally.</summary>
+        /// <returns>The database IDs of the users.</returns>
+        /// <param name="domainId">The database ID of the domain in question. If the value is <c>0</c>, the method returns the users to whom the role is granted globally.</param>
+        public int[] GetUsers(int domainId) {
+            List<int> result = new List<int>();
 
-            string sql = string.Format ("SELECT id_usr FROM rolegrant WHERE id_role={0} AND id_domain={1};", this.Id, domainId);
+            string sql = String.Format("SELECT id_usr FROM rolegrant WHERE id_role={0} AND id_domain{1};", Id, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            while (reader.Read()) result.Add(reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
 
-            IDbConnection dbConnection = context.GetDbConnection ();
-            IDataReader reader = context.GetQueryResult (sql, dbConnection);
-            while (reader.Read ()) result.Add (reader.GetInt32 (0));
-            context.CloseQueryResult (reader, dbConnection);
-
-            return result.ToArray ();
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the list of granted groups for a role and a domain.
-        /// </summary>
-        /// <returns>The granted groups ids.</returns>
-        /// <param name="domainId">Domain id.</param>
-        public int [] GetGrantedGroups (int domainId)
-        {
-            List<int> result = new List<int> ();
+        /// <summary>Gets the list of database IDs of users to whom this role is granted on the specified domain or globally.</summary>
+        /// <returns>The database IDs of the users.</returns>
+        /// <param name="domainId">The database ID of the domain in question. If the value is <c>0</c>, the method returns the users to whom the role is granted globally.</param>
+        public int[] GetGroups(int domainId) {
+            List<int> result = new List<int>();
 
-            string sql = string.Format ("SELECT id_grp FROM rolegrant WHERE id_role={0} AND id_domain={1};", this.Id, domainId);
+            string sql = String.Format("SELECT id_grp FROM rolegrant WHERE id_role={0} AND id_domain{1};", Id, domainId, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            while (reader.Read()) result.Add(reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
 
-            IDbConnection dbConnection = context.GetDbConnection ();
-            IDataReader reader = context.GetQueryResult (sql, dbConnection);
-            while (reader.Read ()) result.Add (reader.GetInt32 (0));
-            context.CloseQueryResult (reader, dbConnection);
-
-            return result.ToArray ();
+            return result.ToArray();
         }
     }
 
