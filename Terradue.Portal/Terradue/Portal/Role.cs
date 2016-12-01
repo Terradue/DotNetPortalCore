@@ -478,7 +478,7 @@ namespace Terradue.Portal {
         /// <param name="domainId">The database ID of the domain for which the check is performed. If the value is <c>0</c>, the method checks whether the user has the role globally.</param>
         public bool IsGrantedTo(bool forGroup, int id, int domainId) {
             if (id == 0) throw new Exception ("Invalid user or group");
-            string sql = String.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND {1}={2} AND id_domain{2};", Id, forGroup ? "id_grp" : "id_usr", id, domainId == null ? " IS NULL" : String.Format("={0}", domainId));
+            string sql = String.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND {1}={2} AND id_domain{3};", Id, forGroup ? "id_grp" : "id_usr", id, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
             int count = context.GetQueryIntegerValue(sql);
             return count > 0;
         }
@@ -508,7 +508,7 @@ namespace Terradue.Portal {
         public int[] GetGroups(int domainId) {
             List<int> result = new List<int>();
 
-            string sql = String.Format("SELECT id_grp FROM rolegrant WHERE id_grp IS NOT NULL AND id_role={0} AND id_domain{1};", Id, domainId, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
+            string sql = String.Format("SELECT id_grp FROM rolegrant WHERE id_grp IS NOT NULL AND id_role={0} AND id_domain{1};", Id, domainId == 0 ? " IS NULL" : String.Format("={0}", domainId));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) result.Add(reader.GetInt32(0));
