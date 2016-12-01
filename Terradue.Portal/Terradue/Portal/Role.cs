@@ -101,13 +101,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void IncludePrivilege(Privilege privilege) {
+        /// <summary>Adds the specified privilege to this role.</summary>
+        /// <param name="privilege">The privilege to be added.</param>
+        /// <param name="removeOthers">Whether or not all existing privileges are removed before adding the specified privilege is added. The default is <c>false</c>.</param>
+        public void IncludePrivilege(Privilege privilege, bool removeOthers = false) {
             IncludePrivileges(new int[] { privilege.Id });
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void IncludePrivileges(IEnumerable<Privilege> privileges) {
+        /// <summary>Adds the specified privileges to this role.</summary>
+        /// <param name="privileges">An IEnumerable of privileges to be added.</param>
+        /// <param name="removeOthers">Whether or not all existing privileges are removed before adding the specified privileges are added. The default is <c>false</c>.</param>
+        public void IncludePrivileges(IEnumerable<Privilege> privileges, bool removeOthers = false) {
             List<int> privilegeIds = new List<int>();
             foreach (Privilege privilege in privileges) {
                 if (privilegeIds.Contains(privilege.Id)) continue;
@@ -118,7 +124,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void IncludePrivileges(IEnumerable<int> privilegeIds) {
+        /// <summary>Adds the privileges specified privileges to this role, optionally replacing the existing ones.</summary>
+        /// <param name="privileges">An IEnumerable of database IDs of privileges to be included.</param>
+        /// <param name="removeOthers">Whether or not all existing privileges are removed before adding the specified privileges are added. The default is <c>false</c>.</param>
+        public void IncludePrivileges(IEnumerable<int> privilegeIds, bool removeOthers = false) {
             if (privilegeIds == null) return;
             string valuesStr = String.Empty;
             bool hasIds = false;
@@ -127,8 +136,9 @@ namespace Terradue.Portal {
                 valuesStr += String.Format("({0},{1})", Id, privilegeId);
                 hasIds = true;
             }
+            if (removeOthers) context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0};", Id));
             if (hasIds) {
-                context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0} AND id_priv IN ({1});", Id, String.Join(",", privilegeIds))); // avoid duplicates
+                if (!removeOthers) context.Execute(String.Format("DELETE FROM role_priv WHERE id_role={0} AND id_priv IN ({1});", Id, String.Join(",", privilegeIds))); // avoid duplicates
                 context.Execute(String.Format("INSERT INTO role_priv (id_role, id_priv) VALUES {0};", valuesStr));
             }
         }
@@ -405,27 +415,37 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Verify if the role is granted for a given user and domain.</summary>
-        /// <returns><c>true</c>, if granted to was ised, <c>false</c> otherwise.</returns>
-        /// <param name="usr">The user for which the role should be granted.</param>
-        /// <param name="domain">The domain for which the role should be granted.</param>
-        public bool IsGrantedTo(User usr, Domain domain) {
-            if (usr == null) throw new Exception ("Invalid user");
-            string sql = string.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_usr={1}{2};", this.Id, usr.Id, domain == null ? "" : " AND id_domain=" + domain.Id);
-            int count = context.GetQueryIntegerValue (sql);
-            return count > 0;
+        /// <summary>Verifies whether this role is granted to the specified user on the specified domain or globally.</summary>
+        /// <returns><c>true</c> if the role is granted, <c>false</c> otherwise.</returns>
+        /// <param name="user">The user for which the check os performed.</param>
+        /// <param name="domain">The domain for which the check is performed. If the value is <c>null</c>, the method checks whether the user has the role globally.</param>
+        public bool IsGrantedTo(User user, Domain domain) {
+            if (user == null) throw new Exception ("Invalid user");
+            return IsGrantedTo(false, user.Id, domain == null ? 0 : domain.Id);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Verify if the role is granted for a given group and domain.</summary>
-        /// <returns><c>true</c>, if granted to was ised, <c>false</c> otherwise.</returns>
-        /// <param name="grp">The group for which the role should be granted.</param>
-        /// <param name="domain">The domain for which the role should be granted.</param>
-        public bool IsGrantedTo(Group grp, Domain domain) { 
-            if (grp == null) throw new Exception ("Invalid group");
-            string sql = string.Format ("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND id_grp={1}{2};", this.Id, grp.Id, domain == null ? "" : " AND id_domain=" + domain.Id);
-            int count = context.GetQueryIntegerValue (sql);
+        /// <summary>Verifies whether this role is granted to the specified group on the specified domain or globally.</summary>
+        /// <returns><c>true</c> if the role is granted, <c>false</c> otherwise.</returns>
+        /// <param name="group">The group for which the check is performed.</param>
+        /// <param name="domain">The domain for which the check is performed. If the value is <c>null</c>, the method checks whether the group has the role globally.</param>
+        public bool IsGrantedTo(Group group, Domain domain) {
+            if (group == null) throw new Exception ("Invalid group");
+            return IsGrantedTo(true, group.Id, domain == null ? 0 : domain.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Verifies whether this role is granted to the specified user on the specified domain or globally.</summary>
+        /// <returns><c>true</c> if the role is granted, <c>false</c> otherwise.</returns>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given ID as a group ID, otherwise as a user ID.</param>
+        /// <param name="id">The database ID of the user or group for which the check is performed.</param>
+        /// <param name="domainId">The database ID of the domain for which the check is performed. If the value is <c>0</c>, the method checks whether the user has the role globally.</param>
+        public bool IsGrantedTo(bool forGroup, int id, int domainId) {
+            if (id == 0) throw new Exception ("Invalid user or group");
+            string sql = String.Format("SELECT COUNT(*) FROM rolegrant WHERE id_role={0} AND {1}={2} AND id_domain{2};", Id, forGroup ? "id_grp" : "id_usr", id, domainId == null ? " IS NULL" : String.Format("={0}", domainId));
+            int count = context.GetQueryIntegerValue(sql);
             return count > 0;
         }
 
