@@ -47,7 +47,7 @@ BEGIN
     UPDATE type SET generic_class = p_generic_class WHERE id = type_id;
     IF p_pos > 0 THEN
         UPDATE type SET pos = pos + 1 WHERE CASE WHEN super_id IS NULL THEN id_super IS NULL ELSE id_super = super_id END AND pos >= p_pos AND CASE WHEN type_pos IS NULL THEN true ELSE pos < type_pos END;
-		UPDATE type SET pos = p_pos WHERE id = type_id;
+        UPDATE type SET pos = p_pos WHERE id = type_id;
     END IF;
 END;
 -- CHECKPOINT C-01c
@@ -2326,8 +2326,8 @@ CREATE TABLE activity (
     id_owner int unsigned COMMENT 'User owning the entity related to the activity',
     log_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
     CONSTRAINT pk_activity PRIMARY KEY (id),
-    INDEX (`id_usr`),
-    INDEX (`log_time`)
+    INDEX (id_usr),
+    INDEX (log_time)
 ) Engine=InnoDB COMMENT 'User activities';
 -- CHECKPOINT C-72
 
@@ -2341,12 +2341,12 @@ CREATE TABLE priv_score (
 
 
 CREATE TABLE cookie (
-	session VARCHAR(100) NOT NULL COMMENT 'Session',
+    session VARCHAR(100) NOT NULL COMMENT 'Session',
     identifier VARCHAR(100) NOT NULL COMMENT 'Identifier',
     value TEXT NULL COMMENT 'Value',
-	expire datetime,    
-	creation_date datetime,
-	UNIQUE INDEX (session,identifier)
+    expire datetime,    
+    creation_date datetime,
+    UNIQUE INDEX (session,identifier)
 ) Engine=InnoDB COMMENT 'DB Cookies';
 -- RESULT 
 -- CHECKPOINT C-74

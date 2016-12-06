@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml.Linq;
-using Terradue.ServiceModel.Ogc.OwsContext;
 
 namespace Terradue.Portal.Test {
     [TestFixture()]
