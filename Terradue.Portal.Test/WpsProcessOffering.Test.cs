@@ -1,12 +1,10 @@
 ﻿using System;
-using NUnit.Framework;
-using System.Linq;
-using Mono.Addins;
 using System.Collections.Specialized;
-using Terradue.Portal;
-using Terradue.ServiceModel.Ogc.OwsContext;
+using NUnit.Framework;
+using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
 
-namespace Terradue.Portal.Test {
+namespace Terradue.Portal.Test
+{
 
     [TestFixture]
     public class WpsProcessOfferingTest : BaseTest{
