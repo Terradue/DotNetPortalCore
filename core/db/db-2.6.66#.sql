@@ -1,9 +1,6 @@
 USE $MAIN$;
 
 /*****************************************************************************/
-ALTER TABLE resourceset ADD COLUMN `id_type` INT(10) UNSIGNED NULL DEFAULT NULL;
--- RESULT
-
 CREATE TABLE cookie (
     session VARCHAR(100) NOT NULL COMMENT 'Session',
     identifier VARCHAR(100) NOT NULL COMMENT 'Identifier',
