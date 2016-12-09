@@ -70,10 +70,19 @@ namespace Terradue.Portal {
         /// <param name="session">Session.</param>
         /// <param name="identifier">Identifier.</param>
         public static void DeleteDBCookie (IfyContext context, string session, string identifier) { 
-            DBCookie cookie = new DBCookie (context);
-            cookie.Session = session;
-            cookie.Identifier = identifier;
+            DBCookie cookie = DBCookie.FromSessionAndIdentifier (context, session, identifier);
             cookie.Delete ();
+        }
+
+        /// <summary>
+        /// Deletes the DB Cookies from the session.
+        /// </summary> 
+        /// <param name="context">Context.</param>
+        /// <param name="session">Session.</param>
+        public static void DeleteDBCookies (IfyContext context, string session)
+        {
+            string sql = string.Format("DELETE FROM cookie WHERE session='{0}';",session);
+            context.Execute (sql);
         }
 
         /// <summary>
