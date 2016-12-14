@@ -693,6 +693,8 @@ namespace Terradue.Portal {
             foreach (var key in nvc.AllKeys) {
                 query.Set(key, nvc[key]);
             }
+            //add cache parameter
+            query.Set ("disableCache", "{t2:cache?}");
 
             //add domain
             query.Set ("domain", "{t2:domain?}");
