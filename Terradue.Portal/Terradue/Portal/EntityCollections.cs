@@ -3,48 +3,36 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Web;
-using System.Xml;
-using MySql.Data.MySqlClient;
 using Terradue.OpenSearch;
 using Terradue.OpenSearch.Engine;
 using Terradue.OpenSearch.Engine.Extensions;
+using Terradue.OpenSearch.Filters;
 using Terradue.OpenSearch.Request;
-using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
+using Terradue.Portal.OpenSearch;
 using Terradue.ServiceModel.Syndication;
-using Terradue.Util;
-
-
-
-
-
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Filters;
 
 
 
+namespace Terradue.Portal
+{
 
 
-namespace Terradue.Portal {
-
-    
 
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>Interface that defines methods for different types of collections of entities of the same type.</summary>
     /// <remarks>This interface defines the minimum functionality that an entity collection must provide regarding reading and writing access for the collection and for loading and storing the items of the collection in the database.</remarks>
@@ -459,12 +447,13 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private AtomFeed GenerateSyndicationFeed(NameValueCollection parameters) {
+            if (this.Identifier == null) this.Identifier = entityType.Keyword;
             UriBuilder myUrl = new UriBuilder(context.BaseUrl + "/" + this.Identifier);
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
             myUrl.Query = string.Join("&", queryString);
 
             AtomFeed feed = new AtomFeed("Discovery feed for "+this.Identifier,
-                                                       "This OpenSearch Service allows the discovery of the different items which are part of the "+this.Identifier+" collection" +
+                                                       "This OpenSearch Service allows the discovery of the different items which are part of the "+this.Identifier+" collection. " +
                                                        "This search service is in accordance with the OGC 10-032r3 specification.",
                                                        myUrl.Uri, myUrl.ToString(), DateTimeOffset.UtcNow);
 
@@ -472,6 +461,22 @@ namespace Terradue.Portal {
 
             List<AtomItem> items = new List<AtomItem>();
 
+            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem> ();
+
+            int startIndex = 1;
+            if (parameters ["startIndex"] != null) startIndex = int.Parse (parameters ["startIndex"]);
+
+            pds.PageNo = 1;
+            if (parameters ["startPage"] != null) pds.PageNo = int.Parse (parameters ["startPage"]);
+
+            pds.PageSize = 20;
+            if (parameters ["count"] != null) pds.PageSize = int.Parse (parameters ["count"]);
+
+            pds.StartIndex = startIndex - 1;
+
+            var entityatomizable = false;
+            int i = 0;
+            int totalresults = 0;
             foreach (T s in Items) {
 
                 if (!string.IsNullOrEmpty(parameters["id"])) { 
@@ -484,8 +489,25 @@ namespace Terradue.Portal {
                 }
 
                 if (s is IAtomizable) {
-                    AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
-                    if(item != null) items.Add(item);
+                    if (s is IEntityAtomizable) {
+                        entityatomizable = true;
+                        var sa = s as IEntityAtomizable;
+
+                        //we do ToAtomItem only if we skipped the good number of items and still have less than max count items
+                        if ((i >= startIndex - 1 + pds.PageSize * (pds.PageNo - 1)) && items.Count < pds.PageSize) {
+                            AtomItem item = sa.ToAtomItem (parameters);
+                            if (item != null) {
+                                totalresults++;
+                                items.Add (item);
+                            }
+                        } else {
+                            if (sa.IsSearchable (parameters)) totalresults++;
+                        }
+                    } else {
+                        AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
+                        if (item != null) items.Add (item);
+                    }
+
                 } else {
 
                     var name = s.Name == null ? "" : s.Name;
@@ -509,31 +531,23 @@ namespace Terradue.Portal {
                     entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
                     items.Add(entry);
+                    totalresults++;
                 }
+                i++;
             }
 
             // Load all avaialable Datasets according to the context
 
-            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem>();
-
-            int startIndex = 1;
-            if (parameters["startIndex"] != null) startIndex = int.Parse(parameters["startIndex"]);
-
-            pds.PageNo = 1;
-            if (parameters["startPage"] != null) pds.PageNo = int.Parse(parameters["startPage"]);
-
-            pds.PageSize = 20;
-            if (parameters["count"] != null) pds.PageSize = int.Parse(parameters["count"]);
-
-            pds.StartIndex = startIndex - 1;
-
             if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
-            pds.AddRange(items);
-
-            feed.Items = pds.GetCurrentPage();
-
-            feed.TotalResults = pds.Count;
+            if (entityatomizable) {
+                feed.Items = items;
+                feed.TotalResults = totalresults;
+            } else {
+                pds.AddRange (items);
+                feed.Items = pds.GetCurrentPage ();
+                feed.TotalResults = pds.Count;
+            }
 
             return feed;
 

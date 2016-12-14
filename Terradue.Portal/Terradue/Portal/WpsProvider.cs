@@ -1087,27 +1087,34 @@ namespace Terradue.Portal {
         }
 
         #region IAtomizable implementation
+        public bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters) {
+            string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
+            string name = (this.Name != null ? this.Name : identifier);
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            if (parameters ["q"] != null) {
+                string q = parameters ["q"];
+                if (!(name.Contains (q) || identifier.Contains (q) || text.Contains (q)))
+                    return false;
+            }
+
+            if (parameters ["url"] != null) {
+                if (this.BaseUrl != parameters ["url"])
+                    return false;
+            }
+
+            return true;
+        }
 
         public AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
             string name = (this.Name != null ? this.Name : identifier);
-            string text = (this.TextContent != null ? this.TextContent : "");
 
-            if (parameters["q"] != null) {
-                string q = parameters["q"];
-                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q)))
-                    return null;
-            }
-
-            if (parameters["url"] != null) {
-                if (this.BaseUrl != parameters["url"])
-                    return null;
-            }
+            if (!IsSearchable (parameters)) return null;
 
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
-            AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
             Uri id = null;
             if (this.Id == 0)

@@ -144,28 +144,31 @@ namespace Terradue.Portal {
 
 
         #region IAtomizable implementation
+        public bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters) { 
+            string name = (this.Title != null ? this.Title : this.Identifier);
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            if (!string.IsNullOrEmpty (parameters ["q"])) {
+                string q = parameters ["q"].ToLower ();
+
+                if (!(name.ToLower ().Contains (q)
+                      || this.Identifier.ToLower ().Contains (q)
+                      || this.Abstract.Contains (q)
+                      || text.ToLower ().Contains (q)
+                      || this.Tags.ToLower ().Contains (q)))
+                    return false;
+            }
+            return true;
+        }
+
         public Terradue.OpenSearch.Result.AtomItem ToAtomItem(System.Collections.Specialized.NameValueCollection parameters) {
 
-            string identifier = null;
             string name = (this.Title != null ? this.Title : this.Identifier);
-            string description = null;
-            string text = (this.TextContent != null ? this.TextContent : "");
             var entityType = EntityType.GetEntityType(typeof(Article));
             Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
 
-            if (!string.IsNullOrEmpty(parameters["q"])) {
-                string q = parameters["q"].ToLower();
+            if (!IsSearchable(parameters)) return null;
 
-                if (!(name.ToLower().Contains(q) 
-                      || this.Identifier.ToLower().Contains(q)
-                      || this.Abstract.Contains(q)
-                      || text.ToLower().Contains(q)
-                      || this.Tags.ToLower().Contains(q)))
-                    return null;
-            }
-
-            WpsProcessOffering process = null;
-            WpsProvider provider = null;
             AtomItem result = new AtomItem();
 
             result.Id = id.ToString();
