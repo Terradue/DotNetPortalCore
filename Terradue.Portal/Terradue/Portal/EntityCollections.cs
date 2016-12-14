@@ -621,6 +621,8 @@ namespace Terradue.Portal {
             foreach (var key in nvc.AllKeys) {
                 query.Set(key, nvc[key]);
             }
+            //add cache parameter
+            query.Set ("disableCache", "{t2:cache?}");
 
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
