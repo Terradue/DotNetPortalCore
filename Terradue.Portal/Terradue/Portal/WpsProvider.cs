@@ -721,7 +721,7 @@ namespace Terradue.Portal {
 
             log.DebugFormat ("CreateWebRequest '{0}' with Header REMOTE_USER={1}", url, username);
 
-            if (!string.IsNullOrEmpty (username)) request.Headers.Add ("REMOTE_USER", username);
+            if (!string.IsNullOrEmpty (username) && !(url.Contains ("gpod.eo.esa.int"))) request.Headers.Add ("REMOTE_USER", username);
             if (credentials != null) request.Credentials = credentials;
 
             return request;
