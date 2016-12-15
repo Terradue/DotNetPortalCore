@@ -474,9 +474,9 @@ namespace Terradue.Portal
 
             pds.StartIndex = startIndex - 1;
 
-            var entityatomizable = false;
-            int i = 0;
-            int totalresults = 0;
+            //var entityatomizable = false;
+            //int i = 0;
+            //int totalresults = 0;
             foreach (T s in Items) {
 
                 if (!string.IsNullOrEmpty(parameters["id"])) { 
@@ -489,24 +489,27 @@ namespace Terradue.Portal
                 }
 
                 if (s is IAtomizable) {
-                    if (s is IEntityAtomizable) {
-                        entityatomizable = true;
-                        var sa = s as IEntityAtomizable;
+                    //if (s is IEntityAtomizable) {
+                    //    entityatomizable = true;
+                    //    var sa = s as IEntityAtomizable;
 
-                        //we do ToAtomItem only if we skipped the good number of items and still have less than max count items
-                        if ((i >= startIndex - 1 + pds.PageSize * (pds.PageNo - 1)) && items.Count < pds.PageSize) {
-                            AtomItem item = sa.ToAtomItem (parameters);
-                            if (item != null) {
-                                totalresults++;
-                                items.Add (item);
-                            }
-                        } else {
-                            if (sa.IsSearchable (parameters)) totalresults++;
-                        }
-                    } else {
-                        AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
-                        if (item != null) items.Add (item);
-                    }
+                    //    //we do ToAtomItem only if we skipped the good number of items and still have less than max count items
+                    //    if ((i >= startIndex - 1 + pds.PageSize * (pds.PageNo - 1)) && items.Count < pds.PageSize) {
+                    //        AtomItem item = sa.ToAtomItem (parameters);
+                    //        if (item != null) {
+                    //            totalresults++;
+                    //            items.Add (item);
+                    //        }
+                    //    } else {
+                    //        if (sa.IsSearchable (parameters)) totalresults++;
+                    //    }
+                    //} else {
+                    //    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
+                    //    if (item != null) items.Add (item);
+                    //}
+
+                    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
+                    if (item != null) items.Add (item);
 
                 } else {
 
@@ -531,23 +534,27 @@ namespace Terradue.Portal
                     entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
                     items.Add(entry);
-                    totalresults++;
+                    //totalresults++;
                 }
-                i++;
+                //i++;
             }
 
             // Load all avaialable Datasets according to the context
 
             if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
-            if (entityatomizable) {
-                feed.Items = items;
-                feed.TotalResults = totalresults;
-            } else {
-                pds.AddRange (items);
-                feed.Items = pds.GetCurrentPage ();
-                feed.TotalResults = pds.Count;
-            }
+            //if (entityatomizable) {
+            //    feed.Items = items;
+            //    feed.TotalResults = totalresults;
+            //} else {
+            //    pds.AddRange (items);
+            //    feed.Items = pds.GetCurrentPage ();
+            //    feed.TotalResults = pds.Count;
+            //}
+
+            pds.AddRange (items);
+            feed.Items = pds.GetCurrentPage ();
+            feed.TotalResults = pds.Count;
 
             return feed;
 

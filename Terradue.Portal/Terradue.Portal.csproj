@@ -150,7 +150,6 @@
     <Compile Include="Terradue\Portal\generated\WpsNamespaces.cs" />
     <Compile Include="Terradue\Portal\_Documentation.cs" />
     <Compile Include="Terradue\Portal\DBCookie.cs" />
-    <Compile Include="Terradue\Portal\OpenSearch\IEntityAtomizable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
