@@ -1769,7 +1769,6 @@ CREATE TABLE resourceset (
     is_default boolean DEFAULT false COMMENT 'If true, resource set is selected by default',
     access_key varchar(50) COMMENT 'Access key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
-    id_type INT(10) UNSIGNED NULL DEFAULT NULL,
     CONSTRAINT pk_resourceset PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_resourceset_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE

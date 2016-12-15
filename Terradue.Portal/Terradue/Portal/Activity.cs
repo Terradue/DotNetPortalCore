@@ -154,32 +154,40 @@ namespace Terradue.Portal {
         }
 
         #region IAtomizable implementation
-
-        public new AtomItem ToAtomItem(NameValueCollection parameters) {
-
-
-            if (this.EntityId == 0) return null;
+        public bool IsSearchable (NameValueCollection parameters) {
+            if (this.EntityId == 0) return false;
 
             Entity entity = null;
-            try{
-                entity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
-                entity.Load(this.EntityId);
-            }catch(Exception e){
-                return null;
+            try {
+                entity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
+                entity.Load (this.EntityId);
+            } catch (Exception e) {
+                return false;
             }
+
+            string name = (entity.Name != null ? entity.Name : entity.Identifier);
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            if (!string.IsNullOrEmpty (parameters ["q"])) {
+                string q = parameters ["q"].ToLower ();
+                if (!(name.ToLower ().Contains (q) || entity.Identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q)))
+                    return false;
+            }
+            return true;
+        }
+
+        public AtomItem ToAtomItem(NameValueCollection parameters) {
+
+            if (!IsSearchable (parameters)) return null;
+
+            var entity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
+            entity.Load (this.EntityId);
+
             User owner = User.FromId(context, this.OwnerId);
 
-            string identifier = null;
             string name = (entity.Name != null ? entity.Name : entity.Identifier);
             string description = null;
-            string text = (this.TextContent != null ? this.TextContent : "");
             Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + entity.Identifier);
-
-            if (!string.IsNullOrEmpty(parameters["q"])) {
-                string q = parameters["q"].ToLower();
-                if (!(name.ToLower().Contains(q) || entity.Identifier.ToLower().Contains(q) || text.ToLower().Contains(q)))
-                    return null;
-            }
 
             switch (this.Privilege.Operation) {
                 case OperationPriv.CREATE:

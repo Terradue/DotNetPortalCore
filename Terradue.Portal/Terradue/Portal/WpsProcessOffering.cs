@@ -260,7 +260,35 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         #region IAtomizable implementation
+        public new bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters)
+        {
+            
+            string identifier = "";
 
+            log.Debug ("WpsProcessOffering - ToAtomItem");
+
+            if (this.ProviderId == 0 || this.Provider.Proxy) {
+                identifier = this.Identifier;
+            } else {
+                identifier = this.RemoteIdentifier;
+            }
+
+            string name = (this.Name != null ? this.Name : identifier);
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            //if query on parameter q we check one of the properties contains q
+            if (parameters ["q"] != null) {
+                string q = parameters ["q"].ToLower ();
+                if (!(name.ToLower ().Contains (q) || identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q))) return false;
+            }
+
+            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
+            if (parameters ["wpsUrl"] != null && parameters ["pId"] != null) {
+                if (this.Provider.BaseUrl != parameters ["wpsUrl"] || this.RemoteIdentifier != parameters ["pId"]) return false;
+            }
+
+            return true;
+        }
         public new AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string providerUrl = null;
@@ -285,16 +313,7 @@ namespace Terradue.Portal {
             string description = this.Description;
             string text = (this.TextContent != null ? this.TextContent : "");
 
-            //if query on parameter q we check one of the properties contains q
-            if (parameters["q"] != null) {
-                string q = parameters["q"].ToLower();
-                if (!(name.ToLower().Contains(q) || identifier.ToLower().Contains(q) || text.ToLower().Contains(q))) return null;
-            }
-
-            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
-            if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
-                if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
-            }
+            if (!IsSearchable (parameters)) return null;
 
             var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
             log.Debug("capabilities = " + capurl);

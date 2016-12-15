@@ -22,7 +22,7 @@ namespace Terradue.Portal {
     /// Remote resource set.
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true, HasExtensions = true)]
+    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
     public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;

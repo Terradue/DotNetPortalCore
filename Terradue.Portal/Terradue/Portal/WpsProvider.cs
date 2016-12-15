@@ -22,7 +22,7 @@ using Terradue.OpenSearch;
 using Terradue.OpenSearch.Schema;
 using Terradue.OpenSearch.Engine;
 using System.Web;
-
+using System.Runtime.Caching;
 
 /*!
 \defgroup CoreWPS WPS
@@ -275,6 +275,9 @@ namespace Terradue.Portal {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
            (System.Reflection.MethodBase.GetCurrentMethod ().DeclaringType);
 
+        static MemoryCache DescribeProcessCache = new MemoryCache ("wpsProviderDescribeProcessCache");
+        static MemoryCache GetCapabilitiesCache = new MemoryCache ("wpsProviderGetCapabilitiesCache");
+
         /// <summary>Gets or sets the base access point of the WPS provider.</summary>
         /// <remarks>The value must not contain the <c>service</c> or <c>request</c> query string parameters.</remarks>
         [EntityDataField("url")]
@@ -318,7 +321,14 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         public WpsProvider(IfyContext context) : base(context) {
             ose = new OpenSearchEngine();
+            CanCache = true;//default is true, to be set to false to disable the cache
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProvider"/> can cache.
+        /// </summary>
+        /// <value><c>true</c> if can cache; otherwise, <c>false</c>.</value>
+        public bool CanCache { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -503,20 +513,25 @@ namespace Terradue.Portal {
             string query = "Service=WPS&Request=GetCapabilities";
             var uri = new UriBuilder (BaseUrl);
             uri.Query = query;
-
-            context.LogDebug (this, "GetWPSCapabilities -- url = " + uri.Uri.AbsoluteUri);
-
-            HttpWebRequest request = CreateWebRequest(uri.Uri.AbsoluteUri);
+            var getCapUrl = uri.Uri.AbsoluteUri;
+            context.LogDebug (this, "GetWPSCapabilities -- url = " + getCapUrl);
 
             WPSCapabilitiesType response = null;
-
-            try {
-                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                    using (var stream = httpResponse.GetResponseStream ())
-                        response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
+            var cacheItem = GetCapabilitiesCache.GetCacheItem (getCapUrl);
+            if (cacheItem != null && CanCache) {
+                response = (WPSCapabilitiesType)cacheItem.Value;
+            } else {
+                HttpWebRequest request = CreateWebRequest (getCapUrl);
+                try {
+                    using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                        using (var stream = httpResponse.GetResponseStream ()) {
+                            response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
+                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                        }
+                    }
+                } catch (Exception e) {
+                    throw e;
                 }
-            } catch (Exception e) {
-                throw e;
             }
             return response;
 
@@ -535,22 +550,29 @@ namespace Terradue.Portal {
             string query = string.Format("Service=WPS&Request=DescribeProcess&Identifier={0}&Version={1}",identifier,version);
             var uri = new UriBuilder (BaseUrl);
             uri.Query = query;
+            var descPUrl = uri.Uri.AbsoluteUri;
+            context.LogDebug (this, "GetWPSDescribeProcess -- url = " + descPUrl);
 
-            context.LogDebug (this, "GetWPSDescribeProcess -- url = " + uri.Uri.AbsoluteUri);
+            ProcessDescriptionType result = null;
 
-            HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
-
-            ProcessDescriptions response = null;
-
-            try {
-                using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                    using (var stream = httpResponse.GetResponseStream ())
-                        response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
+            var cacheItem = DescribeProcessCache.GetCacheItem (descPUrl);
+            if (cacheItem != null && CanCache) {
+                result = (ProcessDescriptionType)cacheItem.Value;
+            } else {
+                HttpWebRequest request = CreateWebRequest (descPUrl);
+                try {
+                    using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
+                        using (var stream = httpResponse.GetResponseStream ()) {
+                            var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
+                            result = response.ProcessDescription [0];
+                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                        }
+                    }
+                } catch (Exception e) {
+                    throw e;
                 }
-            } catch (Exception e) {
-                throw e;
             }
-            return response.ProcessDescription[0];
+            return result;
 
         }
 
@@ -695,6 +717,7 @@ namespace Terradue.Portal {
             request = (HttpWebRequest)WebRequest.Create (url);
             request.Proxy = null;
             request.Method = "GET";
+            request.Timeout = 5000;
 
             log.DebugFormat ("CreateWebRequest '{0}' with Header REMOTE_USER={1}", url, username);
 
@@ -1064,27 +1087,34 @@ namespace Terradue.Portal {
         }
 
         #region IAtomizable implementation
+        public bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters) {
+            string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
+            string name = (this.Name != null ? this.Name : identifier);
+            string text = (this.TextContent != null ? this.TextContent : "");
+
+            if (parameters ["q"] != null) {
+                string q = parameters ["q"];
+                if (!(name.Contains (q) || identifier.Contains (q) || text.Contains (q)))
+                    return false;
+            }
+
+            if (parameters ["url"] != null) {
+                if (this.BaseUrl != parameters ["url"])
+                    return false;
+            }
+
+            return true;
+        }
 
         public AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
             string name = (this.Name != null ? this.Name : identifier);
-            string text = (this.TextContent != null ? this.TextContent : "");
 
-            if (parameters["q"] != null) {
-                string q = parameters["q"];
-                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q)))
-                    return null;
-            }
-
-            if (parameters["url"] != null) {
-                if (this.BaseUrl != parameters["url"])
-                    return null;
-            }
+            if (!IsSearchable (parameters)) return null;
 
             Uri alternate = (this.Proxy ? new Uri(context.BaseUrl + "/wps/WebProcessingService") : new Uri(this.BaseUrl));
 
-            AtomItem atomEntry = null;
             var entityType = EntityType.GetEntityType(typeof(WpsProvider));
             Uri id = null;
             if (this.Id == 0)

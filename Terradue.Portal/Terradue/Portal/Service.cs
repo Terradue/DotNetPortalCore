@@ -652,16 +652,25 @@ namespace Terradue.Portal {
 
         #region IAtomizable implementation
 
-        public AtomItem ToAtomItem(NameValueCollection parameters) {
-
+        public bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters)
+        {
             string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
             string name = (this.Name != null ? this.Name : identifier);
             string text = (this.TextContent != null ? this.TextContent : "");
 
-            if (parameters["q"] != null) {
-                string q = parameters["q"];
-                if (!(name.Contains(q) || identifier.Contains(q) || text.Contains(q))) return null;
+            if (parameters ["q"] != null) {
+                string q = parameters ["q"];
+                if (!(name.Contains (q) || identifier.Contains (q) || text.Contains (q))) return false;
             }
+            return true;
+        }
+
+        public AtomItem ToAtomItem(NameValueCollection parameters) {
+
+            string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
+            string name = (this.Name != null ? this.Name : identifier);
+
+            if (!IsSearchable(parameters)) return null;
 
             Uri alternate = new Uri(this.Url);
                 
