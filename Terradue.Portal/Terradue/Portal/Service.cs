@@ -109,6 +109,30 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// The tags used to describe and filter the service.
+        /// </summary>
+        [EntityDataField ("tags")]
+        protected string tags { get; set; }
+
+        /// <summary>
+        /// Adds a tag to the tags list.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        public void AddTag (string tag) {
+            tags += string.IsNullOrEmpty (tags) ? tag : "," + tag;
+        }
+
+        /// <summary>
+        /// Gets the tags as list.
+        /// </summary>
+        /// <returns>The tags as list.</returns>
+        public List<string> GetTagsAsList () {
+            return tags.Split (",".ToCharArray ()).ToList ();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Description text of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]

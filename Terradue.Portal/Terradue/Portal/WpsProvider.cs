@@ -304,6 +304,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Specify if the provider is a sandbox or is operational.
+        /// </summary>
+        public bool IsSandbox;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// The tags used to describe and filter the provider.
+        /// </summary>
+        public List<string> Tags;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         protected OpenSearchEngine ose;
 
         public OpenSearchEngine OpenSearchEngine {

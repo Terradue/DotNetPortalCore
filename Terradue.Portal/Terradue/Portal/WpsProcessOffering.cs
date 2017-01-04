@@ -17,6 +17,7 @@ using System.IO;
 using OpenGis.Wps;
 using System.Xml;
 using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
+using System.Linq;
 
 namespace Terradue.Portal {
 
@@ -299,6 +300,30 @@ namespace Terradue.Portal {
                 if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
             }
 
+            //case of query for sandbox or operational provider
+            if (parameters ["sandbox"] != null){
+                if (parameters ["sandbox"] == "true" && !this.Provider.IsSandbox) return null;
+                if (parameters ["sandbox"] == "false" && this.Provider.IsSandbox) return null;
+            }
+
+            //case of query on provider hostname
+            if (parameters ["hostname"] != null) {
+                var uriHost = new UriBuilder (this.Provider.BaseUrl);
+                var r = new System.Text.RegularExpressions.Regex (parameters ["hostname"]);
+                var m = r.Match (uriHost.Host);
+                if (!m.Success) return null;
+            }
+
+            //case of query on service tags
+            if (parameters ["tag"] != null) {
+                var queryTags = parameters ["tag"].Split ("/".ToCharArray ()).ToList ();
+                var serviceTags = GetTagsAsList ();
+
+                foreach (var qtag in queryTags)
+                    if (!serviceTags.Any (str => str.Contains (qtag))) return null;
+                
+            }
+
             var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
             log.Debug("capabilities = " + capurl);
                 
@@ -352,6 +377,7 @@ namespace Terradue.Portal {
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
             if ( this.Provider.Id == 0 )
                 entry.Categories.Add(new SyndicationCategory("Discovered"));
+            if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
@@ -370,6 +396,9 @@ namespace Terradue.Portal {
             parameters.Add("id", "{geo:uid?}");
             parameters.Add("wpsUrl", "{ows:url?}");
             parameters.Add("pid", "{ows:id?}");
+            parameters.Add ("sandbox", "{t2:sandbox?}");
+            parameters.Add ("hostname", "{t2:hostname?}");
+            parameters.Add ("tag", "{t2:tag?}");
             return parameters;
         }
 

@@ -717,7 +717,11 @@ namespace Terradue.Portal {
 
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+            T item = entityType.GetEntityInstance (context) as T;
+            if(item is IAtomizable) 
+                return ((IAtomizable)item).GetOpenSearchParameters();
+            else 
+                return OpenSearchFactory.GetBaseOpenSearchParameter();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
