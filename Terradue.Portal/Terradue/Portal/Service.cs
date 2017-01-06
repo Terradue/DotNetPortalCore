@@ -113,7 +113,7 @@ namespace Terradue.Portal {
         /// The tags used to describe and filter the service.
         /// </summary>
         [EntityDataField ("tags")]
-        protected string tags { get; set; }
+        public string tags { get; set; }
 
         /// <summary>
         /// Adds a tag to the tags list.
@@ -128,7 +128,9 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The tags as list.</returns>
         public List<string> GetTagsAsList () {
-            return tags.Split (",".ToCharArray ()).ToList ();
+            if (tags != null)
+                return tags.Split (",".ToCharArray ()).ToList ();
+            else return new List<string> ();
         }
 
         //---------------------------------------------------------------------------------------------------------------------

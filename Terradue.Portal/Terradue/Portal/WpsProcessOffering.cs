@@ -375,10 +375,16 @@ namespace Terradue.Portal {
                 entry.Publisher = (this.Provider != null ? this.Provider.Name : "Unknown");
             else
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
+
+            //categories
             if ( this.Provider.Id == 0 )
                 entry.Categories.Add(new SyndicationCategory("Discovered"));
             if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
+            foreach (var tag in GetTagsAsList ()){
+                entry.Categories.Add (new SyndicationCategory (tag));
+            }
+
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));

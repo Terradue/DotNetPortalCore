@@ -1838,6 +1838,7 @@ CREATE TABLE service (
     all_input boolean COMMENT 'If true, service accepts all non-manual series as input',
     created datetime,
     modified datetime,
+    tags varchar(150) NULL DEFAULT NULL COMMENT 'Tags describing the service',
     CONSTRAINT pk_service PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_service_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
