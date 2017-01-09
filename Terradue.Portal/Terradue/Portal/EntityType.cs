@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using Terradue.Util;
 
 
@@ -63,23 +65,46 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup Persistence
     public class EntityType : Entity {
-        
+
+        private const string RolePrivilegeBaseQuery = "SELECT DISTINCT rp.id_role FROM priv AS p LEFT JOIN role_priv AS rp ON p.id=rp.id_priv";
+
+        // Static list of entity type metadata; loaded at application startup and used as reference for lookup throughout the runtime
         private static Dictionary<Type, EntityType> entityTypes = new Dictionary<Type, EntityType>();
+
         private static Dictionary<PropertyInfo, EntityRelationshipType> entityRelationshipTypes = new Dictionary<PropertyInfo, EntityRelationshipType>();
 
         private string singularCaption, pluralCaption;
 
+        private string restrictedJoinSql;
+        private string unrestrictedJoinSql;
+        private string adminJoinSql;
+
+        private string idSelectSql;
+        private string coreSelectSql, contentSelectSql;
+        private string adminSelectSql;
+
+        private bool isSqlPrepared = false;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the direct subclass of Entity of which this entity type is derived./summary>
+        public EntityType TopType { get; protected set; }
+
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Gets or sets the database ID of the direct subclass of Entity of which this entity type is derived./summary>
         public int TopTypeId { get; protected set; }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the database ID of the nearest base class of this entity type that has a database record./summary>
+        public int PersistentTypeId { get; protected set; }
+
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Gets the class name.</summary>
         /// \ingroup Persistence
-        public string ClassName {
-            get; protected set;
-        }
+        public string ClassName { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -162,8 +187,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        public bool HasPermissionManagement {
+            get { return PermissionSubjectTable != null; }
+        }
+
+        [Obsolete("Use HasPermissionManagement (changed for terminology consistency)")]
         public bool HasPrivilegeManagement {
-            get { return PrivilegeSubjectTable != null; }
+            get { return PermissionSubjectTable != null; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -188,7 +218,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityTableAttribute PrivilegeSubjectTable { get; protected set; }
+        public EntityTableAttribute PermissionSubjectTable { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -197,6 +227,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public List<ForeignTableInfo> ForeignTables { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool HasMultipleTables { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -219,9 +253,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : base(null) {
+        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : this(null as IfyContext) {
             if (IfyContext.DefaultConsoleDebug) Console.WriteLine("NEW ENTITY TYPE {0}", className);
             this.Id = id;
+            this.PersistentTypeId = id;
             this.ClassName = className;
             this.ClassType = Type.GetType(className, true);
             
@@ -242,12 +277,16 @@ namespace Terradue.Portal {
             this.PluralCaption = pluralCaption;
             this.Keyword = keyword;
             
+            this.TopType = this;
             this.TopTypeId = this.Id;
             
             Type type = ClassType;
             while (type != null) {
                 EntityType entityType = EntityType.GetEntityType(type);
-                if (entityType != null) this.TopTypeId = entityType.Id;
+                if (entityType != null) {
+                    this.TopType = entityType;
+                    this.TopTypeId = entityType.Id;
+                }
                 type = type.BaseType;
             }
             
@@ -283,12 +322,13 @@ namespace Terradue.Portal {
             foreach (EntityTableAttribute table in source.Tables) Tables.Add(table);
             foreach (ForeignTableInfo foreignTable in source.ForeignTables) ForeignTables.Add(foreignTable);
             foreach (FieldInfo field in source.Fields) Fields.Add(field);
+            TopType = source.TopType;
             TopTypeId = source.TopTypeId;
-            /*ClassName = source.ClassName;
+            if (PersistentTypeId == 0) PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;
-            CustomClassType = source.CustomClassType;*/
             TopTable = source.TopTable;
-            PrivilegeSubjectTable = source.PrivilegeSubjectTable;
+            PermissionSubjectTable = source.PermissionSubjectTable;
+            HasMultipleTables = source.HasMultipleTables;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -296,7 +336,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new EntityType instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created EntityType object.</returns>
-        public static new EntityType GetInstance(IfyContext context) {
+        public static EntityType GetInstance(IfyContext context) {
             return new EntityType(context);
         }
         
@@ -453,7 +493,7 @@ namespace Terradue.Portal {
         public static List<EntityType> GetAssignedEntityTypes() {
             List<EntityType> result = new List<EntityType>();
             foreach (EntityType entityType in entityTypes.Values) {
-                if (entityType.TopTable.HasPrivilegeManagement) result.Add(entityType);
+                if (entityType.TopTable.HasPermissionManagement) result.Add(entityType);
             }
             return result;
         }
@@ -466,6 +506,8 @@ namespace Terradue.Portal {
             EntityType baseEntityType = GetEntityType(type.BaseType);
             if (baseEntityType == null) {
                 GetEntityStructure(type.BaseType);
+                TopType = this;
+                TopTypeId = this.Id;
             } else {
                 CopyFrom(baseEntityType);
             }
@@ -481,13 +523,13 @@ namespace Terradue.Portal {
             
             if (tableInfo == null) return;
 
-            if (IfyContext.DefaultConsoleDebug) Console.WriteLine("TABLE {0}", tableInfo.Name + " PRIV=" + tableInfo.PrivilegeTable);
+            if (IfyContext.DefaultConsoleDebug) Console.WriteLine("TABLE {0}", tableInfo.Name + " PRIV=" + tableInfo.PermissionTable);
             
             int tableIndex = 0;
             
             if (tableInfo.Storage == EntityTableStorage.Here && tableInfo.Name != null) {
                 Tables.Add(tableInfo);
-                if (tableInfo.HasPrivilegeManagement) PrivilegeSubjectTable = tableInfo;
+                if (tableInfo.HasPermissionManagement) PermissionSubjectTable = tableInfo;
                 tableIndex = Tables.Count - 1;
             } else if (tableInfo.Storage == EntityTableStorage.Below) {
                 tableIndex = Tables.Count;
@@ -506,6 +548,7 @@ namespace Terradue.Portal {
                     EntityMultipleForeignTableAttribute attr = attribute as EntityMultipleForeignTableAttribute;
                     ForeignTableInfo foreignTableInfo = new ForeignTableInfo(tableInfo, tableIndex, attr);
                     ForeignTables.Add(foreignTableInfo);
+                    HasMultipleTables = true;
                     if (IfyContext.DefaultConsoleDebug) Console.WriteLine("MULTIPLE FOREIGN TABLE {0} - {1}", attr.RelationshipName, attr.Name);
                 } else if (attribute is EntityForeignTableAttribute) {
                     EntityForeignTableAttribute attr = attribute as EntityForeignTableAttribute;
@@ -530,9 +573,9 @@ namespace Terradue.Portal {
             foreach (PropertyInfo pi in type.GetProperties()) {
                 if (pi.DeclaringType != type) continue;
                 foreach (System.Attribute attribute in pi.GetCustomAttributes(true)) {
-                    if (attribute is EntityPrivilegeFieldAttribute) {
-                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [P] {0,-20} {1}", (attribute as EntityPrivilegeFieldAttribute).Name, " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
-                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityPrivilegeFieldAttribute));
+                    if (attribute is EntityPermissionFieldAttribute) {
+                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [P] {0,-20} {1}", (attribute as EntityPermissionFieldAttribute).Name, " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
+                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityPermissionFieldAttribute));
                     } else if (attribute is EntityDataFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [D] {0,-20} {1}", (attribute as EntityDataFieldAttribute).Name, " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityDataFieldAttribute));
@@ -560,7 +603,7 @@ namespace Terradue.Portal {
         /// <param name="id">The database ID of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, int id) {
-            return context.GetQueryIntegerValue(GetQuery(context, 0, null, String.Format("t.{1}={0}", id, TopTable.IdField), false, true)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, null, 0, null, String.Format("t.{1}={0}", id, TopTable.IdField), true, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -570,48 +613,82 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, string identifier) {
-            return context.GetQueryIntegerValue(GetQuery(context, 0, null, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), false, true)) != 0;
+            if (!TopTable.HasIdentifierField) return false;
+            return context.GetQueryIntegerValue(GetQuery(context, null, 0, null, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), true, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the SQL query for selecting a single item on behalf of the user with the specified ID.</summary>
+        /// <summary>Gets the SQL query for selecting a single item on behalf of the specified user.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <returns>The SQL query.</returns>
-        public string GetItemQuery(IfyContext context, int userId, string condition) {
-            return GetQuery(context, userId, null, condition, false, false);
+        public string GetItemQuery(IfyContext context, Entity item, int userId, string condition, EntityAccessLevel accessLevel) {
+            return GetQuery(context, item, userId, null, condition, false, accessLevel);
         }
             
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the full or IDs-only SQL query for selecting a single item on behalf of the user with the specified ID.</summary>
+        /// <summary>Gets the full or IDs-only SQL query for selecting an item list on behalf of the specified user.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <returns>The SQL query.</returns>
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly) {
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
-            string condition = (template == null ? null : GetTemplateCondition(template, false));
-            return GetQuery(context, userId, template, condition, true, idsOnly);
+        /// <summary>Gets the full or IDs-only SQL query for selecting an item list filtered according to the specified template on behalf of the specified user.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
+        /// <param name="template">A template object of the same type as the list item entity type with properties set to filtering values.</param>
+        /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <returns>The SQL query.</returns>
+        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly) {
+            string condition = null;
+            if (template != null) {
+                condition = GetTemplateCondition(template, false);
+            } else if (filterValues != null) {
+                string filterCondition = GetFilterSql(filterValues);
+                if (filterCondition != null) {
+                    if (condition == null) condition = String.Empty;
+                    else condition += " AND ";
+                    condition += filterCondition;
+                }
+            }
+
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
         
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
-            string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+        [Obsolete("Use GetListQuery overload")]
+        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly) {
+            return GetListQuery(context, userId, template, null, idsOnly);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets full or IDs-only the SQL query for selecting an item list containing items referred to by another item on behalf of the specified user.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
+        /// <param name="referringItem">A template object of the same type as the list item entity type with properties set to filtering values.</param>
+        /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <returns>The SQL query.</returns>
+        public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly) {
+            string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the full or IDs-only SQL query for selecting an item list containing items referred to by another item on behalf of the specified user.</summary>
+        /// <returns>The list query for owned items.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
+        /// <param name="idsOnly">If set to <c>true</c> identifiers only.</param>
         public string GetListQueryForOwnedItems(IfyContext context, int userId, bool idsOnly) {
             string condition = null;
             if (userId != 0 && TopTable.HasOwnerReference) {
@@ -619,194 +696,167 @@ namespace Terradue.Portal {
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
 
-            return GetQuery(context, userId, null, condition, true, idsOnly);
+            return GetQuery(context, null, userId, null, condition, idsOnly, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets the full or IDs-only SQL query for selecting an item list containing items for which any of the specified groups have access permission.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="groupIds">An array of IDs of the groups to take into account for the permission filtering.</param>
+        /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
+        /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
         public string GetGroupQuery(IfyContext context, int[] groupIds, bool idsOnly, string condition) {
-            // Build join
-            int privilegeSubjectTableIndex = -1;
-            
-            string join = String.Format("{0} AS t", TopTable.Name);
-            string aggregation = null;
+            return GetQuery(context, null, 0, groupIds, condition, idsOnly, EntityAccessLevel.None);
+        }
 
-            for (int i = 0; i < Tables.Count; i++) {
-                EntityTableAttribute table = Tables[i];
-                if (i != 0) {
-                    join += String.Format(" INNER JOIN {0} AS t{1} ON t{2}.{4}=t{1}.{3}", 
-                            table.Name,
-                            i,
-                            i == 1 ? String.Empty : (i - 1).ToString(),
-                            table.IdField,
-                            Tables[i - 1].IdField
-                    );
-                }
-                if (table == PrivilegeSubjectTable) {
-                    privilegeSubjectTableIndex = i;
-                    join += String.Format(" INNER JOIN {0} AS p ON t{1}.id=p.id_{2}",
-                            table.PrivilegeTable,
-                            i == 0 ? String.Empty : i.ToString(),
-                            table.Name
-                    );
-                }
-                for (int j = 0; j < ForeignTables.Count; j++) {
-                    if (ForeignTables[j].IsMultiple || ForeignTables[j].ReferringTable != table) continue;
-                    join += String.Format(" {0} JOIN {1}", 
-                            ForeignTables[j].IsRequired ? "INNER" : "LEFT",
-                            ForeignTables[j].Join
-                    );
-                }
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Builds the SQL query necessary to load an entity item or a list of entity items according to the specified restrictions.</summary>
+        /// <returns>The SQL <c>SELECT</c> statement that selects the entity item or the list of entity items.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="item">The entity item that has already been instantiated but still needs to be loaded. Can be <c>null</c>.</param>
+        /// <param name="userId">ID of the user on whose behalf the item or list is to be selected.</param>
+        /// <param name="groupIds">An array of IDs of the groups to take into account for the permission filtering.</param>
+        /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
+        /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
+        /// <param name="accessLevel">The entity access mode according to which restrictions are applied to the resulting query.</param>
+        public string GetQuery(IfyContext context, Entity item, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
+            bool list = (item == null);
+
+            if (accessLevel == EntityAccessLevel.None) {
+                accessLevel = context.AccessLevel;
+                //queryMode = context.AdminMode ? EntityQueryMode.Administrator : context.RestrictedMode ? EntityQueryMode.Restricted : EntityQueryMode.Unrestricted;
             }
-            
-            // Build WHERE clause
-            if (TopTable.HasPrivilegeManagement && groupIds != null && groupIds.Length != 0) {
-                if (condition == null) condition = String.Empty; else condition += " AND ";
-                condition += String.Format("p.id_grp{0}", groupIds.Length == 1 ? String.Format("={0}", groupIds[0].ToString()) : String.Format(" IN ({0})", String.Join(", ", groupIds)));
-            }
-            if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
+
+            if (!isSqlPrepared) PrepareSql();
+
+            string[] userJoinValues = (userId == 0 && (groupIds == null || groupIds.Length == 0) ? new string[] {"0", "0"} : GetUserJoinValues(context, userId, groupIds));
+
+            // Build FROM clause
+            string joinSql = String.Format(accessLevel == EntityAccessLevel.Administrator ? adminJoinSql : userId != 0 && accessLevel == EntityAccessLevel.Permission && list ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
 
             // Add GROUP BY aggregation if necessary
-            if (TopTable.HasPrivilegeManagement) aggregation = " GROUP BY t.id";
+            string aggregationSql = accessLevel == EntityAccessLevel.Administrator ? String.Empty : " GROUP BY t.id";
 
-            // Add generic identifying fields to SELECT clause
-            string select = String.Format("t.{0}", TopTable.IdField);
-            if (TopTable.HasIdentifierField) select += String.Format(", t.{0}", TopTable.IdentifierField);
-            if (TopTable.HasNameField) select += String.Format(", t.{0}", TopTable.NameField);
-            if (TopTable.HasDomainReference) select += String.Format(", t.{0}", TopTable.DomainReferenceField);
-            if (TopTable.HasOwnerReference) select += String.Format(", t.{0}", TopTable.OwnerReferenceField);
-            if (!context.AdminMode && TopTable.HasPrivilegeManagement) {
-                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN p.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
-            }
-            
-            // Add entity-specific fields to SELECT clause 
-            foreach (FieldInfo field in Fields) {
-                if (field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
-                    select += String.Format(", MAX(p.{0}) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
-                } else if (field.FieldType == EntityFieldType.DataField) {
-                    if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
-                    else select += String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
-                } else if (field.FieldType == EntityFieldType.ForeignField) {
-                    ForeignTableInfo foreignTable = null;
-                    for (int j = 0; j < ForeignTables.Count; j++) {
-                        foreignTable = ForeignTables[j];
-                        if (foreignTable.IsMultiple || foreignTable.ReferringTable != Tables[field.TableIndex] || foreignTable.SubIndex != field.TableSubIndex) {
-                            foreignTable = null;
-                            continue;
-                        }
-                        break;
+            string grantSelectSql = null;
+
+            if (accessLevel == EntityAccessLevel.Privilege) {
+                // For lists, get all roles with search privilege on items of the entity type (inverse = false); 
+                // for items, get all roles with any other privilege than search on items of the entity type (inverse = true)
+                int[] roleIds = GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, item != null);
+                if (context.ConsoleDebug) Console.WriteLine("ROLES: {0}", roleIds == null ? "PRIVILEGE NOT DEFINED" : String.Join(",", roleIds));
+
+                // Do not perform domain-restriction check if view (or similar) privilege is not defined (roleIds == null)
+                if (roleIds != null) {
+
+                    // If list is empty, the view (or similar) privilege is defined, but there is no role that includes that privilege
+                    // Therefore, the item cannot be loaded (by nobody except an administrator).
+                    if (roleIds.Length == 0) roleIds = new int [] { 0 };
+                    //TODO: resolve the roleIds.Length == 0 situation elsewhere
+                    //if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : GetItemTerm(item)), this, null, userId);
+
+                    // Get the list of domains for which the user has the view privilege on items of the entity type
+                    // The domain restriction check needs to be performed only if the privilege is defined (otherwise everybody has the privilege)
+                    int[] domainIds = Domain.GetGrantScope(context, userId, groupIds, roleIds);
+                    if (context.ConsoleDebug) Console.WriteLine("DOMAINS: {0}", domainIds == null ? "GLOBAL GRANT" : String.Join(",", domainIds));
+
+                    // no domain (unauthorised) -> select "not granted" for all items
+                    // some domains (partly authorised) -> if entity can be assigned to domains: filter result by domains in domainIds, otherwise: select grant value according to items' domains (or true in case of list, because list already filters)
+                    // NULL domain (globally authorised) -> no domain filtering in query
+
+                    string domainMatchSql = TopTable.HasDomainReference && domainIds != null && domainIds.Length != 0 ? String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds)) : null;
+                    string permissionFilterSql = TopTable.HasPermissionManagement ? String.Format("p.id_{0} IS NOT NULL", PermissionSubjectTable.Name) : null;
+
+                    if (domainIds != null) {
+                        if (domainIds.Length == 0 || !TopTable.HasDomainReference) grantSelectSql = ", false";
+                        else if (TopTable.HasDomainReference && !list) grantSelectSql = String.Format(", {0}", domainMatchSql);
                     }
-                    if (foreignTable == null) select += ", NULL";
-                    else if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace(", $(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
-                    else select += String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
+                    if (list && (domainMatchSql != null || permissionFilterSql != null)) {
+                        bool both = domainMatchSql != null && permissionFilterSql != null;
+                        if (condition == null) condition = String.Empty;
+                        else condition += " AND ";
+                        condition += String.Format("{2}{0}{3}{1}{4}", domainMatchSql == null ? String.Empty : domainMatchSql, permissionFilterSql == null ? String.Empty : permissionFilterSql, both ? "(" : String.Empty, both ? " OR " : String.Empty, both ? ")" : String.Empty);
+                    }
                 }
             }
-            
-            return String.Format("SELECT {3} FROM {0} WHERE {1}{2};", join, condition, aggregation, select);
-
-        }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        private string GetQuery(IfyContext context, int userId, Entity template, string condition, bool list, bool idsOnly) {
-
-            bool restrictedList = list && context.RestrictedMode;
-            bool includePrivileges = !context.AdminMode && TopTable.HasPrivilegeManagement;
-            bool excludeUnaccessibleItems = restrictedList && includePrivileges;
-            bool distinct = false;
-            
-            // Build join
-            int privilegeSubjectTableIndex = -1;
-            
-            string join = String.Format("{0} AS t", TopTable.Name);
-            string aggregation = null;
-
-            for (int i = 0; i < Tables.Count; i++) {
-                EntityTableAttribute table = Tables[i];
-                if (i != 0) {
-                    join += String.Format(" INNER JOIN {0} AS t{1} ON t{2}.{4}=t{1}.{3}", 
-                            table.Name,
-                            i,
-                            i == 1 ? String.Empty : (i - 1).ToString(),
-                            table.IdField,
-                            Tables[i - 1].IdField
-                    );
-                }
-                if (includePrivileges && table == PrivilegeSubjectTable) {
-                    privilegeSubjectTableIndex = i;
-                    join += String.Format(" {0} JOIN {1} AS p ON t{2}.id=p.id_{3} AND (p.id_usr IS NULL{5} OR p.id_usr={4} OR p.id_grp IS NOT NULL) LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND ug.id_usr={4}",
-                            restrictedList ? "INNER" : "LEFT",
-                            table.PrivilegeTable,
-                            i == 0 ? String.Empty : i.ToString(),
-                            table.Name,
-                            userId,
-                            restrictedList ? String.Empty : " AND p.id_grp IS NULL"
-                    );
-                }
-                for (int j = 0; j < ForeignTables.Count; j++) {
-                    if (!list && ForeignTables[j].IsMultiple || ForeignTables[j].ReferringTable != table) continue;
-                    if (ForeignTables[j].IsMultiple && (template == null || !HasTemplateValuesSet(ForeignTables[j], template))) continue;
-                    join += String.Format(" {0} JOIN {1}", 
-                            ForeignTables[j].IsRequired ? "INNER" : "LEFT",
-                            ForeignTables[j].Join
-                    );
-                    distinct |= ForeignTables[j].IsMultiple;
-                }
+            if (accessLevel != EntityAccessLevel.Administrator && grantSelectSql == null) {
+                grantSelectSql = accessLevel == EntityAccessLevel.Permission ? ", false" : ", true";
             }
 
             // Build WHERE clause
             if (list && TopTable.TypeReferenceField != null) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
-                //condition += String.Format("t.{1}={0}", Id, TopTable.TypeReferenceField);
                 condition += EntityType.GetTypeFilterCondition(this, String.Format("t.{0}", TopTable.TypeReferenceField));
             }
-            if (excludeUnaccessibleItems) {
-                if (condition == null) condition = String.Empty; else condition += " AND ";
-                condition += String.Format("(p.id_usr={0} OR ug.id_usr={0} OR p.id_usr IS NULL AND p.id_grp IS NULL)", userId);
-            }
 
-            if (idsOnly) return String.Format("SELECT DISTINCT(t.{2}) FROM {0}{1};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), TopTable.IdField);
-
-            // Add GROUP BY aggregation if necessary
-            if (includePrivileges) aggregation = " GROUP BY t.id";
-
-            // Add generic identifying fields to SELECT clause
-            string select = String.Format("t.{0}", TopTable.IdField);
-            if (TopTable.HasIdentifierField) select += String.Format(", t.{0}", TopTable.IdentifierField);
-            if (TopTable.HasNameField) select += String.Format(", t.{0}", TopTable.NameField);
-            if (TopTable.HasDomainReference) select += String.Format(", t.{0}", TopTable.DomainReferenceField);
-            if (TopTable.HasOwnerReference) select += String.Format(", t.{0}", TopTable.OwnerReferenceField);
-            if (includePrivileges) {
-                select += String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN ug.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PrivilegeSubjectTable.Name);
-            }
-            
-            // Add entity-specific fields to SELECT clause 
-            foreach (FieldInfo field in Fields) {
-                if (includePrivileges && field.TableIndex == privilegeSubjectTableIndex && field.FieldType == EntityFieldType.PrivilegeField) {
-                    select += String.Format(", MAX(CASE WHEN p.id_usr IS NOT NULL OR ug.id_grp IS NOT NULL OR p.id_{1} AND p.id_usr IS NULL AND p.id_grp IS NULL THEN p.{0} ELSE NULL END) AS _{0}", field.FieldName, PrivilegeSubjectTable.Name);
-                } else if (field.FieldType == EntityFieldType.DataField) {
-                    if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
-                    else select += String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
-                } else if (field.FieldType == EntityFieldType.ForeignField) {
-                    ForeignTableInfo foreignTable = null;
-                    for (int j = 0; j < ForeignTables.Count; j++) {
-                        foreignTable = ForeignTables[j];
-                        if (foreignTable.IsMultiple || foreignTable.ReferringTable != Tables[field.TableIndex] || foreignTable.SubIndex != field.TableSubIndex) {
-                            foreignTable = null;
-                            continue;
-                        }
-                        break;
-                    }
-                    if (foreignTable == null) select += ", NULL";
-                    else if (field.FieldName == null) select += String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
-                    else select += String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
-                }
-            }
+            // coreSelectSql selects Entity core fields (Id, Identifier etc.)
+            // domainGrantSql selects a boolean saying whether the user is allowed
+            string selectSql = idsOnly ? idSelectSql : accessLevel == EntityAccessLevel.Administrator ? adminSelectSql : String.Format("{0}{1}{2}", coreSelectSql, grantSelectSql, contentSelectSql);
 
             string sort = (list ? String.Format(" ORDER BY t.{0}", TopTable.IdField) : String.Empty);
 
-            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", join, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, select, distinct ? "DISTINCT " : String.Empty, sort);
+            //Console.WriteLine(String.Format("QUERY SQL: SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort));
+            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregationSql, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort);
 
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        private string[] GetUserJoinValues(IfyContext context, int userId, int[] groupIds) {
+            if (HasPermissionManagement && groupIds == null) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
+            if (groupIds == null || groupIds.Length == 0) groupIds = new int[] {0};
+            return new string[] {
+                userId.ToString(),
+                String.Join(",", groupIds)
+            };
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Lists all roles that include the specified privilege for this entity type or, alternatively, any privilege for this entity type other than the specified one.</summary>
+        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="operation">The operation that, in combination with the entity type represented by this instance, defines the privilege.</param>
+        /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privilege; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
+        public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType operation, bool inverse) {
+            string condition = String.Format("p.id_type={0} AND ", TopTypeId);
+            condition += String.Format("p.operation{1}='{0}';", (char)operation, inverse ? "!" : String.Empty);
+            string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
+            return GetRolesForPrivilege(context, sql);
+        }
+
+        /// <summary>Lists all roles that include the specified privileges for this entity type or, alternatively, any privilege for this entity type other than the specified ones.</summary>
+        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="operations">The operations that, in combination with the entity type represented by this instance, defines the privileges.</param>
+        /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privileges; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
+        public int[] GetRolesForPrivilege(IfyContext context, EntityOperationType[] operations, bool inverse) {
+            string condition = String.Format("p.id_type={0} AND ", TopTypeId);
+            string ops = null;
+            foreach (EntityOperationType operation in operations) {
+                if (ops == null) ops = String.Empty;
+                else ops += ",";
+                ops += String.Format("'{0}'", (char)operation);
+            }
+            condition += String.Format("p.operation{1} IN ({0});", ops, inverse ? " NOT" : String.Empty);
+            string sql = String.Format("{0} WHERE {1}", RolePrivilegeBaseQuery, condition);
+            return GetRolesForPrivilege(context, sql);
+        }
+
+        protected int[] GetRolesForPrivilege(IfyContext context, string sql) {
+            List<int> result = new List<int>();
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool privilegeExists = false;
+            while (reader.Read()) {
+                privilegeExists = true;
+                if (reader.GetValue(0) == DBNull.Value) continue;
+                result.Add(reader.GetInt32(0));
+            }
+            context.CloseQueryResult(reader, dbConnection);
+            if (!privilegeExists) return null; // privilege does not exist at all -> calling code has to drop privilege-based authorisation check in this case
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -909,14 +959,94 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string GetFilterSql(Dictionary<FieldInfo, string> filterValues) {
+            if (filterValues == null) return null;
+
+            string result = null;
+            bool hasCondition = false;
+
+            foreach (FieldInfo field in filterValues.Keys) {
+                string condition = null;
+                string searchTerm = filterValues[field];
+
+                string alias = null;
+                if (field.FieldType == EntityFieldType.ForeignField) {
+                    ForeignTableInfo foreignTableInfo = null;
+                    foreach (ForeignTableInfo fti in ForeignTables) {
+                        if (fti.ReferringTable == Tables[field.TableIndex] && fti.SubIndex == field.TableSubIndex) {
+                            foreignTableInfo = fti;
+                            break;
+                        }
+                    }
+                    if (foreignTableInfo == null) continue;
+                    if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
+                }
+                if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
+                string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+
+                if (field.Property.PropertyType == typeof(string)) {
+                    condition = GetStringConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType == typeof(bool)) {
+                    if (String.IsNullOrEmpty(searchTerm)) continue;
+                    searchTerm = searchTerm.ToLower();
+
+                    condition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
+                } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
+                    condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType == typeof(DateTime)) { 
+                    condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
+                } else if (field.Property.PropertyType.IsEnum) {
+                }
+
+                if (condition == null) continue;
+
+                if (hasCondition) result += " AND ";
+                else result = String.Empty;
+
+                result += condition;
+
+                hasCondition = true;
+            }
+
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public FieldInfo GetField(string propertyName) {
+            foreach (FieldInfo field in Fields) {
+                if (field.Property.Name == propertyName) return field;
+            }
+            return null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Returns an entity instance of the represented type from its ID.</summary>
-        /// <returns>The entity instance.</returns>
+        /// <returns>The entity instance, that has to be fully loaded by the calling code.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">The entity item's ID.</param>
         /// \ingroup Persistence
         public Entity GetEntityInstanceFromId(IfyContext context, int id) {
             if (TopTable.HasExtensions) {
-                Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdField, id));
+                Entity result;
+                if (TopTable.TypeReferenceField != null) {
+                    int entityTypeId = context.GetQueryIntegerValue(String.Format("SELECT {3} FROM {0} WHERE {1}={2};", TopTable.Name, TopTable.IdField, id, TopTable.TypeReferenceField));
+                    if (entityTypeId != 0) {
+                        EntityType entityType = null;
+                        foreach (EntityType et in entityTypes.Values) {
+                            if (et.Id != entityTypeId) continue;
+                            entityType = et;
+                            break;
+                        }
+                        if (entityType != null) {
+                            result = entityType.GetEntityInstance(context);
+                            return result;
+                        }
+                    }
+                }
+
+                result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdField, id));
                 if (result != null) return result;
                 if (DoesItemExist(context, id)) throw new Exception("Invalid entity extension type");
                 throw new EntityNotFoundException(String.Format("{0} item [{1}] not found", SingularCaption == null ? ClassName : SingularCaption, id), this, id.ToString());
@@ -933,7 +1063,24 @@ namespace Terradue.Portal {
         /// \ingroup Persistence
         public Entity GetEntityInstanceFromIdentifier(IfyContext context, string identifier) {
             if (TopTable.HasExtensions) {
-                Entity result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdentifierField, StringUtils.EscapeSql(identifier)));
+                Entity result;
+                if (TopTable.TypeReferenceField != null) {
+                    int entityTypeId = context.GetQueryIntegerValue(String.Format("SELECT {3} FROM {0} WHERE {1}={2};", TopTable.Name, TopTable.IdentifierField, StringUtils.EscapeSql(identifier), TopTable.TypeReferenceField));
+                    if (entityTypeId != 0) {
+                        EntityType entityType = null;
+                        foreach (EntityType et in entityTypes.Values) {
+                            if (et.Id != entityTypeId) continue;
+                            entityType = et;
+                            break;
+                        }
+                        if (entityType != null) {
+                            result = entityType.GetEntityInstance(context);
+                            return result;
+                        }
+                    }
+                }
+
+                result = GetEntityInstance(context, String.Format("t.{0}={1}", TopTable.IdentifierField, StringUtils.EscapeSql(identifier)));
                 if (result != null) return result;
                 if (DoesItemExist(context, identifier)) throw new Exception("Invalid entity extension type");
                 throw new EntityNotFoundException(String.Format("{0} item \"{1}\" not found", SingularCaption == null ? ClassName : SingularCaption, identifier), this, identifier);
@@ -999,8 +1146,8 @@ namespace Terradue.Portal {
         public Entity GetEntityInstance(IfyContext context) {
             System.Reflection.ConstructorInfo constructorInfo = null;
             if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});
+            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
             if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && ClassType != null) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
             if (constructorInfo == null) throw new NullReferenceException(String.Format("No suitable constructor found for {0}", ClassType.FullName));
             return (Entity)constructorInfo.Invoke(new object[]{context});
         }
@@ -1031,6 +1178,370 @@ namespace Terradue.Portal {
             context.Execute(String.Format("DELETE FROM {1} WHERE {2}={0};", StringUtils.EscapeSql(identifier), TopTable.Name, TopTable.IdentifierField));
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="item">The item for which the term is to be created.</param>
+        public string GetItemTerm(Entity item) {
+            return TopTable.HasIdentifierField && item.Identifier != null ? GetItemTerm(item.Identifier) : GetItemTerm(item.Id);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="id">The item's database ID.</param>
+        public string GetItemTerm(int id) {
+            return String.Format("{0} [{1}]", SingularCaption == null ? ClassType.Name : SingularCaption, id.ToString());
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns a string representing the item for exception messages or similar.</summary>
+        /// <param name="identifier">The item's unique identifier.</param>
+        public string GetItemTerm(string identifier) {
+            return String.Format("{0} \"{1}\"", SingularCaption == null ? ClassType.Name : SingularCaption, identifier);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        private void PrepareSql() {
+            //bool restrictedList = list && context.RestrictedMode;
+            //bool includePrivileges = !context.AdminMode && TopTable.HasPermissionManagement;
+            //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
+            bool distinct = false;
+
+            // Build join
+            int permissionSubjectTableIndex = -1;
+
+            string s = String.Format("{0} AS t", TopTable.Name);
+            restrictedJoinSql = s;
+            unrestrictedJoinSql = s;
+            adminJoinSql = s;
+
+
+            for (int i = 0; i < Tables.Count; i++) {
+                EntityTableAttribute table = Tables[i];
+                if (i != 0) {
+                    s = String.Format(" INNER JOIN {0} AS t{1} ON t{2}.{4}=t{1}.{3}", 
+                        table.Name,
+                        i,
+                        i == 1 ? String.Empty : (i - 1).ToString(),
+                        table.IdField,
+                        Tables[i - 1].IdField
+                    );
+                    restrictedJoinSql += s;
+                    unrestrictedJoinSql += s;
+                    adminJoinSql += s;
+                }
+
+                if (table == PermissionSubjectTable) {
+                    permissionSubjectTableIndex = i;
+                    s = String.Format("JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
+                        table.PermissionTable,
+                        i == 0 ? String.Empty : i.ToString(),
+                        table.Name
+                    );
+                    restrictedJoinSql += String.Format(" INNER {0}", s);
+                    unrestrictedJoinSql += String.Format(" LEFT {0}", s);
+                }
+                for (int j = 0; j < ForeignTables.Count; j++) {
+                    if (ForeignTables[j].ReferringTable != table) continue;
+                    s = String.Format(" {0} JOIN {1}", 
+                        ForeignTables[j].IsRequired ? "INNER" : "LEFT",
+                        ForeignTables[j].Join
+                    );
+                    distinct |= ForeignTables[j].IsMultiple;
+                    restrictedJoinSql += s;
+                    unrestrictedJoinSql += s;
+                    adminJoinSql += s;
+                }
+            }
+
+            s = String.Format("t.{0}", TopTable.IdField);
+            idSelectSql = s;
+            coreSelectSql = s;
+            adminSelectSql = s;
+
+            // Add generic identifying fields to SELECT clause
+            s = String.Empty;
+            if (TopTable.HasIdentifierField) s += String.Format(", t.{0}", TopTable.IdentifierField);
+            if (TopTable.HasNameField) s += String.Format(", t.{0}", TopTable.NameField);
+            if (TopTable.HasDomainReference) s += String.Format(", t.{0}", TopTable.DomainReferenceField);
+            if (TopTable.HasOwnerReference) s += String.Format(", t.{0}", TopTable.OwnerReferenceField);
+            coreSelectSql += s;
+            adminSelectSql += s;
+
+
+            if (HasPermissionManagement) {
+                contentSelectSql = String.Format(", MAX(CASE WHEN p.id_usr IS NULL THEN 0 ELSE 1 END) AS _usr_allow, MAX(CASE WHEN p.id_grp IS NULL THEN 0 ELSE 1 END) AS _grp_allow, MAX(CASE WHEN p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL THEN 1 ELSE 0 END) AS _global_allow", PermissionSubjectTable.Name);
+            } else {
+                contentSelectSql = String.Empty;
+            }
+
+            // Add entity-specific fields to SELECT clause 
+            foreach (FieldInfo field in Fields) {
+                if (field.TableIndex == permissionSubjectTableIndex && field.FieldType == EntityFieldType.PermissionField) {
+                    contentSelectSql += String.Format(", MAX(CASE WHEN p.id_{1} IS NULL THEN NULL ELSE p.{0} END) AS _{0}", field.FieldName, PermissionSubjectTable.Name);
+                } else if (field.FieldType == EntityFieldType.DataField) {
+                    if (field.FieldName == null) s = String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString())));
+                    else s = String.Format(", t{0}.{1}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.FieldName);
+                    contentSelectSql += s;
+                    adminSelectSql += s;
+                } else if (field.FieldType == EntityFieldType.ForeignField) {
+                    ForeignTableInfo foreignTable = null;
+                    for (int j = 0; j < ForeignTables.Count; j++) {
+                        foreignTable = ForeignTables[j];
+                        if (foreignTable.IsMultiple || foreignTable.ReferringTable != Tables[field.TableIndex] || foreignTable.SubIndex != field.TableSubIndex) {
+                            foreignTable = null;
+                            continue;
+                        }
+                        break;
+                    }
+                    if (foreignTable == null) s = ", NULL";
+                    else if (field.FieldName == null) s = String.Format(", {0}", field.Expression.Replace("$(TABLE).", String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex)));
+                    else s = String.Format(", t{0}r{1}.{2}", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex, field.FieldName);
+                    contentSelectSql += s;
+                    adminSelectSql += s;
+                }
+            }
+
+            isSqlPrepared = true;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string that can consist of several string values and takes also into account wildcard characters.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain wildcards such as <em>*</em> or <em>?</em>.</param>
+        public static string GetStringConditionSql(string name, string searchTerm) {
+            if (searchTerm == null) return null;
+
+            string result = String.Empty, exclude = String.Empty;
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = StringUtils.SplitSimply(searchTerm, ',');
+            bool interval = false, like;
+            string cl = null, cr = null, cn = null;
+            for (int i = 0; i < terms.Length; i++) {
+                like = false;
+
+                cn = terms[i];//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+                if (Regex.Match(cn, @"[\*\?]").Success) {
+                    int shift = 0, shift2 = 0;
+                    string cn2 = cn;
+                    MatchCollection matches = Regex.Matches(cn, @"(\\.|[\*\?_%])");
+                    int index;
+                    for (int j = 0; j < matches.Count; j++) {
+                        switch (matches[j].Value) {
+                            case "\\*" :
+                            case "\\?" :
+                                index = matches[j].Index + shift--;
+                                cn = String.Format("{0}{1}", cn.Substring(0, index), cn.Substring(index + 1));
+                                index = matches[j].Index + shift2--;
+                                cn2 = String.Format("{0}{1}", cn2.Substring(0, index), cn2.Substring(index + 1));
+                                break;
+                            case "*" :
+                            case "?" :
+                                like = true;
+                                index = matches[j].Index + shift; 
+                                cn = String.Format("{0}{1}{2}", cn.Substring(0, index), matches[j].Value == "*" ? "%" : "_", cn.Substring(index + 1));
+                                break;
+                            case "%" :
+                            case "_" :
+                                index = matches[j].Index + shift++; 
+                                cn = String.Format("{0}\\{1}", cn.Substring(0, index), cn.Substring(index));
+                                break;
+                            default:
+                                if (matches[j].Value == "\\\\") break;
+                                index = matches[j].Index + shift--; 
+                                cn = String.Format("{0}{1}", cn.Substring(0, index), cn.Substring(index + 1));
+                                break;
+                        }
+                    }
+                    if (!like) cn = cn2;
+                }
+
+                int tl = cn.Length;
+                cl = cn[0].ToString();
+                cr = cn[tl - 1].ToString();
+                if (tl > 1 && (cl == "[" || cl == "]" || cl == "(")) cn = cn.Substring(1, --tl); else cl = String.Empty;
+                if (tl > 1 && cn[tl - 2] != '\\' && (cr == "]" || cr == "[" || cr == ")")) cn = cn.Substring(0, --tl); else cr = String.Empty;
+
+                if (like && (cl == String.Empty || cr == String.Empty)) {
+                    cn = String.Format("{0}{1}{2}", cl, cn, cr);
+                    cl = String.Empty;
+                    cr = String.Empty;
+                }
+
+                if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
+
+                cn = String.Format("'{0}'", cn.Replace("'", "''"));
+
+                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
+                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, like ? " LIKE " : "=", cn);
+
+                interval = (!like && cl != String.Empty && cr == String.Empty);
+            }
+            if (result != String.Empty) result = String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string related to a numeric search.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
+        public static string GetNumericConditionSql(string name, string searchTerm) {
+            if (searchTerm == null) return null;
+
+            string result = String.Empty, exclude = String.Empty;
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = searchTerm.Split(',');
+            bool interval = false;
+            string cl = null, cr = null, cn = null;
+            for (int i = 0; i < terms.Length; i++) {
+                match = Regex.Match(terms[i], @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
+                if (!match.Success) {
+                    interval = false;
+                    continue;
+                }
+
+                cl = match.Groups[1].Value;
+                cr = match.Groups[5].Value;
+                cn = match.Groups[2].Value;
+                if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
+
+                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
+                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
+
+                interval = (cl != String.Empty && cr == String.Empty);
+            }
+            if (result != String.Empty) result = String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Returns the SQL conditional expression for a search string related to a temporal search.</summary>
+        /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
+        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="searchTerm">The search term. It can contain multiple numeric values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
+        public static string GetDateTimeConditionSql(string expression, string value) {
+            return GetDateTimeConditionSql(expression, value, TimeZoneInfo.Utc);
+        }
+
+        public static string GetDateTimeConditionSql(string name, string searchTerm, TimeZoneInfo timeZoneInfo) {
+            if (searchTerm == null) return null;
+
+            string result = String.Empty, exclude = String.Empty;
+
+            Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
+            if (match.Success) searchTerm = match.Groups[1].Value;
+
+            string[] terms = searchTerm.Split(',');
+            bool interval = false;
+            string cl = null, cr = null, cn = null, ln = null;
+            for (int i = 0; i < terms.Length; i++) {
+                match = Regex.Match(terms[i], @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
+                if (!match.Success) continue;
+
+                // Check for ISO 8601 interval slash syntax (1) or mathematcial interval syntax (2)
+                if (match.Groups[2].Value.IndexOf('/') != -1) { // (1)
+                    string[] parts = StringUtils.Split(match.Groups[2].Value, '/');
+                    if (parts.Length != 2) continue;
+
+                    DateTime dt;
+                    if (!DateTime.TryParse(parts[0], out dt)) continue;
+                    try {
+                        dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                    } catch (Exception) {}
+                    cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
+
+                    DateTime ldt = dt;
+                    ln = cn;
+
+                    if (!DateTime.TryParse(parts[1], out dt)) {
+                        try {
+                            dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                        } catch (Exception) {}
+
+                        match = Regex.Match(parts[1], @"^P((\d+)Y)?((\d+)M)?((\d+)D)?((\d+)H)?((\d+)S)?$");
+                        if (!match.Success) continue;
+
+                        int[] times = new int[6];
+                        for (int j = 0; j < 6; j++) Int32.TryParse(match.Groups[2 * j + 2].Value, out times[j]);
+
+                        dt = ldt.AddYears(times[0]);
+                        dt = dt.AddMonths(times[1]);
+                        dt = dt.AddDays(times[2]);
+                        dt = dt.AddHours(times[3]);
+                        dt = dt.AddMinutes(times[4]);
+                        dt = dt.AddSeconds(times[5]);
+                    }
+
+                    //if (dt.TimeOfDay.TotalSeconds == 0) dt = dt.Add(new TimeSpan(1, 0, 0, 0));
+                    cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
+                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+
+                    interval = false;
+
+                } else { // (2)
+                    cl = match.Groups[1].Value;
+                    cr = match.Groups[3].Value;
+                    cn = match.Groups[2].Value;
+
+                    DateTime dt;
+
+                    if (!DateTime.TryParse(cn, out dt)) {
+                        interval = false;
+                        continue;
+                    }
+                    try {
+                        dt = TimeZoneInfo.ConvertTimeToUtc(dt, timeZoneInfo);
+                    } catch (Exception) {}
+
+                    if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
+                    if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
+
+                    ln = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
+
+                    if ((cr == "<=" || cl != String.Empty && cr != String.Empty || cl == String.Empty && cr == String.Empty) && !Regex.Match(cn, "T.+").Success) {
+                        dt = dt.AddDays(1);
+                        if (cr == "<=") cr = "<";
+                    }
+                    cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
+
+                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
+                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
+                    else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
+                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
+                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+
+                    interval = (cl != String.Empty && cr == String.Empty);
+                }
+            }
+            if (result != String.Empty) String.Format("({0})", result);
+            if (exclude != String.Empty) result += String.Format("{0}{1}", result == String.Empty ? String.Empty : " AND ", exclude);
+            if (result == String.Empty) result = null;
+            return result;
+        }
     }
 
 
@@ -1046,7 +1557,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public override EntityTableAttribute TopStoreTable {
-            get { return Tables[Tables.Count - 1]; }
+            get { return Tables[TopStoreTableIndex]; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1247,21 +1758,24 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the name of the table containing the privileges on the entity items for users and groups.</summary>
-        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
+        /// <summary>Gets or sets the name of the table containing the permissions on the entity items for users and groups.</summary>
+        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_perm</c> (previously it was <c>_priv</c>, but this was changed to make the distinction between privileges and permissions clearer).</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public string PermissionTable { get; set; }
+
+        [Obsolete("Use PermissionTable (changed for terminology consistency)")]
         public string PrivilegeTable { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates whether the .</summary>
-        public bool HasPrivilegeManagement {
-            get { return PrivilegeTable != null; }
+        public bool HasPermissionManagement {
+            get { return PermissionTable != null; }
             set { 
                 if (value) {
-                    if (PrivilegeTable == null) PrivilegeTable = Name + "_priv";
+                    if (PermissionTable == null) PermissionTable = Name + "_perm";
                 } else {
-                    PrivilegeTable = null;
+                    PermissionTable = null;
                 }
             }
         }
@@ -1389,7 +1903,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected FieldInfo(PropertyInfo @property, int tableIndex, string fieldName) {
+        public FieldInfo(PropertyInfo @property, int tableIndex, string fieldName) {
             this.Property = @property;
             this.TableIndex = tableIndex;
             this.FieldName = fieldName;
@@ -1397,8 +1911,8 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public FieldInfo(PropertyInfo @property, int tableIndex, EntityPrivilegeFieldAttribute attribute) : this(@property, tableIndex, attribute.Name) {
-            this.FieldType = EntityFieldType.PrivilegeField;
+        public FieldInfo(PropertyInfo @property, int tableIndex, EntityPermissionFieldAttribute attribute) : this(@property, tableIndex, attribute.Name) {
+            this.FieldType = EntityFieldType.PermissionField;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1477,14 +1991,48 @@ namespace Terradue.Portal {
     
     
     public enum EntityFieldType {
-        PrivilegeField,
+        PermissionField,
         DataField,
         ForeignField,
         EntityField,
         //ComplexField,
         RelationshipField
     }
-    
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Levels of access to entity items used for restricting item selections.</summary>
+    /// <remarks>
+    ///     <para>The meaning of these values depend on the situation: if used before loading an entity item, the value applies the corresponding filtering rules. After the item has been loaded, the property Entity.AccessLevel contains the maximum access level applicable for the loading user (Entity.UserId), which can be the same as the one used for the selection or lower.</para>
+    ///     <para><c>None</c> if used before selecting entity items, the value of the current IfyContext.AccessLevel applies. After the item has been loaded, the value <c>None</c> means that the access is denied.</para>
+    ///     <para><c>Privilege</c> and <c>Permission</c> limit the access to items, but follow different principles. Based on the application's authorisation policies and the way the authorisation framework is used, access checks using these modes yield different results. <c>Privilege</c> is considered a higher level because a single grant of a role with a privilege can apply to a large number of entity items.</para>
+    ///     <para><c>Privilege</c> is based on roles granted to a user group or a single user directly either for a specific domain or globally. It is suitable for applications that make use of roles and privileges where users are considered small administrators with a limited scope.</para>
+    ///     <para><c>Permission</c>, on the other hand, is based on direct assignments of items to user groups or users without considering roles, privileges and domains. This is suitable when there is less need for a complex privilege management.</para>
+    ///     <para>The <c>Administrator</c> level does not limit the access to items in any way.</para>
+    /// </remarks>
+    public enum EntityAccessLevel {
+
+        /// <summary>Use the context's access mode; otherwise indicator for denied access.</summary>
+        None,
+
+        /// <summary>Allow access only for items for which the user has specific permissions.</summary>
+        Permission,
+
+        /// <summary>Allow access only for items for which the user has been granted search or view privileges and enforce other privilege-based as well.</summary>
+        Privilege,
+
+        /// <summary>Apply no restrictions at all and ignore permission or grant information for items.</summary>
+        Administrator
+
+    }
+
+
 
 }
 

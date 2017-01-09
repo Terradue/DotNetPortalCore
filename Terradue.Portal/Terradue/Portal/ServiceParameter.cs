@@ -481,7 +481,6 @@ namespace Terradue.Portal {
             bool[] valid = new bool[Values.Length];
             
             if (Reference) {//(ValueSet != null || SpecificValueSet != null) {
-                int countSingle = 0;
                 if (Multiple) {
                     string separatorStr = Separator.ToString();
                     bool[] validSingle;
@@ -553,7 +552,6 @@ namespace Terradue.Portal {
                 for (int i = 0; i < Values.Length; i++) valid[i] = true;
 
             } else if (Values.Length != 0) {
-                string errorMessage;
                 switch (Type) {
                     case "bool" :
                         Values[0] = Values[0].ToLower();
@@ -896,7 +894,7 @@ namespace Terradue.Portal {
             
             if (CollectionParameter == null || CollectionParameter.Series == null || ProductParameter == null) throw new InvalidOperationException("Incomplete input parameter configuration");
             
-            CatalogueResult result;
+            //CatalogueResult result;
             
             // If no files have been provided in the request, perform catalogue query
             if (ProductParameter.Values.Length == 0) {
@@ -1190,7 +1188,7 @@ namespace Terradue.Portal {
             //result.IncludePublic = true;
             result.UserId = outputSet.ParameterSet.Service.UserId;
             //result.AcceptCaptionsAsValues = true;
-            ValueSet = result;
+            //ValueSet = result;
             Type = "select";
             UpdateType();
         }
@@ -1251,7 +1249,7 @@ namespace Terradue.Portal {
             //result.ServiceId = parameterSet.Service.Id;
             result.UserId = parameterSet.Service.UserId;
             //result.AcceptCaptionsAsValues = true;
-            ValueSet = result;
+            //ValueSet = result;
             Type = "select";
             UpdateType();
         }

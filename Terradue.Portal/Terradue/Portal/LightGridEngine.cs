@@ -42,7 +42,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created LightGridEngine object</returns>
         */
-        public static new LightGridEngine GetInstance(IfyContext context) {
+        public static LightGridEngine GetInstance(IfyContext context) {
             return new LightGridEngine(context);
         }
         

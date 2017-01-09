@@ -70,7 +70,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created LookupList object</returns>
         */
-        public static new LookupList GetInstance(IfyContext context) {
+        public static LookupList GetInstance(IfyContext context) {
             return new LookupList(context);
         }
         
@@ -118,12 +118,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition { 
-            get { return String.Format("t.name={0}", StringUtils.EscapeSql(Name)); }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         public override void Store() {
             string sql;
             if (Id == 0) {
@@ -169,6 +163,13 @@ namespace Terradue.Portal {
                 context.Execute(sql);
             }
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override string GetIdentifyingConditionSql() { 
+            return String.Format("t.name={0}", StringUtils.EscapeSql(Name));
+        }
+
     }
 }
 

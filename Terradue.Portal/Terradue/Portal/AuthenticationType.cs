@@ -368,8 +368,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public static void ExecutePasswordExpirationCheck(IfyContext context) {
-            IfyWebContext webContext = new IfyWebContext(null);
-
             if (context.DebugLevel >= 3) context.WriteDebug(3, "PasswordExpireTime seconds: " + passwordExpireTime);
 
             if (passwordExpireTime <= 0) return;
@@ -432,7 +430,7 @@ namespace Terradue.Portal {
             int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
             if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
 
-            User user = User.FromId(context, userId);
+            User user = User.ForceFromId(context, userId);
             if (user.AccountStatus == AccountStatusType.Enabled) throw new InvalidOperationException("Account already enabled");
 
             if (user.AccountStatus == AccountStatusType.PendingActivation || user.AccountStatus == AccountStatusType.PasswordReset || user.FailedLogins != 0) {
@@ -484,14 +482,14 @@ namespace Terradue.Portal {
 
             int userId = context.GetQueryIntegerValue(String.Format("SELECT id FROM usr AS t WHERE t.cert_subject={0};", StringUtils.EscapeSql(request.ClientCertificate.Subject)));
             if (userId == 0) {
-                if (false /*CreateUserIfDoesNotExistFromSpeficConfiguration*/) {
+                /*if (false CreateUserIfDoesNotExistFromSpeficConfiguration) {
                     User user = User.GetInstance(context);
-                } else if (strict) {
+                } else */if (strict) {
                     throw new UnauthorizedAccessException("User not found");
                 }
                 return null;
             } else {
-                return User.FromId(context, userId);
+                return User.ForceFromId(context, userId);
             }
         }
 

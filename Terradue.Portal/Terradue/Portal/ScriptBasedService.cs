@@ -45,12 +45,12 @@ namespace Terradue.Portal {
     [EntityTable("scriptservice", EntityTableConfiguration.Custom)]
     public class ScriptBasedService : Service {
 
-        private double minPriority = 0, maxPriority = 0;
+        //private double minPriority = 0, maxPriority = 0;
         private bool serviceChecked, validService;
 
         private string fileRootDir;
         private string relativeUrl;
-        private int defaultComputingResourceId, defaultSeriesId;
+        //private int defaultComputingResourceId, defaultSeriesId;
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -175,15 +175,12 @@ namespace Terradue.Portal {
         public XmlDocument GetDefinitionDocument() {
 
             GetRootDirectories();
-            string message;
+            string file = String.Format("{0}/service.xml", fileRootDir);
             try {
-                return context.LoadXmlFile(fileRootDir + "/service.xml");
+                return context.LoadXmlFile(file);
             } catch (Exception e) {
-                message = String.Format("Service definition document could not be loaded: {0}", e.Message);
+                throw new FileLoadException(String.Format("Service definition document could not be loaded: {0}", e.Message), file, e);
             }
-            context.ReturnError(message);
-
-            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -193,8 +190,8 @@ namespace Terradue.Portal {
         public override bool Check(int userId) {
             if (serviceChecked) return validService;
             
-            minPriority = 0;
-            maxPriority = 1;
+            //minPriority = 0;
+            //maxPriority = 1;
 
             UserId = userId;
             validService = true;
@@ -203,9 +200,9 @@ namespace Terradue.Portal {
                 if (UserId == context.UserId) {
                     validService = (context.UserLevel >= UserLevel.Administrator);
                     if (validService) context.AddWarning("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
-                    else context.ReturnError("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    else throw new EntityUnauthorizedException("You are not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 } else {
-                    context.ReturnError("The owner is not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    throw new EntityUnauthorizedException("The owner is not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 }
             }
 
@@ -258,18 +255,18 @@ namespace Terradue.Portal {
                     string elemName = (elem.HasAttribute("name") ? elem.Attributes["name"].Value : null);
                     string elemSource = (elem.HasAttribute("source") ? elem.Attributes["source"].Value : null);
                     bool configurable = (elem.HasAttribute("configurable") && elem.Attributes["configurable"].Value == "true");
-                    string elemValue = (elem.HasAttribute("value") ? elem.Attributes["value"].Value : null);
+                    //string elemValue = (elem.HasAttribute("value") ? elem.Attributes["value"].Value : null);
     
                     IDbConnection dbConnection = context.GetDbConnection();
                     IDataReader reader;
                     switch (elemSource) {
                         case "Task.MaxPriority" :
-                            if (!Double.TryParse(elemValue, out maxPriority)) maxPriority = 1;
+                            /*if (!Double.TryParse(elemValue, out maxPriority)) maxPriority = 1;
                             if (configurable) {
                                 reader = context.GetQueryResult(GetConfigQuery(elemSource), dbConnection);
                                 maxPriority = GetConfigDoubleValue(reader, true, maxPriority); // !!! MaxPriority
                                 reader.Close();
-                            }
+                            }*/
                             break;
                         default :
                             if (!configurable || Constants == null || elemSource == null) break;
@@ -321,7 +318,7 @@ namespace Terradue.Portal {
         /// <param name="name">the name of the service parameter</param>
         /// <returns>the <c>&lt;param&gt;</c> element in the service definition file defining the service parameter.</returns>
         public XmlElement GetParameterElement(string name) { // !!! context.UserId or this.userId ???, this is called for the configurable parameters with no user id set
-            if (!CanView && context.UserLevel < UserLevel.Administrator) context.ReturnError(new UnauthorizedAccessException("You are not authorized to use this service"), "notAllowedService"); // !!! use exception and set class also for other entities
+            if (!CanView && context.UserLevel < UserLevel.Administrator) throw new EntityUnauthorizedException("You are not authorized to use this service", EntityType, this, UserId);
             
             XmlDocument definitionDoc = GetDefinitionDocument();
             
@@ -331,7 +328,7 @@ namespace Terradue.Portal {
                 paramElem = definitionDoc.SelectSingleNode("//definition/const[@name='" + name + "' or @source='" + name + "']") as XmlElement;
             }
             
-            if (paramElem == null) context.ReturnError(new ArgumentException("Unknown service parameter"), null);
+            if (paramElem == null) throw new ArgumentException("Unknown service parameter");
             
             return paramElem;
         }
@@ -340,9 +337,9 @@ namespace Terradue.Portal {
 
         /// <summary>Returns a collection of configurable parameters and constants.</summary>
         public override void GetConfigurableParameters(RequestParameterCollection parameters) {
-            XmlDocument definitionDocument = GetDefinitionDocument();
+/*            XmlDocument definitionDocument = GetDefinitionDocument();
             
-/*            XmlElement elem;
+            XmlElement elem;
 
             foreach (XmlNode xmlNode in DefinitionDocument.DocumentElement.ChildNodes) {
                 if ((elem = xmlNode as XmlElement) == null) continue;
@@ -572,7 +569,7 @@ namespace Terradue.Portal {
                 }
                 //throw new Exception(test);
                 
-                if (nodes.Count == 0 || context.IsInteractive) context.ReturnError(errorMessage);
+                if (nodes.Count == 0 || context.IsInteractive) throw new Exception(errorMessage);
                 else return;
             }
             

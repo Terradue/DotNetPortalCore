@@ -12,7 +12,7 @@ namespace Terradue.Portal.Test {
         public Safe safe {get; set;}
 
         public void InitSafe(){
-            User admin = User.FromId(context, context.UserId);
+            User admin = User.ForceFromId(context, context.UserId);
             safe = new Safe(context);
             safe.OwnerId = admin.Id;
             try{

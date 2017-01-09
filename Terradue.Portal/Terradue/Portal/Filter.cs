@@ -46,7 +46,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityType EntityType { 
+        public new EntityType EntityType { 
             get { 
                 return entityType;
             } 
@@ -94,7 +94,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Filter object</returns>
         */
-        public static new Filter GetInstance(IfyContext context) {
+        public static Filter GetInstance(IfyContext context) {
             return new Filter(context);
         }
         

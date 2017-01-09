@@ -53,7 +53,7 @@ namespace Terradue.Portal {
     /// </remarks>
     /// \ingroup ComputingResource
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("cr", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityExtensionTable("crstate", STATE_TABLE, IdField = "id_cr")]
     public abstract class ComputingResource : Entity {
 
@@ -203,7 +203,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created GenericComputingResource object</returns>
         /// <remarks>Since ComputingResource is abstract, an instance of GenericComputingResource is returned. This subclass provides only the functionality inherited from the superclasses of ComputingResource (e.g. Entity) but no functionality of a real computing resource.</remarks>
-        public static new ComputingResource GetInstance(IfyContext context) {
+        public static ComputingResource GetInstance(IfyContext context) {
             return new GenericComputingResource(context);
         }
         
@@ -337,7 +337,7 @@ namespace Terradue.Portal {
         public virtual bool CanStartTask(Task task) {
             if (!UserCreditControl) return true;
             
-            int totalUserCredits = context.GetQueryIntegerValue(String.Format("SELECT credits FROM cr_priv WHERE id_usr={0};", task.UserId));
+            int totalUserCredits = context.GetQueryIntegerValue(String.Format("SELECT credits FROM cr_perm WHERE id_usr={0};", task.UserId));
             double consumedUserCredits = context.GetQueryDoubleValue(String.Format("SELECT SUM(resources * priority) FROM task AS t WHERE t.id_cr={0} AND t.id_usr={1} AND t.id_cr={1} AND t.status=20;", Id, task.UserId));
             
             if (task.Cost > totalUserCredits - consumedUserCredits) {

@@ -22,7 +22,7 @@ namespace Terradue.Portal {
     /// Remote resource set.
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPrivilegeManagement = true)]
+    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPermissionManagement = true)]
     public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;
@@ -241,7 +241,7 @@ namespace Terradue.Portal {
                         AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
                         return osr.TotalResults;
 
-                    } catch (Exception e) {
+                    } catch (Exception) {
                         // no error managment, set the number of product to 0
                         return 0;
                     }
@@ -307,6 +307,7 @@ namespace Terradue.Portal {
     public class RemoteResourceEntityCollection : EntityList<RemoteResource> {
 
         protected override void IncludeInternal(RemoteResource item) {
+            //base.IncludeInternal(item);
             if (!IsLoading && item.Location == null) throw new InvalidOperationException("The location of a remote resource cannot be null");
             RemoteResource newItem = null;
             if (!IsLoading && !AllowDuplicates) {

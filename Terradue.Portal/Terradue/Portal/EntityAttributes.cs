@@ -166,22 +166,33 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the name of the table containing the privileges on the entity items for users and groups.</summary>
-        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_priv</c>.</remarks>
+        /// <summary>Gets or sets the name of the table containing the permissions on the entity items for users and groups.</summary>
+        /// <remarks>By default, it is assumed that the table's name is the main table's name appended by <c>_perm</c> (previously it was <c>_priv</c>, but this was changed to make the distinction between privileges and permissions clearer).</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public string PrivilegeTable { get; set; }
+        public string PermissionTable { get; set; }
         
+        [Obsolete("Use PermissionTable (changed for terminology consistency)")]
+        public string PrivilegeTable { get; set; }
+
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the .</summary>
-        public bool HasPrivilegeManagement {
-            get { return PrivilegeTable != null; }
+        /// <summary>Indicates or decides whether it is possible assign direct permissions on items of this entity type to users and groups.</summary>
+        public bool HasPermissionManagement {
+            get { return PermissionTable != null; }
             set { 
                 if (value) {
-                    if (PrivilegeTable == null) PrivilegeTable = Name + "_priv";
+                    if (PermissionTable == null) PermissionTable = Name + "_perm";
                 } else {
-                    PrivilegeTable = null;
+                    PermissionTable = null;
                 }
+            }
+        }
+
+        [Obsolete("Use HasPermissionManagement (changed for terminology consistency)")]
+        public bool HasPrivilegeManagement {
+            get { return HasPermissionManagement; }
+            set { 
+                HasPermissionManagement = value;
             }
         }
 
@@ -313,6 +324,7 @@ namespace Terradue.Portal {
     /// <summary>Attribute that allows to link a referenced table to the entity's main table or a subtable.</summary>
     /// <remarks>This attribute is used in combination with the EntityForeignFieldAttribute attributes at property level.</remarks>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+    [Obsolete("No longer supported")]
     public class EntityExtensionTableAttribute : EntityForeignTableAttribute {
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -343,6 +355,7 @@ namespace Terradue.Portal {
     /// \ingroup Persistence
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [AttributeUsage(AttributeTargets.Property, Inherited = false)]
+    [Obsolete("No longer supported")]
     public class EntityRelationshipAttribute : System.Attribute {
 
         public string Name { get; set; }
@@ -502,7 +515,7 @@ namespace Terradue.Portal {
     
 
     [AttributeUsage(AttributeTargets.Property)]
-    public class EntityPrivilegeFieldAttribute : System.Attribute {
+    public class EntityPermissionFieldAttribute : System.Attribute {
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -516,10 +529,21 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityPrivilegeFieldAttribute(string name) {
+        public EntityPermissionFieldAttribute(string name) {
             this.Name = name;
         }
         
+    }
+
+
+
+    [Obsolete("Use EntityPermissionFieldAttribute (changed for terminology consistency)")]
+    public class EntityPrivilegeFieldAttribute : EntityPermissionFieldAttribute {
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public EntityPrivilegeFieldAttribute(string name) : base(name) {}
+
     }
 
 

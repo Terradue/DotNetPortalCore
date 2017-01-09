@@ -43,7 +43,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Configuration object</returns>
         */
-        public static new Configuration GetInstance(IfyContext context) {
+        public static Configuration GetInstance(IfyContext context) {
             return new Configuration(context);
         }
 

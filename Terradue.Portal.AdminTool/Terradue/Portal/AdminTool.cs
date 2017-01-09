@@ -24,20 +24,26 @@ namespace Terradue.Portal {
     public class AdminTool {
         
         private static string toolVersion;
+
+        public const int DB_MYSQL = 1;
+        public const int DB_POSTGRES = 2;
+
         private const int DB_INSERT = 1;
         private const int DB_UPDATE = 2;
         
-        protected static bool create;
-        private static bool auto;
-        private static bool verbose;
-        private static bool newLine = true;
-        protected static string siteRootDir, siteBaseDir, installationBaseDir;
-        private static string dbHostname = "localhost";
-        private static int dbPort;
-        private static string dbUsername;
-        private static string dbPassword;
-        protected static string dbMainSchema;
-        protected static string dbNewsSchema;
+        protected string dbMainSchema;
+        protected string dbNewsSchema;
+
+        private int type = 1;
+        private string mainConnectionString, currentConnectionString;
+        private IDbConnection mainDbConn, currentDbConn;
+        private List<DbConnData> dbConns = new List<DbConnData>();
+        private IDbCommand dbCommand;
+        private int totalRowCount = -1;
+        private bool newLine = true;
+        private string toDoList;
+        private int toDoCount;
+        private string toDoSpace = "    ";
 
         protected bool schemaExists;
         protected string currentSchema;
@@ -48,11 +54,67 @@ namespace Terradue.Portal {
         private List<ServiceItem> services;
         private int itemId;
 
-        private string toDoList;
-        private int toDoCount;
-        private string toDoSpace = "    ";
+        //---------------------------------------------------------------------------------------------------------------------
 
-        private IDataReader dbReader;
+        public bool Interactive { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public DataDefinitionMode DefinitionMode { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the base directory of the Terradue.Portal installation.</summary>
+        /// <remarks>This directory is something like <em>/usr/local/terradue/portal</em>. The directory must contain the folder <em>core/db</em> and the database scripts.</remarks>
+        public string InstallationBaseDirectory { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the internal short name of the application for which this tool is to run.</summary>
+        public string SiteName { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the directory containing specific files of the web application for which this tool is to run.</summary>
+        /// <remarks>This directory is a directory named after the SiteName under the directory <em>sites</em> under the InstallationBaseDirectory. It contains, among others, application-specific database items (directory <em>db</em>) and the web application code (directory <em>root</em> or <em>www</em>).</remarks>
+        public string SiteBaseDirectory { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the server name of the database host.</summary>
+        public string DbHost { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the port on which the database server is listening.</summary>
+        public int DbPort { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the username for the connection to the database server.</summary>
+        public string DbUsername { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the password for the connection to the database server.</summary>
+        public string DbPassword { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the database schema or database containing the core items.</summary>
+        public string DbMainSchema {
+            get { return dbMainSchema; }
+            set { dbMainSchema = value; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the name of the database schema or database containing the items that regard shareable content such as news articles.</summary>
+        /// <remarks>If there is no news schema, the tables etc. foreseen for it are created in the main schema (<see cref="DbMainSchema"/>).</remarks>
+        public string DbNewsSchema {
+            get { return dbNewsSchema == null ? dbMainSchema : dbNewsSchema; }
+            set { dbNewsSchema = value; }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -99,7 +161,7 @@ namespace Terradue.Portal {
 
         public string CurrentSchema {
             get { return currentSchema; } 
-            set { currentSchema = GetSchemaName(value); }
+            set { currentSchema = value; }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -115,8 +177,83 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public AdminTool() {
-            AfterFailureCheckpoint = true;
+        public string DbResult { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public char NameQuote { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool ProtectedStatement { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public int TotalRowCount {
+            get { return totalRowCount; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new instance of <see cref="Terradue.Portal.AdminTool"/> based on the specified connection string and other parameters necessary for running the tool.</summary>
+        protected AdminTool() {}
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new instance of <see cref="Terradue.Portal.AdminTool"/> based on the specified connection string and other parameters necessary for running the tool.</summary>
+        /// <param name="definitionMode">The database definition mode (create, upgrade or automatic).</param>
+        /// <param name="installationBaseDirectory">The Terradue.Portal installation base directory, e.g. "/usr/local/terradue/portal".</param>
+        /// <param name="siteName">The internal short name of the application (only required if there are application-specific database items).</param>
+        /// <param name="connectionString">The ADO.NET connection string for the database connection.</param>
+        public AdminTool(DataDefinitionMode definitionMode, string installationBaseDirectory, string siteName, string connectionString) {
+            this.DefinitionMode = definitionMode;
+            this.InstallationBaseDirectory = installationBaseDirectory;
+            this.SiteName = siteName;
+            MatchCollection matches = Regex.Matches(connectionString, "([A-Za-z ]+) *= *([^;]+)");
+            foreach (Match match in matches) {
+                string value = match.Groups[2].Value;
+                switch (match.Groups[1].Value.Trim().ToLower()) {
+                    case "server":
+                        this.DbHost = value;
+                        break;
+                    case "port":
+                        int dbPort;
+                        Int32.TryParse(value, out dbPort);
+                        this.DbPort = dbPort;
+                        break;
+                    case "user id":
+                        this.DbUsername = value;
+                        break;
+                    case "password":
+                        this.DbPassword = value;
+                        break;
+                    case "database":
+                        this.DbMainSchema = value;
+                        break;
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new instance of <see cref="Terradue.Portal.AdminTool"/> based on the specified parameters necessary for running the tool.</summary>
+        /// <param name="definitionMode">The database definition mode (create, upgrade or automatic).</param>
+        /// <param name="installationBaseDirectory">The Terradue.Portal installation base directory, e.g. "/usr/local/terradue/portal".</param>
+        /// <param name="siteName">The internal short name of the application (only required if there are application-specific database items).</param>
+        /// <param name="dbHost">The server name of the database host.</param>
+        /// <param name="dbPort">The port on which the database server is listening.</param>
+        /// <param name="dbUsername">The username for the connection to the database server.</param>
+        /// <param name="dbPassword">The password for the connection to the database server.</param>
+        /// <param name="dbMainSchema">The name of the database schema or database containing (or to contain) core items.</param>
+        public AdminTool(DataDefinitionMode definitionMode, string installationBaseDirectory, string siteName, string dbHost, int dbPort, string dbUsername, string dbPassword, string dbMainSchema, string dbNewsSchema) {
+            this.DefinitionMode = definitionMode;
+            this.InstallationBaseDirectory = installationBaseDirectory;
+            this.SiteName = siteName;
+            this.DbHost = dbHost;
+            this.DbPort = dbPort;
+            this.DbUsername = dbUsername;
+            this.DbPassword = dbPassword;
+            this.DbMainSchema = dbMainSchema;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -128,23 +265,23 @@ namespace Terradue.Portal {
             Console.WriteLine("portal-admin-tool (v{0}) - Tool for portal database maintenance - (c) Terradue S.r.l.", toolVersion);
             Console.WriteLine();
     
-            if (!GetArgs(args)) {
+            AdminTool tool = new AdminTool();
+            tool.Interactive = true;
+            if (!tool.GetArgs(args)) {
                 PrintUsage();
                 Environment.ExitCode = 1;
                 return;
             }
             
-            AdminTool tool = null;
             try {
-                tool = new AdminTool();
                 tool.Process();
             } catch (Exception e) {
-                if (!newLine) Console.Error.WriteLine("ERROR");
-                WriteErrorSeparator();
+                if (!tool.NewLine) Console.Error.WriteLine("ERROR");
+                tool.WriteErrorSeparator();
                 Console.Error.WriteLine("ERROR: " + e.Message + " " + e.StackTrace);
                 if (tool != null) tool.CloseConnection();
                 //Console.Error.WriteLine(String.Format("The database schema version is {0}{1}", tool.SchemaVersion, tool.Checkpoint == null ? String.Empty : " (checkpoint " + tool.Checkpoint + ")"));
-                WriteErrorSeparator();
+                tool.WriteErrorSeparator();
                 Environment.ExitCode = 1;
                 return;
             }
@@ -153,15 +290,119 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool GetArgs(string[] args) {
+            if (args.Length == 0) return false;
+            switch (args[0]) {
+                case "create": 
+                    DefinitionMode = DataDefinitionMode.Create;
+                    break;
+                case "upgrade" :
+                    DefinitionMode = DataDefinitionMode.Upgrade;
+                    break;
+                case "auto" :
+                    DefinitionMode = DataDefinitionMode.Automatic;
+                    break;
+                default :
+                    return false;
+            }
+
+            int argpos = 1;
+            while (argpos <= args.Length - 1) {
+                switch (args[argpos]) {
+                    case "-v" :
+                        Verbose = true;
+                        break;
+                    case "-b":
+                        if (argpos == args.Length - 1) return false;
+                        InstallationBaseDirectory = args[++argpos];
+                        break;
+                    case "-s":
+                        if (argpos == args.Length - 1) return false;
+                        SiteName = args[++argpos];
+                        break;
+                    case "-r" :
+                        if (argpos == args.Length - 1) return false;
+                        SiteBaseDirectory = args[++argpos];
+                        break;
+                    case "-H" : 
+                        if (argpos == args.Length - 1) return false;
+                        DbHost = args[++argpos];
+                        break;
+                    case "-P" : 
+                        if (argpos == args.Length - 1) return false;
+                        int dbPort;
+                        Int32.TryParse(args[++argpos], out dbPort);
+                        DbPort = dbPort;
+                        break;
+                    case "-u" :
+                        if (argpos == args.Length - 1) return false;
+                        DbUsername = args[++argpos];
+                        break;
+                    case "-p" : 
+                        if (argpos == args.Length - 1) return false;
+                        DbPassword = args[++argpos];
+                        break;
+                    case "-S" : 
+                        if (argpos == args.Length - 1) return false;
+                        DbMainSchema = args[++argpos];
+                        break;
+                    case "-Sn" : 
+                        if (argpos == args.Length - 1) return false;
+                        DbNewsSchema = args[++argpos];
+                        break;
+                    default: 
+                        return false;
+                }
+                argpos++;
+            }
+
+            if (InstallationBaseDirectory == null && SiteBaseDirectory == null) Console.Error.WriteLine("ERROR: Missing argument for -b or -r");
+            //else if (!File.Exists(SiteRootDirectory + Path.DirectorySeparatorChar + "web.config") && dbMainSchema == null) Console.Error.WriteLine("ERROR: No web.config found in root directory, specify database schema name g using -S");
+            //else if (dbMainSchema == null) Console.Error.WriteLine("ERROR: Specify database schema name using -S");
+            else return true;
+
+            return false;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static void PrintUsage() {
+            Console.Error.WriteLine(String.Format("Usage:        {0} <mode> <arguments>", Path.GetFileName(Environment.GetCommandLineArgs()[0])));
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Modes:");
+            Console.Error.WriteLine("    create  : (re-)creates the portal database schemas");
+            Console.Error.WriteLine("    upgrade : upgrades the portal database schemas to the latest version");
+            Console.Error.WriteLine("    auto    : either creates or upgrades the database schemas (if exist)");
+            Console.Error.WriteLine("    create    [-v] (-b [-s] | -r) [-H] [-P] [-u] [-p] -S [-Sn]");
+            Console.Error.WriteLine("    upgrade   [-v] (-b [-s] | -r) [-H] [-P] [-u] [-p] -S [-Sn]");
+            Console.Error.WriteLine("    auto      [-v] (-b [-s] | -r) [-H] [-P] [-u] [-p] -S [-Sn]");
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Arguments:");
+            Console.Error.WriteLine("    -v             : verbose mode, displays all queries");
+            Console.Error.WriteLine("    -b <dir>       : local path to installation base directory");
+            Console.Error.WriteLine("    -s <name>      : name of installed site");
+            Console.Error.WriteLine("    -r <dir>       : local path to site root directory");
+            Console.Error.WriteLine("    -H <hostname>  : name of database server host (default: localhost)");
+            Console.Error.WriteLine("    -P <port>      : port of database server (optional)");
+            Console.Error.WriteLine("    -u <name>      : database username (optional); in create mode, database root privileges are required");
+            Console.Error.WriteLine("    -p <password>  : database password (optional)");
+            Console.Error.WriteLine("    -S <name>      : name of main portal schema");
+            Console.Error.WriteLine("    -Sn <name>     : name of news schema (optional)");
+            Console.Error.WriteLine();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public void Process() {
-            currentSchema = dbMainSchema;
-            Verbose = verbose;
+            AfterFailureCheckpoint = true;
+
+            currentSchema = DbMainSchema;
 
             GetDirectories();
             string connectionString = GetConnectionString();
             if (connectionString == null) return;
 
-            Console.WriteLine("Connecting to: " + Regex.Replace(connectionString, "(Password)=[^;]+", "$1=********", RegexOptions.IgnoreCase));
+            if (Interactive) Console.WriteLine("Connecting to: " + Regex.Replace(connectionString, "(Password)=[^;]+", "$1=********", RegexOptions.IgnoreCase));
     
             try {
                 OpenConnection(connectionString);
@@ -169,25 +410,26 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 if (!e.Message.Contains("Unknown database")) throw;
             }
-            
+
             if (schemaExists) {
-                if (create) {
-                    Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", dbMainSchema);
-                    create = GetYes("Answer yes to delete and recreate: ");
-                    if (!create) {
+                if (DefinitionMode == DataDefinitionMode.Create) {
+                    if (Interactive) Console.Write("WARNING: Main portal schema \"{0}\" already exists. Recreating it will delete contained data. Recreate? ", DbMainSchema);
+                    if (!GetYes("Answer yes to delete and recreate: ")) {
                         CloseConnection();
-                        Console.WriteLine("Aborted (no change)");
+                        if (Interactive) Console.WriteLine("Aborted (no change)");
                         return;
                     }
+                } else if (DefinitionMode == DataDefinitionMode.Automatic) {
+                    DefinitionMode = DataDefinitionMode.Upgrade;
                 }
-            } else if (auto) {
-                create = true;
-            } else if (!create) {
-                Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", dbMainSchema);
+            } else if (DefinitionMode == DataDefinitionMode.Automatic) {
+                DefinitionMode = DataDefinitionMode.Create;
+            } else if (DefinitionMode != DataDefinitionMode.Create) {
+                if (Interactive) Console.Error.WriteLine("Upgrade not possible, schema \"{0}\" does not exist", DbMainSchema);
                 return;
             }
-            
-            if (create) CreateSchemas();
+
+            if (DefinitionMode == DataDefinitionMode.Create) CreateSchemas();
             CheckState();
 
             ProcessScripts();
@@ -197,6 +439,7 @@ namespace Terradue.Portal {
                 List<ServiceItem> oldServices = new List<ServiceItem>(services);
                 Site oldSite = site;
                 ClearCheckpoint();
+
                 ProcessScripts();
 
                 core.RestoreFrom(oldCore);
@@ -216,20 +459,22 @@ namespace Terradue.Portal {
                         }
                     }
                 }
-                site.RestoreFrom(oldSite);
+                if (site != null) site.RestoreFrom(oldSite);
             }
 
             WriteSeparator();
     
-            if (create || schemaExists) {
-                Console.WriteLine("SUMMARY");
-                WriteSeparator();
-                core.WriteChange();
-                foreach (Module module in modules) module.WriteChange();
-                foreach (ServiceItem service in services) service.WriteChange();
-                if (site != null) site.WriteChange();
-                WriteSeparator();
-                Console.WriteLine("Portal database {0} successfully.", create ? "installed" : "upgraded");
+            if (DefinitionMode == DataDefinitionMode.Create || schemaExists) {
+                if (Interactive) {
+                    Console.WriteLine("SUMMARY");
+                    WriteSeparator();
+                    core.WriteChange();
+                    foreach (Module module in modules) module.WriteChange();
+                    foreach (ServiceItem service in services) service.WriteChange();
+                    if (site != null) site.WriteChange();
+                    WriteSeparator();
+                    Console.WriteLine("Portal database {0} successfully.", DefinitionMode == DataDefinitionMode.Create ? "installed" : "upgraded");
+                }
             }
             
             WriteToDoList();
@@ -242,10 +487,14 @@ namespace Terradue.Portal {
 
         private void ProcessScripts() {
 
-            core = new CoreModule(this, String.Format("{0}{1}core", installationBaseDir, Path.DirectorySeparatorChar));
+            core = new CoreModule(this, String.Format("{0}{1}core", InstallationBaseDirectory, Path.DirectorySeparatorChar));
+            modules = new List<Module>();
+            services = new List<ServiceItem>();
+            string siteBaseDir = String.Format("{0}{2}sites{2}{1}", InstallationBaseDirectory, SiteName, Path.DirectorySeparatorChar);
+            if (SiteName != null && File.Exists(String.Format("{0}{1}db{1}db-create.sql", siteBaseDir, Path.DirectorySeparatorChar))) site = new Site(this, siteBaseDir);
+
             RememberPreviousModuleVersions();
             DetectModules();
-            if (File.Exists(String.Format("{0}{1}db{1}db-create.sql", siteBaseDir, Path.DirectorySeparatorChar))) site = new Site(this, siteBaseDir);
 
             FindFailureItem();
             AfterFailureCheckpoint = LastFailureItem == null;
@@ -306,14 +555,26 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void GetDirectories() {
-            DirectoryInfo dirInfo;
-            if (siteRootDir != null) {
-                dirInfo = new DirectoryInfo(siteRootDir);
-                if (dirInfo.Exists) siteRootDir = dirInfo.FullName;
+            if (InstallationBaseDirectory == null && SiteBaseDirectory == null) {
+                throw new Exception("No directory information specified");
             }
-            Match match = Regex.Match(siteRootDir, @"^((.+)[\\/]+sites[\\/]+([^\\/]+))[\\/]+root[\\/]*$");
-            siteBaseDir = match.Groups[1].Value;
-            installationBaseDir = match.Groups[2].Value;
+            if (InstallationBaseDirectory != null) {
+                if (SiteName != null) {
+                    SiteBaseDirectory = String.Format("{0}{2}sites{2}{1}", InstallationBaseDirectory, SiteName, Path.DirectorySeparatorChar);
+                }
+
+            } else {
+                DirectoryInfo dirInfo = new DirectoryInfo(SiteBaseDirectory);
+                if (dirInfo.Exists) SiteBaseDirectory = dirInfo.FullName;
+                Match match = Regex.Match(SiteBaseDirectory, @"^((.+)[\\/]+sites[\\/]+([^\\/]+))([\\/]+(root|www))?[\\/]*$");
+                if (match.Success) {
+                    SiteBaseDirectory = match.Groups[1].Value; // "/root" must be removed from site base directory if present
+                    InstallationBaseDirectory = match.Groups[2].Value;
+                    SiteName = match.Groups[3].Value;
+                } else {
+                    throw new Exception("Invalid site root directory");
+                }
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -322,16 +583,18 @@ namespace Terradue.Portal {
             string connectionString = null;
 
             // Get connection string (from web.config or build it from command line argument)
-            if (dbMainSchema == null) {
+            if (DbMainSchema == null) {
 
-                string configFile = String.Format("{0}{1}web.config", siteRootDir, Path.DirectorySeparatorChar);
+                string configFile = String.Format("{0}{1}root{1}web.config", SiteBaseDirectory, Path.DirectorySeparatorChar);
                 if (!File.Exists(configFile)) {
-                    Console.Error.WriteLine(
-                        String.Format("ERROR: The configuration file {0} does not exist.",
-                            configFile,
-                            File.Exists(configFile + ".tmpl") ? " You may create it using the .tmpl file." : String.Empty
-                        )
-                    );
+                    if (Interactive) {
+                        Console.Error.WriteLine(
+                                String.Format("ERROR: The configuration file {0} does not exist.",
+                                        configFile,
+                                        File.Exists(configFile + ".tmpl") ? " You may create it using the .tmpl file." : String.Empty
+                                )
+                        );
+                    }
                     return null;
                 }
                 XmlDocument configDoc = new XmlDocument();
@@ -339,17 +602,17 @@ namespace Terradue.Portal {
 
                 XmlElement key = configDoc.SelectSingleNode("/configuration/appSettings/add[@key='DatabaseConnection']") as XmlElement;
                 if (key == null || !key.HasAttribute("value") || (connectionString = key.Attributes["value"].Value) == String.Empty) {
-                    Console.Error.WriteLine(String.Format("ERROR: No connection string found in web.config.{0}       Make sure the key \"DatabaseConnection\" exists under <appSettings>", Environment.NewLine));
+                    if (Interactive) Console.Error.WriteLine(String.Format("ERROR: No connection string found in web.config.{0}       Make sure the key \"DatabaseConnection\" exists under <appSettings>", Environment.NewLine));
                     return null;
                 }
 
             } else {
                 connectionString = String.Format("Server={0}{1}{2}{3}; Database={4}; Allow User Variables=True",
-                    dbHostname,
-                    dbPort == 0 ? "" : "; Port=" + dbPort,
-                    dbUsername == null ? "" : "; User Id=" + dbUsername,
-                    dbPassword == null ? "" : "; Password=" + dbPassword,
-                    dbMainSchema
+                    DbHost,
+                    DbPort == 0 ? "" : "; Port=" + DbPort,
+                    DbUsername == null ? "" : "; User Id=" + DbUsername,
+                    DbPassword == null ? "" : "; Password=" + DbPassword,
+                    DbMainSchema
                 );
             }
 
@@ -360,7 +623,8 @@ namespace Terradue.Portal {
 
         protected void CheckState() {
             bool moduleOk = false;
-            bool i;
+
+            // Create "module" table if it does not exist at all
             try {
                 GetQueryIntegerValue("SELECT id FROM $MAIN$.module LIMIT 0;");
             } catch (Exception) {
@@ -376,6 +640,7 @@ namespace Terradue.Portal {
                 moduleOk = true;
             }
 
+            // Create "install" table if it does not exist at all
             int count = 0;
             try {
                 count = GetQueryIntegerValue("SELECT COUNT(*) FROM $MAIN$.install;");
@@ -390,6 +655,7 @@ namespace Terradue.Portal {
                 );
             }
 
+            // Make sure there exactly only one record in "install" table
             if (count != 1) {
                 Execute("DELETE FROM $MAIN$.install;");
                 Execute("INSERT INTO $MAIN$.install () VALUES ();");
@@ -397,6 +663,7 @@ namespace Terradue.Portal {
 
             try {
                 if (!moduleOk) {
+                    GetQueryStringValue("SELECT version_checkpoint FROM $MAIN$.module LIMIT 0;");
                     Execute("ALTER TABLE $MAIN$.module ADD COLUMN c_version varchar(10) COMMENT 'Cleanup version (in case of interrupted upgrade)', DROP COLUMN version_checkpoint;");
                     moduleOk = true;
                 }
@@ -413,7 +680,7 @@ namespace Terradue.Portal {
             GetLastFailure();
 
             try {
-                if (!create && (LastFailurePhase > ProcessPhaseType.InstallAndUpgrade || LastFailureInService || LastFailureItemIdentifier != "core")) GetQueryStringValue("SELECT c_version FROM $MAIN$.service LIMIT 0;");
+                if (DefinitionMode != DataDefinitionMode.Create && (LastFailurePhase > ProcessPhaseType.InstallAndUpgrade || LastFailureInService || LastFailureItemIdentifier != "core")) GetQueryStringValue("SELECT c_version FROM $MAIN$.service LIMIT 0;");
             } catch (Exception) {
                 Execute("ALTER TABLE $MAIN$.service ADD COLUMN c_version varchar(10) COMMENT 'Cleanup version (in case of interrupted upgrade)' AFTER version;");
             }
@@ -469,12 +736,14 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private bool GetYes(string hint) {
-            string answer = Console.ReadLine().ToLower();
-            if (answer == "no" || answer == "n") return false;
-            if (answer != "yes") {
-                Console.Write(hint);
-                answer = Console.ReadLine().ToLower();
-                return (answer == "yes"); 
+            if (Interactive) {
+                string answer = Console.ReadLine().ToLower();
+                if (answer == "no" || answer == "n") return false;
+                if (answer != "yes") {
+                    Console.Write(hint);
+                    answer = Console.ReadLine().ToLower();
+                    return (answer == "yes"); 
+                }
             }
             return true;
         }
@@ -489,17 +758,17 @@ namespace Terradue.Portal {
             
             /*AddToDoTask(
                     String.Format("Rename the file \"{0}{1}web.config.TO-BE-CHANGED\"\\nto \"{0}{1}web.config\" and open it.\\nSet the value of the element <DatabaseConnection> to the ADO.NET connection string for the portal database access from ASP.NET/Mono web pages.", 
-                            siteRootDir,
+                            SiteRootDirectory,
                             Path.DirectorySeparatorChar
                     )
             );*/
 
-            Console.WriteLine("Creating main portal schema \"{0}\"", dbMainSchema);
+            if (Interactive) Console.WriteLine("Creating main portal schema \"{0}\"", DbMainSchema);
             Execute("CREATE DATABASE $MAIN$ DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;");
             schemaExists = true;
             
-            if (dbNewsSchema != dbMainSchema) {
-                Console.WriteLine("Creating news schema \"{0}\"", dbNewsSchema);
+            if (DbNewsSchema != DbMainSchema) {
+                if (Interactive) Console.WriteLine("Creating news schema \"{0}\"", DbNewsSchema);
                 try {
                     Execute("USE $NEWS$;");
                     Execute("DROP DATABASE $NEWS$;");
@@ -537,8 +806,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void DetectModules() {
-            string[] moduleDirs = Directory.GetDirectories(String.Format("{0}{1}modules", installationBaseDir, Path.DirectorySeparatorChar), "*");
-            modules = new List<Module>();
+            string modulesBaseDir = String.Format("{0}{1}modules", InstallationBaseDirectory, Path.DirectorySeparatorChar);
+            if (!Directory.Exists(modulesBaseDir)) return;
+                
+            string[] moduleDirs = Directory.GetDirectories(modulesBaseDir, "*");
             foreach (string moduleDir in moduleDirs) {
                 if (moduleDir.StartsWith(".")) continue;
                 
@@ -547,7 +818,7 @@ namespace Terradue.Portal {
                 
                 string moduleIdentifier = match.Groups[1].Value;
                 string dbDir = String.Format("{0}{1}db", moduleDir, Path.DirectorySeparatorChar);
-                if (!Directory.Exists(dbDir) || Directory.GetFiles(dbDir, "db-create.sql").Length == 0 /*|| !Directory.Exists(String.Format("{0}{2}{1}", siteRootDir, moduleIdentifier, Path.DirectorySeparatorChar))*/) continue;
+                if (!Directory.Exists(dbDir) || Directory.GetFiles(dbDir, "db-create.sql").Length == 0 /*|| !Directory.Exists(String.Format("{0}{2}{1}", SiteRootDirectory, moduleIdentifier, Path.DirectorySeparatorChar))*/) continue;
                 modules.Add(new Module(this, moduleIdentifier, moduleDir));
             }
             
@@ -575,15 +846,18 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void DetectServices() {
-            string[] serviceDirs = Directory.GetDirectories(String.Format("{0}{1}services", installationBaseDir, Path.DirectorySeparatorChar), "*");
-            services = new List<ServiceItem>();
+            string servicesBaseDir = String.Format("{0}{1}services", InstallationBaseDirectory, Path.DirectorySeparatorChar);
+            if (!Directory.Exists(servicesBaseDir)) return;
+
+            string[] serviceDirs = Directory.GetDirectories(servicesBaseDir, "*");
+
             foreach (string serviceDir in serviceDirs) {
                 if (serviceDir.StartsWith(".")) continue;
                 Match match = Regex.Match(serviceDir, @"([^\\/]+)$");
                 if (!match.Success) continue;
                 string serviceIdentifier = match.Groups[1].Value;
                 string wwwDir = String.Format("{0}{1}www", serviceDir, Path.DirectorySeparatorChar);
-                if (!Directory.Exists(wwwDir) || !File.Exists(String.Format("{0}{1}index.aspx", wwwDir, Path.DirectorySeparatorChar)) || !Directory.Exists(String.Format("{0}{2}services{2}{1}", siteRootDir, serviceIdentifier, Path.DirectorySeparatorChar))) continue;
+                if (!Directory.Exists(wwwDir) || !File.Exists(String.Format("{0}{1}index.aspx", wwwDir, Path.DirectorySeparatorChar)) || !Directory.Exists(String.Format("{0}{2}root{2}services{2}{1}", SiteBaseDirectory, serviceIdentifier, Path.DirectorySeparatorChar))) continue;
                 services.Add(new ServiceItem(this, serviceIdentifier, serviceDir));
             }
         }
@@ -591,8 +865,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public void ExecuteSpecificAction(string identifier) {
-            switch (identifier) {
-            }
+            //switch (identifier) {
+            //}
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -608,7 +882,7 @@ namespace Terradue.Portal {
             if (AfterFailureCheckpoint) SetCheckpoint(item, null);
             else if (CurrentPhase == LastFailurePhase && item == LastFailureItem && LastFailureItemCheckpoint == null) AfterFailureCheckpoint = true;
             ResetResult();
-            Execute("USE $MAIN$;");
+            ChangeSchema(DbMainSchema);
             StreamReader fileReader = new StreamReader(filename);
             string line, command = String.Empty;
             bool routine = false;
@@ -632,8 +906,8 @@ namespace Terradue.Portal {
                     Match match = Regex.Match(command, "^USE +([^ ]+);$");
                     bool execute = AfterFailureCheckpoint;
                     if (match.Success) {
-                        CurrentSchema = match.Groups[1].Value;
-                        execute = true;
+                        ChangeSchema(match.Groups[1].Value);
+                        execute = false;
                     }
                     if (execute && CurrentSchema != null) Execute(command);
 
@@ -642,8 +916,23 @@ namespace Terradue.Portal {
                 }
             }
             fileReader.Close();
-            Execute("USE $MAIN$;");
+            ChangeSchema(DbMainSchema);
             if (AfterFailureCheckpoint) ClearCheckpoint();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ChangeSchema(string schema) {
+            switch (schema) {
+                case "$MAIN$":
+                    schema = DbMainSchema;
+                    break;
+                case "$NEWS$":
+                    schema = DbNewsSchema;
+                    break;
+            }
+            CurrentSchema = schema;
+            Execute(String.Format("USE {0};", schema));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -658,7 +947,7 @@ namespace Terradue.Portal {
                 string newCheckpoint = comment.Substring(11);
                 if (AfterFailureCheckpoint) {
                     SetCheckpoint(item, newCheckpoint);
-                } else if (!AfterFailureCheckpoint && CurrentPhase == LastFailurePhase && item == LastFailureItem && newCheckpoint == LastFailureItemCheckpoint) {
+                } else if (CurrentPhase == LastFailurePhase && item == LastFailureItem && newCheckpoint == LastFailureItemCheckpoint) {
                     AfterFailureCheckpoint = true;
                 }
             } else if (AfterFailureCheckpoint) {
@@ -675,7 +964,7 @@ namespace Terradue.Portal {
                 Match match = Regex.Match(comment, @"^EXECUTE\((.+)\)$");
                 if (match.Success) {
                     ExecuteSpecificAction(match.Groups[1].Value);
-                } else {
+                } else if (Interactive) {
                     NewLine = !comment.EndsWith(@"\");
                     if (!NewLine) comment = Regex.Replace(comment, @"\\$", "");
                     if (Verbose) comment = "-- " + comment;
@@ -705,26 +994,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static void WriteSeparator() {
-            Console.WriteLine("----------------------------------------------------------------------------------------------------");
+        public void WriteSeparator() {
+            if (Interactive) Console.WriteLine("----------------------------------------------------------------------------------------------------");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static void WriteErrorSeparator() {
-            Console.Error.WriteLine("----------------------------------------------------------------------------------------------------");
-        }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public string GetSchemaName(string placeholder) {
-            switch (placeholder) {
-                case "$MAIN$" :
-                    return dbMainSchema;
-                case "$NEWS$" :
-                    return dbNewsSchema;
-            }
-            return null;
+        public void WriteErrorSeparator() {
+            if (Interactive) Console.Error.WriteLine("----------------------------------------------------------------------------------------------------");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -739,7 +1016,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private void WriteToDoList() {
-            if (toDoCount == 0) return;
+            if (!Interactive || toDoCount == 0) return;
             WriteSeparator();
             Console.WriteLine("TO DO: Follow the instruction{0} below before using the web portal and its services", toDoCount == 1 ? "" : "s");
             Console.WriteLine();
@@ -756,27 +1033,27 @@ namespace Terradue.Portal {
                 string value = matches[i].Value;
                 switch (value) {
                     case "$MAIN$" :
-                        if (dbMainSchema == null) return null;
-                        sql = sql.Replace(value, NameQuote + dbMainSchema + NameQuote);
+                        if (DbMainSchema == null) return null;
+                        sql = sql.Replace(value, NameQuote + DbMainSchema + NameQuote);
                         break;
                     case "$NEWS$" :
-                        if (dbNewsSchema == null) return null;
-                        sql = sql.Replace(value, NameQuote + dbNewsSchema + NameQuote);
+                        if (DbNewsSchema == null) return null;
+                        sql = sql.Replace(value, NameQuote + DbNewsSchema + NameQuote);
                         break;
                     case "$DBHOSTNAME$" :
-                        sql = sql.Replace(value, dbHostname);
+                        sql = sql.Replace(value, DbHost);
                         break;
                     case "$DBPORT$" :
-                        sql = sql.Replace(value, dbPort.ToString());
+                        sql = sql.Replace(value, DbPort.ToString());
                         break;
                     case "$DBUSERNAME$" :
-                        sql = sql.Replace(value, dbUsername);
+                        sql = sql.Replace(value, DbUsername);
                         break;
                     case "$DBPASSWORD$" :
-                        sql = sql.Replace(value, dbPassword);
+                        sql = sql.Replace(value, DbPassword);
                         break;
-                    case "$SERVICEROOT$" :
-                        sql = sql.Replace(value, String.Format("{0}/services", siteRootDir.Replace(@"\", "/")));
+                    case "$SERVICEBASE$" :
+                        sql = sql.Replace(value, String.Format("{0}/root/services", SiteBaseDirectory.Replace(@"\", "/")));
                         break;
                     case "$ID$" :
                         sql = sql.Replace(value, itemId.ToString());
@@ -788,141 +1065,10 @@ namespace Terradue.Portal {
     
         //---------------------------------------------------------------------------------------------------------------------
 
-        public static bool GetArgs(string[] args) {
-            if (args.Length == 0) return false;
-            switch (args[0]) {
-                case "create" : 
-                    create = true;
-                    break;
-                case "upgrade" :
-                    create = false;
-                    break;
-                case "auto" :
-                    auto = true;
-                    break;
-                default :
-                    return false;
-            }
-            
-            int argpos = 1;
-            while (argpos <= args.Length - 1) {
-                switch (args[argpos]) {
-                    case "-v" :
-                        verbose = true;
-                        break;
-                    case "-r" :
-                        siteRootDir = args[++argpos];;
-                        break;
-                    case "-k" :
-                        //didYouKnow = true;
-                        break;
-                    case "-H" : 
-                        if (argpos < args.Length - 1) {
-                            dbHostname = args[++argpos];
-                        } else return false;
-                        break;
-                    case "-P" : 
-                        if (argpos < args.Length - 1) {
-                            Int32.TryParse(args[++argpos], out dbPort);
-                        } else return false;
-                        break;
-                    case "-u" :
-                        if (argpos < args.Length - 1) {
-                            dbUsername = args[++argpos];
-                        } else return false;
-                        break;
-                    case "-p" : 
-                        if (argpos < args.Length - 1) {
-                            dbPassword = args[++argpos];
-                        } else return false;
-                        break;
-                    case "-S" : 
-                        if (argpos < args.Length - 1) {
-                            dbMainSchema = args[++argpos];
-                        } else return false;
-                        break;
-                    case "-Sn" : 
-                        if (argpos < args.Length - 1) {
-                            dbNewsSchema = args[++argpos];
-                        } else return false;
-                        break;
-                    default: 
-                        return false;
-                }
-                argpos++;
-            }
-            
-            if (dbNewsSchema == null) dbNewsSchema = dbMainSchema; 
-            
-            if (siteRootDir == null) Console.Error.WriteLine("ERROR: Missing argument for -r");
-            //else if (!File.Exists(siteRootDir + Path.DirectorySeparatorChar + "web.config") && dbMainSchema == null) Console.Error.WriteLine("ERROR: No web.config found in root directory, specify database schema name g using -S");
-            //else if (dbMainSchema == null) Console.Error.WriteLine("ERROR: Specify database schema name using -S");
-            else return true;
-            
-            return false;
-        }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public static void PrintUsage() {
-            Console.Error.WriteLine(String.Format("Usage:        {0} <mode> <arguments>", Path.GetFileName(Environment.GetCommandLineArgs()[0])));
-            Console.Error.WriteLine();
-            Console.Error.WriteLine("Modes:");
-            Console.Error.WriteLine("    create  : (re-)creates the portal database schemas");
-            Console.Error.WriteLine("    upgrade : upgrades the portal database schemas to the latest version");
-            Console.Error.WriteLine("    auto    : either creates or upgrades the database schemas (if exist)");
-            Console.Error.WriteLine("    create    [-v] -r [-H] [-P] [-u] [-p] -S [-Sn]");
-            Console.Error.WriteLine("    upgrade   [-v] -r [-H] [-P] [-u] [-p] -S [-Sn]");
-            Console.Error.WriteLine("    auto      [-v] -r [-H] [-P] [-u] [-p] -S [-Sn]");
-            Console.Error.WriteLine();
-            Console.Error.WriteLine("Arguments:");
-            Console.Error.WriteLine("    -v             : verbose mode, displays all queries");
-            Console.Error.WriteLine("    -r <name>      : local path to site root directory");
-            Console.Error.WriteLine("    -H <hostname>  : name of database server host (default: localhost)");
-            Console.Error.WriteLine("    -P <port>      : port of database server (optional)");
-            Console.Error.WriteLine("    -u <name>      : database username (optional); in create mode, database root privileges are required");
-            Console.Error.WriteLine("    -p <password>  : database password (optional)");
-            Console.Error.WriteLine("    -S <name>      : name of main portal schema");
-            Console.Error.WriteLine("    -Sn <name>     : name of news schema (optional)");
-            Console.Error.WriteLine();
-        }
-    
-
-
-        public static int DB_MYSQL = 1;
-        public static int DB_POSTGRES = 2;
-        
-        private int type = 1;
-        private string mainConnectionString, currentConnectionString;
-        private IDbConnection mainDbConn, currentDbConn;
-        private List<DbConnData> dbConns = new List<DbConnData>();
-        private IDbCommand dbCommand;
-        private int totalRowCount = -1;
-    
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public string DbResult { get; set; }
-    
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public char NameQuote { get; protected set; }
-    
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public bool ProtectedStatement { get; set; }
-    
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public int TotalRowCount {
-            get { return totalRowCount; }
-        }
-    
-        //---------------------------------------------------------------------------------------------------------------------
-
         public void WriteResult() {
             if (DbResult == null) DbResult = String.Format("OK{0}", totalRowCount == -1 ? "" : " (" + totalRowCount + " record" + (totalRowCount == 1 ? "" : "s") + ")");
             if (Verbose) DbResult = "-- " + DbResult;
-            Console.WriteLine(DbResult);
+            if (Interactive) Console.WriteLine(DbResult);
             ResetResult();
         }
         
@@ -1006,19 +1152,19 @@ namespace Terradue.Portal {
                     case "CREATE TABLE" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+);");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating table \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating table \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "CREATE FUNCTION" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+)");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating stored function \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating stored function \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "CREATE PROCEDURE" :
                         match2 = Regex.Match(sql, "COMMENT (('([^']+)')+)");
                         message = (!Verbose && match2.Success);
-                        if (message) Console.Write("Creating stored procedure \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
+                        if (Interactive && message) Console.Write("Creating stored procedure \"{0}\" ({1}) ... ", name, StringUtils.UnescapeSql(match2.Groups[1].Value));
                         newLine = false;
                         break;
                     case "ALTER TABLE" :
@@ -1034,9 +1180,7 @@ namespace Terradue.Portal {
                         changeData = DB_INSERT;
                         break;
                 }
-                if (Verbose) {
-                    Console.WriteLine(sql);
-                }
+                if (Interactive && Verbose) Console.WriteLine(sql);
             }
     
             dbCommand = currentDbConn.CreateCommand();
@@ -1049,11 +1193,11 @@ namespace Terradue.Portal {
             } else {
                 rowCount = dbCommand.ExecuteNonQuery();
             }
-            if (Verbose) Console.WriteLine("-- rows: " + rowCount); 
+            if (Interactive && Verbose) Console.WriteLine("-- rows: " + rowCount); 
     
             if (changeData != 0 && rowCount != -1) totalRowCount = (totalRowCount == -1 ? 0 : totalRowCount) + rowCount;
     
-            if (message) Console.WriteLine("OK");
+            if (Interactive && message) Console.WriteLine("OK");
         }
     
         //---------------------------------------------------------------------------------------------------------------------
@@ -1260,6 +1404,26 @@ namespace Terradue.Portal {
             return (xai.Length - yai.Length);
         }
 
+    }
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>Enumaration for the data definition modes of the AdminTool.</summary>
+    public enum DataDefinitionMode {
+
+        /// <summary>Create mode (new database is created in the latest version).</summary>
+        Create,
+
+        /// <summary>Upgrade mode (existing database is upgraded to a new version).</summary>
+        Upgrade,
+
+        /// <summary>Automatic mode determiniation (create if database does not exist yet, upgrade otherwise).</summary>
+        Automatic
     }
 
 }

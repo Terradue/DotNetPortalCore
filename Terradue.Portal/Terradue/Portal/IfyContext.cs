@@ -392,12 +392,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public EntityAccessLevel AccessLevel { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Indicates or determines whether administrator mode is used.</summary>
         /// <remarks>
         ///     In administrator mode, the entity's privilege properties are not set and user authorisation checks are not performed for default operations.
         ///     The administrator mode is only available for administrator and manager users. The default value is <i>false</i>.
         /// </remarks>
-        public bool AdminMode { get; set; }
+        [Obsolete("Use AccessLevel.Administrator")]
+        public bool AdminMode {
+            get { return AccessLevel == EntityAccessLevel.Administrator; }
+            set { AccessLevel = (value ? EntityAccessLevel.Administrator : EntityAccessLevel.Privilege); }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -408,7 +416,17 @@ namespace Terradue.Portal {
         ///     Setting RestrictedMode to <i>false</i> allows obtaining an item instances even if the current user has no privileges on the item at all.
         ///     The privilege properties (e.g. CanView) reflect the user's actual privileges and the calling code has to react accordingly. The default value is <i>true</i>.
         /// </summary>
-        public bool RestrictedMode { get; set; }
+        [Obsolete("Use AccessLevel.Permission")]
+        public bool RestrictedMode {
+            get { return AccessLevel == EntityAccessLevel.Permission; }
+            set { AccessLevel = (value ? EntityAccessLevel.Permission : EntityAccessLevel.Privilege); }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public bool IsImpersonating {
+            get { return OriginalUserId != 0 && UserId != OriginalUserId; }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -481,7 +499,7 @@ namespace Terradue.Portal {
                 //return UserInformation == null ? false : UserInformation.SessionlessRequestsEnabled;
                 bool result = GetQueryBooleanValue(String.Format("SELECT allow_sessionless FROM usr WHERE id={0};", UserId));
                 if (result) return true;
-                return GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM service AS t INNER JOIN service_priv AS p ON t.id=p.id_service LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0} WHERE t.available=true AND p.allow_scheduling;", UserId)) != 0;
+                return GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM service AS t INNER JOIN service_perm AS p ON t.id=p.id_service LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp INNER JOIN usr AS u ON (p.id_usr=u.id OR ug.id_usr=u.id) AND u.id={0} WHERE t.available=true AND p.allow_scheduling;", UserId)) != 0;
             }
         }
         
@@ -787,7 +805,8 @@ namespace Terradue.Portal {
         */
         public IfyContext(string connectionString) {
             this.mainConnectionString = connectionString;
-            this.RestrictedMode = true;
+            //this.RestrictedMode = true;
+            this.AccessLevel = EntityAccessLevel.Privilege;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -968,6 +987,7 @@ namespace Terradue.Portal {
             defaultMinArgumentsPerNode = GetConfigIntegerValue("DefaultMinArgumentsPerNode");
 
             EntityType.LoadEntityTypes(this);
+            Privilege.LoadPrivileges(this);
 
             LoadAdditionalConfiguration();
 
@@ -1210,7 +1230,7 @@ namespace Terradue.Portal {
                     string userCertContent = GetCertificatePemContent(userId);
                     if (userCertContent != null) request.Headers.Add("SSL_CLIENT_CERT_PROXY", userCertContent);
                 }
-            } catch (Exception e) {
+            } catch (Exception) {
                 throw;
             }
 
@@ -1571,7 +1591,6 @@ namespace Terradue.Portal {
 
         public IDataReader GetQueryResult(string sql, IDbConnection dbConnection) {
             AddDebug(3, sql);
-            if (ConsoleDebug) Console.WriteLine("**** " + sql);
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
@@ -1644,7 +1663,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = (dbReader.GetValue(0) != DBNull.Value ? dbReader.GetInt32(0) : 0);
+            if (dbReader.Read()) result = (dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetInt32(0));
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
@@ -1657,7 +1676,7 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) result = (dbReader.GetValue(0) != DBNull.Value ? dbReader.GetInt64(0) : 0);
+            if (dbReader.Read()) result = (dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetInt64(0));
             CloseQueryResult(dbReader, dbConnection);
             return result;
         }
@@ -1670,12 +1689,24 @@ namespace Terradue.Portal {
             IDbCommand dbCommand = dbConnection.CreateCommand();
             dbCommand.CommandText = sql;
             IDataReader dbReader = dbCommand.ExecuteReader();
-            if (dbReader.Read()) {
-                if (dbReader.GetValue(0) == DBNull.Value) result = 0;
-                else result = dbReader.GetDouble(0);
-            }
+            if (dbReader.Read()) result = dbReader.GetValue(0) == DBNull.Value ? 0 : dbReader.GetDouble(0);
             CloseQueryResult(dbReader, dbConnection);
             return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public int[] GetQueryIntegerValues(string sql) {
+            List<int> result = new List<int>();
+            IDbConnection dbConnection = GetDbConnection();
+            IDbCommand dbCommand = dbConnection.CreateCommand();
+            dbCommand.CommandText = sql;
+            IDataReader dbReader = dbCommand.ExecuteReader();
+            while (dbReader.Read()) {
+                if (dbReader.GetValue(0) != DBNull.Value) result.Add(dbReader.GetInt32(0));
+            }
+            CloseQueryResult(dbReader, dbConnection);
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1745,7 +1776,7 @@ namespace Terradue.Portal {
         public virtual void StartImpersonation(int userId) {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
-            User user = User.FromId(this, userId);
+            User user = User.ForceFromId(this, userId);
             UserInformation.Update(user);
             OriginalUserId = UserId;
             UserId = user.Id;
@@ -1761,7 +1792,7 @@ namespace Terradue.Portal {
         public virtual void EndImpersonation() {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
-            User user = User.FromId(this, UserInformation.OriginalUserId);
+            User user = User.ForceFromId(this, UserInformation.OriginalUserId);
             UserInformation.Update(user);
             UserId = user.Id;
             UserLevel = user.Level;
@@ -2243,8 +2274,7 @@ namespace Terradue.Portal {
             } else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
             if (smtpPassword == String.Empty) smtpPassword = null;
 
-            if (smtpPort > 0)
-                client.Port = smtpPort;
+            if (smtpPort > 0) client.Port = smtpPort;
 
             client.EnableSsl = smtpSsl;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;

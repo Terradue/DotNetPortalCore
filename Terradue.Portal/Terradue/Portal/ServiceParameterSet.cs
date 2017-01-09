@@ -113,7 +113,7 @@ namespace Terradue.Portal {
     
     public class ServiceParameterSet : ServiceParameterArray {
         
-        private double minPriority = 0, maxPriority = 0; // TODO set these values
+        //private double minPriority = 0, maxPriority = 0; // TODO set these values
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -348,13 +348,13 @@ namespace Terradue.Portal {
                     
                     switch (element.Name) {
                         case "input" :
-                            ProcessingInputSet input = new ProcessingInputSet(this, element);
+                            //ProcessingInputSet input = new ProcessingInputSet(this, element);
                             break;
                         case "processing" :
                             GetDefinedProcessingParameters(element);
                             break;
                         case "output" :
-                            ProcessingOutputSet output = new ProcessingOutputSet(this, element);
+                            //ProcessingOutputSet output = new ProcessingOutputSet(this, element);
                             break;
                     }
                 }

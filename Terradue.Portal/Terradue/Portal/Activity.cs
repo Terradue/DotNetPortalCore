@@ -64,7 +64,7 @@ namespace Terradue.Portal {
         public int EntityTypeId { get; protected set; }
 
         private EntityType entityType;
-        public new EntityType ActivityEntityType { 
+        public EntityType ActivityEntityType { 
             get { 
                 if (entityType == null && this.EntityTypeId != 0)
                     entityType = EntityType.GetEntityTypeFromId(this.EntityTypeId);
@@ -87,20 +87,22 @@ namespace Terradue.Portal {
         /// <param name="context">Context.</param>
         public Activity(IfyContext context) : base(context) {}
 
+        public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {}
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
         /// </summary>
         /// <param name="context">Context.</param>
         /// <param name="entity">Entity.</param>
-        public Activity(IfyContext context, Entity entity, string operation) : base(context){
+        public Activity(IfyContext context, Entity entity, string operation) : base(context) {
             if (entity != null) {
-                try{
+                try {
                     this.EntityId = entity.Id;
                     this.EntityIdentifier = entity.Identifier;
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
-                    this.Privilege = Privilege.FromTypeAndOperation(context, this.EntityTypeId, operation);
-                }catch(Exception e){
+                    this.Privilege = Privilege.Get(EntityType.GetEntityTypeFromId(this.EntityTypeId), Privilege.GetOperationType(operation));
+                } catch (Exception) {
                 }
             }
             this.OwnerId = entity.OwnerId;
@@ -176,37 +178,46 @@ namespace Terradue.Portal {
             return true;
         }
 
+
         public AtomItem ToAtomItem(NameValueCollection parameters) {
+
 
             if (!IsSearchable (parameters)) return null;
 
-            var entity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
-            entity.Load (this.EntityId);
+            if (this.EntityId == 0) return null;
 
-            User owner = User.FromId(context, this.OwnerId);
+            Entity entity = null;
+            try {
+                entity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
+                entity.Load(this.EntityId);
+            } catch (Exception) {
+                return null;
+            }
+            User owner = User.ForceFromId(context, this.OwnerId);
 
+            //string identifier = null;
             string name = (entity.Name != null ? entity.Name : entity.Identifier);
             string description = null;
             Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + entity.Identifier);
 
             switch (this.Privilege.Operation) {
-                case OperationPriv.CREATE:
+                case EntityOperationType.Create:
                     description = string.Format("has created the {0} {1}",this.ActivityEntityType.Keyword, name);
                     break;
-                case OperationPriv.MODIFY:
+                case EntityOperationType.Change:
                     description = string.Format("has updated the {0} {1}",this.ActivityEntityType.Keyword, name);
                     break;
-                case OperationPriv.DELETE:
+                case EntityOperationType.Delete:
                     description = string.Format("has deleted the {0} {1}",this.ActivityEntityType.Keyword, name);
                     break;
-                case OperationPriv.MAKE_PUBLIC:
+                case EntityOperationType.Share:
                     description = string.Format("has shared the {0} {1}",this.ActivityEntityType.Keyword, name);
                     break;
                 default:
                     break;
             }
 
-            AtomItem atomEntry = null;
+            //AtomItem atomEntry = null;
             AtomItem result = new AtomItem();
 
             result.Id = id.ToString();

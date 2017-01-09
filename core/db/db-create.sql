@@ -1,4 +1,4 @@
--- VERSION 2.6.66
+-- VERSION 2.7.1
 
 USE $MAIN$;
 
@@ -22,16 +22,62 @@ CREATE TABLE type (
 ) Engine=InnoDB COMMENT 'Entity types';
 -- CHECKPOINT C-01a
 
+-- Initializing basic entity types ... \
+INSERT INTO type (id, pos, class, generic_class, caption_sg, caption_pl, keyword) VALUES
+    (1, 1, 'Terradue.Portal.Configuration, Terradue.Portal', NULL, 'General Configuration', 'General Configuration', 'config'),
+    (2, 2, 'Terradue.Portal.Action, Terradue.Portal', NULL, 'Agent Action', 'Agent Actions', 'actions'),
+    (3, 3, 'Terradue.Portal.Application, Terradue.Portal', NULL, 'External Application', 'External Applications', 'applications'),
+    (4, 4, 'Terradue.Portal.Domain, Terradue.Portal', NULL, 'Domains', 'Domain', 'domains'),
+    (5, 5, 'Terradue.Portal.Role, Terradue.Portal', NULL, 'Role', 'Roles', 'roles'),
+    (6, 6, 'Terradue.Portal.OpenIdProvider, Terradue.Portal', NULL, 'OpenID Provider', 'OpenID Providers', 'openid-providers'),
+    (7, 7, 'Terradue.Portal.LookupList, Terradue.Portal', NULL, 'Shared Lookup List', 'Shared Lookup Lists', 'lookup-lists'),
+    (8, 8, 'Terradue.Portal.ServiceClass, Terradue.Portal', NULL, 'Service Class', 'Service Classes', 'service-classes'),
+    (9, 9, 'Terradue.Portal.ServiceCategory, Terradue.Portal', NULL, 'Service Category', 'Service Categories', 'service-categories'),
+    (10, 10, 'Terradue.Portal.SchedulerClass, Terradue.Portal', NULL, 'Scheduler Class', 'Scheduler Classes', 'scheduler-classes'),
+    (11, 11, 'Terradue.Portal.User, Terradue.Portal', NULL, 'User', 'Users', 'users'),
+    (12, 12, 'Terradue.Portal.Group, Terradue.Portal', NULL, 'Group', 'Groups', 'groups'),
+    (13, 13, 'Terradue.Portal.LightGridEngine, Terradue.Portal', NULL, 'LGE Instance', 'LGE Instances', 'lge-instances'),
+    (14, 14, 'Terradue.Portal.ComputingResource, Terradue.Portal', 'Terradue.Portal.GenericComputingResource, Terradue.Portal', 'Computing Resource', 'Computing Resources', 'computing-resources'),
+    (15, 15, 'Terradue.Portal.Catalogue, Terradue.Portal', NULL, 'Metadata catalogue', 'Metadata catalogues', 'catalogues'),
+    (16, 16, 'Terradue.Portal.Series, Terradue.Portal', NULL, 'Dataset Series', 'Dataset Series', 'series'),
+    (17, 17, 'Terradue.Portal.ProductType, Terradue.Portal', NULL, 'Product Type', 'Product Types', 'product-types'),
+    (18, 18, 'Terradue.Portal.PublishServer, Terradue.Portal', NULL, 'Publish Server', 'Publish Servers', 'publish-servers'),
+    (19, 19, 'Terradue.Portal.Service, Terradue.Portal', 'Terradue.Portal.GenericService, Terradue.Portal', 'Service', 'Services', 'services'),
+    (20, 20, 'Terradue.Portal.Scheduler, Terradue.Portal', NULL, 'Scheduler', 'Schedulers', 'schedulers'),
+    (21, 21, 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', NULL, 'Scheduler run configuration', 'Schedulers run configurations', 'schedulers-run-configs'),
+    (22, 22, 'Terradue.Portal.Task, Terradue.Portal', NULL, 'Task', 'Tasks', 'tasks'),
+    (23, 23, 'Terradue.Portal.Article, Terradue.Portal', NULL, 'News Article', 'News', 'news'),
+    (24, 24, 'Terradue.Portal.Image, Terradue.Portal', NULL, 'Image', 'Images', 'images'),
+    (25, 25, 'Terradue.Portal.Faq, Terradue.Portal', NULL, 'F.A.Q.', 'F.A.Q.', 'faqs'),
+    (26, 26, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects'),
+    (27, 27, 'Terradue.Portal.Activity, Terradue.Portal', NULL, 'Activity', 'Activities', 'activity')
+;
+-- RESULT
+-- CHECKPOINT C-01b
+
+-- Initializing standard extended entity types ... \
+INSERT INTO type (id_super, pos, class, caption_sg, caption_pl) VALUES
+    (14, 1, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements'),
+    (14, 2, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers'),
+    (19, 1, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Script-based service', 'Script-based services'),
+    (19, 2, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'WPS process offering', 'WPS process offerings'),
+    (20, 1, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers'),
+    (21, 1, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations'),
+    (21, 2, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations')
+;
+-- RESULT
+-- CHECKPOINT C-01c
+
 CREATE PROCEDURE add_type(IN p_module_id int unsigned, IN p_class varchar(100), IN p_super_class varchar(100), IN p_caption_sg varchar(100), IN p_caption_pl varchar(100), IN p_keyword varchar(100))
-COMMENT 'Creates a new entity type'
+COMMENT 'Inserts or updates a basic entity type'
 BEGIN
     DECLARE type_id int;
     DECLARE type_pos int;
-    IF p_super_class IS NULL THEN
-        SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type INTO type_pos;
-    ELSE
+    IF p_super_class IS NOT NULL THEN
         SELECT id FROM type WHERE class = p_super_class INTO type_id;
         SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type WHERE id_super = type_id INTO type_pos;
+    ELSE
+        SELECT CASE WHEN MAX(pos) IS NULL THEN 0 ELSE MAX(pos) END FROM type INTO type_pos;
     END IF;
     INSERT INTO type (id_module, id_super, pos, class, caption_sg, caption_pl, keyword) VALUES (p_module_id, type_id, type_pos + 1, p_class, p_caption_sg, p_caption_pl, p_keyword);
 END;
@@ -50,142 +96,80 @@ BEGIN
         UPDATE type SET pos = p_pos WHERE id = type_id;
     END IF;
 END;
--- CHECKPOINT C-01c
-
--- Initializing basic entity types ... \
-CALL add_type(NULL, 'Terradue.Portal.Configuration, Terradue.Portal', NULL, 'General Configuration', 'General Configuration', 'config');
-CALL add_type(NULL, 'Terradue.Portal.Action, Terradue.Portal', NULL, 'Agent Action', 'Agent Actions', 'actions');
-CALL add_type(NULL, 'Terradue.Portal.Application, Terradue.Portal', NULL, 'External Application', 'External Applications', 'applications');
-CALL add_type(NULL, 'Terradue.Portal.Domain, Terradue.Portal', NULL, 'Domains', 'Domain', 'domains');
-CALL add_type(NULL, 'Terradue.Portal.ManagerRole, Terradue.Portal', NULL, 'Manager Role', 'Manager Roles', 'manager-roles');
-CALL add_type(NULL, 'Terradue.Portal.OpenIdProvider, Terradue.Portal', NULL, 'OpenID Provider', 'OpenID Providers', 'openid-providers');
-CALL add_type(NULL, 'Terradue.Portal.LookupList, Terradue.Portal', NULL, 'Shared Lookup List', 'Shared Lookup Lists', 'lookup-lists');
-CALL add_type(NULL, 'Terradue.Portal.ServiceClass, Terradue.Portal', NULL, 'Service Class', 'Service Classes', 'service-classes');
-CALL add_type(NULL, 'Terradue.Portal.ServiceCategory, Terradue.Portal', NULL, 'Service Category', 'Service Categories', 'service-categories');
-CALL add_type(NULL, 'Terradue.Portal.SchedulerClass, Terradue.Portal', NULL, 'Scheduler Class', 'Scheduler Classes', 'scheduler-classes');
-CALL add_type(NULL, 'Terradue.Portal.User, Terradue.Portal', NULL, 'User', 'Users', 'users');
-CALL add_type(NULL, 'Terradue.Portal.Group, Terradue.Portal', NULL, 'Group', 'Groups', 'groups');
-CALL add_type(NULL, 'Terradue.Portal.LightGridEngine, Terradue.Portal', NULL, 'LGE Instance', 'LGE Instances', 'lge-instances');
-CALL add_type(NULL, 'Terradue.Portal.ComputingResource, Terradue.Portal', NULL, 'Computing Resource', 'Computing Resources', 'computing-resources');
-CALL add_type(NULL, 'Terradue.Portal.Catalogue, Terradue.Portal', NULL, 'Metadata catalogue', 'Metadata catalogues', 'catalogues');
-CALL add_type(NULL, 'Terradue.Portal.Series, Terradue.Portal', NULL, 'Dataset Series', 'Dataset Series', 'series');
-CALL add_type(NULL, 'Terradue.Portal.ProductType, Terradue.Portal', NULL, 'Product Type', 'Product Types', 'product-types');
-CALL add_type(NULL, 'Terradue.Portal.PublishServer, Terradue.Portal', NULL, 'Publish Server', 'Publish Servers', 'publish-servers');
-CALL add_type(NULL, 'Terradue.Portal.Service, Terradue.Portal', NULL, 'Service', 'Services', 'services');
-CALL change_type('Terradue.Portal.Service, Terradue.Portal', 'Terradue.Portal.GenericService, Terradue.Portal', 0);
-CALL add_type(NULL, 'Terradue.Portal.Scheduler, Terradue.Portal', NULL, 'Scheduler', 'Schedulers', 'schedulers');
-CALL add_type(NULL, 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', NULL, 'Scheduler run configuration', 'Schedulers run configurations', 'schedulers-run-configs');
-CALL add_type(NULL, 'Terradue.Portal.Task, Terradue.Portal', NULL, 'Task', 'Tasks', 'tasks');
-CALL add_type(NULL, 'Terradue.Portal.Article, Terradue.Portal', NULL, 'News Article', 'News', 'news');
-CALL add_type(NULL, 'Terradue.Portal.Image, Terradue.Portal', NULL, 'Image', 'Images', 'images');
-CALL add_type(NULL, 'Terradue.Portal.Faq, Terradue.Portal', NULL, 'F.A.Q.', 'F.A.Q.', 'faqs');
-CALL add_type(NULL, 'Terradue.Portal.Project, Terradue.Portal', NULL, 'Project', 'Projects', 'projects');
-CALL add_type(NULL, 'Terradue.Portal.Activity, Terradue.Portal', NULL, 'Activity', 'Activities', 'activity');
--- RESULT
 -- CHECKPOINT C-01d
-
--- Initializing extended entity types ... \
-CALL add_type(NULL, 'Terradue.Portal.GlobusComputingElement, Terradue.Portal', 'Terradue.Portal.ComputingResource, Terradue.Portal', 'LGE/Globus Computing Element', 'LGE/Globus Computing Elements', NULL);
-CALL add_type(NULL, 'Terradue.Portal.WpsProvider, Terradue.Portal', 'Terradue.Portal.ComputingResource, Terradue.Portal', 'Web Processing Service Provider', 'Web Processing Service Providers', NULL);
-CALL add_type(NULL, 'Terradue.Portal.ScriptBasedService, Terradue.Portal', 'Terradue.Portal.Service, Terradue.Portal', 'Script-based service', 'Script-based services', NULL);
-CALL add_type(NULL, 'Terradue.Portal.WpsProcessOffering, Terradue.Portal', 'Terradue.Portal.Service, Terradue.Portal', 'WPS process offering', 'WPS process offerings', NULL);
-CALL add_type(NULL, 'Terradue.Portal.CustomScheduler, Terradue.Portal', 'Terradue.Portal.Scheduler, Terradue.Portal', 'Custom action scheduler', 'Custom action schedulers', NULL);
-CALL add_type(NULL, 'Terradue.Portal.TimeDrivenRunConfiguration, Terradue.Portal', 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', 'Time-driven scheduler run configuration', 'Time-driven scheduler run configurations', NULL);
-CALL add_type(NULL, 'Terradue.Portal.DataDrivenRunConfiguration, Terradue.Portal', 'Terradue.Portal.SchedulerRunConfiguration, Terradue.Portal', 'Data-driven scheduler run configuration', 'Data-driven scheduler run configurations', NULL);
--- RESULT
--- CHECKPOINT C-01e
 
 /*****************************************************************************/
 
 CREATE TABLE priv (
     id int unsigned NOT NULL auto_increment,
+    identifier varchar(50) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL COMMENT 'Unique identifier',
+    name varchar(50) NOT NULL COMMENT 'Human-readable name',
     id_type int unsigned COMMENT 'FK: Entity type',
-    operation char(1) NOT NULL COLLATE latin1_general_cs COMMENT 'Operation type (one-letter code: c|m|a|p|d|o|V|A)',
+    operation char(1) COLLATE latin1_general_cs COMMENT 'Operation type (one-letter code)',
     pos smallint unsigned COMMENT 'Position for ordering',
-    name varchar(50) NOT NULL,
     enable_log boolean NOT NULL default false COMMENT 'If true, activity related to this privilege are logged',
     CONSTRAINT pk_priv PRIMARY KEY (id),
     CONSTRAINT fk_priv_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
-    UNIQUE INDEX (name)
-) Engine=InnoDB COMMENT 'Manager privileges';
+    UNIQUE INDEX (identifier)
+) Engine=InnoDB COMMENT 'Privileges';
 -- CHECKPOINT C-02a
 
--- Initializing manager privileges ... \
-INSERT INTO priv (id_type, operation, pos, name) VALUES
-    (11, 'v', 1, 'User: view'),
-    (11, 'c', 2, 'User: create'),
-    (11, 'm', 3, 'User: change'),
-    (11, 'p', 4, 'User: make public'),
-    (11, 'd', 5, 'User: delete'),
-    (11, 'V', 6, 'User: view related'),
-    (11, 'A', 7, 'User: assign global'),
-    (12, 'v', 8, 'Group: view'),
-    (12, 'c', 9, 'Group: create'),
-    (12, 'm', 10, 'Group: change'),
-    (12, 'p', 11, 'Group: make public'),
-    (12, 'd', 12, 'Group: delete'),
-    (12, 'V', 13, 'Group: view public'),
-    (12, 'A', 14, 'Group: assign public'),
-    (14, 'v', 15, 'Computing resource: view'),
-    (14, 'c', 16, 'Computing resource: create'),
-    (14, 'm', 17, 'Computing resource: change'),
-    (14, 'p', 18, 'Computing resource: make public'),
-    (14, 'd', 19, 'Computing resource: delete'),
-    (14, 'V', 20, 'Computing resource: view public'),
-    (14, 'A', 21, 'Computing resource: assign public'),
-    (15, 'v', 22, 'Catalogue: view'),
-    (15, 'c', 23, 'Catalogue: create'),
-    (15, 'm', 24, 'Catalogue: change'),
-    (15, 'p', 25, 'Catalogue: make public'),
-    (15, 'd', 26, 'Catalogue: delete'),
-    (15, 'V', 27, 'Catalogue: view public'),
-    (15, 'A', 28, 'Catalogue: assign public'),
-    (16, 'v', 29, 'Series: view'),
-    (16, 'c', 30, 'Series: create'),
-    (16, 'm', 31, 'Series: change'),
-    (16, 'p', 32, 'Series: make public'),
-    (16, 'd', 33, 'Series: delete'),
-    (16, 'V', 34, 'Series: view public'),
-    (16, 'A', 35, 'Series: assign public'),
-    (17, 'v', 36, 'Product type: view'),
-    (17, 'c', 37, 'Product type: create'),
-    (17, 'm', 38, 'Product type: change'),
-    (17, 'p', 39, 'Product type: make public'),
-    (17, 'd', 40, 'Product type: delete'),
-    (17, 'V', 41, 'Product type: view public'),
-    (17, 'A', 42, 'Product type: assign public'),
-    (18, 'v', 43, 'Publish server: view'),
-    (18, 'c', 44, 'Publish server: create'),
-    (18, 'm', 45, 'Publish server: change'),
-    (18, 'p', 46, 'Publish server: make public'),
-    (18, 'd', 47, 'Publish server: delete'),
-    (18, 'V', 48, 'Publish server: view public'),
-    (18, 'A', 49, 'Publish server: assign public'),
-    (19, 'v', 50, 'Service: view'),
-    (19, 'c', 51, 'Service: create'),
-    (19, 'm', 52, 'Service: change'),
-    (19, 'p', 53, 'Service: make public'),
-    (19, 'd', 54, 'Service: delete'),
-    (19, 'V', 55, 'Service: view public'),
-    (19, 'A', 56, 'Service: assign public'),
-    (20, 'm', 57, 'Scheduler: control'),
-    (21, 'm', 58, 'Task: control'),
-    (22, 'v', 59, 'Article: view'),
-    (22, 'c', 60, 'Article: create'),
-    (22, 'm', 61, 'Article: change'),
-    (22, 'd', 62, 'Article: delete'),
-    (23, 'v', 63, 'Image: view'),
-    (23, 'c', 64, 'Image: create'),
-    (23, 'm', 65, 'Image: change'),
-    (23, 'd', 66, 'Image: delete'),
-    (24, 'v', 67, 'FAQ: view'),
-    (24, 'c', 68, 'FAQ: create'),
-    (24, 'm', 69, 'FAQ: change'),
-    (24, 'd', 70, 'FAQ: delete'),
-    (25, 'v', 71, 'Project: view'),
-    (25, 'c', 72, 'Project: create'),
-    (25, 'm', 73, 'Project: change'),
-    (25, 'd', 74, 'Project: delete')
+-- Initializing privileges ... \
+INSERT INTO priv (identifier, name, id_type, operation, pos) VALUES
+    ('usr-c', 'Users: create', 11, 'c', 1),
+    ('usr-s', 'Users: search', 11, 's', 2),
+    ('usr-v', 'Users: view', 11, 'v', 3),
+    ('usr-m', 'Users: change', 11, 'm', 4),
+    ('usr-M', 'Users: manage', 11, 'M', 5),
+    ('usr-d', 'Users: delete', 11, 'd', 6),
+    ('grp-c', 'Groups: create', 12, 'c', 7),
+    ('grp-s', 'Groups: search', 12, 's', 8),
+    ('grp-v', 'Groups: view', 12, 'v', 9),
+    ('grp-m', 'Groups: change', 12, 'm', 10),
+    ('grp-M', 'Groups: manage', 12, 'M', 11),
+    ('grp-d', 'Groups: delete', 12, 'd', 12),
+    ('cr-c', 'Computing resources: create', 14, 'c', 13),
+    ('cr-s', 'Computing resources: search', 14, 's', 14),
+    ('cr-v', 'Computing resources: view', 14, 'v', 15),
+    ('cr-u', 'Computing resources: use', 14, 'u', 16),
+    ('cr-m', 'Computing resources: change', 14, 'm', 17),
+    ('cr-M', 'Computing resources: manage', 14, 'M', 18),
+    ('cr-d', 'Computing resources: delete', 14, 'd', 19),
+    ('catalogue-c', 'Catalogues: create', 15, 'c', 20),
+    ('catalogue-s', 'Catalogues: search', 15, 's', 21),
+    ('catalogue-v', 'Catalogues: view', 15, 'v', 22),
+    ('catalogue-u', 'Catalogues: use', 15, 'u', 23),
+    ('catalogue-m', 'Catalogues: change', 15, 'm', 24),
+    ('catalogue-M', 'Catalogues: manage', 15, 'M', 25),
+    ('catalogue-d', 'Catalogues: delete', 15, 'd', 26),
+    ('series-c', 'Series: create', 16, 'c', 27),
+    ('series-s', 'Series: search', 16, 's', 28),
+    ('series-v', 'Series: view', 16, 'v', 29),
+    ('series-u', 'Series: use', 16, 'u', 30),
+    ('series-m', 'Series: change', 16, 'm', 31),
+    ('series-M', 'Series: manage', 16, 'M', 32),
+    ('series-d', 'Series: delete', 16, 'd', 33),
+    ('pubserver-c', 'Publish servers: create', 18, 'c', 34),
+    ('pubserver-s', 'Publish servers: search', 18, 's', 35),
+    ('pubserver-v', 'Publish servers: view', 18, 'v', 36),
+    ('pubserver-u', 'Publish servers: use', 18, 'u', 37),
+    ('pubserver-m', 'Publish servers: change', 18, 'm', 38),
+    ('pubserver-M', 'Publish servers: manage', 18, 'M', 39),
+    ('pubserver-d', 'Publish servers: delete', 18, 'd', 40),
+    ('service-c', 'Processing services: create', 19, 'c', 41),
+    ('service-s', 'Processing services: search', 19, 's', 42),
+    ('service-v', 'Processing services: view', 19, 'v', 43),
+    ('service-u', 'Processing services: use', 19, 'u', 44),
+    ('service-m', 'Processing services: change', 19, 'm', 45),
+    ('service-M', 'Processing services: manage', 19, 'M', 46),
+    ('service-d', 'Processing services: delete', 19, 'd', 47),
+    ('scheduler-M', 'Schedulers: control', 20, 'M', 48),
+    ('task-M', 'Tasks: control', 22, 'M', 49),
+    ('news-c', 'News items: create', NULL, 'c', 50),
+    ('news-s', 'News items: search', NULL, 's', 51),
+    ('news-v', 'News items: view', NULL, 'v', 52),
+    ('news-m', 'News items: change', NULL, 'm', 53),
+    ('news-d', 'News items: delete', NULL, 'd', 54)
 ;
 -- RESULT
 -- CHECKPOINT C-02b
@@ -389,6 +373,8 @@ CREATE TABLE domain (
     id int unsigned NOT NULL auto_increment,
     name varchar(100) NOT NULL COMMENT 'Unique name',
     description text COMMENT 'Description',
+    kind tinyint unsigned COMMENT 'Kind of domain',
+    icon_url varchar(200) COMMENT 'Icon URL',
     CONSTRAINT pk_domain PRIMARY KEY (id),
     UNIQUE INDEX (name)
 ) Engine=InnoDB COMMENT 'Domains';
@@ -398,26 +384,121 @@ CREATE TABLE domain (
 
 CREATE TABLE role (
     id int unsigned NOT NULL auto_increment,
-    id_domain int unsigned COMMENT 'FK: Managed domain',
-    name varchar(100) NOT NULL COMMENT 'Unique name',
+    identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
+    name varchar(100) NOT NULL COMMENT 'Human-readable name',
     description text COMMENT 'Description',
     count INT NULL COMMENT 'number of products',
     CONSTRAINT pk_role PRIMARY KEY (id),
-    CONSTRAINT fk_role_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL,
-    UNIQUE INDEX (name)
-) Engine=InnoDB COMMENT 'Manager roles';
+    UNIQUE INDEX (identifier)
+) Engine=InnoDB COMMENT 'Roles for users or groups';
 -- CHECKPOINT C-08
 
 /*****************************************************************************/
 
 CREATE TABLE role_priv (
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role',
-    id_priv int unsigned NOT NULL COMMENT 'FK: Manager privilege',
+    id_role int unsigned NOT NULL COMMENT 'FK: Role',
+    id_priv int unsigned NOT NULL COMMENT 'FK: Privilege',
+    int_value int COMMENT 'Value (optional)',
     CONSTRAINT pk_role_priv PRIMARY KEY (id_role, id_priv),
     CONSTRAINT fk_role_priv_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_priv_priv FOREIGN KEY (id_priv) REFERENCES priv(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of manager privileges to roles';
+) Engine=InnoDB COMMENT 'Associations of privileges to roles';
 -- CHECKPOINT C-09
+
+/*****************************************************************************/
+
+CREATE TABLE usr (
+    id int unsigned NOT NULL auto_increment,
+    username varchar(50) NOT NULL COMMENT 'Username',
+    id_domain int unsigned COMMENT 'FK: Owning domain',
+    status tinyint NOT NULL DEFAULT 4 COMMENT 'Account status, see lookup list "accountStatus"',
+    level tinyint unsigned NOT NULL DEFAULT 1 COMMENT '1: User, 2: Developer, 3: Admin',
+    email varchar(100) COMMENT 'Email address',
+    password varchar(50) COMMENT 'Password',
+    firstname varchar(50) COMMENT 'First name',
+    lastname varchar(50) COMMENT 'Last name',
+    affiliation varchar(100) COMMENT 'Affiliation, organization etc.',
+    country varchar(100) COMMENT 'Country',
+    language char(2) COMMENT 'Preferred language',
+    time_zone char(25) NOT NULL DEFAULT 'UTC' COMMENT 'Time zone',
+    normal_account boolean NOT NULL DEFAULT false COMMENT 'If true, auth/n settings are made in general configuration',
+    allow_password boolean NOT NULL DEFAULT true COMMENT 'If true, password authentication is allowed',
+    allow_sessionless boolean COMMENT 'If true, sessionless requests from trusted hosts are allowed',
+    force_trusted boolean COMMENT 'If true, only connections from trusted hosts are allowed',
+    force_ssl boolean NOT NULL DEFAULT false COMMENT 'If true, accept only SSL authentication',
+    debug_level tinyint unsigned NOT NULL DEFAULT 0 COMMENT 'Debug level (admins only), 3..6',
+    simple_gui boolean NOT NULL DEFAULT false COMMENT 'If true, simplified GUI is selected',
+    credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
+    task_storage_period smallint unsigned COMMENT 'Maximum lifetime of concluded tasks, 0 if endless',
+    publish_folder_size int unsigned COMMENT 'Maximum size of user''s publish folder',
+    proxy_username varchar(50) COMMENT 'Proxy username',
+    proxy_password varchar(50) COMMENT 'Proxy password',
+    cert_subject varchar(200) COMMENT 'Certificate subject',
+    last_password_change_time datetime COMMENT 'Date/time of last password change',
+    failed_logins int NOT NULL DEFAULT 0 COMMENT 'Number of failed login attempts after last successful login',
+    CONSTRAINT pk_usr PRIMARY KEY (id),
+    UNIQUE INDEX (username)
+) Engine=InnoDB COMMENT 'User accounts';
+-- CHECKPOINT C-16a
+
+-- Adding initial administrator user (username admin, password changeme) ... \
+INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
+    (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
+;
+-- RESULT
+-- CHECKPOINT C-16b
+
+/*****************************************************************************/
+
+CREATE TABLE grp (
+    id int unsigned NOT NULL auto_increment,
+    id_domain int unsigned COMMENT 'FK: Owning domain',
+    conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, group can be configured by other domains',
+    name varchar(50) NOT NULL COMMENT 'Unique name',
+    description text COMMENT 'Description',
+    priority smallint COMMENT 'Priority (optional)',
+    is_default boolean NOT NULL DEFAULT false COMMENT 'If true, group is automatically selected for new users',
+    all_resources boolean NOT NULL DEFAULT false COMMENT 'If true, new resources are automatically added to group',
+    CONSTRAINT pk_grp PRIMARY KEY (id),
+    UNIQUE INDEX (name)
+) Engine=InnoDB COMMENT 'User groups';
+-- CHECKPOINT C-25a
+
+-- Adding initial administrator group ... \
+INSERT INTO grp (name, description, all_resources) VALUES ('Administrators', 'Portal administrators', true);
+-- RESULT
+-- CHECKPOINT C-25b
+
+/*****************************************************************************/
+
+CREATE TABLE usr_grp (
+    id_usr int unsigned NOT NULL COMMENT 'FK: User',
+    id_grp int unsigned NOT NULL COMMENT 'FK: Group to which the user is assigned',
+    temp boolean NOT NULL DEFAULT false COMMENT 'True if record is temporary (for current session)',
+    CONSTRAINT pk_usr_grp PRIMARY KEY (id_usr, id_grp),
+    CONSTRAINT fk_usr_grp_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_usr_grp_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of users to groups';
+-- CHECKPOINT C-26a
+
+-- Assigning administror user the administrator group ... \
+INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN grp AS t1 WHERE t.username='admin' AND t1.name='Administrators';
+-- RESULT
+-- CHECKPOINT C-26b
+
+/*****************************************************************************/
+
+CREATE TABLE rolegrant (
+    id_usr int unsigned COMMENT 'FK: User (id_usr or id_grp must be set)',
+    id_grp int unsigned COMMENT 'FK: Group (id_usr or id_grp must be set)',
+    id_role int unsigned NOT NULL COMMENT 'FK: Role to which the user/group is assigned',
+    id_domain int unsigned COMMENT 'FK: Domain for which the user/group has the role',
+    CONSTRAINT fk_rolegrant_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rolegrant_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of users/groups to roles for domains';
+-- CHECKPOINT C-24
 
 /*****************************************************************************/
 
@@ -1336,49 +1417,6 @@ CREATE TABLE schedulerclass (
 
 /*****************************************************************************/
 
-CREATE TABLE usr (
-    id int unsigned NOT NULL auto_increment,
-    username varchar(50) NOT NULL COMMENT 'Username',
-    id_domain int unsigned COMMENT 'FK: Owning domain',
-    status tinyint NOT NULL DEFAULT 4 COMMENT 'Account status, see lookup list "accountStatus"',
-    level tinyint unsigned NOT NULL DEFAULT 1 COMMENT '1: User, 2: Developer, 3: Admin',
-    email varchar(100) COMMENT 'Email address',
-    password varchar(50) COMMENT 'Password',
-    firstname varchar(50) COMMENT 'First name',
-    lastname varchar(50) COMMENT 'Last name',
-    affiliation varchar(100) COMMENT 'Affiliation, organization etc.',
-    country varchar(100) COMMENT 'Country',
-    language char(2) COMMENT 'Preferred language',
-    time_zone char(25) NOT NULL DEFAULT 'UTC' COMMENT 'Time zone',
-    normal_account boolean NOT NULL DEFAULT false COMMENT 'If true, auth/n settings are made in general configuration',
-    allow_password boolean NOT NULL DEFAULT true COMMENT 'If true, password authentication is allowed',
-    allow_sessionless boolean COMMENT 'If true, sessionless requests from trusted hosts are allowed',
-    force_trusted boolean COMMENT 'If true, only connections from trusted hosts are allowed',
-    force_ssl boolean NOT NULL DEFAULT false COMMENT 'If true, accept only SSL authentication',
-    debug_level tinyint unsigned NOT NULL DEFAULT 0 COMMENT 'Debug level (admins only), 3..6',
-    simple_gui boolean NOT NULL DEFAULT false COMMENT 'If true, simplified GUI is selected',
-    credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
-    task_storage_period smallint unsigned COMMENT 'Maximum lifetime of concluded tasks, 0 if endless',
-    publish_folder_size int unsigned COMMENT 'Maximum size of user''s publish folder',
-    proxy_username varchar(50) COMMENT 'Proxy username',
-    proxy_password varchar(50) COMMENT 'Proxy password',
-    cert_subject varchar(200) COMMENT 'Certificate subject',
-    last_password_change_time datetime COMMENT 'Date/time of last password change',
-    failed_logins int NOT NULL DEFAULT 0 COMMENT 'Number of failed login attempts after last successful login',
-    CONSTRAINT pk_usr PRIMARY KEY (id),
-    UNIQUE INDEX (username)
-) Engine=InnoDB COMMENT 'User accounts';
--- CHECKPOINT C-16a
-
--- Adding initial administrator user (username admin, password changeme) ... \
-INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
-    (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
-;
--- RESULT
--- CHECKPOINT C-16b
-
-/*****************************************************************************/
-
 CREATE TABLE usr_auth (
     id_usr int unsigned NOT NULL COMMENT 'FK: User',
     id_auth int unsigned NOT NULL COMMENT 'FK: Authentication type',
@@ -1465,55 +1503,6 @@ CREATE TABLE filter (
 
 /*****************************************************************************/
 
-CREATE TABLE usr_role (
-    id_usr int unsigned NOT NULL COMMENT 'FK: User',
-    id_role int unsigned NOT NULL COMMENT 'FK: Manager role to which the user is assigned',
-    CONSTRAINT pk_usr_role PRIMARY KEY (id_usr, id_role),
-    CONSTRAINT fk_usr_role_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_role_role FOREIGN KEY (id_role) REFERENCES role(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of users to manager roles';
--- CHECKPOINT C-24
-
-/*****************************************************************************/
-
-CREATE TABLE grp (
-    id int unsigned NOT NULL auto_increment,
-    id_domain int unsigned COMMENT 'FK: Owning domain',
-    conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, group can be configured by other domains',
-    name varchar(50) NOT NULL COMMENT 'Unique name',
-    description text COMMENT 'Description',
-    priority smallint COMMENT 'Priority (optional)',
-    is_default boolean NOT NULL DEFAULT false COMMENT 'If true, group is automatically selected for new users',
-    all_resources boolean NOT NULL DEFAULT false COMMENT 'If true, new resources are automatically added to group',
-    CONSTRAINT pk_grp PRIMARY KEY (id),
-    UNIQUE INDEX (name)
-) Engine=InnoDB COMMENT 'User groups';
--- CHECKPOINT C-25a
-
--- Adding initial administrator group ... \
-INSERT INTO grp (name, description, all_resources) VALUES ('Administrators', 'Portal administrators', true);
--- RESULT
--- CHECKPOINT C-25b
-
-/*****************************************************************************/
-
-CREATE TABLE usr_grp (
-    id_usr int unsigned NOT NULL COMMENT 'FK: User',
-    id_grp int unsigned NOT NULL COMMENT 'FK: Group to which the user is assigned',
-    temp boolean NOT NULL DEFAULT false COMMENT 'True if record is temporary (for current session)',
-    CONSTRAINT pk_usr_grp PRIMARY KEY (id_usr, id_grp),
-    CONSTRAINT fk_usr_grp_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_usr_grp_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'Assignments of users to groups';
--- CHECKPOINT C-26a
-
--- Assigning administror user the administrator group ... \
-INSERT INTO usr_grp (id_usr, id_grp) SELECT t.id, t1.id FROM usr AS t INNER JOIN grp AS t1 WHERE t.username='admin' AND t1.name='Administrators';
--- RESULT
--- CHECKPOINT C-26b
-
-/*****************************************************************************/
-
 CREATE TABLE lge (
     id int unsigned NOT NULL auto_increment,
     name varchar(50) NOT NULL COMMENT 'Unique name',
@@ -1551,15 +1540,15 @@ CREATE TABLE cr (
 
 /*****************************************************************************/
 
-CREATE TABLE cr_priv (
+CREATE TABLE cr_perm (
     id_cr int unsigned NOT NULL COMMENT 'FK: Computing resource',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
     credits int unsigned NOT NULL DEFAULT 0 COMMENT 'Maximum resource credits for the user',
-    CONSTRAINT fk_cr_priv_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cr_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cr_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on computing resources';
+    CONSTRAINT fk_cr_perm_cr FOREIGN KEY (id_cr) REFERENCES cr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cr_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cr_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on computing resources';
 -- CHECKPOINT C-29
 
 /*****************************************************************************/
@@ -1687,14 +1676,17 @@ END;
 
 /*****************************************************************************/
 
-CREATE TABLE series_priv (
+CREATE TABLE series_perm (
     id_series int unsigned NOT NULL COMMENT 'FK: Series',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_series_priv_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
-    CONSTRAINT fk_series_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_series_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on series';
+    can_search boolean COMMENT 'If true, user/group has product search permission',
+    can_download boolean COMMENT 'If true, user/group has download permission',
+    can_process boolean COMMENT 'If true, user/group has processing permission',
+    CONSTRAINT fk_series_perm_series FOREIGN KEY (id_series) REFERENCES series(id) ON DELETE CASCADE,
+    CONSTRAINT fk_series_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_series_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on series';
 -- CHECKPOINT C-36
 
 /*****************************************************************************/
@@ -1722,14 +1714,14 @@ CREATE TABLE producttype (
 
 /*****************************************************************************/
 
-CREATE TABLE producttype_priv (
+CREATE TABLE producttype_perm (
     id_producttype int unsigned NOT NULL COMMENT 'FK: Product type',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_producttype_priv_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
-    CONSTRAINT fk_producttype_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_producttype_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on product types';
+    CONSTRAINT fk_producttype_perm_producttype FOREIGN KEY (id_producttype) REFERENCES producttype(id) ON DELETE CASCADE,
+    CONSTRAINT fk_producttype_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_producttype_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on product types';
 -- CHECKPOINT C-38
 
 /*****************************************************************************/
@@ -1764,12 +1756,14 @@ CREATE TABLE productdata (
 CREATE TABLE resourceset (
     id int unsigned NOT NULL auto_increment,
     identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
+    id_domain int unsigned COMMENT 'FK: Owning domain',
     id_usr int unsigned COMMENT 'FK: Owning user (optional)',
     name varchar(50) COMMENT 'Name',
     is_default boolean DEFAULT false COMMENT 'If true, resource set is selected by default',
     access_key varchar(50) COMMENT 'Access key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
     CONSTRAINT pk_resourceset PRIMARY KEY (id),
+    CONSTRAINT fk_resourceset_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE SET NULL,
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_resourceset_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Sets of remote resources';
@@ -1777,14 +1771,14 @@ CREATE TABLE resourceset (
 
 /*****************************************************************************/
 
-CREATE TABLE resourceset_priv (
+CREATE TABLE resourceset_perm (
     id_resourceset int unsigned NOT NULL COMMENT 'FK: Resource set',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_resourceset_priv_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
-    CONSTRAINT fk_resourceset_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_resourceset_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on resource sets';
+    CONSTRAINT fk_resourceset_perm_resourceset FOREIGN KEY (id_resourceset) REFERENCES resourceset(id) ON DELETE CASCADE,
+    CONSTRAINT fk_resourceset_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_resourceset_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on resource sets';
 -- CHECKPOINT C-42
 
 /*****************************************************************************/
@@ -1828,14 +1822,14 @@ CREATE TABLE pubserver (
 
 /*****************************************************************************/
 
-CREATE TABLE pubserver_priv (
+CREATE TABLE pubserver_perm (
     id_pubserver int unsigned NOT NULL COMMENT 'FK: Publish server',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_pubserver_priv_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
-    CONSTRAINT fk_pubserver_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_pubserver_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on publish servers';
+    CONSTRAINT fk_pubserver_perm_pubserver FOREIGN KEY (id_pubserver) REFERENCES pubserver(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pubserver_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pubserver_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on publish servers';
 -- CHECKPOINT C-45
 
 /*****************************************************************************/
@@ -1859,6 +1853,7 @@ CREATE TABLE service (
     all_input boolean COMMENT 'If true, service accepts all non-manual series as input',
     created datetime,
     modified datetime,
+    tags varchar(150) NULL DEFAULT NULL COMMENT 'Tags describing the service',
     CONSTRAINT pk_service PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_service_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
@@ -1880,15 +1875,15 @@ END;
 
 /*****************************************************************************/
 
-CREATE TABLE service_priv (
+CREATE TABLE service_perm (
     id_service int unsigned NOT NULL COMMENT 'FK: Service',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
     allow_scheduling boolean COMMENT 'If true, user can schedule the service',
-    CONSTRAINT fk_service_priv_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
-    CONSTRAINT fk_service_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_service_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on services';
+    CONSTRAINT fk_service_perm_service FOREIGN KEY (id_service) REFERENCES service(id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on services';
 -- CHECKPOINT C-47
 
 /*****************************************************************************/
@@ -2303,14 +2298,14 @@ CREATE TABLE safe (
 
 /*****************************************************************************/
 
-CREATE TABLE safe_priv (
+CREATE TABLE safe_perm (
     id_safe int unsigned NOT NULL COMMENT 'FK: Safe',
     id_usr int unsigned COMMENT 'FK: User',
     id_grp int unsigned COMMENT 'FK: Group',
-    CONSTRAINT fk_safe_priv_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
-    CONSTRAINT fk_safe_priv_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
-    CONSTRAINT fk_safe_priv_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
-) Engine=InnoDB COMMENT 'User/group privileges on safe';
+    CONSTRAINT fk_safe_perm_safe FOREIGN KEY (id_safe) REFERENCES safe(id) ON DELETE CASCADE,
+    CONSTRAINT fk_safe_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_safe_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on safes';
 -- CHECKPOINT C-71
 
 /*****************************************************************************/

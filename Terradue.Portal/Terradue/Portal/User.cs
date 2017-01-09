@@ -41,7 +41,6 @@ namespace Terradue.Portal {
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
     public class User : Entity {
 
-        private string password;
         private string activationToken;
         private bool emailChanged;
         
@@ -207,9 +206,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        */
         public User(IfyContext context) : base(context) {}
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -218,7 +215,7 @@ namespace Terradue.Portal {
         /// \ingroup Authorisation
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created User object.</returns>
-        public static new User GetInstance(IfyContext context) {
+        public static User GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(User));
             return (User)entityType.GetEntityInstance(context); 
         }
@@ -241,12 +238,14 @@ namespace Terradue.Portal {
         /// <param name="authenticationType">The used authentication type. This parameter can be null. If specified, the username is looked for only among the external usernames of the specified authentication type, otherwise among the web portal's own usernames.</param>
         /// <returns>The User instance. New users are not stored in the database, this must be done by the calling code.</returns>
         public static User GetOrCreate(IfyContext context, string username, AuthenticationType authenticationType) {
-            EntityType userType = EntityType.GetEntityType(typeof(User));
             User result = null;
             Activity activity = null;
             int userId = GetUserId(context, username, authenticationType);
             if (userId != 0) {
+                var oldAccessLevel = context.AccessLevel;
+                context.AccessLevel = EntityAccessLevel.Administrator;
                 result = FromId(context, userId);
+                context.AccessLevel = oldAccessLevel;
                 activity = new Activity(context, result, OperationPriv.LOGIN);
                 activity.Store();
                 return result;
@@ -264,7 +263,7 @@ namespace Terradue.Portal {
                 authType = IfyWebContext.GetAuthenticationType(typeof(PasswordAuthenticationType));
                 result.SessionlessRequestsAllowed = (authType != null && authType.NormalAccountRule == RuleApplicationType.Always);
 
-                activity = new Activity(context, result, OperationPriv.CREATE);
+                activity = new Activity(context, result, EntityOperationType.Create);
                 activity.Store();
 
                 return result;
@@ -302,11 +301,9 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new User instance representing the user with the specified ID.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">the user ID</param>
         /// <returns>the created User object</returns>
-        */
         public static User FromId(IfyContext context, int id) {
             User result = GetInstance(context);
             result.Id = id;
@@ -316,22 +313,33 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new User instance representing the user with the specified unique name.</summary>
-        /*!
+        /// <summary>Creates a new User instance representing the user with the specified ID, ignoring permission- and privliege-based restrictions.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">the user ID</param>
+        /// <returns>the created User object</returns>
+        public static User ForceFromId(IfyContext context, int id) {
+            User result = GetInstance(context);
+            result.Id = id;
+            result.Load(EntityAccessLevel.Administrator);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="name">the unique user username</param>
         /// <returns>the created User object</returns>
-        */
         public static User FromUsername(IfyContext context, string username) {
             User result = GetInstance(context);
             result.Identifier = username;
-            result.Load();
+            result.Load(EntityAccessLevel.Administrator);
             return result;
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Returns a User instance representing the user with the specified ID or username.</summary>
+        /// <summary>Returns a User instance representing the user with the specified ID or username, ignoring permission- and privliege-based restrictions.</summary>
         /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="s">a search value that must match the User ID (preferred) or username</param>
@@ -342,14 +350,14 @@ namespace Terradue.Portal {
             User result = GetInstance(context);
             result.Id = id;
             result.Identifier = s;
-            result.Load();
+            result.Load(EntityAccessLevel.Administrator);
             return result;
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         public static void SetAccountStatus(IfyContext context, int[] ids, int accountStatus) {
-            if (!context.AdminMode) context.ReturnError("You are not authorized to enable or disable user accounts");
+            if (context.AccessLevel != EntityAccessLevel.Administrator) throw new EntityUnauthorizedException("You are not authorized to enable or disable user accounts", null, null, 0);
             string idsStr = "";
             for (int i = 0; i < ids.Length; i++) idsStr += (idsStr == "" ? "" : ",") + ids[i]; 
             string sql = String.Format("UPDATE usr SET status={0}{1} WHERE id{2};", 
@@ -380,7 +388,7 @@ namespace Terradue.Portal {
             if (ProfileExtension != null && !IgnoreExtensions) {
                 if (isNew) ProfileExtension.OnCreating(context, this); ProfileExtension.OnChanging(context, this);
             }
-            int appendix = 0;
+            //int appendix = 0;
             if (emailChanged) {
                 NeedsEmailConfirmation = true;
                 if (context.AutomaticUserMails) SendMail(UserMailType.EmailChanged, true);
@@ -470,8 +478,7 @@ namespace Terradue.Portal {
                 string errorMessage;
                 if (type == UserMailType.Registration && !forAuthenticatedUser) errorMessage = "Your account could not be created due to a server misconfiguration (registration mail cannot be sent)";
                 else errorMessage = "Mail cannot be sent, missing values in SMTP account configuration (hostname or sender address)" + (context.UserLevel < UserLevel.Administrator ? ", this is a site administration issue" : String.Empty);
-                context.ReturnError(errorMessage);
-                return false;
+                throw new Exception(errorMessage);
             }
 
             Load();
@@ -484,7 +491,7 @@ namespace Terradue.Portal {
                     body = context.GetConfigValue("RegistrationMailBody");
                     html = context.GetConfigBooleanValue("RegistrationMailHtml");
                     if (subject == null) subject = "Accout registration"; 
-                    if (body == null) body = String.Format("Dear sir/madam,\n\nThank you for registering on {0}.\n\nYour username is: {1}\nYour password is: {2}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please ignore it.", context.GetConfigValue("SiteName"), Username, password);
+                    if (body == null) body = String.Format("Dear sir/madam,\n\nThank you for registering on {0}.\n\nYour username is: {1}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please ignore it.", context.GetConfigValue("SiteName"), Username);
                     break;
                     
                 case UserMailType.PasswordReset :
@@ -492,7 +499,7 @@ namespace Terradue.Portal {
                     body = context.GetConfigValue("PasswordResetMailBody");
                     html = context.GetConfigBooleanValue("PasswordResetMailHtml");
                     if (subject == null) subject = "Password reset"; 
-                    if (body == null) body = String.Format("Dear sir/madam,\n\nYour password for your user account on {0} has been changed.\n\nYour username is: {1}\nYour password is: {2}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your password has changed.", context.GetConfigValue("SiteName"), Username, password);
+                    if (body == null) body = String.Format("Dear sir/madam,\n\nYour password for your user account on {0} has been changed.\n\nYour username is: {1}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your password has changed.", context.GetConfigValue("SiteName"), Username);
                     break;
 
                 case UserMailType.EmailChanged :
@@ -515,10 +522,9 @@ namespace Terradue.Portal {
             body = body.Replace("$(", "$" + activationToken + "(");
             body = body.Replace("$" + activationToken + "(USERCAPTION)", Caption);
             body = body.Replace("$" + activationToken + "(USERNAME)", Username);
-            body = body.Replace("$" + activationToken + "(PASSWORD)", password);
             body = body.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
             body = body.Replace("$" + activationToken + "(SITEURL)", context.HostUrl);
-            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.HostUrl).Replace("$(TOKEN)", activationToken));
+            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.GetConfigValue ("BaseUrl")).Replace("$(TOKEN)", activationToken));
             if (body.Contains("$" + activationToken + "(SERVICES)")) {
                 body = body.Replace("$" + activationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
             }
@@ -545,7 +551,9 @@ namespace Terradue.Portal {
                 smtpUsername = null;
                 client.Credentials = null;
                 client.UseDefaultCredentials = false;
-            } else if (smtpUsername != null) client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
+            } else if (smtpUsername != null) {
+                client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
+            }
             if (smtpPassword == String.Empty) smtpPassword = null;
 
             if (smtpPort > 0)
@@ -559,7 +567,7 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 if (e.Message.Contains("CDO.Message") || e.Message.Contains("535")) context.AddError("Mail could not be sent, this is a site administration issue (probably caused by an invalid SMTP hostname or wrong SMTP server credentials)");
                 else context.AddError("Mail could not be sent, this is a site administration issue: " + e.Message);
-                throw e;
+                throw;
             }
             return true;
         }
