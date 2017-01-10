@@ -205,6 +205,22 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Gets or sets the registration origin.
+        /// </summary>
+        /// <value>The registration origin.</value>
+        public string RegistrationOrigin { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets or sets the registration date.
+        /// </summary>
+        /// <value>The registration date.</value>
+        public DateTime RegistrationDate { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new User instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public User(IfyContext context) : base(context) {}
@@ -373,12 +389,28 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public void LoadRegistrationInfo() { 
+            string sql = String.Format ("SELECT reg_origin, reg_date FROM usrreg WHERE id_usr={0};", this.Id);
+            System.Data.IDbConnection dbConnection = context.GetDbConnection ();
+            System.Data.IDataReader reader = context.GetQueryResult (sql, dbConnection);
+            if (reader.Read ()) {
+                if(reader.GetValue(0) != DBNull.Value) 
+                    RegistrationOrigin = reader.GetString (0);
+                if (reader.GetValue (1) != DBNull.Value)
+                    RegistrationDate = reader.GetDateTime (1);
+            }
+            context.CloseQueryResult (reader, dbConnection);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public override void Load() {
             base.Load();
             if (AccountStatus > AccountStatusType.Enabled) {
                 NeedsEmailConfirmation = ((AccountStatus & AccountFlags.NeedsEmailConfirmation) != 0);
                 AccountStatus = (AccountStatus & 7);
             }
+            LoadRegistrationInfo();
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -443,7 +475,12 @@ namespace Terradue.Portal {
         protected void CreateActivationToken() {
             activationToken = Guid.NewGuid().ToString();
             context.Execute(String.Format("DELETE FROM usrreg WHERE id_usr={0};", Id));
-            context.Execute(String.Format("INSERT INTO usrreg (id_usr, token) VALUES ({0}, '{1}');", Id, activationToken));
+            var sql = String.Format ("INSERT INTO usrreg (id_usr, token, reg_date, reg_origin) VALUES ({0}, {1}, {2}, {3});",
+                                          Id,
+                                          StringUtils.EscapeSql (activationToken),
+                                          StringUtils.EscapeSql (DateTime.UtcNow.ToString (@"yyyy\-MM\-dd\THH\:mm\:ss")),
+                                     string.IsNullOrEmpty (RegistrationOrigin) ? "NULL" : StringUtils.EscapeSql (RegistrationOrigin));
+            context.Execute(sql);
         }
         
         //---------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
--- VERSION 2.7.2
+-- VERSION 2.7.3
 
 USE $MAIN$;
 
@@ -1471,6 +1471,8 @@ CREATE TABLE usrreg (
     id_usr int unsigned NOT NULL COMMENT 'FK: User',
     token varchar(50) COMMENT 'Unique activation token (automatically generated UID)',
     reset boolean NOT NULL DEFAULT false COMMENT 'If true, password reset was requested',
+    reg_date DATETIME NULL,
+    reg_origin VARCHAR(50) NULL DEFAULT NULL,
     CONSTRAINT pk_usr PRIMARY KEY (id_usr),
     CONSTRAINT fk_usrreg_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User registration or password reset requests';
