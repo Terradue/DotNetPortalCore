@@ -15,6 +15,11 @@ using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.Portal.OpenSearch;
 using Terradue.ServiceModel.Syndication;
+
+
+
+
+
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +40,7 @@ namespace Terradue.Portal {
 
 
     public abstract class EntityCollection {
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         protected IfyContext context;
@@ -91,6 +96,8 @@ namespace Terradue.Portal {
         private T template;
         private OpenSearchEngine ose;
         private Dictionary<FieldInfo, string> filterValues;
+        private int itemsPerPage, startIndex, page;
+        private bool selectByPage;
 
         public EntityType EntityType {
             get { return entityType; }
@@ -136,6 +143,67 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether the result is divided into pages only one of which is contained in the resulting collection.</summary>
+        public bool UsePaging { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultItemsPerPage { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultItemOffset { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultPageOffset { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the maximum number of items per result page.</summary>
+        public int ItemsPerPage {
+            get {
+                return itemsPerPage;
+            }
+            set {
+                itemsPerPage = value;
+                UsePaging = true;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the position of the first item of the result to be obtained.</summary>
+        /// <remarks>The counting of items starts with the value of the static property <c>IndexOffset</c> (its default value is 0).</remarks>
+        public int StartIndex {
+            get {
+                return startIndex;
+            }
+            set {
+                startIndex = value;
+                UsePaging = true;
+                selectByPage = false; // calculate OFFSET using StartIndex
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the result page to be obtained.</summary>
+        /// <remarks>The number of the first page corresponds to the static property <c>PageOffset</c> (its default value is 1).</remarks>
+        public int Page {
+            get {
+                return page;
+            }
+            set {
+                page = value;
+                UsePaging = true;
+                selectByPage = true; // calculate OFFSET using Page and ItemsPerPage
+            }
+
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityCollection(IfyContext context) : this(context, null, null) {
             this.entityType = GetEntityStructure();
         }
@@ -147,6 +215,24 @@ namespace Terradue.Portal {
             if (context != null) this.UserId = context.UserId;
             this.entityType = entityType;
             this.ReferringItem = referringItem;
+            this.UsePaging = false;
+            this.itemsPerPage = DefaultItemsPerPage;
+            this.startIndex = DefaultItemOffset;
+            this.page = DefaultPageOffset;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        static EntityCollection() {
+            SetOpenSearchDefaults(null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static void SetOpenSearchDefaults(IfyContext context) {
+            DefaultItemsPerPage = 20;
+            DefaultItemOffset = 0;
+            DefaultPageOffset = 1;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -174,9 +260,12 @@ namespace Terradue.Portal {
 
             Clear();
 
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
             string sql;
-            if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true);
+            if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -220,10 +309,13 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
             string sql;
-            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, true);
-            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true);
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, true, limit, offset);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -251,10 +343,13 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
             string sql;
-            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false);
-            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, false);
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false, limit, offset);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, false, limit, offset);
 
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
@@ -277,7 +372,11 @@ namespace Terradue.Portal {
         /// <param name="groupIds">An array of database IDs of groups</param>
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
-            string sql = entityType.GetGroupQuery(context, groupIds, false, null);
+
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
+            string sql = entityType.GetGroupQuery(context, groupIds, false, null, limit, offset);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();

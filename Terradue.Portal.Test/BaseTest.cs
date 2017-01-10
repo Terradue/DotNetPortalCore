@@ -35,9 +35,9 @@ namespace Terradue.Portal.Test {
             if (BaseDirectory == null) BaseDirectory = Directory.GetCurrentDirectory() + "/../..";
 
             AdminTool adminTool = new AdminTool(DataDefinitionMode.Create, BaseDirectory, null, connectionString);
-            adminTool.Process();
 
             try {
+                adminTool.Process();
                 context = IfyContext.GetLocalContext(connectionString, false);
                 context.Open();
                 context.LoadConfiguration();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -119,6 +120,44 @@ namespace Terradue.Portal.Test {
             pd5.Load();
             Assert.IsTrue(pd5.Count == 2);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
+        }
+
+        [Test]
+        public void PagingTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+
+            for (int i = 1; i <= 50; i++) {
+                Series series = new Series(context);
+                series.Identifier = String.Format("SERIES{0}", i);
+                series.Name = String.Format("Series {0}", i);
+                series.Store();
+            }
+
+            EntityDictionary<Series> sd1 = new EntityDictionary<Series>(context);
+            sd1.Load();
+            Assert.IsTrue(sd1.Count == 50);
+
+            EntityDictionary<Series> sd2 = new EntityDictionary<Series>(context);
+            sd2.Page = 1;
+            sd2.Load();
+            Assert.IsTrue(sd2.Count == 20);
+            Series s2 = sd2.FirstOrDefault((s => true));
+            Assert.IsTrue(s2.Identifier == "SERIES1");
+
+            EntityDictionary<Series> sd3 = new EntityDictionary<Series>(context);
+            sd3.Page = 2;
+            sd3.Load();
+            Assert.IsTrue(sd3.Count == 20);
+            Series s3 = sd3.FirstOrDefault((s => true));
+            Assert.IsTrue(s3.Identifier == "SERIES21");
+
+            EntityDictionary<Series> sd4 = new EntityDictionary<Series>(context);
+            sd4.StartIndex = 13;
+            sd4.ItemsPerPage = 17;
+            sd4.Load();
+            Assert.IsTrue(sd4.Count == 17);
+            Series s4 = sd4.FirstOrDefault((s => true));
+            Assert.IsTrue(s4.Identifier == "SERIES14");
         }
     }
 
