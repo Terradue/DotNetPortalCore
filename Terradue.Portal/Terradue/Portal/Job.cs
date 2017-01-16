@@ -95,8 +95,7 @@ namespace Terradue.Portal {
         public Job Add(string name, string jobType) {
             Job job = Job.ForTask(context, task, name, jobType);
             if (dict.ContainsKey(name)) {
-                throw new Exception("Duplicate job name \"" + name + "\"");
-                return job;
+                throw new InvalidOperationException("Duplicate job name \"" + name + "\"");
             }
             dict.Add(name, job);
             Array.Resize(ref items, items.Length + 1);
@@ -185,7 +184,6 @@ namespace Terradue.Portal {
                 // This indicates a wrong job creation routine and is a fatal error for the creation of the task.  
                 if (!allInputJobsBefore) {
                     throw new Exception("There are cyclic job dependencies involving " + (items.Length - i) + " jobs.");
-                    break;
                 }
             }
             jobs.Clear();
@@ -211,10 +209,7 @@ namespace Terradue.Portal {
     public class Job : Entity, IFlowNode {
         
         public static string PublishJobType = "Publish";
-        private ServiceOperationType operationType;
-        
-        private bool canChangeParameters;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the ID of the task to which the job belongs.</summary>
@@ -462,7 +457,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}";
                 else url = "/tasks/jobs?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -475,7 +470,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/details";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/details";
                 else url = "/tasks/jobs/details?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -488,7 +483,7 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext.AdminRootUrl != null) url = "{2}/{3}/{5}/{6}/{1}/parameters";  
                 else if (webContext != null && webContext.TaskWorkspaceRootUrl != null) url = "{4}/{5}/{6}/{1}/parameters";
                 else url = "/tasks/jobs/parameters?id={0}";
                 return String.Format(url, Id, Name, webContext.AdminRootUrl, EntityType.GetEntityType(typeof(Task)).Keyword, webContext.TaskWorkspaceRootUrl, TaskIdentifier, webContext.TaskWorkspaceJobDir);
@@ -523,7 +518,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Job object</returns>
         */
-        public static new Job GetInstance(IfyContext context) {
+        public static Job GetInstance(IfyContext context) {
             return new Job(context);
         }
         
@@ -607,15 +602,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition {
-            get {
-                if (Task == null) return null;
-                return String.Format("t.id_task={0} AND t.name={1}", Task.Id, StringUtils.EscapeSql(Name));
-            }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         /// <summary>Loads the job information from the database.</summary>
         /*!
         /// <param name="condition">SQL conditional expression without WHERE keyword</param>
@@ -624,7 +610,7 @@ namespace Terradue.Portal {
             base.Load();
             Exists = true;
 
-            if (Task != null && TaskId != Task.Id) context.ReturnError("The requested job does not belong to the task", "invalidJob");
+            if (Task != null && TaskId != Task.Id) throw new InvalidOperationException("The requested job does not belong to the task");
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -648,6 +634,13 @@ namespace Terradue.Portal {
             Exists = true;
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override string GetIdentifyingConditionSql() {
+            if (Task == null) return null;
+            return String.Format("t.id_task={0} AND t.name={1}", Task.Id, StringUtils.EscapeSql(Name));
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public static string GetSqlQuery(string condition, string sorting) {
@@ -983,8 +976,7 @@ namespace Terradue.Portal {
             //s = ;
             //context.AddInfo("ws jobResubmit: " + s);
             if (Status < ProcessingStatus.Active) {
-                context.ReturnError("The job is not running");
-                return false;
+                throw new ProcessingException("The job is not running", null, this);
             }
             
             if (!Loaded) LoadParameters();
@@ -1007,8 +999,7 @@ namespace Terradue.Portal {
             //s = ;
             //context.AddInfo("ws jobResubmit: " + s);
             if (Status == ProcessingStatus.Completed) {
-                context.ReturnError("The job is already completed");
-                return false;
+                throw new ProcessingException("The job is already completed", null, this);
             }
 
             bool result = Task.ComputingResource.CompleteJob(this);

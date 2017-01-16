@@ -233,8 +233,8 @@ namespace Terradue.Portal {
             get {
                 string url;
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{0}/tasks";  
-                else if (context.AdminMode) url = "admin/task.aspx?scheduler={1}";
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext != null && webContext.AdminRootUrl != null) url = "{2}/{3}/{0}/tasks";  
+                else if (AccessLevel == EntityAccessLevel.Administrator) url = "admin/task.aspx?scheduler={1}";
                 else if (webContext != null && webContext.SchedulerWorkspaceRootUrl != null) url = "{4}/{0}/tasks"; 
                 else url = "tasks/?scheduler={1}";
                 return String.Format(url, Exists ? Identifier : String.Empty, Exists ? Id.ToString() : String.Empty, webContext.AdminRootUrl, EntityType.GetEntityType(this.GetType()).Keyword, webContext.SchedulerWorkspaceRootUrl);
@@ -246,8 +246,8 @@ namespace Terradue.Portal {
         public string TasksRelativeUrlSqlExpression {
             get {
                 IfyWebContext webContext = context as IfyWebContext;
-                if (context.AdminMode && webContext != null && webContext.AdminRootUrl != null) return String.Format("CONCAT('{0}/{1}/', t.identifier, '/tasks')", webContext.AdminRootUrl, EntityType.GetEntityType(this.GetType()).Keyword);  
-                else if (context.AdminMode) return "CONCAT('admin/task.aspx/scheduler=', t.id)";
+                if (AccessLevel == EntityAccessLevel.Administrator && webContext != null && webContext.AdminRootUrl != null) return String.Format("CONCAT('{0}/{1}/', t.identifier, '/tasks')", webContext.AdminRootUrl, EntityType.GetEntityType(this.GetType()).Keyword);  
+                else if (AccessLevel == EntityAccessLevel.Administrator) return "CONCAT('admin/task.aspx/scheduler=', t.id)";
                 else if (webContext != null && webContext.SchedulerWorkspaceRootUrl != null) return String.Format("CONCAT('{0}/', t.identifier, '/tasks')", webContext.SchedulerWorkspaceRootUrl); 
                 else return "CONCAT('tasks/?scheduler=', t.id)";
             }
@@ -313,7 +313,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new TaskScheduler instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created TaskScheduler object.</returns>
-        public static new SchedulerTaskConfiguration GetInstance(IfyContext context) {
+        public static SchedulerTaskConfiguration GetInstance(IfyContext context) {
             return new SchedulerTaskConfiguration(context);
         }
 

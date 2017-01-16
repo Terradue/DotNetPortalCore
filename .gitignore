@@ -8,4 +8,5 @@ Terradue.Portal/obj
 Terradue.Portal.AdminTool/obj
 Terradue.Portal.Agent/obj
 Terradue.Portal.Test/obj
+db-conn.txt
 build

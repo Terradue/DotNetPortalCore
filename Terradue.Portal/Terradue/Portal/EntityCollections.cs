@@ -15,6 +15,11 @@ using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.Portal.OpenSearch;
 using Terradue.ServiceModel.Syndication;
+
+
+
+
+
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -23,8 +28,8 @@ using Terradue.ServiceModel.Syndication;
 
 
 
-namespace Terradue.Portal
-{
+
+namespace Terradue.Portal {
 
 
 
@@ -34,75 +39,7 @@ namespace Terradue.Portal
 
 
 
-    /// <summary>Interface that defines methods for different types of collections of entities of the same type.</summary>
-    /// <remarks>This interface defines the minimum functionality that an entity collection must provide regarding reading and writing access for the collection and for loading and storing the items of the collection in the database.</remarks>
-    public interface IEntityCollection<T> {
-        
-        IEnumerable<T> Items { get; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Indicates or determines whether the entity collection should contain only items owned by the current user.</summary>
-        /// <remarks>This setting has only effect if the underlying Entity type has an owner reference.</remarks>
-        bool OwnedItemsOnly { get; set; }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads the entity collection where each item has the correct instance type.</summary>
-        /// <remarks>Only entity collections loaded with this method can be stored back into the database.</remarks>
-        void Load();
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads the entity collection where items have a generic instance type.</summary>
-        /// <remarks>If the collections's entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
-        void LoadReadOnly();
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Stores the entity list.</summary>
-        void Store();
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Stores the entity list removing the items that are not contained in the collection.</summary>
-        void StoreExactly();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Loads a list of items that are accessible by the specified groups.</summary>
-        /// <param name="groupIds">An array of database IDs of groups</param>
-        void LoadGroupAccessibleItems(int[] groupIds);
-
-        //---------------------------------------------------------------------------------------------------------------------
-        
-        /// <summary>Temporarilly unlinks all items from the collection to prepare the addition of new and substitution of existing items.</summary>
-        /// <remarks>The items are not deleted from the collection, but their flag IsInCollection is set to <i>false</i>. This allows to recognize items that are not contained any longer in the collection after the update of the list has taken place.</remarks>
-        void PrepareUpdate();
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Includes an item in the collection.</summary>
-        /// <parameter name="item">The item to be included.</parameter>
-        void Include(T item);
-        
-    }
-
-    
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-
-    
-
-    /// <summary>A list of entities of a specific type.</summary>
-    public abstract class EntityCollection<T> : IEntityCollection<T>, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
-
-        private EntityType entityType;
-        private T template;
-        private OpenSearchEngine ose;
+    public abstract class EntityCollection {
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -110,12 +47,7 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public T Template {
-            get {
-                if (template == null) template = entityType.GetEntityInstance(context) as T;
-                return template;
-            }
-        }
+        public PrivilegeSet PrivilegeSet { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -143,16 +75,132 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indictes whether a .</summary>
+        /// <remarks></remarks>
+        public abstract bool CanSearch { get; }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>A list of entities of a specific type.</summary>
+    public abstract class EntityCollection<T> : EntityCollection, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
+
+        private EntityType entityType;
+        private T template;
+        private OpenSearchEngine ose;
+        private Dictionary<FieldInfo, string> filterValues;
+        private int itemsPerPage, startIndex, page;
+        private bool selectByPage;
+
+        public EntityType EntityType {
+            get { return entityType; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets a template object of this collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
+        /// <remarks>The template object is created automatically if it is accessed.</remarks>
+        public T Template {
+            get {
+                if (template == null) template = entityType.GetEntityInstance(context) as T;
+                return template;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets an IEnumerable of all items contained in this collection.</summary>
         public abstract IEnumerable<T> Items { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the number of items in the collection.</summary>
+        /// <summary>Gets or sets the <see cref="EntityDictionary"/> that is used as an alternative source for the content reusing existing item instances.</summary>
+        protected EntityDictionary<T> ItemSource { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the number of items in this collection.</summary>
         public abstract int Count { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether this collection is currently being loaded.</summary>
+        /// <remarks>This property is used internally for optimization of duplicate checking and similar.</remarks>
         protected bool IsLoading { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override bool CanSearch {
+            get { return true; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the result is divided into pages only one of which is contained in the resulting collection.</summary>
+        public bool UsePaging { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultItemsPerPage { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultItemOffset { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static int DefaultPageOffset { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the maximum number of items per result page.</summary>
+        public int ItemsPerPage {
+            get {
+                return itemsPerPage;
+            }
+            set {
+                itemsPerPage = value;
+                UsePaging = true;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the position of the first item of the result to be obtained.</summary>
+        /// <remarks>The counting of items starts with the value of the static property <c>IndexOffset</c> (its default value is 0).</remarks>
+        public int StartIndex {
+            get {
+                return startIndex;
+            }
+            set {
+                startIndex = value;
+                UsePaging = true;
+                selectByPage = false; // calculate OFFSET using StartIndex
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the result page to be obtained.</summary>
+        /// <remarks>The number of the first page corresponds to the static property <c>PageOffset</c> (its default value is 1).</remarks>
+        public int Page {
+            get {
+                return page;
+            }
+            set {
+                page = value;
+                UsePaging = true;
+                selectByPage = true; // calculate OFFSET using Page and ItemsPerPage
+            }
+
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -167,6 +215,24 @@ namespace Terradue.Portal
             if (context != null) this.UserId = context.UserId;
             this.entityType = entityType;
             this.ReferringItem = referringItem;
+            this.UsePaging = false;
+            this.itemsPerPage = DefaultItemsPerPage;
+            this.startIndex = DefaultItemOffset;
+            this.page = DefaultPageOffset;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        static EntityCollection() {
+            SetOpenSearchDefaults(null);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public static void SetOpenSearchDefaults(IfyContext context) {
+            DefaultItemsPerPage = 20;
+            DefaultItemOffset = 0;
+            DefaultPageOffset = 1;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -182,7 +248,7 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the entity list where each item has the correct instance type.</summary>
+        /// <summary>Loads the entity collection so that each item has the correct instance type.</summary>
         /// <remarks>Only entity lists loaded with this method can be stored back into the database.</remarks>
         public virtual void Load() {
             Identifier = entityType.Keyword;
@@ -194,7 +260,12 @@ namespace Terradue.Portal
 
             Clear();
 
-            string sql = (OwnedItemsOnly ? entityType.GetListQueryForOwnedItems(context, UserId, true) : entityType.GetListQueryWithTemplate(context, UserId, template, true));
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
+            string sql;
+            if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -209,9 +280,10 @@ namespace Terradue.Portal
             foreach (int id in ids) {
                 if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
                 T item = entityType.GetEntityInstanceFromId(context, id) as T;
+                item.UserId = UserId;
+                item.UserId = UserId;
                 item.Load(id);
                 IncludeInternal(item);
-                if (context.ConsoleDebug) Console.WriteLine("    -> LIST COUNT = ", Count);
             }
             IsLoading = false;
             if (template != null) foreach (T item in this) AlignWithTemplate(item, false);
@@ -221,8 +293,8 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the entity list where items have a generic instance type.</summary>
-        /// <remarks>If the collections's entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
+        /// <summary>Loads the items of the entity collection so that each item has the same instance type, the base type or a generic type.</summary>
+        /// <remarks>If this collections's underlying entity type has extensions, the collection contains items of the generic instance type of the (often abstract) base type. The generic instance type is usually not complete and has no functionality. Entity collections loaded with this method cannot be stored back into the database.</remarks>
         public virtual void LoadReadOnly() {
             IsReadOnly = true;
             LoadList();
@@ -230,13 +302,54 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Loads the items of the entity collection from another collection rather than from the database.</summary>
+        /// <param name="source">The source collection from which the items are obtained.</param>
+        /// <param name="ignoreMissingItems">Decides whether items that should be contained in the resulting collection but are missing in the source collection are ignored or whether an exception is thrown.</param>
+        public void LoadFromSource(EntityDictionary<T> source, bool ignoreMissingItems) {
+            this.IsReadOnly = true;
+            this.ItemSource = source;
+
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
+            string sql;
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, true, limit, offset);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
+            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+
+            List<int> ids = new List<int>();
+
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IsLoading = true;
+            while (reader.Read()) ids.Add(reader.GetInt32(0));
+            context.CloseQueryResult(reader, dbConnection);
+
+            IsLoading = true;
+            foreach (int id in ids) {
+                if (context.ConsoleDebug) Console.WriteLine("ID = {0}", id);
+                if (!source.Contains(id)) {
+                    if (ignoreMissingItems) continue;
+                    throw new EntityNotFoundException("{0} not found in source collection", EntityType, EntityType.GetItemTerm(id));
+                }
+                IncludeInternal(source[id]);
+            }
+            IsLoading = false;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         protected virtual void LoadList() {
             Clear();
 
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
             string sql;
-            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false);
-            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false);
-            else sql = entityType.GetListQueryWithTemplate(context, UserId, template, false);
+            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false, limit, offset);
+            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false, limit, offset);
+            else sql = entityType.GetListQuery(context, UserId, template, filterValues, false, limit, offset);
 
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
@@ -245,7 +358,7 @@ namespace Terradue.Portal
             IsLoading = true;
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader);
+                item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -259,14 +372,18 @@ namespace Terradue.Portal
         /// <param name="groupIds">An array of database IDs of groups</param>
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
-            string sql = entityType.GetGroupQuery(context, groupIds, false, null);
+
+            int limit = (UsePaging ? ItemsPerPage : -1);
+            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+
+            string sql = entityType.GetGroupQuery(context, groupIds, false, null, limit, offset);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader);
+                item.Load(entityType, reader, EntityAccessLevel.None);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -300,13 +417,13 @@ namespace Terradue.Portal
         /// <remarks></remearks>
         protected virtual void StoreList(bool removeOthers, bool onlyNewItems) {
 
-            if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity list");
+            if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity collection");
 
-            bool isRelationship = (entityType is EntityRelationshipType);
+            //bool isRelationship = (entityType is EntityRelationshipType);
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
-                if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
-                else item.Store();
+                /*if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
+                else*/ item.Store();
             }
 
             // TODO: This was done before the storage of the contained items (previous block).
@@ -315,7 +432,7 @@ namespace Terradue.Portal
             string sql = null;
 
             if (entityType is EntityRelationshipType) {
-                sql = String.Format("{1}={0}", ReferringItem.Id, entityType.TopStoreTable.ReferringItemField);
+                sql = String.Format("{1}={0}", ReferringItem.Id, storeTable.ReferringItemField);
 
             } else {
                 if (removeOthers) {
@@ -367,23 +484,21 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public abstract T GetItem(string identifier);
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         public T CreateItem(string identifier) {
             return entityType.GetEntityInstanceFromIdentifier(context, identifier) as T;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns a new instance of the item of the underlying type.
+        /// <returns>The created item.</returns>
         public T CreateItem() {
             return entityType.GetEntityInstance(context) as T;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>Includes an item in the collection.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         public void Include(T item) {
             AlignWithTemplate(item, true);
@@ -392,20 +507,27 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>Includes an item in the collection according to the of internal mechanism the derived class.</summary>
         /// <parameter name="item">The item to be included.</parameter>
-        protected abstract void IncludeInternal(T item);
+        protected virtual void IncludeInternal(T item) {
+            if (!IsReadOnly && item.Collection == null) {
+                item.Collection = this;
+                item.IsInCollection = true;
+            }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns a list of the items contained in this collection.</summary>
         public virtual List<T> GetItemsAsList() {
             return new List<T>(Items);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Sets the template.</summary>
-        /// <param name="item">The item.</param>
+        /// <summary>Aligns the properties of the specified item with the values in the template.</summary>
+        /// <param name="item">The item whose properties are to be aligned with the template.</param>
+        /// <param name="all">Decides whether all properties are aligned or only those that link to other entities.</param>
         protected void AlignWithTemplate(T item, bool all) {
             if (template == null) return;
 
@@ -430,6 +552,44 @@ namespace Terradue.Portal
                     propertyInfo.SetValue(item, value, null);
                 }
             }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified property.</summary>
+        /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void SetFilter(string propertyName, string searchTerm) {
+            FieldInfo field = null;
+            if (propertyName == "Id") {
+                field = new FieldInfo(entityType.ClassType.GetProperty("Id"), 0, entityType.TopTable.IdField);
+            } else if (propertyName == "Identifier") {
+                if (entityType.TopTable.HasIdentifierField) field = new FieldInfo(entityType.ClassType.GetProperty("Identifier"), 0, entityType.TopTable.IdentifierField);
+            } else if (propertyName == "Name") {
+                if (entityType.TopTable.HasNameField) field = new FieldInfo(entityType.ClassType.GetProperty("Name"), 0, entityType.TopTable.NameField);
+            } else {
+                field = entityType.GetField(propertyName);
+            }
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
+            SetFilter(field, searchTerm);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
+        /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void SetFilter(FieldInfo field, string searchTerm) {
+            if (field == null) throw new ArgumentNullException("No filtering field specified");
+            if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
+            if (filterValues == null) filterValues = new Dictionary<FieldInfo, string>();
+            filterValues[field] = searchTerm;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ClearFilters() {
+            filterValues = null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -485,7 +645,18 @@ namespace Terradue.Portal
                 }
 
                 if (!string.IsNullOrEmpty(parameters["author"])) {
-                    if (!(User.FromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
+                    if (!(User.ForceFromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
+                }
+
+                if (!string.IsNullOrEmpty (parameters ["domain"])) {
+                    Domain domain;
+                    try {
+                        domain = Domain.FromIdentifier (context, parameters ["domain"]);
+                        if (s.Domain == null || s.Domain.Identifier != domain.Identifier) continue;
+                    } catch (Exception e){
+                        context.LogError (this, e.Message + "-" + e.StackTrace);
+                        continue;
+                    }
                 }
 
                 if (s is IAtomizable) {
@@ -645,6 +816,9 @@ namespace Terradue.Portal
             //add cache parameter
             query.Set ("disableCache", "{t2:cache?}");
 
+            //add domain
+            query.Set ("domain", "{t2:domain?}");
+
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
 
@@ -663,7 +837,11 @@ namespace Terradue.Portal
 
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+            T item = entityType.GetEntityInstance (context) as T;
+            if(item is IAtomizable) 
+                return ((IAtomizable)item).GetOpenSearchParameters();
+            else 
+                return OpenSearchFactory.GetBaseOpenSearchParameter();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -696,6 +874,7 @@ namespace Terradue.Portal
                 OpenSearchableChange (this, data);
             }
         }
+
     }
     
 
@@ -714,10 +893,7 @@ namespace Terradue.Portal
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the items.
-        /// </summary>
-        /// <value>The items.</value>
+        /// <summary>Gets an IEnumerable of all items contained in this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override IEnumerable<T> Items {
             get { return items; }
@@ -725,10 +901,7 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets the number of items in the collection.
-        /// </summary>
-        /// <value>The count.</value>
+        /// <summary>Gets the number of items in this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override int Count {
             get { return items.Count; }
@@ -736,18 +909,27 @@ namespace Terradue.Portal
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityList instance instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         public EntityList(IfyContext context) : base(context) {
             this.items = new List<T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityList instance instance for items related to another entity item.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entityType">The entity type to which the items of this dictionary refer.</param>
+        /// <param name="referringItem">The referring item to which the items in the dictionary are related (items belonging to an item of another entity type, e.g. resources of a specific resource set). This parameter is ignored if the underlying entity type's base table has no <c>ReferringItemField</c>.</param>
         public EntityList(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
             this.items = new List<T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityDictionary instance instance for items owned by the specified user.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="userId">The user who must be the owner of the items in the list.</param>
         public static EntityList<T> ForUser(IfyContext context, int userId) {
             EntityList<T> result = new EntityList<T>(context);
             result.UserId = userId;
@@ -756,7 +938,7 @@ namespace Terradue.Portal
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Removes all items from the list.</summary>
+        /// <summary>Removes all items from this list.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public override void Clear() {
             items.Clear();
@@ -764,22 +946,12 @@ namespace Terradue.Portal
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (identifier != null) {
-                foreach (T item in Items) {
-                    if (item.Identifier == identifier) return item;
-                }
-            }
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the list.</summary>
+        /// <summary>Includes an item in this list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         protected override void IncludeInternal(T item) {
+            base.IncludeInternal(item);
             T newItem = null;
             if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
@@ -787,7 +959,6 @@ namespace Terradue.Portal
                 }
             }
             if (newItem != null) items.Remove(newItem);
-            item.IsInCollection = true;
             items.Add(item);
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
@@ -804,72 +975,128 @@ namespace Terradue.Portal
 
     
 
-    /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique string identifier.</summary>
-    /// <remarks>The key type of the dictionary is <i>string</i>. The key value of an item is the identifier of the item (property Entity.Identifier).</remarks>
+    /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique numeric database (or temporary) ID or by their string identifier.</summary>
+    /// <remarks>
+    ///     <para>The key type of the dictionary can be both <i>int</i> or <i>string</i>.</para>
+    ///     <para>An <i>int</i> key is an item's database ID that corresponds to the property <see cref="Entity.Id"/> or, if the item does not exist in the database, a temporary negative number.</para>
+    ///     <para>A <i>string</i> key is an item's unique identifier <see cref="Entity.Identifier"/>. Not all entity types support identifiers; in those cases the <i>string</i> index is not usable.</para>
+    /// </remarks>
     public class EntityDictionary<T> : EntityCollection<T> where T : Entity {
 
-        private Dictionary<string, T> items;
-        
+        private Dictionary<int, T> itemsById;
+        private Dictionary<string, T> itemsByIdentifier;
+        private int temporaryId = 0; // decreases by 1 with every new added item that is not yet stored in the database
+
         //---------------------------------------------------------------------------------------------------------------------
 
-        public T this[string identifier] {
-            get { return items[identifier]; }
-        }
-        
-        //---------------------------------------------------------------------------------------------------------------------
-
+        /// <summary>Gets an IEnumerable of all items contained in this dictionary.</summary>
         public override IEnumerable<T> Items {
-            get { return items.Values; }
+            get { return itemsById.Values; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the dictionary item with the specified numeric value.</summary>
+        /// <remarks>The numeric value is the database ID if the item exists or, otherwise, a temporary negative value.</remarks>
+        public T this[int id] {
+            get { return itemsById[id]; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the dictionary item with the specified alphanumeric identifier.</summary>
+        /// <remarks>This accessor is only available if the underlying entity type supports identifiers.</remarks>
+        public T this[string identifier] {
+            get {
+                if (!EntityType.TopTable.HasIdentifierField) throw new InvalidOperationException(String.Format("An instance of {0} cannot be addressed by an identifier", EntityType.SingularCaption));
+                return itemsByIdentifier[identifier];
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public override int Count {
-            get { return items.Count; }
+            get { return itemsById.Count; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new EntityDictionary instance instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         public EntityDictionary(IfyContext context) : base(context) {
-            this.items = new Dictionary<string, T>();
+            this.itemsById = new Dictionary<int, T>();
+            this.itemsByIdentifier = new Dictionary<string, T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityDictionary instance instance related to another entity item.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entityType">The entity type to which the items of this dictionary refer.</param>
+        /// <param name="referringItem">The referring item to which the items in the dictionary are related (items belonging to an item of another entity type, e.g. resources of a specific resource set). This parameter is ignored if the underlying entity type's base table has no <c>ReferringItemField</c>.</param>
         public EntityDictionary(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
-            this.items = new Dictionary<string, T>();
+            this.itemsById = new Dictionary<int, T>();
+            this.itemsByIdentifier = new Dictionary<string, T>();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Removes all items from the list.</summary>
+        /// <summary>Removes all items from this dictionary.</summary>
         public override void Clear() {
-            items.Clear();
+            itemsById.Clear();
+            itemsByIdentifier.Clear();
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (identifier != null) return items[identifier];
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the dictionary.</summary>
+        /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
-            item.IsInCollection = true;
-            items[item.Identifier] = item;
+            base.IncludeInternal(item);
+            int itemId = (item.Exists ? item.Id : --temporaryId);
+            itemsById[itemId] = item;
+            if (EntityType.TopTable.HasIdentifierField) itemsByIdentifier[item.Identifier] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Checks whether this dictionary contains an item with the specified numeric key.</summary>
+        /// <returns><c>true</c> if the item was found, <c>false</c> otherwise.</returns>
+        /// <param name="key">The numeric key under which the item can be found in this dictionary. The numeric key is either the item's database ID or a temporary negative value.</param>
+        public bool Contains(int key) {
+            if (key == 0) return false;
+            return itemsById.ContainsKey(key);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Checks whether this dictionary contains an item with the specified alphanumeric key.</summary>
+        /// <returns><c>true</c> if the item was found, <c>false</c> otherwise.</returns>
+        /// <param name="key">The alphanumeric key under which the item can be found in this dictionary.</param>
+        public bool Contains(string key) {
+            if (key == null) return false;
+            return itemsByIdentifier.ContainsKey(key);
+        }
+
+        [Obsolete("Use matching overload of Contains")]
         public bool ContainsIdentifier(string identifier) {
-            if (identifier == null) return false;
-            return items.ContainsKey(identifier);
+            return Contains(identifier);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Updates the internal dictionary for the numeric IDs replacing temporary IDs with actual database IDs for items that have been stored recently.</summary>
+        public void UpdateIndex() {
+            foreach (int key in itemsById.Keys) {
+                if (key > 0) continue;
+                T item = itemsById[key];
+                if (item.Exists) {
+                    itemsById.Remove(key);
+                    itemsById[item.Id] = item;
+                }
+            }
         }
 
     }
@@ -884,6 +1111,7 @@ namespace Terradue.Portal
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their numeric ID.</summary>
     /// <remarks>The key type of the dictionary is <i>int</i>. The key value of an item is the database ID of the item (property Entity.Id).</remarks>
+    [Obsolete("EntityDictionary<T> supports also a numeric indexer for the items' IDs")]
     public class EntityIdDictionary<T> : EntityCollection<T> where T : Entity {
 
         private Dictionary<int, T> items;
@@ -927,28 +1155,11 @@ namespace Terradue.Portal
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-
-        public override T GetItem(string identifier) {
-            if (identifier != null) {
-                foreach (T item in Items) {
-                    if (item.Identifier == identifier) return item;
-                }
-            }
-            return CreateItem(identifier);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public virtual T GetItem(int id) {
-            if (id != 0) return items[id];
-            return CreateItem(null);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Includes an item in the dictionary.</summary>
+        /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
+            base.IncludeInternal(item);
             T newItem = null;
             if (!IsLoading && !AllowDuplicates && item.Identifier != null) {
                 foreach (T collectionItem in Items) {
@@ -956,7 +1167,6 @@ namespace Terradue.Portal
                 }
             }
             if (newItem != null) items.Remove(newItem.Id);
-            item.IsInCollection = true;
             items[item.Id] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }

@@ -21,10 +21,10 @@ namespace Terradue.Portal {
     /// <summary>
     /// Safe.
     /// </summary>
-    [EntityTable("safe", EntityTableConfiguration.Custom, HasOwnerReference = true, HasPrivilegeManagement = true)]
+    [EntityTable("safe", EntityTableConfiguration.Custom, HasOwnerReference = true, HasPermissionManagement = true)]
     public class Safe : Entity {
 
-        private static string SALT = "salt";
+        //private static string SALT = "salt";
 
         /// <summary>Gets the public key</summary>
         [EntityDataField("public_key")]
@@ -57,11 +57,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public override string AlternativeIdentifyingCondition{
-            get { 
-                if (UserId != 0) return String.Format("t.id_usr={0}",UserId); 
-                return null;
-            }
+        public override string GetIdentifyingConditionSql() {
+            if (UserId != 0) return String.Format("t.id_usr={0}", UserId); 
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

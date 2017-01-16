@@ -29,7 +29,7 @@ namespace Terradue.Portal {
                 System.IO.FileInfo fi = new System.IO.FileInfo(rootWebConfig.AppSettings.Settings["TerradueLogConfigurationFile"].Value);
                 XmlConfigurator.Configure(fi);
                 isLogActive = true;
-            } catch (Exception e) {
+            } catch (Exception) {
                 isLogActive = false;
             }
 
@@ -40,7 +40,7 @@ namespace Terradue.Portal {
             try {
                 XmlConfigurator.Configure(new System.IO.FileInfo(terradueConfigurationFilePath));
                 isLogActive = true;
-            } catch (Exception e) {
+            } catch (Exception) {
                 isLogActive = false;
             }
         }

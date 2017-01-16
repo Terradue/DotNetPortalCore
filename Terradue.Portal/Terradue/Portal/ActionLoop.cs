@@ -103,6 +103,7 @@ namespace Terradue.Portal {
             
             context = IfyContext.GetLocalContext(className, connectionString, console);
             context.Open();
+            context.AccessLevel = EntityAccessLevel.Administrator;
             autoEvent = new AutoResetEvent(false);
             timer = new Timer(new TimerCallback(OnTimer), autoEvent, 0, 1000 * interval);
         }

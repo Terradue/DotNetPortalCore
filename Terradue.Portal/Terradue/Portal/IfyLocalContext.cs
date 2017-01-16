@@ -130,7 +130,6 @@ namespace Terradue.Portal {
                 UserInformation = new UserInformation(null, User.FromUsername(this, username));
             }
             UserLevel = Terradue.Portal.UserLevel.Administrator;
-            RestrictedMode = false;
             //AdminMode = true;
             if (Application == null) {
                 logLevel = GetConfigIntegerValue("AgentLogLevel");

@@ -59,29 +59,29 @@ namespace Terradue.Portal {
         
         Publish servers may define a <b>download URL</b> different from the upload URL; if it is not defined, the download URL is assumed being the same as the upload URL.
     */
-    [EntityTable("pubserver", EntityTableConfiguration.Custom, NameField = "name", HasOwnerReference = true, HasPrivilegeManagement = true)]
+    [EntityTable("pubserver", EntityTableConfiguration.Custom, NameField = "name", HasOwnerReference = true, HasPermissionManagement = true)]
     public class PublishServer : Entity {
         
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("protocol")]
-        public string Protocol { get; protected set; }
+        public string Protocol { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("hostname")]
-        public string Hostname { get; protected set; }
+        public string Hostname { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("port")]
-        public int Port { get; protected set; }
+        public int Port { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
         [EntityDataField("path")]
-        public string Path { get; protected set; }
+        public string Path { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -129,30 +129,24 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        */
         public PublishServer(IfyContext context) : base(context) {}
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created PublishServer object</returns>
-        */
-        public static new PublishServer GetInstance(IfyContext context) {
+        public static PublishServer GetInstance(IfyContext context) {
             return new PublishServer(context);
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new PublishServer instance representing the publish server with the specified ID.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">the publish server ID</param>
         /// <returns>the created PublishServer object</returns>
-        */
         public static PublishServer FromId(IfyContext context, int id) {
             PublishServer result = new PublishServer(context);
             result.Id = id;
@@ -222,6 +216,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public override void Store() {
+            if (Name == null) Name = Identifier;
             base.Store();
             string credentials = (Username == null ? String.Empty : HttpUtility.UrlEncode(Username) + (Password == null ? String.Empty : ":" + HttpUtility.UrlEncode(Password)) + "@");
             UploadUrl = String.Format("{0}://{1}{2}{3}{4}",

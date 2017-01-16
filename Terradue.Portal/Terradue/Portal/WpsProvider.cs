@@ -304,6 +304,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Specify if the provider is a sandbox or is operational.
+        /// </summary>
+        public bool IsSandbox;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// The tags used to describe and filter the provider.
+        /// </summary>
+        public List<string> Tags;
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         protected OpenSearchEngine ose;
 
         public OpenSearchEngine OpenSearchEngine {
@@ -459,7 +473,7 @@ namespace Terradue.Portal {
             foreach (WpsProcessOffering process in processes) {
                 try {
                     process.Store();
-                } catch (Exception e) {
+                } catch (Exception) {
                     //do nothing, process already in db, skip it
                 }
             }
@@ -1010,7 +1024,7 @@ namespace Terradue.Portal {
                 string identifier = (fileElem != null && fileElem.HasAttribute("name") ? fileElem.Attributes["name"].Value : null);
                 XmlElement sizeElem = fileElem.SelectSingleNode("m:size", nsm) as XmlElement;
                 if (sizeElem != null) {
-                    int size;
+                    //int size;
                     //InTryParse();
                 }
                 task.OutputFiles.Add(new DataSetInfo(resource, identifier, 0, context.Now));
@@ -1200,7 +1214,7 @@ namespace Terradue.Portal {
             osd.Url = urls.ToArray();
 
 
-            OpenSearchDescriptionUrl urld = osd.Url[0];
+            //OpenSearchDescriptionUrl urld = osd.Url[0];
 
             query.Set("format", "json");
             urlb.Query = query.ToString();

@@ -58,7 +58,6 @@ namespace Terradue.Portal {
         }
 
         private int GetScore(Activity activity, int userId){
-            string sql = "";
             if (activity.OwnerId == userId)
                 return context.GetQueryIntegerValue(string.Format("SELECT score_owner FROM priv_score WHERE id_priv={0};", activity.PrivilegeId));
             if (activity.UserId == userId)

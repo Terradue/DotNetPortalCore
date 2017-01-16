@@ -36,7 +36,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Action instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created Action object.</returns>
-        public static new Action GetInstance(IfyContext context) {
+        public static Action GetInstance(IfyContext context) {
             return new Action(context);
         }
         

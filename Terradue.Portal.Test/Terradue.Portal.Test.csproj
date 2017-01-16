@@ -112,6 +112,9 @@
     <Reference Include="Terradue.ServiceModel.Syndication">
       <HintPath>..\packages\Terradue.ServiceModel.Syndication.1.0.2\lib\net40\Terradue.ServiceModel.Syndication.dll</HintPath>
     </Reference>
+    <Reference Include="Terradue.OpenSearch">
+      <HintPath>..\packages\Terradue.OpenSearch.1.13.2\lib\net40\Terradue.OpenSearch.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTest.cs" />
@@ -119,12 +122,15 @@
     <Compile Include="OpenSearchableTests.cs" />
     <Compile Include="EntityListOpenSearchTests.cs" />
     <Compile Include="WpsProcessOffering.Test.cs" />
-	<Compile Include="WpsProvider.Test.cs" />
+    <Compile Include="WpsProvider.Test.cs" />
     <Compile Include="SafeTest.cs" />
     <Compile Include="FeatureTest.cs" />
     <Compile Include="EntityTest.cs" />
     <Compile Include="Serialization.Test.cs" />
     <Compile Include="Mono.Options\Options.cs" />
+    <Compile Include="EntityCollectionTest.cs" />
+    <Compile Include="RolePrivilegeTests.cs" />
+    <Compile Include="TepScenarios.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

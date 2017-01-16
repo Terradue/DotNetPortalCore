@@ -4,6 +4,7 @@ using System.Data;
 using System.Web;
 using Terradue.OpenSearch;
 using Terradue.OpenSearch.Engine;
+using Terradue.OpenSearch.Engine.Extensions;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
@@ -19,7 +20,6 @@ using Terradue.Util;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Engine.Extensions;
 
 
 
@@ -128,7 +128,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Catalogue instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>The created Catalogue object.</returns>
-        public static new Catalogue GetInstance(IfyContext context) {
+        public static Catalogue GetInstance(IfyContext context) {
             return new Catalogue(context);
         }
         

@@ -63,7 +63,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Application object</returns>
         */
-        public static new Application GetInstance(IfyContext context) {
+        public static Application GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(Application));
             return (Application)entityType.GetEntityInstance(context); 
         }
@@ -105,7 +105,7 @@ namespace Terradue.Portal {
         public override void Load() {
             base.Load();
             
-            if (!Available) context.ReturnError("The application is temporarily unavailable");
+            if (!Available) throw new EntityUnavailableException("The application is temporarily unavailable", EntityType, this);
             
             ReadConfigurationFile(null);
         }
@@ -114,7 +114,7 @@ namespace Terradue.Portal {
 
         /// <summary>Reads a the configuration file of the application.</summary>
         public TaskTemplate ReadConfigurationFile(string templateName) {
-            if (ConfigurationFilename == null || !File.Exists(ConfigurationFilename)) context.ReturnError("Application configuration file not defined or not found");
+            if (ConfigurationFilename == null || !File.Exists(ConfigurationFilename)) throw new FileNotFoundException("Application configuration file not defined or not found", ConfigurationFilename);
 
             XmlDocument configDoc = new XmlDocument();
             XmlElement configElem = null;
@@ -122,7 +122,7 @@ namespace Terradue.Portal {
             try {
                 configDoc.Load(ConfigurationFilename);
             } catch (Exception e) {
-                context.ReturnError("Could not load process configurations" + (context.UserLevel == UserLevel.Administrator ? ": " + e.Message : String.Empty));
+                throw new FileLoadException("Could not load process configurations" + (context.UserLevel == UserLevel.Administrator ? ": " + e.Message : String.Empty), ConfigurationFilename);
             }
             
             if (!configurationRead) {
@@ -166,7 +166,7 @@ namespace Terradue.Portal {
             if (templateName == null) return null;
             
             XmlElement templateElem = configDoc.SelectSingleNode("/application/template[@name='" + templateName.Replace("'", "''") + "']") as XmlElement;
-            if (templateElem == null) context.ReturnError("The specified task template was not found");
+            if (templateElem == null) throw new EntityNotFoundException("The specified task template was not found");
             
             return TaskTemplate.FromXml(context, templateElem);
         }
@@ -272,7 +272,7 @@ namespace Terradue.Portal {
         
         protected void LoadFromXml(XmlElement templateElem) {
             AllowPending = true;
-            if (!templateElem.HasAttribute("name")) context.ReturnError("Template without name found in configuration file");
+            if (!templateElem.HasAttribute("name")) throw new Exception("Template without name found in configuration file");
             Identifier = templateElem.Attributes["name"].Value;
             Version = (templateElem.HasAttribute("version") ? templateElem.Attributes["version"].Value : "1.0.0"); 
             Available = templateElem.HasAttribute("available") && (templateElem.Attributes["available"].Value == "true" || templateElem.Attributes["available"].Value == "yes"); 

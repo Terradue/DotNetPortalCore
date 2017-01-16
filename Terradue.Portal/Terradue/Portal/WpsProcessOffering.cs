@@ -17,6 +17,7 @@ using System.IO;
 using OpenGis.Wps;
 using System.Xml;
 using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
+using System.Linq;
 
 namespace Terradue.Portal {
 
@@ -214,7 +215,10 @@ namespace Terradue.Portal {
         }
 
         public object Execute(Execute executeInput){
-            
+
+            //We first validate that the user can use the service
+            if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
+
             var executeHttpRequest = PrepareExecuteRequest(executeInput);        
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
@@ -289,6 +293,9 @@ namespace Terradue.Portal {
 
             return true;
         }
+        
+        //---------------------------------------------------------------------------------------------------------------------
+
         public new AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string providerUrl = null;
@@ -315,6 +322,41 @@ namespace Terradue.Portal {
 
             if (!IsSearchable (parameters)) return null;
 
+            //if query on parameter q we check one of the properties contains q
+            if (parameters ["q"] != null) {
+                string q = parameters ["q"].ToLower ();
+                if (!(name.ToLower ().Contains (q) || identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q))) return null;
+            }
+
+            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
+            if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
+                if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
+            }
+
+            //case of query for sandbox or operational provider
+            if (parameters ["sandbox"] != null){
+                if (parameters ["sandbox"] == "true" && !this.Provider.IsSandbox) return null;
+                if (parameters ["sandbox"] == "false" && this.Provider.IsSandbox) return null;
+            }
+
+            //case of query on provider hostname
+            if (parameters ["hostname"] != null) {
+                var uriHost = new UriBuilder (this.Provider.BaseUrl);
+                var r = new System.Text.RegularExpressions.Regex (parameters ["hostname"]);
+                var m = r.Match (uriHost.Host);
+                if (!m.Success) return null;
+            }
+
+            //case of query on service tags
+            if (parameters ["tag"] != null) {
+                var queryTags = parameters ["tag"].Split ("/".ToCharArray ()).ToList ();
+                var serviceTags = GetTagsAsList ();
+
+                foreach (var qtag in queryTags)
+                    if (!serviceTags.Any (str => str.Contains (qtag))) return null;
+                
+            }
+
             var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
             log.Debug("capabilities = " + capurl);
                 
@@ -334,7 +376,7 @@ namespace Terradue.Portal {
 
             try{
                 atomEntry = new AtomItem(name, description, capabilitiesUri, id.ToString(), DateTime.UtcNow);
-            }catch(Exception e){
+            } catch(Exception) {
                 atomEntry = new AtomItem();
             }
             log.Debug("Adding owscontext");
@@ -366,9 +408,16 @@ namespace Terradue.Portal {
                 entry.Publisher = (this.Provider != null ? this.Provider.Name : "Unknown");
             else
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
+
+            //categories
             if ( this.Provider.Id == 0 )
                 entry.Categories.Add(new SyndicationCategory("Discovered"));
+            if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
+            foreach (var tag in GetTagsAsList ()){
+                entry.Categories.Add (new SyndicationCategory (tag));
+            }
+
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
@@ -381,11 +430,14 @@ namespace Terradue.Portal {
             return new AtomItem(entry);
         }
 
-        public NameValueCollection GetOpenSearchParameters() {
+        public new NameValueCollection GetOpenSearchParameters() {
             var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
             parameters.Add("id", "{geo:uid?}");
             parameters.Add("wpsUrl", "{ows:url?}");
             parameters.Add("pid", "{ows:id?}");
+            parameters.Add ("sandbox", "{t2:sandbox?}");
+            parameters.Add ("hostname", "{t2:hostname?}");
+            parameters.Add ("tag", "{t2:tag?}");
             return parameters;
         }
 

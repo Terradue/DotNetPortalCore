@@ -1,13 +1,20 @@
 using System;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Data;
 using System.Collections.Generic;
-using System.Xml;
+using System.Collections.Specialized;
+using System.Data;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using Terradue.Util;
+using System.Xml;
+using Terradue.ServiceModel.Syndication;
 using Terradue.OpenSearch;
+using Terradue.OpenSearch.Engine;
+using Terradue.OpenSearch.Engine.Extensions;
+using Terradue.OpenSearch.Request;
+using Terradue.OpenSearch.Response;
+using Terradue.OpenSearch.Result;
+using Terradue.OpenSearch.Schema;
+using Terradue.Util;
 
 
 /*!
@@ -36,13 +43,6 @@ It implements the mechanism to search for the dataset defined in the series via 
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
-using Terradue.OpenSearch.Engine.Extensions;
-using Terradue.OpenSearch.Result;
-using Terradue.OpenSearch.Engine;
-using Terradue.OpenSearch.Request;
-using Terradue.OpenSearch.Response;
-using Terradue.OpenSearch.Schema;
-using Terradue.ServiceModel.Syndication;
 
 
 
@@ -143,7 +143,7 @@ namespace Terradue.Portal {
     /// <description>Represents a series of data sets that are available from a catalogue.</description>
     /// \ingroup Series
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
     public class Series : Entity, IOpenSearchable {
         
@@ -221,7 +221,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the ID of the catalogue hosting the series.</summary>
+        /// <summary>Gets or sets the database ID of the catalogue hosting this series.</summary>
         /// \ingroup Series
         [EntityDataField("id_catalogue", IsForeignKey = true)]
         public int CatalogueId {
@@ -236,10 +236,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Catalogue.
-        /// </summary>
-        /// <value>The catalogue.</value>
+        /// <summary>Gets or sets the catalogue hosting this series.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public Catalogue Catalogue {
             get {
@@ -259,22 +256,41 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the date/time when the last update was made to this series or its entries.</summary>
         [EntityDataField("last_update_time")]
         public DateTime LastUpdateTime { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the catalogue base URL.</summary>
+        /// <summary>Gets the unique identifier of the catalogue hosting this series.</summary>
         /// \ingroup Series
         [EntityForeignField("name", CATALOGUE_TABLE)]
         public string CatalogueIdentifier { get; protected set; } 
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Gets the catalogue base URL.</summary>
+        /// <summary>Gets the URL part shared by all series hosted by the catalogue like this series.</summary>
         /// \ingroup Series
         [EntityForeignField("base_url", CATALOGUE_TABLE)]
         public string CatalogueBaseUrl { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to search within this series.</summary>
+        [EntityPermissionField("can_search")]
+        public bool CanSearchWithin { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to download products from this series.</summary>
+        [EntityPermissionField("can_download")]
+        public bool CanDownload { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the current user is authorised to use products of this series for processing.</summary>
+        [EntityPermissionField("can_process")]
+        public bool CanProcess { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -307,7 +323,7 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Series instance.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created Series object</returns>
-        public static new Series GetInstance(IfyContext context) {
+        public static Series GetInstance(IfyContext context) {
             return new Series(context);
         }
         
@@ -351,7 +367,7 @@ namespace Terradue.Portal {
         /// <summary>Returns a Series instance representing the series with the specified ID or name.</summary>
         /// \ingroup Series
         /// <param name="context">The execution environment context.</param>
-        /// <param name="s">a search value that must match the series ID (preferred) or name</param>
+        /// <param name="s">a search value that must match the series ID (preferred) or name.</param>
         public static Series FromString(IfyContext context, string s) {
             int id = 0;
             Int32.TryParse(s, out id);
@@ -373,10 +389,9 @@ namespace Terradue.Portal {
         /// <param name="context">Context.</param>
         /// <param name="exists">If set to <c>true</c> exists.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static Series FromOpenSearchUrl (OpenSearchUrl osUrl, IfyContext context, Boolean exists = true)
-        {
+        public static Series FromOpenSearchUrl(OpenSearchUrl osUrl, IfyContext context, bool exists = true) {
             Series result = new Series (context);
-            OpenSearchDescription osdd = OpenSearchFactory.LoadOpenSearchDescriptionDocument (osUrl);
+            OpenSearchDescription osdd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(osUrl);
 
             result.Identifier = osdd.ShortName;
 
@@ -392,6 +407,13 @@ namespace Terradue.Portal {
 
         public static int GetIdFromName(IfyContext context, string identifier) {
             return context.GetQueryIntegerValue(String.Format("SELECT id FROM series WHERE identifier={0}", StringUtils.EscapeSql(identifier)));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void Store() {
+            if (Name == null) Name = Identifier;
+            base.Store();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -486,29 +508,6 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-/*        public static SeriesCollection GetRestrictedList(IfyContext context) {
-            SeriesCollection result = new SeriesCollection();
-            string sql = String.Format("SELECT DISTINCT t.id, t.identifier, t.name, t.description, t.cat_description, t.cat_template FROM series AS t INNER JOIN series_priv AS p ON t.id=p.id_series INNER JOIN usr_grp AS ug ON p.id_grp=ug.id_grp AND (p.id_usr={0} OR ug.id_usr={0}) WHERE {1};",
-                                       context.UserId,
-                                       "true" // condition
-                                       );
-            IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
-            while (reader.Read()) {
-                Series series = Series.GetInstance(context);
-                series.Id = reader.GetInt32(0);
-                series.Identifier = context.GetValue(reader, 1);
-                series.Name = context.GetValue(reader, 2);
-                series.Description = context.GetValue(reader, 3);
-                series.RawCatalogueDescriptionUrl = context.GetValue(reader, 4);
-                series.RawCatalogueUrlTemplate = context.GetValue(reader, 5);
-                result.Add(series.Identifier, series);
-            }
-            context.CloseQueryResult(reader, dbConnection);
-
-            return result;
-        }
-*/        
         /// <summary>Generates the corresponding OpenSearch description.</summary>
         /// <returns>An OpenSearch description document.</returns>
         /// \ingroup Series
@@ -618,7 +617,7 @@ namespace Terradue.Portal {
                             AtomFeed osr = (AtomFeed)ose.Query(this, new NameValueCollection(), typeof(AtomFeed));
                             totalResult = osr.TotalResults;
 
-                        } catch (Exception e) {
+                        } catch (Exception) {
                             // no error managment, set the number of product to 0
                             totalResult = 0;
                         }

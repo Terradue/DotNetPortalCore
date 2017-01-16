@@ -87,22 +87,17 @@ namespace Terradue.Portal {
     /// <description>Abstract base object for processing services.</description>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasPrivilegeManagement = true)]
+    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
     public abstract class Service : Entity, IAtomizable {
         private const int CLASS_TABLE = 1;
 
-        private double minPriority = 0, maxPriority = 0;
+        //private double minPriority = 0, maxPriority = 0;
         private bool serviceChecked, validService;
-
-
-        private string fileRootDir;
-        private string relativeUrl;
-        private int defaultComputingResourceId, defaultSeriesId;
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        [EntityPrivilegeField("allow_scheduling")]
+        [EntityPermissionField("allow_scheduling")]
         public bool CanSchedule { get; private set; }
         // TODO if (context.GetQueryBooleanValue(String.Format("SELECT allow_sessionless FROM usr WHERE id={0};", UserId))) return true;
 
@@ -111,6 +106,32 @@ namespace Terradue.Portal {
         /// <summary>Indicates whether the service is available to common users.</summary>
         [EntityDataField("available")]
         public bool Available { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// The tags used to describe and filter the service.
+        /// </summary>
+        [EntityDataField ("tags")]
+        public string tags { get; set; }
+
+        /// <summary>
+        /// Adds a tag to the tags list.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        public void AddTag (string tag) {
+            tags += string.IsNullOrEmpty (tags) ? tag : "," + tag;
+        }
+
+        /// <summary>
+        /// Gets the tags as list.
+        /// </summary>
+        /// <returns>The tags as list.</returns>
+        public List<string> GetTagsAsList () {
+            if (tags != null)
+                return tags.Split (",".ToCharArray ()).ToList ();
+            else return new List<string> ();
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -389,8 +410,8 @@ namespace Terradue.Portal {
         public virtual bool Check(int userId) {
             if (serviceChecked) return validService;
 
-            minPriority = 0;
-            maxPriority = 1;
+            //minPriority = 0;
+            //maxPriority = 1;
 
             UserId = userId;
             validService = true;
@@ -399,9 +420,9 @@ namespace Terradue.Portal {
                 if (UserId == context.UserId) {
                     validService = (context.UserLevel >= UserLevel.Administrator);
                     if (validService) context.AddWarning("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
-                    else context.ReturnError("You are not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    else throw new EntityUnauthorizedException("You are not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 } else {
-                    context.ReturnError("The owner is not authorized to use this service", "notAllowedService"); // !!! use exception and set class also for other entities
+                    throw new EntityUnauthorizedException("The owner is not authorized to use this service", EntityType, this, UserId); // !!! use exception and set class also for other entities
                 }
             }
 

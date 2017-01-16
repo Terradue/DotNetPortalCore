@@ -8,22 +8,25 @@ namespace Terradue.Portal.Test {
     public class EntityTest : BaseTest {
 
         [Test]
-        public void GlobalPrivilegeTest(){
+        public void GlobalPrivilegeTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
 
             Series s = new Series(context);
             s.Identifier = "s1";
             s.Name = s.Identifier;
             s.Store();
 
-            Assert.False(s.HasGlobalPrivilege());
-            s.StoreGlobalPrivileges();
-            Assert.True(s.HasGlobalPrivilege());
+            Assert.False(s.DoesGrantGlobalPermission());
+            s.GrantGlobalPermissions();
+            Assert.True(s.DoesGrantGlobalPermission());
 
             s.Delete();
         }
 
         [Test]
         public void GroupPrivilegeTest(){
+            context.AccessLevel = EntityAccessLevel.Administrator;
+
             Series s = new Series(context);
             s.Identifier = "s1";
             s.Name = s.Identifier;
@@ -34,13 +37,12 @@ namespace Terradue.Portal.Test {
             g1.Name = g1.Identifier;
             g1.Store();
 
-            List<int> idgrps = new List<int>();
-            idgrps = s.GetGroupsWithPrivileges();
-            Assert.That(idgrps.Count == 0);
+            int[] idgrps = s.GetAuthorizedGroupIds();
+            Assert.That(idgrps.Length == 0);
 
-            s.StorePrivilegesForGroups(new int[]{ g1.Id });
-            idgrps = s.GetGroupsWithPrivileges();
-            Assert.That(idgrps.Count == 1);
+            s.GrantPermissionsToGroups(new int[]{ g1.Id });
+            idgrps = s.GetAuthorizedGroupIds();
+            Assert.That(idgrps.Length == 1);
 
             s.Delete();
             g1.Delete();
@@ -48,6 +50,8 @@ namespace Terradue.Portal.Test {
 
         [Test]
         public void UserPrivilegeTest(){
+            context.AccessLevel = EntityAccessLevel.Administrator;
+
             Series s = new Series(context);
             s.Identifier = "s1";
             s.Name = s.Identifier;
@@ -58,13 +62,12 @@ namespace Terradue.Portal.Test {
             u1.Name = u1.Identifier;
             u1.Store();
 
-            List<int> idusrs = new List<int>();
-            idusrs = s.GetUsersWithPrivileges();
-            Assert.That(idusrs.Count == 1);
+            int[] idusrs = s.GetAuthorizedUserIds();
+            Assert.That(idusrs.Length == 0);
 
-            s.StorePrivilegesForUsers(new int[]{ u1.Id });
-            idusrs = s.GetUsersWithPrivileges();
-            Assert.That(idusrs.Count == 2);
+            s.GrantPermissionsToUsers(new int[]{ u1.Id });
+            idusrs = s.GetAuthorizedUserIds();
+            Assert.That(idusrs.Length == 1);
 
             s.Delete();
             u1.Delete();

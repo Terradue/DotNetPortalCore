@@ -36,8 +36,7 @@ namespace Terradue.Portal {
     public class ServiceParameterConfiguration : Entity {
         
         private string values;
-        private RequestParameterCollection requestParameters;
-        
+
         //public string
         
         public Service Service { get; protected set; }
@@ -69,7 +68,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>the created LookupList object</returns>
         */
-        public static new ServiceParameterConfiguration GetInstance(IfyContext context) {
+        public static ServiceParameterConfiguration GetInstance(IfyContext context) {
             return new ServiceParameterConfiguration(context);
         }
         
@@ -90,15 +89,8 @@ namespace Terradue.Portal {
             result.SubjectType = subjectType;
             result.SubjectId = subjectId;
 
-            /*XmlElement element = result.Service.GetParameterElement(result.ServiceParameter.Name);
-            if (element == null || !result.ServiceParameter.GetXmlInformation(element, false, false, true)) {
-                context.ReturnError(new ArgumentException("Parameter not defined"), null);
-            }*/ // TODO-NEW-SERVICE
-            
-            //if (result.ServiceParameter
-
             if (subjectType != 0) {
-                result.Load(
+                result.LoadConfiguration(
                         String.Format("id_service={0} AND name={1} AND id_grp{2} AND id_usr{3}",
                                 result.Service.Id,
                                 StringUtils.EscapeSql(result.ServiceParameter.Name),
@@ -114,7 +106,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new LookupList instance representing the lookup list matching the specified condition.</summary>
-        protected void Load(string condition) {
+        protected void LoadConfiguration(string condition) {
             // Sort alphabetically if there is no caption/value pair with a fixed position
             // Sort = (context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM lookup WHERE id_list={0} AND pos IS NOT NULL", Id)) == 0);
 

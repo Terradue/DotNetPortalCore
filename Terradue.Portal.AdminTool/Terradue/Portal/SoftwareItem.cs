@@ -147,8 +147,8 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-prepare.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) return;
 
-            AdminTool.WriteSeparator();
-            Console.WriteLine("Prepare {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
+            Tool.WriteSeparator();
+            if (Tool.Interactive) Console.WriteLine("Prepare {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
             Tool.ExecuteSqlScript(file, this);
         }
 
@@ -164,8 +164,8 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-create.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) throw new FileNotFoundException(String.Format("Installation script for {0} not found at {1}", ItemsCaption, file));
 
-            AdminTool.WriteSeparator();
-            Console.WriteLine("Install {0}{1}\n({2}):", ItemsCaption, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
+            Tool.WriteSeparator();
+            if (Tool.Interactive) Console.WriteLine("Install {0}{1}\n({2}):", ItemsCaption, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
             Tool.ExecuteSqlScript(file, this);
 
             Version = NewVersion;
@@ -179,7 +179,7 @@ namespace Terradue.Portal {
         /// <summary>Runs the latest database upgrade scripts for this software item.</summary>
         public virtual bool Upgrade() {
             if (Tool.LastFailurePhase > ProcessPhaseType.InstallAndUpgrade) return false;
-            if (Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && (!Tool.AfterFailureCheckpoint || this != Tool.LastFailureItem)) return false;
+            if (Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && !Tool.AfterFailureCheckpoint && this != Tool.LastFailureItem) return false;
 
             bool isFailureItem = Tool.LastFailurePhase == ProcessPhaseType.InstallAndUpgrade && this == Tool.LastFailureItem;
 
@@ -202,8 +202,8 @@ namespace Terradue.Portal {
 
                 Version = currentFileVersion;
 
-                AdminTool.WriteSeparator();
-                Console.WriteLine("Upgrade {0} to version {1}{2}\n({3}):", ItemsCaption, Version, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
+                Tool.WriteSeparator();
+                if (Tool.Interactive) Console.WriteLine("Upgrade {0} to version {1}{2}\n({3}):", ItemsCaption, Version, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
                 Tool.ExecuteSqlScript(file, this);
 
                 RegisterVersion();
@@ -245,8 +245,8 @@ namespace Terradue.Portal {
 
                 CleanupVersion = currentFileVersion;
 
-                AdminTool.WriteSeparator();
-                Console.WriteLine("Run {0} cleanup for version {1}{2}\n({3}):", ItemsCaption, CleanupVersion, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
+                Tool.WriteSeparator();
+                if (Tool.Interactive) Console.WriteLine("Run {0} cleanup for version {1}{2}\n({3}):", ItemsCaption, CleanupVersion, isFailureItem && !Tool.AfterFailureCheckpoint ? String.Format(" (recovering from {0})", Tool.CheckpointText) : String.Empty, file);
                 Tool.ExecuteSqlScript(file, this);
                 RegisterCleanupVersion();
 
@@ -265,8 +265,8 @@ namespace Terradue.Portal {
             string file = String.Format("{0}{1}db{1}db-complete.sql", BaseDir, Path.DirectorySeparatorChar);
             if (!File.Exists(file)) return;
 
-            AdminTool.WriteSeparator();
-            Console.WriteLine("Complete {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
+            Tool.WriteSeparator();
+            if (Tool.Interactive) Console.WriteLine("Complete {1} of {0} ({2}):", ItemsCaption, WasInstalledBefore ? "upgrade" : "installation", file);
             Tool.ExecuteSqlScript(file, this);
         }
 
@@ -441,7 +441,7 @@ namespace Terradue.Portal {
                     tool.Execute(String.Format("INSERT INTO $MAIN$.scriptservice (id, root) VALUES ({0}, {1});", Id, StringUtils.EscapeSql("$(SERVICEROOT)/" + Identifier)));
                 }
             } catch (Exception e) {
-                Console.Error.WriteLine("ERROR: Could not add service: {0}", e.Message);
+                if (Tool.Interactive) Console.Error.WriteLine("ERROR: Could not add service: {0}", e.Message);
             }
         }
 
