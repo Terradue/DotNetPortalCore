@@ -37,6 +37,22 @@ namespace Terradue.Portal {
         [EntityDataField("id_entity")]
         public int EntityId { get; set; }
 
+        private Entity pentity;
+        private Entity Entity {
+            get {
+                if (pentity == null) {
+                    try {
+                        pentity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
+                        pentity.Load (this.EntityId);
+                    } catch (Exception) { return null; }
+                }
+                return pentity;
+            }
+            set {
+                pentity = value;
+            }
+        }
+
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("identifier_entity")]
         public string EntityIdentifier { get; set; }
@@ -48,9 +64,12 @@ namespace Terradue.Portal {
         private Privilege priv;
         /// <summary>Gets or sets the privilege.</summary>
         public Privilege Privilege { 
-            get { 
-                if(priv == null && PrivilegeId != 0)
-                    priv = Privilege.FromId(context, PrivilegeId);
+            get {
+                if (priv == null && PrivilegeId != 0) {
+                    try {
+                        priv = Privilege.FromId (context, PrivilegeId);
+                    } catch (Exception) { priv = null; }
+                }
                 return priv;
             }
             set{
@@ -65,9 +84,12 @@ namespace Terradue.Portal {
 
         private EntityType entityType;
         public EntityType ActivityEntityType { 
-            get { 
-                if (entityType == null && this.EntityTypeId != 0)
-                    entityType = EntityType.GetEntityTypeFromId(this.EntityTypeId);
+            get {
+                if (entityType == null && this.EntityTypeId != 0) {
+                    try {
+                        entityType = EntityType.GetEntityTypeFromId (this.EntityTypeId);
+                    } catch (Exception) { entityType = null; }
+                }
                 return entityType;
             } 
 
@@ -80,6 +102,14 @@ namespace Terradue.Portal {
         /// <summary>Gets the UTC date and time of the activity's log creation.</summary>
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
+
+        private Domain domain;
+        public override Domain Domain { 
+            get {
+                if(domain == null && this.Entity != null) domain = this.Entity.Domain;
+                return domain;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
@@ -98,6 +128,7 @@ namespace Terradue.Portal {
             if (entity != null) {
                 try {
                     this.EntityId = entity.Id;
+                    this.Entity = entity;
                     this.EntityIdentifier = entity.Identifier;
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
@@ -157,24 +188,19 @@ namespace Terradue.Portal {
 
         #region IAtomizable implementation
         public bool IsSearchable (NameValueCollection parameters) {
-            if (this.EntityId == 0) return false;
+            if (this.EntityId == 0 || Entity == null) return false;
+            if (this.Privilege == null) return false;
+            if (this.ActivityEntityType == null) return false;
 
-            Entity entity = null;
-            try {
-                entity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
-                entity.Load (this.EntityId);
-            } catch (Exception e) {
-                return false;
-            }
-
-            string name = (entity.Name != null ? entity.Name : entity.Identifier);
+            string name = (Entity.Name != null ? Entity.Name : Entity.Identifier);
             string text = (this.TextContent != null ? this.TextContent : "");
 
             if (!string.IsNullOrEmpty (parameters ["q"])) {
                 string q = parameters ["q"].ToLower ();
-                if (!(name.ToLower ().Contains (q) || entity.Identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q)))
+                if (!(name.ToLower ().Contains (q) || Entity.Identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q)))
                     return false;
             }
+
             return true;
         }
 
@@ -184,21 +210,12 @@ namespace Terradue.Portal {
 
             if (!IsSearchable (parameters)) return null;
 
-            if (this.EntityId == 0) return null;
-
-            Entity entity = null;
-            try {
-                entity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
-                entity.Load(this.EntityId);
-            } catch (Exception) {
-                return null;
-            }
             User owner = User.ForceFromId(context, this.OwnerId);
 
             //string identifier = null;
-            string name = (entity.Name != null ? entity.Name : entity.Identifier);
+            string name = (Entity.Name != null ? Entity.Name : Entity.Identifier);
             string description = null;
-            Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + entity.Identifier);
+            Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + Entity.Identifier);
 
             switch (this.Privilege.Operation) {
                 case EntityOperationType.Create:
@@ -221,7 +238,7 @@ namespace Terradue.Portal {
             AtomItem result = new AtomItem();
 
             result.Id = id.ToString();
-            result.Title = new TextSyndicationContent(entity.Identifier);
+            result.Title = new TextSyndicationContent(Entity.Identifier);
             result.Content = new TextSyndicationContent(name);
 
             result.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", Guid.NewGuid());
