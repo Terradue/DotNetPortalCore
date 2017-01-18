@@ -89,7 +89,6 @@ namespace Terradue.Portal.Test {
             p3b.Hostname = "try.org";
             p3b.Port = 345;
             p3b.Store();
-            context.EndImpersonation();
 
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.SetFilter("Hostname", "*test*.org");
@@ -159,6 +158,75 @@ namespace Terradue.Portal.Test {
             Series s4 = sd4.FirstOrDefault((s => true));
             Assert.IsTrue(s4.Identifier == "SERIES14");
         }
+
+        [Test]
+        public void SortTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
+
+            PublishServer p1 = new PublishServer(context);
+            p1.Name = "pf1";
+            p1.Protocol = "ftp";
+            p1.Hostname = "test.org";
+            p1.Port = 23;
+            p1.Store();
+            PublishServer p2 = new PublishServer(context);
+            p2.Name = "pf2";
+            p2.Protocol = "ftp";
+            p2.Hostname = "anothertest.org";
+            p2.Port = 123;
+            p2.Store();
+            PublishServer p3 = new PublishServer(context);
+            p3.Name = "pf3";
+            p3.Protocol = "sftp";
+            p3.Hostname = "experiment.org";
+            p3.Port = 234;
+            p3.Store();
+            PublishServer p4 = new PublishServer(context);
+            p4.Name = "pf4";
+            p4.Protocol = "sftp";
+            p4.Hostname = "try.org";
+            p4.Port = 345;
+            p4.Store();
+
+            int index;
+            int[] expectedIds;
+
+            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
+            pd1.AddSort("Name");
+            pd1.Load();
+            Assert.IsTrue(pd1.Count == 4);
+            expectedIds = new int[] { p1.Id, p2.Id, p3.Id, p4.Id };
+            index = 0;
+            foreach (PublishServer ps in pd1) Assert.IsTrue(ps.Id == expectedIds[index++]);
+
+            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            pd2.AddSort("Name", SortDirection.Descending);
+            pd2.Load();
+            Assert.IsTrue(pd2.Count == 4);
+            expectedIds = new int[] { p4.Id, p3.Id, p2.Id, p1.Id };
+            index = 0;
+            foreach (PublishServer ps in pd2) Assert.IsTrue(ps.Id == expectedIds[index++]);
+
+            EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
+            pd3.AddSort("Port", SortDirection.Descending);
+            pd3.Load();
+            Assert.IsTrue(pd3.Count == 4);
+            expectedIds = new int[] { p4.Id, p3.Id, p2.Id, p1.Id };
+            index = 0;
+            foreach (PublishServer ps in pd3) Assert.IsTrue(ps.Id == expectedIds[index++]);
+
+            EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
+            pd4.AddSort("Protocol", SortDirection.Ascending);
+            pd4.AddSort("Name", SortDirection.Descending);
+            pd4.Load();
+            Assert.IsTrue(pd4.Count == 4);
+            expectedIds = new int[] { p2.Id, p1.Id, p4.Id, p3.Id };
+            index = 0;
+            foreach (PublishServer ps in pd4) Assert.IsTrue(ps.Id == expectedIds[index++]);
+
+        }
+
     }
 
 }
