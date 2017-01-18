@@ -500,14 +500,13 @@ namespace Terradue.Portal {
             string emailConfirmationUrl = context.GetConfigValue("EmailConfirmationUrl");
             if (String.IsNullOrEmpty(emailConfirmationUrl)) {
                 emailConfirmationUrl = String.Format(webContext.AccountRootUrl == null ? "{4}?_request={2}&key={3}" : "{0}{1}/{2}?key={3}",
-                    webContext.HostUrl,
+                    webContext.BaseUrl,
                     webContext.AccountRootUrl,
                     type == UserMailType.Registration ? "activate" : "recover",
                     activationToken,
                     webContext.ScriptUrl
                 );
             }
-
 
             if (mailSender == null) mailSender = mailSenderAddress;
             
@@ -553,6 +552,8 @@ namespace Terradue.Portal {
                 if (activationToken == null) CreateActivationToken();
             }
 
+            var baseurl = !string.IsNullOrEmpty(webContext.BaseUrl) ? webContext.BaseUrl : webContext.GetConfigValue ("BaseUrl");
+
             // activationToken also used here to avoid endless nested replacements
             subject = subject.Replace("$(SITENAME)", context.SiteName);
             body = body.Replace(@"\n", Environment.NewLine);
@@ -560,8 +561,8 @@ namespace Terradue.Portal {
             body = body.Replace("$" + activationToken + "(USERCAPTION)", Caption);
             body = body.Replace("$" + activationToken + "(USERNAME)", Username);
             body = body.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
-            body = body.Replace("$" + activationToken + "(SITEURL)", context.HostUrl);
-            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", webContext.GetConfigValue ("BaseUrl")).Replace("$(TOKEN)", activationToken));
+            body = body.Replace("$" + activationToken + "(SITEURL)", baseurl);
+            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", baseurl).Replace("$(TOKEN)", activationToken));
             if (body.Contains("$" + activationToken + "(SERVICES)")) {
                 body = body.Replace("$" + activationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
             }
