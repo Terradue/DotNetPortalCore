@@ -642,6 +642,20 @@ namespace Terradue.Portal {
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus eventually the results in the collection. If set to <c>None</c>, the context's default access level is applied.</param>
         public string GetListQuery(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
+            object[] parts = GetListQueryParts(context, items, userId, groupIds, condition, idsOnly, accessLevel);
+            return GetQuery(parts);
+        }
+
+        /// <summary>Gets the parts to build the full or IDs-only SQL query for selecting an item list on behalf of the specified user.</summary>
+        /// <returns>An array of objects containing the components of the SQL query in a defined order.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="items">The <see cref="EntityCollection"/> for which the query is built.</param>
+        /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
+        /// <param name="groupIds">An optional array of IDs of the groups to take into account for the permission filtering.</param>
+        /// <param name="condition">Additional SQL condition.</param>
+        /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus eventually the results in the collection. If set to <c>None</c>, the context's default access level is applied.</param>
+        public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
             if (items.Template != null) {
                 if (condition == null) condition = String.Empty;
                 else condition += " AND ";
@@ -673,10 +687,10 @@ namespace Terradue.Portal {
                 offset = items.SelectByPage ? (items.Page - EntityCollection.DefaultPageOffset) * items.ItemsPerPage : items.StartIndex - EntityCollection.DefaultItemOffset;
             } else {
                 limit = -1;
-                offset = -1;
+                offset = 0;
             }
 
-            return GetQuery(context, true, userId, groupIds, condition, sort, idsOnly, limit, offset, accessLevel);
+            return GetQueryParts(context, true, userId, groupIds, condition, sort, idsOnly, limit, offset, accessLevel);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -686,9 +700,11 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
+        /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         /// <returns>The SQL query.</returns>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly, int limit = -1, int offset = -1) {
+        public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly, int limit = -1, int offset = 0) {
             return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
@@ -699,9 +715,11 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
         /// <param name="template">A template object of the same type as the list item entity type with properties set to filtering values.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
+        /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         /// <returns>The SQL query.</returns>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly, int limit = -1, int offset = -1) {
+        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly, int limit = -1, int offset = 0) {
             string condition = null;
             if (template != null) {
                 condition = GetTemplateCondition(template, false);
@@ -718,7 +736,7 @@ namespace Terradue.Portal {
         }
         
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly, int limit = -1, int offset = -1) {
+        public string GetListQueryWithTemplate(IfyContext context, int userId, Entity template, bool idsOnly, int limit = -1, int offset = 0) {
             return GetListQuery(context, userId, template, null, idsOnly, limit, offset);
         }
 
@@ -729,9 +747,11 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
         /// <param name="referringItem">A template object of the same type as the list item entity type with properties set to filtering values.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
+        /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
+        /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         /// <returns>The SQL query.</returns>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly, int limit = -1, int offset = -1) {
+        public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly, int limit = -1, int offset = 0) {
             string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
             return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
@@ -743,8 +763,10 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user on whose behalf the items are selected.</param>
         /// <param name="idsOnly">If set to <c>true</c> identifiers only.</param>
+        /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
+        /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQueryForOwnedItems(IfyContext context, int userId, bool idsOnly, int limit = -1, int offset = -1) {
+        public string GetListQueryForOwnedItems(IfyContext context, int userId, bool idsOnly, int limit = -1, int offset =0) {
             string condition = null;
             if (userId != 0 && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
@@ -759,9 +781,11 @@ namespace Terradue.Portal {
         /// <summary>Gets the full or IDs-only SQL query for selecting an item list containing items for which any of the specified groups have access permission.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="groupIds">An array of IDs of the groups to take into account for the permission filtering.</param>
-        /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
         /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
-        public string GetGroupQuery(IfyContext context, int[] groupIds, bool idsOnly, string condition = null, int limit = -1, int offset = -1) {
+        /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
+        /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
+        /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
+        public string GetGroupQuery(IfyContext context, int[] groupIds, string condition = null, bool idsOnly = false, int limit = -1, int offset = 0) {
             return GetQuery(context, true, 0, groupIds, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
@@ -776,7 +800,29 @@ namespace Terradue.Portal {
         /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
         /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
         /// <param name="accessLevel">The entity access mode according to which restrictions are applied to the resulting query.</param>
-        public string GetQuery(IfyContext context, bool list, int userId, int[] groupIds, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = -1, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
+        public string GetQuery(IfyContext context, bool list, int userId, int[] groupIds, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
+
+            object[] parts = GetQueryParts(context, list, userId, groupIds, condition, sort, idsOnly, limit, offset, accessLevel);
+
+            return GetQuery(parts);
+
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string GetQuery(object[] parts) {
+            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5}{6};", parts);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string GetCountQuery(object[] parts) {
+            return String.Format("SELECT COUNT(*) FROM {0}{1}{2};", parts);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public object[] GetQueryParts(IfyContext context, bool list, int userId, int[] groupIds, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
 
             if (accessLevel == EntityAccessLevel.None) {
                 accessLevel = context.AccessLevel;
@@ -785,7 +831,7 @@ namespace Terradue.Portal {
 
             if (!isSqlPrepared) PrepareSql();
 
-            string[] userJoinValues = (userId == 0 && (groupIds == null || groupIds.Length == 0) ? new string[] {"0", "0"} : GetUserJoinValues(context, userId, groupIds));
+            string[] userJoinValues = (userId == 0 && (groupIds == null || groupIds.Length == 0) ? new string[] { "0", "0" } : GetUserJoinValues(context, userId, groupIds));
 
             // Build FROM clause
             string joinSql = String.Format(accessLevel == EntityAccessLevel.Administrator ? adminJoinSql : userId != 0 && accessLevel == EntityAccessLevel.Permission && list ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
@@ -806,7 +852,7 @@ namespace Terradue.Portal {
 
                     // If list is empty, the view (or similar) privilege is defined, but there is no role that includes that privilege
                     // Therefore, the item cannot be loaded (by nobody except an administrator).
-                    if (roleIds.Length == 0) roleIds = new int [] { 0 };
+                    if (roleIds.Length == 0) roleIds = new int[] { 0 };
                     //TODO: resolve the roleIds.Length == 0 situation elsewhere
                     //if (roleIds.Length == 0) throw new EntityUnauthorizedException(String.Format("Not authorized to view {0} (no role exists)", item == null ? PluralCaption : GetItemTerm(item)), this, null, userId);
 
@@ -860,7 +906,7 @@ namespace Terradue.Portal {
             string subset = (!list || limit == -1 ? String.Empty : String.Format(" LIMIT {0} OFFSET {1}", limit, offset));
 
             //Console.WriteLine(String.Format("QUERY SQL: SELECT {3}{4} FROM {0}{1}{2}{5};", joinSql, condition == null ? String.Empty : String.Format(" WHERE {0}", condition), aggregation, selectSql, HasMultipleTables ? "DISTINCT " : String.Empty, sort));
-            return String.Format("SELECT {3}{4} FROM {0}{1}{2}{5}{6};",
+            return new object[] {
                     joinSql,
                     condition == null ? String.Empty : String.Format(" WHERE {0}", condition),
                     aggregationSql,
@@ -868,7 +914,7 @@ namespace Terradue.Portal {
                     HasMultipleTables ? "DISTINCT " : String.Empty,
                     sort,
                     subset
-            );
+            };
 
         }
 

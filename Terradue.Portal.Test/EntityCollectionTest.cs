@@ -227,6 +227,49 @@ namespace Terradue.Portal.Test {
 
         }
 
+        [Test]
+        public void TotalResultsTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
+
+            PublishServer p1 = new PublishServer(context);
+            p1.Name = "pf1";
+            p1.Protocol = "ftp";
+            p1.Hostname = "test.org";
+            p1.Port = 23;
+            p1.Store();
+            PublishServer p2 = new PublishServer(context);
+            p2.Name = "pf2";
+            p2.Protocol = "ftp";
+            p2.Hostname = "anothertest.org";
+            p2.Port = 123;
+            p2.Store();
+            PublishServer p3 = new PublishServer(context);
+            p3.Name = "pf3";
+            p3.Protocol = "sftp";
+            p3.Hostname = "experiment.org";
+            p3.Port = 234;
+            p3.Store();
+            PublishServer p4 = new PublishServer(context);
+            p4.Name = "pf4";
+            p4.Protocol = "sftp";
+            p4.Hostname = "try.org";
+            p4.Port = 345;
+            p4.Store();
+
+            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
+            pd1.SetFilter("Protocol", "sftp");
+            pd1.Load();
+            Assert.IsTrue(pd1.Count == 2);
+            Assert.IsTrue(pd1.TotalResults == 2); // filtered
+
+            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            pd2.ItemsPerPage = 3;
+            pd2.Load();
+            Assert.IsTrue(pd2.Count == 3);
+            Assert.IsTrue(pd2.TotalResults == 4);
+        }
+
     }
 
 }

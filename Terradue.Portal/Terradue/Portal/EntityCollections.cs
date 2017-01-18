@@ -285,7 +285,10 @@ namespace Terradue.Portal {
 
             Clear();
 
-            string sql = entityType.GetListQuery(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -329,7 +332,10 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
-            string sql = entityType.GetListQuery(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -357,7 +363,10 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
-            string sql = entityType.GetListQuery(context, this, UserId, null, null, false, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -380,7 +389,10 @@ namespace Terradue.Portal {
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
 
-            string sql = entityType.GetListQuery(context, this, UserId, groupIds, null, false, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -879,9 +891,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public long TotalResults {
-            get {
-                return this.Count;
-            }
+            get; protected set;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -889,6 +899,8 @@ namespace Terradue.Portal {
         public virtual bool CanCache {
             get { return false; }
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
         }
