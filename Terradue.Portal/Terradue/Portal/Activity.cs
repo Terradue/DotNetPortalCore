@@ -2,6 +2,7 @@
 using Terradue.Util;
 using System.Collections.Generic;
 using Terradue.OpenSearch;
+using Terradue.Portal.OpenSearch;
 using Terradue.OpenSearch.Result;
 using System.Collections.Specialized;
 using Terradue.ServiceModel.Syndication;
@@ -31,7 +32,7 @@ namespace Terradue.Portal {
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
-    public class Activity : Entity, IAtomizable, IComparable<Activity> {
+    public class Activity : Entity, IEntitySearchable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
@@ -187,6 +188,19 @@ namespace Terradue.Portal {
         }
 
         #region IAtomizable implementation
+        public string GetSqlCondition(System.Collections.Specialized.NameValueCollection parameters) {
+            string sql = "";
+            if (!string.IsNullOrEmpty(parameters["author"])) {
+                var owner = User.ForceFromUsername(context, parameters["author"]);
+                sql += string.Format(" AND id_usr={0}", owner.Id);
+            }
+            if (!string.IsNullOrEmpty(parameters["domain"])) {
+                var d = Domain.FromIdentifier(context, parameters["domain"]);
+                sql += string.Format(" AND id_domain={0}", d.Id);
+            }
+            return sql;
+        }
+
         public bool IsSearchable (NameValueCollection parameters) {
             if (this.EntityId == 0 || Entity == null) return false;
             if (this.Privilege == null) return false;

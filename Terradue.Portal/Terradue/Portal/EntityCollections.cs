@@ -14,7 +14,7 @@ using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
-
+using Terradue.Portal.OpenSearch;
 
 
 
@@ -665,22 +665,18 @@ namespace Terradue.Portal {
 
             List<AtomItem> items = new List<AtomItem>();
 
-            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem> ();
+            //set search filters
+            this.ItemsPerPage = parameters["count"] != null ? int.Parse(parameters["count"]) : 20;
+            this.StartIndex = parameters["startIndex"] != null ? int.Parse(parameters["startIndex"]) : 1;
+            this.Page = parameters["startPage"] != null ? int.Parse(parameters["startPage"]) : 1;
 
-            int startIndex = 1;
-            if (parameters ["startIndex"] != null) startIndex = int.Parse (parameters ["startIndex"]);
+            //q
 
-            pds.PageNo = 1;
-            if (parameters ["startPage"] != null) pds.PageNo = int.Parse (parameters ["startPage"]);
+            //create sql
+            var condition = ((IEntityAtomizable)(this.Template)).GetSqlCondition(parameters);
 
-            pds.PageSize = 20;
-            if (parameters ["count"] != null) pds.PageSize = int.Parse (parameters ["count"]);
+            this.Load();
 
-            pds.StartIndex = startIndex - 1;
-
-            //var entityatomizable = false;
-            //int i = 0;
-            //int totalresults = 0;
             foreach (T s in Items) {
 
                 if (!string.IsNullOrEmpty(parameters["id"])) { 
@@ -688,41 +684,7 @@ namespace Terradue.Portal {
                         continue;
                 }
 
-                if (!string.IsNullOrEmpty(parameters["author"])) {
-                    if (!(User.ForceFromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
-                }
-
-                if (!string.IsNullOrEmpty (parameters ["domain"])) {
-                    Domain domain;
-                    try {
-                        domain = Domain.FromIdentifier (context, parameters ["domain"]);
-                        if (s.Domain == null || s.Domain.Identifier != domain.Identifier) continue;
-                    } catch (Exception e){
-                        context.LogError (this, e.Message + "-" + e.StackTrace);
-                        continue;
-                    }
-                }
-
                 if (s is IAtomizable) {
-                    //if (s is IEntityAtomizable) {
-                    //    entityatomizable = true;
-                    //    var sa = s as IEntityAtomizable;
-
-                    //    //we do ToAtomItem only if we skipped the good number of items and still have less than max count items
-                    //    if ((i >= startIndex - 1 + pds.PageSize * (pds.PageNo - 1)) && items.Count < pds.PageSize) {
-                    //        AtomItem item = sa.ToAtomItem (parameters);
-                    //        if (item != null) {
-                    //            totalresults++;
-                    //            items.Add (item);
-                    //        }
-                    //    } else {
-                    //        if (sa.IsSearchable (parameters)) totalresults++;
-                    //    }
-                    //} else {
-                    //    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
-                    //    if (item != null) items.Add (item);
-                    //}
-
                     AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
                     if (item != null) items.Add (item);
 
@@ -749,27 +711,15 @@ namespace Terradue.Portal {
                     entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
                     items.Add(entry);
-                    //totalresults++;
                 }
-                //i++;
             }
 
             // Load all avaialable Datasets according to the context
 
             if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
-            //if (entityatomizable) {
-            //    feed.Items = items;
-            //    feed.TotalResults = totalresults;
-            //} else {
-            //    pds.AddRange (items);
-            //    feed.Items = pds.GetCurrentPage ();
-            //    feed.TotalResults = pds.Count;
-            //}
-
-            pds.AddRange (items);
-            feed.Items = pds.GetCurrentPage ();
-            feed.TotalResults = pds.Count;
+            feed.Items = items;
+            feed.TotalResults = TotalResults;
 
             return feed;
 

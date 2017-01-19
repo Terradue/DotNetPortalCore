@@ -342,6 +342,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new User instance representing the user with the specified username, ignoring permission- and privliege-based restrictions.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="username">the user username</param>
+        /// <returns>the created User object</returns>
+        public static User ForceFromUsername(IfyContext context, string username) {
+            User result = GetInstance(context);
+            result.Username= username;
+            result.Load(EntityAccessLevel.Administrator);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="name">the unique user username</param>
