@@ -73,11 +73,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public int DomainId { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public string Identifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool OwnedItemsOnly { get; set; }
+        public Visibility ItemsVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -666,24 +670,57 @@ namespace Terradue.Portal {
             List<AtomItem> items = new List<AtomItem>();
 
             //set search filters
-            this.ItemsPerPage = parameters["count"] != null ? int.Parse(parameters["count"]) : 20;
-            this.StartIndex = parameters["startIndex"] != null ? int.Parse(parameters["startIndex"]) : 1;
-            this.Page = parameters["startPage"] != null ? int.Parse(parameters["startPage"]) : 1;
+            this.ItemsPerPage = 20;
+            this.StartIndex = 1;
+            this.Page = 1;
 
-            //q
+            T t = entityType.GetEntityInstance(context) as T;
+            if (t is EntitySearchable) {
+                var esT = t as EntitySearchable;
+                foreach (var p in parameters.AllKeys) {
+                    switch (p) {
+                    case "count":
+                        this.ItemsPerPage = int.Parse(parameters["count"]);
+                        break;
+                    case "startIndex":
+                        this.StartIndex = int.Parse(parameters["startIndex"]);
+                        break;
+                    case "startPage":
+                        this.Page = int.Parse(parameters["startPage"]);
+                        break;
+                    case "visibility":
+                        switch (parameters[p]) {
+                        case "public":
+                            this.ItemsVisibility = Visibility.PublicOnly;
+                            break;
+                        case "restricted":
+                            this.ItemsVisibility = Visibility.RestrictedOnly;
+                            break;
+                        case "private":
+                            this.ItemsVisibility = Visibility.PrivateOnly;
+                            break;
+                        }
+                        break;
+                    case "author":
+                        var u = User.ForceFromUsername(context, parameters[p]);
+                        this.UserId = u.Id;
+                        break;
+                    case "domain":
+                        var d = Domain.FromIdentifier(context, parameters[p]);
+                        this.DomainId = d.Id;
+                        break;
+                    default:
+                        var kv = esT.GetFilterForParameter(p, parameters[p]);
+                        if(!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                        break;
+                    }
 
-            //create sql
-            var condition = ((IEntityAtomizable)(this.Template)).GetSqlCondition(parameters);
-
+                }
+            }
             this.Load();
 
             foreach (T s in Items) {
-
-                if (!string.IsNullOrEmpty(parameters["id"])) { 
-                    if ( s.Identifier != parameters["id"] )
-                        continue;
-                }
-
+                
                 if (s is IAtomizable) {
                     AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
                     if (item != null) items.Add (item);
@@ -1177,6 +1214,13 @@ namespace Terradue.Portal {
     public enum SortDirection {
         Ascending,
         Descending
+    }
+
+    public enum Visibility {
+        All,
+        PublicOnly,
+        PrivateOnly,
+        RestrictedOnly
     }
 
 }

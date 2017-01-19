@@ -31,8 +31,8 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
-    public class Activity : Entity, IEntitySearchable, IComparable<Activity> {
+    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
+    public class Activity : EntitySearchable, IAtomizable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
@@ -103,14 +103,6 @@ namespace Terradue.Portal {
         /// <summary>Gets the UTC date and time of the activity's log creation.</summary>
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
-
-        private Domain domain;
-        public override Domain Domain { 
-            get {
-                if(domain == null && this.Entity != null) domain = this.Entity.Domain;
-                return domain;
-            }
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
@@ -187,20 +179,20 @@ namespace Terradue.Portal {
             context.Execute(sql);
         }
 
-        #region IAtomizable implementation
-        public string GetSqlCondition(System.Collections.Specialized.NameValueCollection parameters) {
-            string sql = "";
-            if (!string.IsNullOrEmpty(parameters["author"])) {
-                var owner = User.ForceFromUsername(context, parameters["author"]);
-                sql += string.Format(" AND id_usr={0}", owner.Id);
+        #region IEntitySearchable implementation
+        public new KeyValuePair<string,string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+                case "entitytype":
+                    var t = EntityType.GetEntityTypeFromKeyword(value);
+                    return new KeyValuePair<string, string>("EntityTypeId", t.Id.ToString());
+                default:
+                    return base.GetFilterForParameter(parameter, value);
             }
-            if (!string.IsNullOrEmpty(parameters["domain"])) {
-                var d = Domain.FromIdentifier(context, parameters["domain"]);
-                sql += string.Format(" AND id_domain={0}", d.Id);
-            }
-            return sql;
         }
 
+        #endregion
+
+        #region IAtomizable implementation
         public bool IsSearchable (NameValueCollection parameters) {
             if (this.EntityId == 0 || Entity == null) return false;
             if (this.Privilege == null) return false;
@@ -274,8 +266,10 @@ namespace Terradue.Portal {
             return result;
         }
 
-        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+        public new NameValueCollection GetOpenSearchParameters() {
+            NameValueCollection nvc = base.GetOpenSearchParameters();
+            nvc.Add("entitytype", "{t2:entityType?}");
+            return nvc;
         }
 
         #endregion

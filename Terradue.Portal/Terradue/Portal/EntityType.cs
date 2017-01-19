@@ -1172,6 +1172,8 @@ namespace Terradue.Portal {
                 if (TopTable.HasIdentifierField) return new FieldInfo(ClassType.GetProperty("Identifier"), 0, TopTable.IdentifierField);
             } else if (propertyName == "Name") {
                 if (TopTable.HasNameField) return new FieldInfo(ClassType.GetProperty("Name"), 0, TopTable.NameField);
+            } else if (propertyName == "DomainId") {
+                if (TopTable.HasDomainReference) return new FieldInfo(ClassType.GetProperty("DomainId"), 0, TopTable.DomainReferenceField);
             } else {
                 foreach (FieldInfo field in Fields) {
                     if (field.Property.Name == propertyName) return field;
