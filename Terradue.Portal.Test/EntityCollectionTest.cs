@@ -309,7 +309,7 @@ namespace Terradue.Portal.Test {
             ppubresg.Protocol = "ftp";
             ppubresg.Hostname = "test.org";
             ppubresg.Store();
-            ppub.GrantGlobalPermissions();
+            ppubresg.GrantGlobalPermissions();
             ppubresg.GrantPermissionsToGroups(new Group[] { group });
 
             PublishServer ppubresg2 = new PublishServer(context);
@@ -388,29 +388,35 @@ namespace Terradue.Portal.Test {
             pn.Store();
 
             context.StartImpersonation(user.Id);
+            context.AccessLevel = EntityAccessLevel.Privilege;
             context.ConsoleDebug = true;
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.ItemVisibility = ItemVisibilityMode.All;
             pd1.Load();
             foreach (PublishServer p in pd1) Console.WriteLine("* PD1: \"{0}\"", p.Name);
-            Assert.IsTrue(pd1.Count == 8);
+            Assert.IsTrue(pd1.Count == 11);
             Assert.IsTrue(pd1.Contains(ppub.Id));
             Assert.IsTrue(pd1.Contains(ppubresg.Id));
+            Assert.IsTrue(pd1.Contains(ppubresg2.Id));
             Assert.IsTrue(pd1.Contains(ppubresu.Id));
+            Assert.IsTrue(pd1.Contains(ppubresu2.Id));
             Assert.IsTrue(pd1.Contains(presg.Id));
             Assert.IsTrue(pd1.Contains(presu.Id));
             Assert.IsTrue(pd1.Contains(powna.Id));
             Assert.IsTrue(pd1.Contains(powng.Id));
             Assert.IsTrue(pd1.Contains(pownu.Id));
+            Assert.IsTrue(pd1.Contains(pown.Id));
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
             pd2.ItemVisibility = ItemVisibilityMode.Public;
             pd2.Load();
             foreach (PublishServer p in pd2) Console.WriteLine("* PD2: \"{0}\"", p.Name);
-            Assert.IsTrue(pd2.Count == 4);
+            Assert.IsTrue(pd2.Count == 6);
             Assert.IsTrue(pd2.Contains(ppub.Id));
             Assert.IsTrue(pd2.Contains(ppubresg.Id));
+            Assert.IsTrue(pd2.Contains(ppubresg2.Id));
             Assert.IsTrue(pd2.Contains(ppubresu.Id));
+            Assert.IsTrue(pd2.Contains(ppubresu2.Id));
             Assert.IsTrue(pd2.Contains(powna.Id));
 
             EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
