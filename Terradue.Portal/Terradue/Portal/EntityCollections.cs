@@ -61,6 +61,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public ItemVisibilityMode ItemVisibility { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Dictionary<FieldInfo, string> FilterValues { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -78,10 +82,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public string Identifier { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public Visibility ItemsVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -166,6 +166,7 @@ namespace Terradue.Portal {
         public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
             this.context = context;
             this.entityType = entityType;
+            this.ItemVisibility = ItemVisibilityMode.All;
             if (context != null) this.UserId = context.UserId;
             this.ReferringItem = referringItem;
             this.UsePaging = false;
@@ -691,13 +692,13 @@ namespace Terradue.Portal {
                     case "visibility":
                         switch (parameters[p]) {
                         case "public":
-                            this.ItemsVisibility = Visibility.PublicOnly;
+                            this.ItemVisibility = ItemVisibilityMode.Public;
                             break;
                         case "restricted":
-                            this.ItemsVisibility = Visibility.RestrictedOnly;
+                            this.ItemVisibility = ItemVisibilityMode.Restricted;
                             break;
                         case "private":
-                            this.ItemsVisibility = Visibility.PrivateOnly;
+                            this.ItemVisibility = ItemVisibilityMode.PrivateOnly;
                             break;
                         }
                         break;
@@ -1211,16 +1212,32 @@ namespace Terradue.Portal {
     }
 
 
+    /// <summary>Enumaration for the way of how items are ordered by sort criteria in a collection.</summary>
     public enum SortDirection {
+
+        /// <summary>Items are ordered by a criteria in ascending order.</summary>
         Ascending,
+
+        /// <summary>Items are ordered by a criteria in descending order.</summary>
         Descending
     }
 
-    public enum Visibility {
-        All,
-        PublicOnly,
-        PrivateOnly,
-        RestrictedOnly
+    /// <summary>Enumaration for the visibility of items within a collection.</summary>
+    [Flags]
+    public enum ItemVisibilityMode {
+
+        /// <summary>All items to which a user has access are included in collection.</summary>
+        All = 0x03,
+            
+        /// <summary>Public items to which a user has access are included in collection.</summary>
+        Public = 0x01,
+
+        /// <summary>Items to which a user has access via user or group permissions are included in collection.</summary>
+        Restricted = 0x02,
+
+        /// <summary>Limits the items in the collection to those owned by the user.</summary>
+        PrivateOnly = 0x04
+
     }
 
 }

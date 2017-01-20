@@ -11,6 +11,7 @@ namespace Terradue.Portal.Test {
         [Test]
         public void LoadingTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
 
             User user1 = new User(context);
             user1.Username = "user1";
@@ -43,7 +44,7 @@ namespace Terradue.Portal.Test {
 
             context.StartImpersonation(user1.Id);
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
-            pd1.OwnedItemsOnly = true;
+            pd1.ItemVisibility = ItemVisibilityMode.PrivateOnly;
             pd1.Load();
             Assert.IsTrue(pd1.Count == 2);
             context.EndImpersonation();
@@ -64,6 +65,7 @@ namespace Terradue.Portal.Test {
         [Test]
         public void FilterTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
 
             PublishServer p1 = new PublishServer(context);
             p1.Name = "pf1";
@@ -267,7 +269,164 @@ namespace Terradue.Portal.Test {
             pd2.ItemsPerPage = 3;
             pd2.Load();
             Assert.IsTrue(pd2.Count == 3);
-            Assert.IsTrue(pd2.TotalResults == 4);
+            Assert.IsTrue(pd2.TotalResults == 4); // all
+        }
+
+        [Test]
+        public void VisibilityTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
+
+            User user = new User(context);
+            user.Username = "userVis";
+            user.Store();
+
+            User user2 = new User(context);
+            user2.Username = "userVis2";
+            user2.Store();
+
+            Group group = new Group(context);
+            group.Name = "groupVis";
+            group.Identifier = "groupVis";
+            group.Store();
+
+            Group group2 = new Group(context);
+            group2.Name = "groupVis2";
+            group2.Identifier = "groupVis2";
+            group2.Store();
+
+            group.AssignUser(user);
+
+            PublishServer ppub = new PublishServer(context);
+            ppub.Name = "public";
+            ppub.Protocol = "ftp";
+            ppub.Hostname = "test.org";
+            ppub.Store();
+            ppub.GrantGlobalPermissions();
+
+            PublishServer ppubresg = new PublishServer(context);
+            ppubresg.Name = "public and assigned to group";
+            ppubresg.Protocol = "ftp";
+            ppubresg.Hostname = "test.org";
+            ppubresg.Store();
+            ppub.GrantGlobalPermissions();
+            ppubresg.GrantPermissionsToGroups(new Group[] { group });
+
+            PublishServer ppubresg2 = new PublishServer(context);
+            ppubresg2.Name = "public and assigned to other group";
+            ppubresg2.Protocol = "ftp";
+            ppubresg2.Hostname = "test.org";
+            ppubresg2.Store();
+            ppubresg2.GrantGlobalPermissions();
+            ppubresg2.GrantPermissionsToGroups(new Group[] { group2 });
+
+            PublishServer ppubresu = new PublishServer(context);
+            ppubresu.Name = "public and assigned to user";
+            ppubresu.Protocol = "ftp";
+            ppubresu.Hostname = "test.org";
+            ppubresu.Store();
+            ppubresu.GrantGlobalPermissions();
+            ppubresu.GrantPermissionsToUsers(new User[] { user });
+
+            PublishServer ppubresu2 = new PublishServer(context);
+            ppubresu2.Name = "public and assigned to other user";
+            ppubresu2.Protocol = "ftp";
+            ppubresu2.Hostname = "test.org";
+            ppubresu2.Store();
+            ppubresu2.GrantGlobalPermissions();
+            ppubresu2.GrantPermissionsToUsers(new User[] { user2 });
+
+            PublishServer presg = new PublishServer(context);
+            presg.Name = "restricted to group";
+            presg.Protocol = "ftp";
+            presg.Hostname = "test.org";
+            presg.Store();
+            presg.GrantPermissionsToGroups(new Group[] { group });
+
+            PublishServer presu = new PublishServer(context);
+            presu.Name = "restricted to user";
+            presu.Protocol = "ftp";
+            presu.Hostname = "test.org";
+            presu.Store();
+            presu.GrantPermissionsToUsers(new User[] { user });
+
+            PublishServer powna = new PublishServer(context);
+            powna.OwnerId = user.Id;
+            powna.Name = "owned by user (shared with group)";
+            powna.Protocol = "ftp";
+            powna.Hostname = "test.org";
+            powna.Store();
+            powna.GrantGlobalPermissions();
+
+            PublishServer powng = new PublishServer(context);
+            powng.OwnerId = user.Id;
+            powng.Name = "owned by user (shared with group)";
+            powng.Protocol = "ftp";
+            powng.Hostname = "test.org";
+            powng.Store();
+            powng.GrantPermissionsToGroups(new Group[] { group });
+
+            PublishServer pownu = new PublishServer(context);
+            pownu.OwnerId = user.Id;
+            pownu.Name = "owned by user (shared with other user)";
+            pownu.Protocol = "ftp";
+            pownu.Hostname = "test.org";
+            pownu.Store();
+            pownu.GrantPermissionsToUsers(new int[] { context.UserId });
+
+            PublishServer pown = new PublishServer(context);
+            pown.OwnerId = user.Id;
+            pown.Name = "owned by user (exclusive)";
+            pown.Protocol = "ftp";
+            pown.Hostname = "test.org";
+            pown.Store();
+
+            PublishServer pn = new PublishServer(context);
+            pn.Name = "not accessible";
+            pn.Protocol = "ftp";
+            pn.Hostname = "test.org";
+            pn.Store();
+
+            context.StartImpersonation(user.Id);
+            context.ConsoleDebug = true;
+            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
+            pd1.ItemVisibility = ItemVisibilityMode.All;
+            pd1.Load();
+            foreach (PublishServer p in pd1) Console.WriteLine("* PD1: \"{0}\"", p.Name);
+            Assert.IsTrue(pd1.Count == 8);
+            Assert.IsTrue(pd1.Contains(ppub.Id));
+            Assert.IsTrue(pd1.Contains(ppubresg.Id));
+            Assert.IsTrue(pd1.Contains(ppubresu.Id));
+            Assert.IsTrue(pd1.Contains(presg.Id));
+            Assert.IsTrue(pd1.Contains(presu.Id));
+            Assert.IsTrue(pd1.Contains(powna.Id));
+            Assert.IsTrue(pd1.Contains(powng.Id));
+            Assert.IsTrue(pd1.Contains(pownu.Id));
+
+            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            pd2.ItemVisibility = ItemVisibilityMode.Public;
+            pd2.Load();
+            foreach (PublishServer p in pd2) Console.WriteLine("* PD2: \"{0}\"", p.Name);
+            Assert.IsTrue(pd2.Count == 4);
+            Assert.IsTrue(pd2.Contains(ppub.Id));
+            Assert.IsTrue(pd2.Contains(ppubresg.Id));
+            Assert.IsTrue(pd2.Contains(ppubresu.Id));
+            Assert.IsTrue(pd2.Contains(powna.Id));
+
+            EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
+            pd3.ItemVisibility = ItemVisibilityMode.Restricted;
+            pd3.Load();
+            foreach (PublishServer p in pd3) Console.WriteLine("* PD3: \"{0}\"", p.Name);
+            Assert.IsTrue(pd3.Count == 8);
+            Assert.IsTrue(pd3.Contains(ppubresg.Id));
+            Assert.IsTrue(pd3.Contains(ppubresu.Id));
+            Assert.IsTrue(pd3.Contains(presg.Id));
+            Assert.IsTrue(pd3.Contains(presu.Id));
+            Assert.IsTrue(pd3.Contains(powna.Id));
+            Assert.IsTrue(pd3.Contains(powng.Id));
+            Assert.IsTrue(pd3.Contains(pownu.Id));
+
+            context.EndImpersonation();
         }
 
     }

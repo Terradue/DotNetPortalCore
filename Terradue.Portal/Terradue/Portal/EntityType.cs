@@ -603,7 +603,7 @@ namespace Terradue.Portal {
         /// <param name="id">The database ID of the item.</param>
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, int id) {
-            return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, String.Format("t.{1}={0}", id, TopTable.IdField), null, true, -1, -1, EntityAccessLevel.Administrator)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, ItemVisibilityMode.All, String.Format("t.{1}={0}", id, TopTable.IdField), null, true, -1, -1, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -614,7 +614,7 @@ namespace Terradue.Portal {
         /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
         public bool DoesItemExist(IfyContext context, string identifier) {
             if (!TopTable.HasIdentifierField) return false;
-            return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), null, true, -1, -1, EntityAccessLevel.Administrator)) != 0;
+            return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, ItemVisibilityMode.All, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), null, true, -1, -1, EntityAccessLevel.Administrator)) != 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -627,7 +627,7 @@ namespace Terradue.Portal {
         /// <param name="condition">Additional SQL condition.</param>
         /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus whether the entity can actually be loaded. If set to <c>None</c>, the context's default access level is applied.</param>
         public string GetItemQuery(IfyContext context, Entity item, int userId, string condition, EntityAccessLevel accessLevel) {
-            return GetQuery(context, false, userId, null, condition, null, false, -1, -1, accessLevel);
+            return GetQuery(context, false, userId, null, ItemVisibilityMode.All, condition, null, false, -1, -1, accessLevel);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -669,7 +669,7 @@ namespace Terradue.Portal {
                 }
             }
 
-            if (items.OwnedItemsOnly && userId != 0 && TopTable.HasOwnerReference) {
+            if ((items.ItemVisibility & ItemVisibilityMode.PrivateOnly) == ItemVisibilityMode.PrivateOnly && userId != 0 && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
@@ -690,7 +690,7 @@ namespace Terradue.Portal {
                 offset = 0;
             }
 
-            return GetQueryParts(context, true, userId, groupIds, condition, sort, idsOnly, limit, offset, accessLevel);
+            return GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, idsOnly, limit, offset, accessLevel);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -705,7 +705,7 @@ namespace Terradue.Portal {
         /// <returns>The SQL query.</returns>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
         public string GetListQuery(IfyContext context, int userId, string condition, bool idsOnly, int limit = -1, int offset = 0) {
-            return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
+            return GetQuery(context, true, userId, null, ItemVisibilityMode.All, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ namespace Terradue.Portal {
                 }
             }
 
-            return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
+            return GetQuery(context, true, userId, null, ItemVisibilityMode.All, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
         
         [Obsolete("Use GetListQuery with EntityCollection argument")]
@@ -753,7 +753,7 @@ namespace Terradue.Portal {
         [Obsolete("Use GetListQuery with EntityCollection argument")]
         public string GetListQueryOfRelationship(IfyContext context, int userId, Entity referringItem, bool idsOnly, int limit = -1, int offset = 0) {
             string condition = String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, referringItem.Id);
-            return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
+            return GetQuery(context, true, userId, null, ItemVisibilityMode.All, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -773,7 +773,7 @@ namespace Terradue.Portal {
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
 
-            return GetQuery(context, true, userId, null, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
+            return GetQuery(context, true, userId, null, ItemVisibilityMode.All, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -786,7 +786,7 @@ namespace Terradue.Portal {
         /// <param name="limit">Number of records to be retrieved (optional, defaults to -1, i.e. no limit)</param>
         /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         public string GetGroupQuery(IfyContext context, int[] groupIds, string condition = null, bool idsOnly = false, int limit = -1, int offset = 0) {
-            return GetQuery(context, true, 0, groupIds, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
+            return GetQuery(context, true, 0, groupIds, ItemVisibilityMode.All, condition, null, idsOnly, limit, offset, EntityAccessLevel.None);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -797,12 +797,13 @@ namespace Terradue.Portal {
         /// <param name="list">The entity item that has already been instantiated but still needs to be loaded. Can be <c>null</c>.</param>
         /// <param name="userId">ID of the user on whose behalf the item or list is to be selected.</param>
         /// <param name="groupIds">An array of IDs of the groups to take into account for the permission filtering.</param>
+        /// <param name="visibility">The visibility flags for items in the collection."/>/param>
         /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
         /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
         /// <param name="accessLevel">The entity access mode according to which restrictions are applied to the resulting query.</param>
-        public string GetQuery(IfyContext context, bool list, int userId, int[] groupIds, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
+        public string GetQuery(IfyContext context, bool list, int userId, int[] groupIds, ItemVisibilityMode visibility, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
 
-            object[] parts = GetQueryParts(context, list, userId, groupIds, condition, sort, idsOnly, limit, offset, accessLevel);
+            object[] parts = GetQueryParts(context, list, userId, groupIds, visibility, condition, sort, idsOnly, limit, offset, accessLevel);
 
             return GetQuery(parts);
 
@@ -822,7 +823,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public object[] GetQueryParts(IfyContext context, bool list, int userId, int[] groupIds, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
+        public object[] GetQueryParts(IfyContext context, bool list, int userId, int[] groupIds, ItemVisibilityMode visibility, string condition, string sort = null, bool idsOnly = false, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
 
             if (accessLevel == EntityAccessLevel.None) {
                 accessLevel = context.AccessLevel;
@@ -831,7 +832,7 @@ namespace Terradue.Portal {
 
             if (!isSqlPrepared) PrepareSql();
 
-            string[] userJoinValues = (userId == 0 && (groupIds == null || groupIds.Length == 0) ? new string[] { "0", "0" } : GetUserJoinValues(context, userId, groupIds));
+            string[] userJoinValues = GetUserJoinValues(context, visibility, userId, groupIds);
 
             // Build FROM clause
             string joinSql = String.Format(accessLevel == EntityAccessLevel.Administrator ? adminJoinSql : userId != 0 && accessLevel == EntityAccessLevel.Permission && list ? restrictedJoinSql : unrestrictedJoinSql, userJoinValues);
@@ -920,12 +921,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        private string[] GetUserJoinValues(IfyContext context, int userId, int[] groupIds) {
-            if (HasPermissionManagement && groupIds == null) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
-            if (groupIds == null || groupIds.Length == 0) groupIds = new int[] {0};
+        private string[] GetUserJoinValues(IfyContext context, ItemVisibilityMode visibility, int userId, int[] groupIds) {
+            if (HasPermissionManagement && groupIds == null && (visibility & ItemVisibilityMode.Restricted) != 0) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
             return new string[] {
-                userId.ToString(),
-                String.Join(",", groupIds)
+                (visibility & ItemVisibilityMode.Public) == 0 ? "false" : "p.id_usr IS NULL AND p.id_grp IS NULL",
+                (visibility & ItemVisibilityMode.Restricted | ItemVisibilityMode.PrivateOnly) == 0 ? "0" : userId.ToString(),
+                groupIds == null || groupIds.Length == 0 ? "0" : String.Join(",", groupIds)
             };
         }
 
@@ -1398,11 +1399,13 @@ namespace Terradue.Portal {
 
                 if (table == PermissionSubjectTable) {
                     permissionSubjectTableIndex = i;
-                    s = String.Format("JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))",
+                    s = String.Format("JOIN {0} AS p ON t{1}.id=p.id_{2} AND ({{0}} OR p.id_usr={{1}} OR p.id_grp IN ({{2}}))",
                         table.PermissionTable,
                         i == 0 ? String.Empty : i.ToString(),
                         table.Name
                     );
+                    // JOIN {0} AS p ON t{1}.id=p.id_{2} AND (p.id_usr IS NULL AND p.id_grp IS NULL OR p.id_usr={{0}} OR p.id_grp IN ({{1}}))
+                    //                                        [-------------- public -------------]    [---------- restricted ------------]
                     restrictedJoinSql += String.Format(" INNER {0}", s);
                     unrestrictedJoinSql += String.Format(" LEFT {0}", s);
                 }
