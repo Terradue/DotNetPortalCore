@@ -44,7 +44,7 @@ namespace Terradue.Portal.Test {
 
             context.StartImpersonation(user1.Id);
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
-            pd1.ItemVisibility = ItemVisibilityMode.PrivateOnly;
+            pd1.ItemVisibility = ItemVisibilityMode.OwnedOnly;
             pd1.Load();
             Assert.IsTrue(pd1.Count == 2);
             context.EndImpersonation();
@@ -352,7 +352,7 @@ namespace Terradue.Portal.Test {
 
             PublishServer powna = new PublishServer(context);
             powna.OwnerId = user.Id;
-            powna.Name = "owned by user (shared with group)";
+            powna.Name = "owned by user (shared with all)";
             powna.Protocol = "ftp";
             powna.Hostname = "test.org";
             powna.Store();
@@ -372,7 +372,7 @@ namespace Terradue.Portal.Test {
             pownu.Protocol = "ftp";
             pownu.Hostname = "test.org";
             pownu.Store();
-            pownu.GrantPermissionsToUsers(new int[] { context.UserId });
+            pownu.GrantPermissionsToUsers(new User[] { user2 });
 
             PublishServer pown = new PublishServer(context);
             pown.OwnerId = user.Id;
@@ -389,11 +389,9 @@ namespace Terradue.Portal.Test {
 
             context.StartImpersonation(user.Id);
             context.AccessLevel = EntityAccessLevel.Privilege;
-            context.ConsoleDebug = true;
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.ItemVisibility = ItemVisibilityMode.All;
             pd1.Load();
-            foreach (PublishServer p in pd1) Console.WriteLine("* PD1: \"{0}\"", p.Name);
             Assert.IsTrue(pd1.Count == 11);
             Assert.IsTrue(pd1.Contains(ppub.Id));
             Assert.IsTrue(pd1.Contains(ppubresg.Id));
@@ -408,6 +406,7 @@ namespace Terradue.Portal.Test {
             Assert.IsTrue(pd1.Contains(pown.Id));
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            context.ConsoleDebug = true;
             pd2.ItemVisibility = ItemVisibilityMode.Public;
             pd2.Load();
             foreach (PublishServer p in pd2) Console.WriteLine("* PD2: \"{0}\"", p.Name);
@@ -431,6 +430,16 @@ namespace Terradue.Portal.Test {
             Assert.IsTrue(pd3.Contains(powna.Id));
             Assert.IsTrue(pd3.Contains(powng.Id));
             Assert.IsTrue(pd3.Contains(pownu.Id));
+            Assert.IsTrue(pd3.Contains(pown.Id));
+
+            EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
+            pd4.ItemVisibility = ItemVisibilityMode.OwnedOnly;
+            pd4.Load();
+            Assert.IsTrue(pd4.Count == 4);
+            Assert.IsTrue(pd4.Contains(powna.Id));
+            Assert.IsTrue(pd4.Contains(powng.Id));
+            Assert.IsTrue(pd4.Contains(pownu.Id));
+            Assert.IsTrue(pd4.Contains(pown.Id));
 
             context.EndImpersonation();
         }

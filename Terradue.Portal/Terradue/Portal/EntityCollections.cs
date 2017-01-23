@@ -698,7 +698,7 @@ namespace Terradue.Portal {
                             this.ItemVisibility = ItemVisibilityMode.Restricted;
                             break;
                         case "private":
-                            this.ItemVisibility = ItemVisibilityMode.PrivateOnly;
+                            this.ItemVisibility = ItemVisibilityMode.OwnedOnly;
                             break;
                         }
                         break;
@@ -1236,7 +1236,7 @@ namespace Terradue.Portal {
         Restricted = 0x02,
 
         /// <summary>Limits the items in the collection to those owned by the user.</summary>
-        PrivateOnly = 0x04
+        OwnedOnly = 0x04
 
     }
 

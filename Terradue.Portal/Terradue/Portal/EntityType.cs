@@ -669,7 +669,7 @@ namespace Terradue.Portal {
                 }
             }
 
-            if ((items.ItemVisibility & ItemVisibilityMode.PrivateOnly) == ItemVisibilityMode.PrivateOnly && userId != 0 && TopTable.HasOwnerReference) {
+            if ((items.ItemVisibility & ItemVisibilityMode.OwnedOnly) == ItemVisibilityMode.OwnedOnly && userId != 0 && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
@@ -925,7 +925,7 @@ namespace Terradue.Portal {
             if (HasPermissionManagement && groupIds == null && (visibility & ItemVisibilityMode.Restricted) != 0) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
             return new string[] {
                 (visibility & ItemVisibilityMode.Public) == 0 ? "false" : "p.id_usr IS NULL AND p.id_grp IS NULL",
-                (visibility & ItemVisibilityMode.Restricted | ItemVisibilityMode.PrivateOnly) == 0 ? "0" : userId.ToString(),
+                (visibility & (ItemVisibilityMode.Restricted | ItemVisibilityMode.OwnedOnly)) == 0 ? "0" : userId.ToString(),
                 groupIds == null || groupIds.Length == 0 ? "0" : String.Join(",", groupIds)
             };
         }
