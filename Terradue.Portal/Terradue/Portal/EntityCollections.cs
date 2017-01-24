@@ -13,7 +13,6 @@ using Terradue.OpenSearch.Filters;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
-using Terradue.Portal.OpenSearch;
 using Terradue.ServiceModel.Syndication;
 
 
@@ -41,6 +40,9 @@ namespace Terradue.Portal {
 
     public abstract class EntityCollection {
 
+        private EntityType entityType;
+        private int itemsPerPage, startIndex, page;
+
         //---------------------------------------------------------------------------------------------------------------------
 
         protected IfyContext context;
@@ -51,7 +53,19 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected Entity ReferringItem { get; set; }
+        public Entity ReferringItem { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public Entity Template { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public Dictionary<FieldInfo, string> FilterValues { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -79,72 +93,15 @@ namespace Terradue.Portal {
         /// <remarks></remarks>
         public abstract bool CanSearch { get; }
 
-    }
-
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-
-
-    /// <summary>A list of entities of a specific type.</summary>
-    public abstract class EntityCollection<T> : EntityCollection, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
-
-        private EntityType entityType;
-        private T template;
-        private OpenSearchEngine ose;
-        private Dictionary<FieldInfo, string> filterValues;
-        private int itemsPerPage, startIndex, page;
-        private bool selectByPage;
-
-        public EntityType EntityType {
-            get { return entityType; }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets a template object of this collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
-        /// <remarks>The template object is created automatically if it is accessed.</remarks>
-        public T Template {
-            get {
-                if (template == null) template = entityType.GetEntityInstance(context) as T;
-                return template;
-            }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets an IEnumerable of all items contained in this collection.</summary>
-        public abstract IEnumerable<T> Items { get; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets or sets the <see cref="EntityDictionary"/> that is used as an alternative source for the content reusing existing item instances.</summary>
-        protected EntityDictionary<T> ItemSource { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets the number of items in this collection.</summary>
-        public abstract int Count { get; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Indicates or decides whether this collection is currently being loaded.</summary>
-        /// <remarks>This property is used internally for optimization of duplicate checking and similar.</remarks>
-        protected bool IsLoading { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override bool CanSearch {
-            get { return true; }
-        }
-
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates or decides whether the result is divided into pages only one of which is contained in the resulting collection.</summary>
         public bool UsePaging { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether the range of selected items is determined by the value of either the property <see cref="Page"/> or <see cref="StartIndex"/>.</summary>
+        public bool SelectByPage { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -182,7 +139,7 @@ namespace Terradue.Portal {
             set {
                 startIndex = value;
                 UsePaging = true;
-                selectByPage = false; // calculate OFFSET using StartIndex
+                SelectByPage = false; // calculate OFFSET using StartIndex
             }
         }
 
@@ -197,9 +154,84 @@ namespace Terradue.Portal {
             set {
                 page = value;
                 UsePaging = true;
-                selectByPage = true; // calculate OFFSET using Page and ItemsPerPage
+                SelectByPage = true; // calculate OFFSET using Page and ItemsPerPage
             }
 
+        }
+
+        public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
+            this.context = context;
+            this.entityType = entityType;
+            if (context != null) this.UserId = context.UserId;
+            this.ReferringItem = referringItem;
+            this.UsePaging = false;
+            this.itemsPerPage = DefaultItemsPerPage;
+            this.startIndex = DefaultItemOffset;
+            this.page = DefaultPageOffset;
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+
+
+
+    /// <summary>A list of entities of a specific type.</summary>
+    public abstract class EntityCollection<T> : EntityCollection, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
+
+        private EntityType entityType;
+        private T template;
+        private OpenSearchEngine ose;
+        private Dictionary<FieldInfo, string> filterValues;
+        private Dictionary<FieldInfo, SortDirection> sortCriteria;
+
+        public EntityType EntityType {
+            get { return entityType; }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets a template object of this collection's underlying type the template for initialization of new items and filtering of item lists.</summary>
+        /// <remarks>The template object is created automatically if it is accessed.</remarks>
+        public new T Template {
+            get {
+                if (template == null) {
+                    template = entityType.GetEntityInstance(context) as T;
+                    base.Template = template;
+                }
+                return template;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets an IEnumerable of all items contained in this collection.</summary>
+        public abstract IEnumerable<T> Items { get; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the <see cref="EntityDictionary"/> that is used as an alternative source for the content reusing existing item instances.</summary>
+        protected EntityDictionary<T> ItemSource { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the number of items in this collection.</summary>
+        public abstract int Count { get; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether this collection is currently being loaded.</summary>
+        /// <remarks>This property is used internally for optimization of duplicate checking and similar.</remarks>
+        protected bool IsLoading { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override bool CanSearch {
+            get { return true; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -210,15 +242,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
-            this.context = context;
-            if (context != null) this.UserId = context.UserId;
+        public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) : base(context, entityType, referringItem) {
             this.entityType = entityType;
-            this.ReferringItem = referringItem;
-            this.UsePaging = false;
-            this.itemsPerPage = DefaultItemsPerPage;
-            this.startIndex = DefaultItemOffset;
-            this.page = DefaultPageOffset;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -260,12 +285,10 @@ namespace Terradue.Portal {
 
             Clear();
 
-            int limit = (UsePaging ? ItemsPerPage : -1);
-            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
-            string sql;
-            if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -309,13 +332,10 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
-            int limit = (UsePaging ? ItemsPerPage : -1);
-            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
-            string sql;
-            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, true, limit, offset);
-            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, true, limit, offset);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, true, limit, offset);
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -343,14 +363,10 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
-            int limit = (UsePaging ? ItemsPerPage : -1);
-            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
-            string sql;
-            if (entityType is EntityRelationshipType && ReferringItem != null) sql = entityType.GetListQueryOfRelationship(context, UserId, ReferringItem, false, limit, offset);
-            else if (OwnedItemsOnly) sql = entityType.GetListQueryForOwnedItems(context, UserId, false, limit, offset);
-            else sql = entityType.GetListQuery(context, UserId, template, filterValues, false, limit, offset);
-
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -373,10 +389,10 @@ namespace Terradue.Portal {
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
 
-            int limit = (UsePaging ? ItemsPerPage : -1);
-            int offset = (UsePaging ? selectByPage ? (Page - DefaultPageOffset) * ItemsPerPage : StartIndex - DefaultItemOffset : -1);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false, EntityAccessLevel.None);
+            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
-            string sql = entityType.GetGroupQuery(context, groupIds, false, null, limit, offset);
+            string sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -560,16 +576,7 @@ namespace Terradue.Portal {
         /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
         public void SetFilter(string propertyName, string searchTerm) {
-            FieldInfo field = null;
-            if (propertyName == "Id") {
-                field = new FieldInfo(entityType.ClassType.GetProperty("Id"), 0, entityType.TopTable.IdField);
-            } else if (propertyName == "Identifier") {
-                if (entityType.TopTable.HasIdentifierField) field = new FieldInfo(entityType.ClassType.GetProperty("Identifier"), 0, entityType.TopTable.IdentifierField);
-            } else if (propertyName == "Name") {
-                if (entityType.TopTable.HasNameField) field = new FieldInfo(entityType.ClassType.GetProperty("Name"), 0, entityType.TopTable.NameField);
-            } else {
-                field = entityType.GetField(propertyName);
-            }
+            FieldInfo field = entityType.GetField(propertyName);
             if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
             SetFilter(field, searchTerm);
         }
@@ -580,9 +587,12 @@ namespace Terradue.Portal {
         /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
         public void SetFilter(FieldInfo field, string searchTerm) {
-            if (field == null) throw new ArgumentNullException("No filtering field specified");
+            if (field == null) throw new ArgumentNullException("field", "No filtering field specified");
             if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
-            if (filterValues == null) filterValues = new Dictionary<FieldInfo, string>();
+            if (filterValues == null) {
+                filterValues = new Dictionary<FieldInfo, string>();
+                base.FilterValues = filterValues;
+            }
             filterValues[field] = searchTerm;
         }
 
@@ -590,6 +600,40 @@ namespace Terradue.Portal {
 
         public void ClearFilters() {
             filterValues = null;
+            base.FilterValues = null;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified property.</summary>
+        /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void AddSort(string propertyName, SortDirection direction = SortDirection.Ascending) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
+            AddSort(field, direction);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
+        /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
+        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        public void AddSort(FieldInfo field, SortDirection direction = SortDirection.Ascending) {
+            if (field == null) throw new ArgumentNullException("No filtering field specified");
+            if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
+            if (sortCriteria == null) {
+                sortCriteria = new Dictionary<FieldInfo, SortDirection>();
+                base.SortCriteria = sortCriteria;
+            }
+            sortCriteria[field] = direction;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void ClearSort() {
+            sortCriteria = null;
+            base.SortCriteria = null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -847,9 +891,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public long TotalResults {
-            get {
-                return this.Count;
-            }
+            get; protected set;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -857,6 +899,8 @@ namespace Terradue.Portal {
         public virtual bool CanCache {
             get { return false; }
         }
+
+        //---------------------------------------------------------------------------------------------------------------------
 
         public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
         }
@@ -1177,6 +1221,12 @@ namespace Terradue.Portal {
             return items.ContainsKey(id);
         }
         
+    }
+
+
+    public enum SortDirection {
+        Ascending,
+        Descending
     }
 
 }

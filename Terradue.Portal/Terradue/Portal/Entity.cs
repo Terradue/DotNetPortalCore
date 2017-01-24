@@ -719,6 +719,11 @@ namespace Terradue.Portal {
                             else assignments += ", ";
                             assignments += String.Format("{0}={1}", entityType.TopTable.NameField, StringUtils.EscapeSql(Name));
                         }
+                        if (entityType.TopTable.HasDomainReference) {
+                            if (assignments == null) assignments = String.Empty;
+                            else assignments += ", ";
+                            assignments += String.Format("{0}={1}", entityType.TopTable.DomainReferenceField, DomainId == 0 ? "NULL" : DomainId.ToString());
+                        }
                         if (entityType.TopTable.HasOwnerReference) {
                             if (assignments == null) assignments = String.Empty;
                             else assignments += ", ";

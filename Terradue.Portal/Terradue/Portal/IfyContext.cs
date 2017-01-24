@@ -1748,14 +1748,17 @@ namespace Terradue.Portal {
 
         public DateTime GetDateTimeValue(IDataReader reader, int index) {
             if (reader.GetValue(index) == DBNull.Value) return DateTime.MinValue;
-            return reader.GetDateTime(index);
+            var date = reader.GetDateTime(index);
+            return DateTime.SpecifyKind (date, DateTimeKind.Utc);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetDateTimeValue(IDataReader reader, int index, string format) {
             if (reader.GetValue(index) == DBNull.Value) return null;
-            return reader.GetDateTime(index).ToString(format);
+            var date = reader.GetDateTime(index);
+            var utcdate = DateTime.SpecifyKind (date, DateTimeKind.Utc);
+            return utcdate.ToString (format);
         }
 
         //---------------------------------------------------------------------------------------------------------------------

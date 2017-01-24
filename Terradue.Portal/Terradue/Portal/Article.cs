@@ -190,7 +190,7 @@ namespace Terradue.Portal {
             return result;
         }
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
-            throw new NotImplementedException();
+            return OpenSearchFactory.GetBaseOpenSearchParameter();
         }
         #endregion
 
