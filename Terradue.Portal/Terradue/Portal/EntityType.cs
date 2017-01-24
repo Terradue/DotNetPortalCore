@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Reflection;
 using System.Text;
@@ -1185,6 +1186,59 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Translates human-readable search values for this entity type from a parameter collection into a single value containing IDs of items.</summary>
+        /// <returns>A comma-separated list of database IDs of matching items. This string value can be used as a search filter with an EntityCollection (by using SetFilter on an *Id property with this value).</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="parameters">A NameValueCollection containing the parameters (e.g. the query string).</param>
+        /// <param name="parameterName">The name of the parameter containing the search values (identifiers or names of the items to be found).</param>
+        /// <param name="searchIdentifiers">Decides whether the search values should be present among the items' identifiers.</param>
+        /// <param name="searchNames">Decides whether the search values should be present among the items' names.</param>
+        public string GetIdFilterString(IfyContext context, NameValueCollection parameters, string parameterName, bool searchIdentifiers = true, bool searchNames = false) {
+            List<string> values = new List<string>();
+            if (parameters == null || parameters[parameterName] == null) return null;
+
+            int[] ids = GetIds(context, parameters.GetValues(parameterName), searchIdentifiers, searchNames);
+            if (ids == null || ids.Length == 0) return null;
+
+            return String.Join(",", ids);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Translates human-readable search values for this entity type to the corresponding database IDs.</summary>
+        /// <returns>An array of database IDs of the matching items.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="values">Search values (identifiers or names of the items to be found).</param>
+        /// <param name="searchIdentifiers">Decides whether the search values should be present among the items' identifiers.</param>
+        /// <param name="searchNames">Decides whether the search values should be present among the items' names.</param>
+        public int[] GetIds(IfyContext context, string[] values, bool searchIdentifiers = true, bool searchNames = false) {
+            string valueList = null;
+            int count = 0;
+            foreach (string value in values) {
+                if (valueList == null) valueList = String.Empty;
+                else valueList += ",";
+                valueList += StringUtils.EscapeSql(value);
+                count++;
+            }
+            if (count == 0) return new int[0];
+            string term = String.Format("{1}{2}{0}{3}", valueList, count == 1 ? "=" : " IN ", count == 1 ? String.Empty : "(", count == 1 ? String.Empty : ")");
+            string condition = null;
+            if (searchIdentifiers && TopTable.HasIdentifierField) {
+                condition = String.Format("t.{0}{1}", TopTable.IdentifierField, term);
+            }
+            if (searchNames && TopTable.HasNameField) {
+                if (condition == null) condition = String.Empty;
+                else condition = condition + " OR ";
+                condition += String.Format("t.{0}{1}", TopTable.NameField, term);
+            }
+
+            object[] parts = GetQueryParts(context, true, 0, null, ItemVisibilityMode.All, String.Format("({0})", condition), null, true, -1, 0, EntityAccessLevel.Administrator);
+            string sql = GetQuery(parts);
+            return context.GetQueryIntegerValues(sql);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Returns an entity instance of the represented type from its ID.</summary>
         /// <returns>The entity instance, that has to be fully loaded by the calling code.</returns>
         /// <param name="context">The execution environment context.</param>
@@ -1773,6 +1827,12 @@ namespace Terradue.Portal {
         }
 
     }
+
+
+
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------------------------------------------
 
 
 

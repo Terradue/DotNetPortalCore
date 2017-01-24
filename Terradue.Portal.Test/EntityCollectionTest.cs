@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NUnit.Framework;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace Terradue.Portal.Test {
 
@@ -126,6 +126,7 @@ namespace Terradue.Portal.Test {
         [Test]
         public void PagingTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM series;");
 
             for (int i = 1; i <= 50; i++) {
                 Series series = new Series(context);
@@ -442,6 +443,56 @@ namespace Terradue.Portal.Test {
             Assert.IsTrue(pd4.Contains(pown.Id));
 
             context.EndImpersonation();
+        }
+
+        [Test]
+        public void GetIds() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM series;");
+
+            Series s1 = new Series(context);
+            s1.Identifier = "SERIES1";
+            s1.Name = "Test series 1";
+            s1.Store();
+
+            Series s2 = new Series(context);
+            s2.Identifier = "SERIES2";
+            s2.Name = "Test series 2";
+            s2.Store();
+
+            Series s3 = new Series(context);
+            s3.Identifier = "SERIES3";
+            s3.Name = "Test series 3";
+            s3.Store();
+
+            EntityType seriesType = EntityType.GetEntityType(typeof(Series));
+
+            int[] result1 = seriesType.GetIds(context, new string[] { "SERIES1", "SERIES2", "SERIES3" }, true, false);
+            Assert.IsTrue(result1.Length == 3);
+            Assert.IsTrue(result1[0] == s1.Id);
+            Assert.IsTrue(result1[1] == s2.Id);
+            Assert.IsTrue(result1[2] == s3.Id);
+
+            int[] result2 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, true, false);
+            Assert.IsTrue(result2.Length == 1);
+            Assert.IsTrue(result2[0] == s2.Id);
+
+            int[] result3 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, false, true);
+            Assert.IsTrue(result3.Length == 1);
+            Assert.IsTrue(result3[0] == s1.Id);
+
+            int[] result4 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, true, true);
+            Assert.IsTrue(result4.Length == 2);
+            Assert.IsTrue(result4[0] == s1.Id);
+            Assert.IsTrue(result4[1] == s2.Id);
+
+            NameValueCollection nv4 = new NameValueCollection();
+            nv4.Add("series", "Test series 1");
+            nv4.Add("series", "SERIES2");
+            nv4.Add("other", "SERIES3");
+            string sresult4 = seriesType.GetIdFilterString(context, nv4, "series", true, true);
+            Assert.IsTrue(sresult4 == String.Format("{0},{1}", s1.Id, s2.Id));
+
         }
 
     }
