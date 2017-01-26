@@ -407,7 +407,6 @@ namespace Terradue.Portal.Test {
             Assert.IsTrue(pd1.Contains(pown.Id));
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
-            context.ConsoleDebug = true;
             pd2.ItemVisibility = ItemVisibilityMode.Public;
             pd2.Load();
             foreach (PublishServer p in pd2) Console.WriteLine("* PD2: \"{0}\"", p.Name);

@@ -61,6 +61,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>The <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
+        public EntityAccessLevel AccessLevel { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>The visibility flags to be taken into account before loading the collection.</summary>
         public ItemVisibilityMode ItemVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -290,7 +296,7 @@ namespace Terradue.Portal {
 
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true);
             TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
             string sql = entityType.GetQuery(queryParts);
@@ -337,7 +343,7 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true);
             TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
             string sql = entityType.GetQuery(queryParts);
@@ -368,7 +374,7 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false);
             TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
             string sql = entityType.GetQuery(queryParts);
@@ -394,7 +400,7 @@ namespace Terradue.Portal {
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false, EntityAccessLevel.None);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false);
             TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
 
             string sql = entityType.GetQuery(queryParts);

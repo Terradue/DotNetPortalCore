@@ -59,7 +59,7 @@ namespace Terradue.Portal {
     ///     <p>Main functionality includes:</p>
     ///     <ul>
     ///         <li>Check whether an item of a specific type exists, by database ID or unique identifier (if applicable). This is useful in some cases to avoid an EntityNotFoundException.</li>
-    ///         <li>Create various types of queries, such as for loading a particular item or a list of items that may be filtered by specific criteria. These queries are used by methods of <see cref="Terradue.Portal.Entity"/> or <see cref="Terradue.Portal.EntityCollection"/> that load data from the database.</li>/
+    ///         <li>Create various types of queries, such as for loading a particular item or a list of items that may be filtered by specific criteria. These queries are used by methods of <see cref="Terradue.Portal.Entity"/> or <see cref="Terradue.Portal.EntityCollection"/> that load data from the database.</li>
     ///         <li>Create correctly typed instances of Entity subclasses</li>
     ///         <li>Delete items of a specific type, by database ID or unique identifier (if applicable). This has the advantage that the item does not have to be instantiated before deleting it.</li>
     ///     </ul>
@@ -641,9 +641,8 @@ namespace Terradue.Portal {
         /// <param name="groupIds">An optional array of IDs of the groups to take into account for the permission filtering.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
-        /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus eventually the results in the collection. If set to <c>None</c>, the context's default access level is applied.</param>
-        public string GetListQuery(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
-            object[] parts = GetListQueryParts(context, items, userId, groupIds, condition, idsOnly, accessLevel);
+        public string GetListQuery(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly) {
+            object[] parts = GetListQueryParts(context, items, userId, groupIds, condition, idsOnly);
             return GetQuery(parts);
         }
 
@@ -655,12 +654,14 @@ namespace Terradue.Portal {
         /// <param name="groupIds">An optional array of IDs of the groups to take into account for the permission filtering.</param>
         /// <param name="condition">Additional SQL condition.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
-        /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus eventually the results in the collection. If set to <c>None</c>, the context's default access level is applied.</param>
-        public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
+        public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly) {
             if (items.Template != null) {
-                if (condition == null) condition = String.Empty;
-                else condition += " AND ";
-                condition += GetTemplateCondition(items.Template, false);
+                string templateCondition = GetTemplateCondition(items.Template, false);
+                if (templateCondition != null) {
+                    if (condition == null) condition = String.Empty;
+                    else condition += " AND ";
+                    condition += GetTemplateCondition(items.Template, false);
+                }
             } else if (items.FilterValues != null) {
                 string filterCondition = GetFilterSql(items.FilterValues);
                 if (filterCondition != null) {
@@ -691,7 +692,7 @@ namespace Terradue.Portal {
                 offset = 0;
             }
 
-            return GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, idsOnly, limit, offset, accessLevel);
+            return GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, idsOnly, limit, offset, items.AccessLevel);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -798,7 +799,7 @@ namespace Terradue.Portal {
         /// <param name="list">The entity item that has already been instantiated but still needs to be loaded. Can be <c>null</c>.</param>
         /// <param name="userId">ID of the user on whose behalf the item or list is to be selected.</param>
         /// <param name="groupIds">An array of IDs of the groups to take into account for the permission filtering.</param>
-        /// <param name="visibility">The visibility flags for items in the collection."/>/param>
+        /// <param name="visibility">The visibility flags for items in the collection.</param>
         /// <param name="condition">An initial SQL conditional expression. The main database table is addressed with the alias <c>t</c>.</param>
         /// <param name="idsOnly">Decides whether the returned query is to return only a list of matching database IDs.</param>
         /// <param name="accessLevel">The entity access mode according to which restrictions are applied to the resulting query.</param>
@@ -922,6 +923,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets values to complete the join for the database query based on the specified user and groups.</summary>
+        /// <returns>A string array of three elements: an SQL conditional expression for selection of globally accessible items; the database ID of a user to be matched; the database IDs of groups to be matched.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="visibility">Visibility.</param>
+        /// <param name="userId">Database ID of a user.</param>
+        /// <param name="groupIds">Database IDs of groups.</param>
         private string[] GetUserJoinValues(IfyContext context, ItemVisibilityMode visibility, int userId, int[] groupIds) {
             if (HasPermissionManagement && groupIds == null && (visibility & ItemVisibilityMode.Restricted) != 0) groupIds = context.GetQueryIntegerValues(String.Format("SELECT id_grp FROM usr_grp WHERE id_usr={0}", userId));
             return new string[] {
