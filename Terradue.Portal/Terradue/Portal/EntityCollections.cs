@@ -386,7 +386,7 @@ namespace Terradue.Portal {
             IsLoading = true;
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader, EntityAccessLevel.None);
+                item.Load(entityType, reader, AccessLevel);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -411,7 +411,7 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader, EntityAccessLevel.None);
+                item.Load(entityType, reader, AccessLevel);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
