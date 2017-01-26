@@ -851,6 +851,8 @@ namespace Terradue.Portal {
             //add domain
             query.Set ("domain", "{t2:domain?}");
 
+            query.Set ("visibility", "{t2:visibility?}");
+
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
 
