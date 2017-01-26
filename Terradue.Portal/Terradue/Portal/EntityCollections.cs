@@ -172,6 +172,7 @@ namespace Terradue.Portal {
         public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
             this.context = context;
             this.entityType = entityType;
+            this.AccessLevel = context.AccessLevel;
             this.ItemVisibility = ItemVisibilityMode.All;
             if (context != null) this.UserId = context.UserId;
             this.ReferringItem = referringItem;
