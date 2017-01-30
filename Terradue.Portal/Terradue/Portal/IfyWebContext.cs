@@ -794,11 +794,11 @@ namespace Terradue.Portal {
 
         /// <summary>Ends the current HTTP session.</summary>
         public void EndSession() {
-            AuthenticationType authenticationType = null;
+            AuthenticationType[] authenticationTypes = null;
             int oldUserId = 0;
             if (UserInformation != null && HttpContext.Current != null) {
                 oldUserId = UserInformation.UserId;
-                authenticationType = UserInformation.AuthenticationType;
+                authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
             }
 
             SetUserInformation(null, null);
@@ -810,7 +810,11 @@ namespace Terradue.Portal {
             }
             //if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
 
-            if (authenticationType != null && authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+            if (authenticationTypes != null) {
+                foreach (AuthenticationType authenticationType in authenticationTypes) {
+                    if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+                }
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
