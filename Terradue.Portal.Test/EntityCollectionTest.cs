@@ -401,7 +401,6 @@ namespace Terradue.Portal.Test {
             context.AccessLevel = EntityAccessLevel.Privilege;
             EntityDictionary<PublishServer> pd = new EntityDictionary<PublishServer>(context);
             pd.ItemVisibility = EntityItemVisibility.All;
-            context.ConsoleDebug = true;
             pd.Load();
             Assert.AreEqual(11, pd.Count);
             Assert.IsTrue(pd.Contains(ppub.Id));
@@ -426,7 +425,6 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(EntityItemVisibility.Restricted, pd[pownu.Id].Visibility);
             Assert.IsTrue(pd.Contains(pown.Id));
             Assert.AreEqual(EntityItemVisibility.Private, pd[pown.Id].Visibility);
-            context.ConsoleDebug = false;
 
             pd.Clear();
             pd.ItemVisibility = EntityItemVisibility.Public;
