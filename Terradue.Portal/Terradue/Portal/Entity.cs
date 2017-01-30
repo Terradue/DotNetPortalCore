@@ -455,17 +455,15 @@ namespace Terradue.Portal {
             if (entityType.HasPermissionManagement) {
                 int anyUserCount = 0, anyGroupCount = 0;
                 bool hasGlobalPermission = false, hasUserPermission = false, hasGroupPermission = false;
+                anyUserCount = context.GetIntegerValue(reader, index++);
+                anyGroupCount = context.GetIntegerValue(reader, index++);
+                hasGlobalPermission = context.GetBooleanValue(reader, index++);
                 if (accessLevel != EntityAccessLevel.Administrator) {
-                    anyUserCount = context.GetIntegerValue(reader, index++);
-                    anyGroupCount = context.GetIntegerValue(reader, index++);
-                    hasGlobalPermission = context.GetBooleanValue(reader, index++);
-                    if (accessLevel != EntityAccessLevel.Administrator) {
-                        hasUserPermission = context.GetBooleanValue(reader, index++);
-                        hasGroupPermission = context.GetBooleanValue(reader, index++);
-                        hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
-                    }
+                    hasUserPermission = context.GetBooleanValue(reader, index++);
+                    hasGroupPermission = context.GetBooleanValue(reader, index++);
+                    hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
                 }
-                Visibility = hasGlobalPermission ? EntityItemVisibility.Public : anyUserCount + anyGroupCount + (hasGlobalPermission ? 1 : 0) > 1 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
+                Visibility = hasGlobalPermission ? EntityItemVisibility.Public : anyUserCount != 1 || anyGroupCount + (hasGlobalPermission ? 1 : 0) != 0 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
             }
             int firstCustomFieldIndex = index;
 
@@ -507,7 +505,7 @@ namespace Terradue.Portal {
                         Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
                         Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
                     }
-                    EntityItemVisibility visibility = context.GetBooleanValue(reader, permIndex + 2) ? EntityItemVisibility.Public : context.GetIntegerValue(reader, permIndex) + context.GetIntegerValue(reader, permIndex + 1) + (context.GetBooleanValue(reader, permIndex + 2) ? 1 : 0) > 1 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
+                    EntityItemVisibility visibility = context.GetBooleanValue(reader, permIndex + 2) ? EntityItemVisibility.Public : context.GetIntegerValue(reader, permIndex) != 1 || context.GetIntegerValue(reader, permIndex + 1) + (context.GetBooleanValue(reader, permIndex + 2) ? 1 : 0) != 0 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
                     Console.WriteLine("  >>>>>: {0,-25} = {1}", "Visibility", visibility);
                 }
                 foreach (FieldInfo field in entityType.Fields) {
