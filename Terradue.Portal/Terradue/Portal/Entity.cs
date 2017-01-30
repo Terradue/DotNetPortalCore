@@ -58,8 +58,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets (protected) the EntityAccessLevel by which this entity item was created or loaded.</summary>
+        /// <summary>Gets or sets the EntityAccessLevel by which this entity item is created or loaded.</summary>
         public EntityAccessLevel AccessLevel { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets (protected) the EntityItemVisibility that applies to this entity item.</summary>
+        /// <remarks>Globally shared items are shown as Pulic; non-public items assigned to anything more than a single user are shown as Restricted; all other items are shown as Private.</remarks>
+        public EntityItemVisibility Visibility { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -447,13 +453,19 @@ namespace Terradue.Portal {
             bool hasPrivilege = (accessLevel == EntityAccessLevel.Administrator || context.GetBooleanValue(reader, index++));
             bool hasPermission = true;
             if (entityType.HasPermissionManagement) {
-                bool hasUserPermission, hasGroupPermission = false, hasGlobalPermission = false;
+                int anyUserCount = 0, anyGroupCount = 0;
+                bool hasGlobalPermission = false, hasUserPermission = false, hasGroupPermission = false;
                 if (accessLevel != EntityAccessLevel.Administrator) {
-                    hasUserPermission = context.GetBooleanValue(reader, index++);
-                    hasGroupPermission = context.GetBooleanValue(reader, index++);
+                    anyUserCount = context.GetIntegerValue(reader, index++);
+                    anyGroupCount = context.GetIntegerValue(reader, index++);
                     hasGlobalPermission = context.GetBooleanValue(reader, index++);
-                    hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
+                    if (accessLevel != EntityAccessLevel.Administrator) {
+                        hasUserPermission = context.GetBooleanValue(reader, index++);
+                        hasGroupPermission = context.GetBooleanValue(reader, index++);
+                        hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
+                    }
                 }
+                Visibility = hasGlobalPermission ? EntityItemVisibility.Public : anyUserCount + anyGroupCount + (hasGlobalPermission ? 1 : 0) > 1 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
             }
             int firstCustomFieldIndex = index;
 
@@ -486,10 +498,17 @@ namespace Terradue.Portal {
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
                 if (accessLevel != EntityAccessLevel.Administrator) Console.WriteLine("- VALUE: {0,-25} = {1}", "HasPrivilege", context.GetBooleanValue(reader, index++));
-                if (accessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement/* && Restricted*/) { // TODO
-                    Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
-                    Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
+                if (accessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement) { // TODO
+                    int permIndex = index;
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "AnyUserAllow", context.GetIntegerValue(reader, index++));
+                    Console.WriteLine("- VALUE: {0,-25} = {1}", "AnyGroupAllow", context.GetIntegerValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "GlobalAllow", context.GetBooleanValue(reader, index++));
+                    if (accessLevel != EntityAccessLevel.Administrator) {
+                        Console.WriteLine("- VALUE: {0,-25} = {1}", "UserAllow", context.GetBooleanValue(reader, index++));
+                        Console.WriteLine("- VALUE: {0,-25} = {1}", "GroupAllow", context.GetBooleanValue(reader, index++));
+                    }
+                    EntityItemVisibility visibility = context.GetBooleanValue(reader, permIndex + 2) ? EntityItemVisibility.Public : context.GetIntegerValue(reader, permIndex) + context.GetIntegerValue(reader, permIndex + 1) + (context.GetBooleanValue(reader, permIndex + 2) ? 1 : 0) > 1 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
+                    Console.WriteLine("  >>>>>: {0,-25} = {1}", "Visibility", visibility);
                 }
                 foreach (FieldInfo field in entityType.Fields) {
                     if (field.FieldType != EntityFieldType.PermissionField && field.FieldType != EntityFieldType.DataField && field.FieldType != EntityFieldType.ForeignField) continue;

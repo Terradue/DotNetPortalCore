@@ -67,7 +67,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>The visibility flags to be taken into account before loading the collection.</summary>
-        public ItemVisibilityMode ItemVisibility { get; set; }
+        public EntityItemVisibility ItemVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ namespace Terradue.Portal {
             this.context = context;
             this.entityType = entityType;
             this.AccessLevel = context.AccessLevel;
-            this.ItemVisibility = ItemVisibilityMode.All;
+            this.ItemVisibility = EntityItemVisibility.All;
             if (context != null) this.UserId = context.UserId;
             this.ReferringItem = referringItem;
             this.UsePaging = false;
@@ -297,10 +297,12 @@ namespace Terradue.Portal {
 
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetIdQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -344,10 +346,12 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetIdQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -375,10 +379,12 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -401,10 +407,12 @@ namespace Terradue.Portal {
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -699,13 +707,13 @@ namespace Terradue.Portal {
                     case "visibility":
                         switch (parameters[p]) {
                         case "public":
-                            this.ItemVisibility = ItemVisibilityMode.Public;
+                            this.ItemVisibility = EntityItemVisibility.Public;
                             break;
                         case "restricted":
-                            this.ItemVisibility = ItemVisibilityMode.Restricted;
+                            this.ItemVisibility = EntityItemVisibility.Restricted;
                             break;
                         case "private":
-                            this.ItemVisibility = ItemVisibilityMode.OwnedOnly;
+                            this.ItemVisibility = EntityItemVisibility.OwnedOnly;
                             break;
                         }
                         break;
@@ -1227,24 +1235,6 @@ namespace Terradue.Portal {
 
         /// <summary>Items are ordered by a criteria in descending order.</summary>
         Descending
-    }
-
-    /// <summary>Enumaration for the visibility of items within a collection.</summary>
-    [Flags]
-    public enum ItemVisibilityMode {
-
-        /// <summary>All items to which a user has access are included in collection.</summary>
-        All = 0x03,
-            
-        /// <summary>Public items to which a user has access are included in collection.</summary>
-        Public = 0x01,
-
-        /// <summary>Items to which a user has access via user or group permissions are included in collection.</summary>
-        Restricted = 0x02,
-
-        /// <summary>Limits the items in the collection to those owned by the user.</summary>
-        OwnedOnly = 0x04
-
     }
 
 }

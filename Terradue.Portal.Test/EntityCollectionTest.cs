@@ -44,9 +44,9 @@ namespace Terradue.Portal.Test {
 
             context.StartImpersonation(user1.Id);
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
-            pd1.ItemVisibility = ItemVisibilityMode.OwnedOnly;
+            pd1.ItemVisibility = EntityItemVisibility.OwnedOnly;
             pd1.Load();
-            Assert.IsTrue(pd1.Count == 2);
+            Assert.AreEqual(2, pd1.Count);
             context.EndImpersonation();
 
             context.StartImpersonation(user2.Id);
@@ -56,7 +56,7 @@ namespace Terradue.Portal.Test {
             });
 
             pd2.LoadFromSource(pd1, true);
-            Assert.IsTrue(pd2.Count == 2);
+            Assert.AreEqual(2, pd2.Count);
 
             context.EndImpersonation();
         }
@@ -95,31 +95,36 @@ namespace Terradue.Portal.Test {
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.SetFilter("Hostname", "*test*.org");
             pd1.Load();
-            Assert.IsTrue(pd1.Count == 2);
+            Assert.AreEqual(2, pd1.TotalResults);
+            Assert.AreEqual(2, pd1.Count);
             Assert.IsTrue(pd1.Contains(p1.Id) && pd1.Contains(p2.Id));
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
             pd2.SetFilter("Port", "123");
             pd2.Load();
-            Assert.IsTrue(pd2.Count == 1);
+            Assert.AreEqual(1, pd2.TotalResults);
+            Assert.AreEqual(1, pd2.Count);
             Assert.IsTrue(pd2.Contains(p2.Id));
 
             EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
             pd3.SetFilter("Port", "[234");
             pd3.Load();
-            Assert.IsTrue(pd3.Count == 2);
+            Assert.AreEqual(2, pd3.TotalResults);
+            Assert.AreEqual(2, pd3.Count);
             Assert.IsTrue(pd3.Contains(p3a.Id) && pd3.Contains(p3b.Id));
 
             EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
             pd4.SetFilter("Port", "]100,300[");
             pd4.Load();
-            Assert.IsTrue(pd4.Count == 2);
+            Assert.AreEqual(2, pd4.TotalResults);
+            Assert.AreEqual(2, pd4.Count);
             Assert.IsTrue(pd4.Contains(p2.Id) && pd4.Contains(p3a.Id));
 
             EntityDictionary<PublishServer> pd5 = new EntityDictionary<PublishServer>(context);
             pd5.SetFilter("Name", "pf3*");
             pd5.Load();
-            Assert.IsTrue(pd5.Count == 2);
+            Assert.AreEqual(2, pd5.TotalResults);
+            Assert.AreEqual(2, pd5.Count);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
         }
 
@@ -137,29 +142,33 @@ namespace Terradue.Portal.Test {
 
             EntityDictionary<Series> sd1 = new EntityDictionary<Series>(context);
             sd1.Load();
-            Assert.IsTrue(sd1.Count == 50);
+            Assert.AreEqual(50, sd1.TotalResults);
+            Assert.AreEqual(50, sd1.Count);
 
             EntityDictionary<Series> sd2 = new EntityDictionary<Series>(context);
             sd2.Page = 1;
             sd2.Load();
-            Assert.IsTrue(sd2.Count == 20);
+            Assert.AreEqual(50, sd2.TotalResults);
+            Assert.AreEqual(20, sd2.Count);
             Series s2 = sd2.FirstOrDefault((s => true));
-            Assert.IsTrue(s2.Identifier == "SERIES1");
+            Assert.AreEqual("SERIES1", s2.Identifier);
 
             EntityDictionary<Series> sd3 = new EntityDictionary<Series>(context);
             sd3.Page = 2;
             sd3.Load();
-            Assert.IsTrue(sd3.Count == 20);
+            Assert.AreEqual(50, sd3.TotalResults);
+            Assert.AreEqual(20, sd3.Count);
             Series s3 = sd3.FirstOrDefault((s => true));
-            Assert.IsTrue(s3.Identifier == "SERIES21");
+            Assert.AreEqual("SERIES21", s3.Identifier);
 
             EntityDictionary<Series> sd4 = new EntityDictionary<Series>(context);
             sd4.StartIndex = 13;
             sd4.ItemsPerPage = 17;
             sd4.Load();
-            Assert.IsTrue(sd4.Count == 17);
+            Assert.AreEqual(50, sd4.TotalResults);
+            Assert.AreEqual(17, sd4.Count);
             Series s4 = sd4.FirstOrDefault((s => true));
-            Assert.IsTrue(s4.Identifier == "SERIES14");
+            Assert.AreEqual("SERIES14", s4.Identifier);
         }
 
         [Test]
@@ -198,35 +207,35 @@ namespace Terradue.Portal.Test {
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.AddSort("Name");
             pd1.Load();
-            Assert.IsTrue(pd1.Count == 4);
+            Assert.AreEqual(4, pd1.Count);
             expectedIds = new int[] { p1.Id, p2.Id, p3.Id, p4.Id };
             index = 0;
-            foreach (PublishServer ps in pd1) Assert.IsTrue(ps.Id == expectedIds[index++]);
+            foreach (PublishServer ps in pd1) Assert.AreEqual(expectedIds[index++], ps.Id);
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
             pd2.AddSort("Name", SortDirection.Descending);
             pd2.Load();
-            Assert.IsTrue(pd2.Count == 4);
+            Assert.AreEqual(4, pd2.Count);
             expectedIds = new int[] { p4.Id, p3.Id, p2.Id, p1.Id };
             index = 0;
-            foreach (PublishServer ps in pd2) Assert.IsTrue(ps.Id == expectedIds[index++]);
+            foreach (PublishServer ps in pd2) Assert.AreEqual(expectedIds[index++], ps.Id);
 
             EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
             pd3.AddSort("Port", SortDirection.Descending);
             pd3.Load();
-            Assert.IsTrue(pd3.Count == 4);
+            Assert.AreEqual(4, pd3.Count);
             expectedIds = new int[] { p4.Id, p3.Id, p2.Id, p1.Id };
             index = 0;
-            foreach (PublishServer ps in pd3) Assert.IsTrue(ps.Id == expectedIds[index++]);
+            foreach (PublishServer ps in pd3) Assert.AreEqual(expectedIds[index++], ps.Id);
 
             EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
             pd4.AddSort("Protocol", SortDirection.Ascending);
             pd4.AddSort("Name", SortDirection.Descending);
             pd4.Load();
-            Assert.IsTrue(pd4.Count == 4);
+            Assert.AreEqual(4, pd4.Count);
             expectedIds = new int[] { p2.Id, p1.Id, p4.Id, p3.Id };
             index = 0;
-            foreach (PublishServer ps in pd4) Assert.IsTrue(ps.Id == expectedIds[index++]);
+            foreach (PublishServer ps in pd4) Assert.AreEqual(expectedIds[index++], ps.Id);
 
         }
 
@@ -263,14 +272,14 @@ namespace Terradue.Portal.Test {
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
             pd1.SetFilter("Protocol", "sftp");
             pd1.Load();
-            Assert.IsTrue(pd1.Count == 2);
-            Assert.IsTrue(pd1.TotalResults == 2); // filtered
+            Assert.AreEqual(2, pd1.Count);
+            Assert.AreEqual(2, pd1.TotalResults); // filtered
 
             EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
             pd2.ItemsPerPage = 3;
             pd2.Load();
-            Assert.IsTrue(pd2.Count == 3);
-            Assert.IsTrue(pd2.TotalResults == 4); // all
+            Assert.AreEqual(3, pd2.Count);
+            Assert.AreEqual(4, pd2.TotalResults); // all
         }
 
         [Test]
@@ -390,56 +399,115 @@ namespace Terradue.Portal.Test {
 
             context.StartImpersonation(user.Id);
             context.AccessLevel = EntityAccessLevel.Privilege;
-            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
-            pd1.ItemVisibility = ItemVisibilityMode.All;
-            pd1.Load();
-            Assert.IsTrue(pd1.Count == 11);
-            Assert.IsTrue(pd1.Contains(ppub.Id));
-            Assert.IsTrue(pd1.Contains(ppubresg.Id));
-            Assert.IsTrue(pd1.Contains(ppubresg2.Id));
-            Assert.IsTrue(pd1.Contains(ppubresu.Id));
-            Assert.IsTrue(pd1.Contains(ppubresu2.Id));
-            Assert.IsTrue(pd1.Contains(presg.Id));
-            Assert.IsTrue(pd1.Contains(presu.Id));
-            Assert.IsTrue(pd1.Contains(powna.Id));
-            Assert.IsTrue(pd1.Contains(powng.Id));
-            Assert.IsTrue(pd1.Contains(pownu.Id));
-            Assert.IsTrue(pd1.Contains(pown.Id));
+            EntityDictionary<PublishServer> pd = new EntityDictionary<PublishServer>(context);
+            pd.ItemVisibility = EntityItemVisibility.All;
+            context.ConsoleDebug = true;
+            pd.Load();
+            Assert.AreEqual(11, pd.Count);
+            Assert.IsTrue(pd.Contains(ppub.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[ppub.Id].Visibility);
+            Assert.IsTrue(pd.Contains(ppubresg.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[ppubresg.Id].Visibility);
+            Assert.IsTrue(pd.Contains(ppubresg2.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[ppubresg2.Id].Visibility);
+            Assert.IsTrue(pd.Contains(ppubresu.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[ppubresu.Id].Visibility);
+            Assert.IsTrue(pd.Contains(ppubresu2.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[ppubresu2.Id].Visibility);
+            Assert.IsTrue(pd.Contains(presg.Id));
+            Assert.AreEqual(EntityItemVisibility.Restricted, pd[presg.Id].Visibility);
+            Assert.IsTrue(pd.Contains(presu.Id));
+            Assert.AreEqual(EntityItemVisibility.Private, pd[presu.Id].Visibility);
+            Assert.IsTrue(pd.Contains(powna.Id));
+            Assert.AreEqual(EntityItemVisibility.Public, pd[powna.Id].Visibility);
+            Assert.IsTrue(pd.Contains(powng.Id));
+            Assert.AreEqual(EntityItemVisibility.Restricted, pd[powng.Id].Visibility);
+            Assert.IsTrue(pd.Contains(pownu.Id));
+            Assert.AreEqual(EntityItemVisibility.Restricted, pd[pownu.Id].Visibility);
+            Assert.IsTrue(pd.Contains(pown.Id));
+            Assert.AreEqual(EntityItemVisibility.Private, pd[pown.Id].Visibility);
+            context.ConsoleDebug = false;
 
-            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
-            pd2.ItemVisibility = ItemVisibilityMode.Public;
-            pd2.Load();
-            foreach (PublishServer p in pd2) Console.WriteLine("* PD2: \"{0}\"", p.Name);
-            Assert.IsTrue(pd2.Count == 6);
-            Assert.IsTrue(pd2.Contains(ppub.Id));
-            Assert.IsTrue(pd2.Contains(ppubresg.Id));
-            Assert.IsTrue(pd2.Contains(ppubresg2.Id));
-            Assert.IsTrue(pd2.Contains(ppubresu.Id));
-            Assert.IsTrue(pd2.Contains(ppubresu2.Id));
-            Assert.IsTrue(pd2.Contains(powna.Id));
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Public;
+            pd.Load();
+            Assert.AreEqual(6, pd.Count);
+            Assert.IsTrue(pd.Contains(ppub.Id));
+            Assert.IsTrue(pd.Contains(ppubresg.Id));
+            Assert.IsTrue(pd.Contains(ppubresg2.Id));
+            Assert.IsTrue(pd.Contains(ppubresu.Id));
+            Assert.IsTrue(pd.Contains(ppubresu2.Id));
+            Assert.IsTrue(pd.Contains(powna.Id));
 
-            EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
-            pd3.ItemVisibility = ItemVisibilityMode.Restricted;
-            pd3.Load();
-            foreach (PublishServer p in pd3) Console.WriteLine("* PD3: \"{0}\"", p.Name);
-            Assert.IsTrue(pd3.Count == 8);
-            Assert.IsTrue(pd3.Contains(ppubresg.Id));
-            Assert.IsTrue(pd3.Contains(ppubresu.Id));
-            Assert.IsTrue(pd3.Contains(presg.Id));
-            Assert.IsTrue(pd3.Contains(presu.Id));
-            Assert.IsTrue(pd3.Contains(powna.Id));
-            Assert.IsTrue(pd3.Contains(powng.Id));
-            Assert.IsTrue(pd3.Contains(pownu.Id));
-            Assert.IsTrue(pd3.Contains(pown.Id));
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Restricted;
+            pd.Load();
+            Assert.AreEqual(3, pd.Count);
+            Assert.IsTrue(pd.Contains(presg.Id));
+            Assert.IsTrue(pd.Contains(powng.Id));
+            Assert.IsTrue(pd.Contains(pownu.Id));
 
-            EntityDictionary<PublishServer> pd4 = new EntityDictionary<PublishServer>(context);
-            pd4.ItemVisibility = ItemVisibilityMode.OwnedOnly;
-            pd4.Load();
-            Assert.IsTrue(pd4.Count == 4);
-            Assert.IsTrue(pd4.Contains(powna.Id));
-            Assert.IsTrue(pd4.Contains(powng.Id));
-            Assert.IsTrue(pd4.Contains(pownu.Id));
-            Assert.IsTrue(pd4.Contains(pown.Id));
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Private;
+            pd.Load();
+            Assert.AreEqual(2, pd.Count);
+            Assert.IsTrue(pd.Contains(presu.Id));
+            Assert.IsTrue(pd.Contains(pown.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Public | EntityItemVisibility.Restricted;
+            pd.Load();
+            Assert.AreEqual(9, pd.Count);
+            Assert.IsTrue(pd.Contains(ppub.Id));
+            Assert.IsTrue(pd.Contains(ppubresg.Id));
+            Assert.IsTrue(pd.Contains(ppubresg2.Id));
+            Assert.IsTrue(pd.Contains(ppubresu.Id));
+            Assert.IsTrue(pd.Contains(ppubresu2.Id));
+            Assert.IsTrue(pd.Contains(presg.Id));
+            Assert.IsTrue(pd.Contains(powna.Id));
+            Assert.IsTrue(pd.Contains(powng.Id));
+            Assert.IsTrue(pd.Contains(pownu.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Public | EntityItemVisibility.Private;
+            pd.Load();
+            Assert.AreEqual(8, pd.Count);
+            Assert.IsTrue(pd.Contains(ppub.Id));
+            Assert.IsTrue(pd.Contains(ppubresg.Id));
+            Assert.IsTrue(pd.Contains(ppubresg2.Id));
+            Assert.IsTrue(pd.Contains(ppubresu.Id));
+            Assert.IsTrue(pd.Contains(ppubresu2.Id));
+            Assert.IsTrue(pd.Contains(presu.Id));
+            Assert.IsTrue(pd.Contains(powna.Id));
+            Assert.IsTrue(pd.Contains(pown.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
+            pd.Load();
+            Assert.AreEqual(4, pd.Count);
+            Assert.IsTrue(pd.Contains(powna.Id));
+            Assert.IsTrue(pd.Contains(powng.Id));
+            Assert.IsTrue(pd.Contains(pownu.Id));
+            Assert.IsTrue(pd.Contains(pown.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Public | EntityItemVisibility.OwnedOnly;
+            pd.Load();
+            Assert.AreEqual(1, pd.Count);
+            Assert.IsTrue(pd.Contains(powna.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Restricted | EntityItemVisibility.OwnedOnly;
+            pd.Load();
+            Assert.AreEqual(2, pd.Count);
+            Assert.IsTrue(pd.Contains(powng.Id));
+            Assert.IsTrue(pd.Contains(pownu.Id));
+
+            pd.Clear();
+            pd.ItemVisibility = EntityItemVisibility.Private | EntityItemVisibility.OwnedOnly;
+            pd.Load();
+            Assert.AreEqual(1, pd.Count);
+            Assert.IsTrue(pd.Contains(pown.Id));
 
             context.EndImpersonation();
         }
@@ -467,23 +535,23 @@ namespace Terradue.Portal.Test {
             EntityType seriesType = EntityType.GetEntityType(typeof(Series));
 
             int[] result1 = seriesType.GetIds(context, new string[] { "SERIES1", "SERIES2", "SERIES3" }, true, false);
-            Assert.IsTrue(result1.Length == 3);
-            Assert.IsTrue(result1[0] == s1.Id);
-            Assert.IsTrue(result1[1] == s2.Id);
-            Assert.IsTrue(result1[2] == s3.Id);
+            Assert.AreEqual(3, result1.Length);
+            Assert.AreEqual(s1.Id, result1[0]);
+            Assert.AreEqual(s2.Id, result1[1]);
+            Assert.AreEqual(s3.Id, result1[2]);
 
             int[] result2 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, true, false);
-            Assert.IsTrue(result2.Length == 1);
-            Assert.IsTrue(result2[0] == s2.Id);
+            Assert.AreEqual(1, result2.Length);
+            Assert.AreEqual(s2.Id, result2[0]);
 
             int[] result3 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, false, true);
-            Assert.IsTrue(result3.Length == 1);
-            Assert.IsTrue(result3[0] == s1.Id);
+            Assert.AreEqual(1, result3.Length);
+            Assert.AreEqual(s1.Id, result3[0]);
 
             int[] result4 = seriesType.GetIds(context, new string[] { "Test series 1", "SERIES2" }, true, true);
-            Assert.IsTrue(result4.Length == 2);
-            Assert.IsTrue(result4[0] == s1.Id);
-            Assert.IsTrue(result4[1] == s2.Id);
+            Assert.AreEqual(2, result4.Length);
+            Assert.AreEqual(s1.Id, result4[0]);
+            Assert.AreEqual(s2.Id, result4[1]);
 
             NameValueCollection nv4 = new NameValueCollection();
             nv4.Add("series", "Test series 1");
