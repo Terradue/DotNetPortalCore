@@ -498,7 +498,7 @@ namespace Terradue.Portal {
                 if (entityType.TopTable.HasDomainReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "DomainId", context.GetIntegerValue(reader, index++));
                 if (entityType.TopTable.HasOwnerReference) Console.WriteLine("- VALUE: {0,-25} = {1}", "OwnerId", context.GetIntegerValue(reader, index++));
                 if (accessLevel != EntityAccessLevel.Administrator) Console.WriteLine("- VALUE: {0,-25} = {1}", "HasPrivilege", context.GetBooleanValue(reader, index++));
-                if (accessLevel != EntityAccessLevel.Administrator && entityType.HasPermissionManagement) { // TODO
+                if (entityType.HasPermissionManagement) {
                     int permIndex = index;
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "AnyUserAllow", context.GetIntegerValue(reader, index++));
                     Console.WriteLine("- VALUE: {0,-25} = {1}", "AnyGroupAllow", context.GetIntegerValue(reader, index++));
