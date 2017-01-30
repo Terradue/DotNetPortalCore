@@ -713,9 +713,12 @@ namespace Terradue.Portal {
                             this.ItemVisibility = EntityItemVisibility.Restricted;
                             break;
                         case "private":
+                            this.ItemVisibility = EntityItemVisibility.Private;
+                            break;
+                        case "owned":
                             this.ItemVisibility = EntityItemVisibility.OwnedOnly;
                             break;
-                        }
+                    }
                         break;
                     case "author":
                         var u = User.ForceFromUsername(context, parameters[p]);
