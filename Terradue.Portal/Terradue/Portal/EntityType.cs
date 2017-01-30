@@ -1544,7 +1544,7 @@ namespace Terradue.Portal {
 
             if (HasPermissionManagement) {
                 permissionSelectSql = String.Format(", SUM(p.id_usr IS NOT NULL) AS _any_usr_allow, SUM(p.id_grp IS NOT NULL) AS _any_grp_allow, MAX(p.id_{0} IS NOT NULL AND p.id_usr IS NULL AND p.id_grp IS NULL) AS _global_allow", PermissionSubjectTable.Name);
-                userPermissionSelectSqlTemplate = ", MAX(p.id_usr={0}) AS _usr_allow, MAX(p.id_grp IN ({1})) AS _grp_allow"; ;
+                userPermissionSelectSqlTemplate = ", MAX(p.id_usr IS NOT NULL AND p.id_usr={0}) AS _usr_allow, MAX(p.id_grp IS NOT NULL AND p.id_grp IN ({1})) AS _grp_allow";
             }
 
             normalSelectSql = String.Empty;
