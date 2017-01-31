@@ -725,6 +725,7 @@ namespace Terradue.Portal {
     public class UserInformation {
 
         public AuthenticationType AuthenticationType { get; protected set; }
+        public List<AuthenticationType> AllAuthenticationTypes { get; protected set; }
         public DateTime NextSessionRefreshTime { get; protected set; }
         public string ExternalUsername { get; protected set; }
         public bool NeedsEmailConfirmation { get; protected set; }
@@ -741,13 +742,13 @@ namespace Terradue.Portal {
         //HttpContext.Current.Session["RemainingProxyTime"] = RemainingProxyTime;
 
         public UserInformation(AuthenticationType authenticationType, User user) {
-            if (user == null) throw new ArgumentNullException("User cannot be null");
+            if (user == null) throw new ArgumentNullException("user", "User cannot be null");
             this.AuthenticationType = authenticationType;
             this.OriginalUserId = user.Id;
-            Update(user);
+            Update(authenticationType, user);
         }
 
-        public void Update(User user) {
+        public void Update(AuthenticationType authenticationType, User user) {
             UserId = user.Id;
             UserLevel = user.Level;
             UserDebugLevel = user.DebugLevel;
@@ -757,6 +758,10 @@ namespace Terradue.Portal {
             PasswordExpired = user.PasswordExpired;
             ExternalUsername = user.Username;
             NeedsEmailConfirmation = user.NeedsEmailConfirmation;
+            if (authenticationType != null) {
+                if (AllAuthenticationTypes == null) AllAuthenticationTypes = new List<AuthenticationType>();
+                if (!AllAuthenticationTypes.Contains(authenticationType)) AllAuthenticationTypes.Add(authenticationType);
+            }
         }
 
 /*        public void SetNewSessionRefreshTime(IfyContext context, HttpRequest request) {

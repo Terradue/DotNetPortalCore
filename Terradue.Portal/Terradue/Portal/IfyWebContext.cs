@@ -603,7 +603,21 @@ namespace Terradue.Portal {
                     if (groupCount == 0) Execute(String.Format("INSERT INTO usr_grp (id_usr, id_grp) SELECT {0}, t.id FROM grp AS t WHERE is_default;", identifiedUser.Id));
                 }
 
-                if (isNewUser && AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
+                if (isNewUser) {
+                    //test if account already exists with same email address
+                    var sameEmailUsersIds = this.GetQueryIntegerValues(string.Format("SELECT id FROM usr WHERE usr.email={0} ORDER BY id;",StringUtils.EscapeSql(identifiedUser.Email)));
+                    if (sameEmailUsersIds.Length > 1) {
+                        //if we have several users with the same email, we assume that the one with the lower ID is the good one    
+                        var oldUser = User.FromId(this, sameEmailUsersIds[0]);
+                        var subject = GetConfigValue("EmailDuplicateAccountSubject");
+                        subject = subject.Replace ("$(SITENAME)", SiteName);
+                        var body = GetConfigValue("EmailDuplicateAccountBody");
+                        body = body.Replace("$(USERNAME_OLD)",oldUser.Username);
+                        body = body.Replace ("$(USERNAME_NEW)", identifiedUser.Username);
+                        body = body.Replace ("$(CONTACT_EMAIL)", GetConfigValue("ContactEmail"));
+                        SendMail(GetConfigValue("MailSenderAddress"), identifiedUser.Email, subject, body);
+                    } else if (AutomaticUserMails && identifiedUser.AccountStatus == AccountStatusType.PendingActivation) identifiedUser.SendMail(UserMailType.Registration, true);
+                }
                 //if (Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody) StartSession(selectedAuthenticationType, identifiedUser);
                 StartSession(selectedAuthenticationType, identifiedUser, Privileges.MinUserLevelView > Terradue.Portal.UserLevel.Everybody);
             }
@@ -780,11 +794,11 @@ namespace Terradue.Portal {
 
         /// <summary>Ends the current HTTP session.</summary>
         public void EndSession() {
-            AuthenticationType authenticationType = null;
+            AuthenticationType[] authenticationTypes = null;
             int oldUserId = 0;
             if (UserInformation != null && HttpContext.Current != null) {
                 oldUserId = UserInformation.UserId;
-                authenticationType = UserInformation.AuthenticationType;
+                authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
             }
 
             SetUserInformation(null, null);
@@ -796,7 +810,11 @@ namespace Terradue.Portal {
             }
             //if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
 
-            if (authenticationType != null && authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+            if (authenticationTypes != null) {
+                foreach (AuthenticationType authenticationType in authenticationTypes) {
+                    if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+                }
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------

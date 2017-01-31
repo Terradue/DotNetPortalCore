@@ -1780,7 +1780,7 @@ namespace Terradue.Portal {
             if (UserInformation == null || UserLevel < Terradue.Portal.UserLevel.Administrator) throw new UnauthorizedAccessException("You are not authorized to impersonate other users");
 
             User user = User.ForceFromId(this, userId);
-            UserInformation.Update(user);
+            UserInformation.Update(null, user);
             OriginalUserId = UserId;
             UserId = user.Id;
             UserLevel = user.Level;
@@ -1796,7 +1796,7 @@ namespace Terradue.Portal {
             if (UserInformation == null || OriginalUserId == UserId) throw new InvalidOperationException("You are not impersonating another user");
 
             User user = User.ForceFromId(this, UserInformation.OriginalUserId);
-            UserInformation.Update(user);
+            UserInformation.Update(null, user);
             UserId = user.Id;
             UserLevel = user.Level;
             UserCaption = user.Caption;
@@ -1811,7 +1811,7 @@ namespace Terradue.Portal {
         public virtual void SetUserInformation(AuthenticationType authenticationType, User user) {
             if (authenticationType == null && user == null) UserInformation = null;
             else if (UserInformation == null) UserInformation = new UserInformation(authenticationType, user);
-            else UserInformation.Update(user);
+            else UserInformation.Update(authenticationType, user);
             SetUserFields();
         }
 
