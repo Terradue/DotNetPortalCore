@@ -341,7 +341,7 @@ namespace Terradue.Portal {
 
         public static void LoadEntityTypes(IfyContext context) {
             entityTypes.Clear();
-            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.pos;");
+            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.id_super, t.pos;");
             while (reader.Read()) {
                 string typeStr = context.GetValue(reader, 2);
                 Type type = Type.GetType(typeStr);
@@ -875,23 +875,12 @@ namespace Terradue.Portal {
                     // some domains (partly authorised) -> if entity can be assigned to domains: filter result by domains in domainIds, otherwise: select grant value according to items' domains (or true in case of list, because list already filters)
                     // NULL domain (globally authorised) -> no domain filtering in query
 
-                    string domainMatchSql = TopTable.HasDomainReference && domainIds != null && domainIds.Length != 0 ? String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds)) : null;
-                    string permissionFilterSql = null;
-                    /*if (TopTable.HasPermissionManagement) {
-                        groupIdsStr = GetGroupIdsString(context, userId, groupIds);
-                        permissionFilterSql = String.Format("p.id_{0} IS NOT NULL AND (p.id_usr={1} OR p.id_grp IN ({2}) OR p.id_usr IS NULL AND p.id_grp IS NULL)", PermissionSubjectTable.Name, userId, groupIdsStr);
-                    }*/
+                    string domainMatchSql = TopTable.HasDomainReference && domainIds != null && domainIds.Length != 0 ? String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds)) : null; 
 
                     if (domainIds != null) {
                         if (domainIds.Length == 0 || !TopTable.HasDomainReference) grantSelectSql = ", false";
                         else if (TopTable.HasDomainReference && !list) grantSelectSql = String.Format(", {0}", domainMatchSql);
                     }
-                    /*if (list && (domainMatchSql != null || permissionFilterSql != null)) {
-                        bool both = domainMatchSql != null && permissionFilterSql != null;
-                        if (condition == null) condition = String.Empty;
-                        else condition += " AND ";
-                        condition += String.Format("{2}{0}{3}{1}{4}", domainMatchSql == null ? String.Empty : domainMatchSql, permissionFilterSql == null ? String.Empty : permissionFilterSql, both ? "(" : String.Empty, both ? " OR " : String.Empty, both ? ")" : String.Empty);
-                    }*/
                 }
             }
             if (accessLevel != EntityAccessLevel.Administrator) {
