@@ -879,7 +879,7 @@ namespace Terradue.Portal {
 
                     if (domainIds != null) {
                         if (domainIds.Length == 0 || !TopTable.HasDomainReference) grantSelectSql = ", false";
-                        else if (TopTable.HasDomainReference && !list) grantSelectSql = String.Format(", {0}", domainMatchSql);
+                        else if (TopTable.HasDomainReference) grantSelectSql = String.Format(", {0}", domainMatchSql);
                     }
                 }
             }
