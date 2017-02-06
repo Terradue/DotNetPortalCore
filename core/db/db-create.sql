@@ -1761,7 +1761,7 @@ CREATE TABLE resourceset (
     id_domain int unsigned COMMENT 'FK: Owning domain',
     id_usr int unsigned COMMENT 'FK: Owning user (optional)',
     name varchar(50) COMMENT 'Name',
-    is_default boolean DEFAULT false COMMENT 'If true, resource set is selected by default',
+    kind TINYINT(4) NULL DEFAULT '0' COMMENT 'resource set kind',
     access_key varchar(50) COMMENT 'Access key',
     creation_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of resource set creation',
     CONSTRAINT pk_resourceset PRIMARY KEY (id),

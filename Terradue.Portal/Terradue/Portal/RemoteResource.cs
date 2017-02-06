@@ -29,8 +29,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 		
-        [EntityDataField("is_default")]
-        public bool IsDefault { get; set; }
+        [EntityDataField("kind")]
+        public int Kind { get; set; }
+
+        public readonly int KINDRESOURCESETNORMAL = 0; //default type of remote resource
+        public readonly int KINDRESOURCESETUSER = 1; //Type of remote resource private to user
 
         //---------------------------------------------------------------------------------------------------------------------
 
