@@ -652,7 +652,7 @@ namespace Terradue.Portal {
         /// <param name="items">The <see cref="EntityCollection"/> for which the query is built.</param>
         /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
         /// <param name="groupIds">An optional array of IDs of the groups to take into account for the permission filtering.</param>
-        /// <param name="condition">Additional SQL condition.</param>
+        /// <param name="condition">Additional SQL conditaion.</param>
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         /// <param name="accessLevel">The <see cref="EntityAccessLevel"/> to be taken into account for the query. It affects the resulting query and thus eventually the results in the collection. If set to <c>None</c>, the context's default access level is applied.</param>
         public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition, bool idsOnly, EntityAccessLevel accessLevel) {
@@ -1169,9 +1169,13 @@ namespace Terradue.Portal {
         public FieldInfo GetField(string propertyName) {
             if (propertyName == "Id") return new FieldInfo(ClassType.GetProperty("Id"), 0, TopTable.IdField);
             if (propertyName == "Identifier") {
-                if (TopTable.HasIdentifierField) return new FieldInfo(ClassType.GetProperty("Identifier"), 0, TopTable.IdentifierField);
+                if (TopTable.HasIdentifierField) return new FieldInfo (ClassType.GetProperty ("Identifier"), 0, TopTable.IdentifierField);
             } else if (propertyName == "Name") {
-                if (TopTable.HasNameField) return new FieldInfo(ClassType.GetProperty("Name"), 0, TopTable.NameField);
+                if (TopTable.HasNameField) return new FieldInfo (ClassType.GetProperty ("Name"), 0, TopTable.NameField);
+            } else if (propertyName == "DomainId") {
+                if (TopTable.HasDomainReference) return new FieldInfo (ClassType.GetProperty ("DomainId"), 0, TopTable.DomainReferenceField);
+            } else if (propertyName == "OwnerId") {
+                if (TopTable.HasOwnerReference) return new FieldInfo (ClassType.GetProperty ("OwnerId"), 0, TopTable.OwnerReferenceField);
             } else {
                 foreach (FieldInfo field in Fields) {
                     if (field.Property.Name == propertyName) return field;
