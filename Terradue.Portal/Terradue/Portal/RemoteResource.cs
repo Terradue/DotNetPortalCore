@@ -29,11 +29,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 		
+        /// <summary>
+        /// Gets or sets the kind.
+        /// </summary>
+        /// <value>The kind.</value>
         [EntityDataField("kind")]
         public int Kind { get; set; }
 
-        public readonly int KINDRESOURCESETNORMAL = 0; //default type of remote resource
-        public readonly int KINDRESOURCESETUSER = 1; //Type of remote resource private to user
+        public static readonly int KINDRESOURCESETNORMAL = 0; //default type of remote resource
+        public static readonly int KINDRESOURCESETUSER = 1; //Type of remote resource private to user
 
         //---------------------------------------------------------------------------------------------------------------------
 
