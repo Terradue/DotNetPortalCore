@@ -262,8 +262,6 @@ namespace Terradue.Portal {
                 context.AccessLevel = EntityAccessLevel.Administrator;
                 result = FromId(context, userId);
                 context.AccessLevel = oldAccessLevel;
-                activity = new Activity(context, result, OperationPriv.LOGIN);
-                activity.Store();
                 return result;
             } else {
                 IfyWebContext webContext = context as IfyWebContext;

@@ -37,6 +37,9 @@ namespace Terradue.Portal {
         [EntityDataField("id_entity")]
         public int EntityId { get; set; }
 
+        [EntityDataField ("id_owner")]
+        public new int OwnerId { get; set; }
+
         private Entity pentity;
         private Entity Entity {
             get {
@@ -103,21 +106,14 @@ namespace Terradue.Portal {
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
 
-        private Domain domain;
-        public override Domain Domain { 
-            get {
-                if(domain == null && this.Entity != null) domain = this.Entity.Domain;
-                return domain;
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
         /// </summary>
         /// <param name="context">Context.</param>
         public Activity(IfyContext context) : base(context) {}
 
-        public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {}
+        public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
@@ -132,8 +128,10 @@ namespace Terradue.Portal {
                     this.EntityIdentifier = entity.Identifier;
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
+                    this.DomainId = entity.DomainId;
                     this.Privilege = Privilege.Get(EntityType.GetEntityTypeFromId(this.EntityTypeId), Privilege.GetOperationType(operation));
-                } catch (Exception) {
+                } catch (Exception e) {
+                    var t = e;
                 }
             }
             this.OwnerId = entity.OwnerId;
@@ -176,14 +174,15 @@ namespace Terradue.Portal {
             this.UserId = context.UserId;
             this.CreationTime = DateTime.UtcNow;
 
-            string sql = String.Format("INSERT INTO activity (id_usr, id_priv, id_type, id_owner, id_entity, log_time) VALUES ({0},{1},{2},{3},{4},{5});",
-                                       this.UserId, 
-                                       this.PrivilegeId, 
-                                       this.EntityTypeId, 
-                                       this.OwnerId, 
-                                       this.EntityId,
-                                       StringUtils.EscapeSql(this.CreationTime.ToString("yyyy-MM-dd hh:mm:ss")));
-            context.Execute(sql);
+            //string sql = String.Format("INSERT INTO activity (id_usr, id_priv, id_type, id_owner, id_entity, log_time) VALUES ({0},{1},{2},{3},{4},{5});",
+            //                           this.UserId, 
+            //                           this.PrivilegeId, 
+            //                           this.EntityTypeId, 
+            //                           this.OwnerId, 
+            //                           this.EntityId,
+            //                           StringUtils.EscapeSql(this.CreationTime.ToString("yyyy-MM-dd hh:mm:ss")));
+            //context.Execute(sql);
+            base.Store ();
         }
 
         #region IAtomizable implementation

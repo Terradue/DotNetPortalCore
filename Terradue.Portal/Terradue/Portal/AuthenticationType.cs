@@ -359,9 +359,6 @@ namespace Terradue.Portal {
 
             context.StartSession(this, user, false);
 
-            Activity activity = new Activity(context, user, OperationPriv.LOGIN);
-            activity.Store();
-
             return user;
         }
 
@@ -442,9 +439,6 @@ namespace Terradue.Portal {
             }
 
             context.StartSession(this, user, false);
-
-            Activity activity = new Activity(context, user, OperationPriv.LOGIN);
-            activity.Store();
 
             return user;
         }
