@@ -30,7 +30,7 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
+    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
     public class Activity : Entity, IAtomizable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
