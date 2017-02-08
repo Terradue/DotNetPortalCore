@@ -946,18 +946,18 @@ namespace Terradue.Portal {
             // no result-limiting HAVING clause with administrator access or when single item is to be loaded (if unauthorized, exception is raised later)
             if (accessLevel == EntityAccessLevel.Administrator || !list) return String.Empty;
 
-            string result = " HAVING _grant";
+            string result = " HAVING ";
             if ((visibility & EntityItemVisibility.All) == EntityItemVisibility.All) {
-                result += " OR _usr_allow OR _grp_allow OR _global_allow";
+                result += "_grant OR _usr_allow OR _grp_allow OR _global_allow";
             } else if ((visibility & EntityItemVisibility.Public) == EntityItemVisibility.Public) {
-                result += " OR _global_allow";
+                result += "_global_allow";
                 if ((visibility & EntityItemVisibility.Restricted) == EntityItemVisibility.Restricted) result += " OR (_usr_allow OR _grp_allow) AND (!_usr_allow OR _any_usr_allow+_any_grp_allow+_global_allow>1)";
                 if ((visibility & EntityItemVisibility.Private) == EntityItemVisibility.Private) result += " OR _usr_allow AND _any_usr_allow+_any_grp_allow+_global_allow=1";
             } else if ((visibility & EntityItemVisibility.Restricted) == EntityItemVisibility.Restricted) {
-                result += " OR !_global_allow AND (_usr_allow OR _grp_allow)";
+                result += "!_global_allow AND (_usr_allow OR _grp_allow)";
                 if ((visibility & EntityItemVisibility.Private) == 0) result += " AND (!_usr_allow OR _any_usr_allow+_any_grp_allow+_global_allow>1)";
             } else {
-                result += " OR _usr_allow AND _any_usr_allow+_any_grp_allow+_global_allow=1";
+                result += "_usr_allow AND _any_usr_allow+_any_grp_allow+_global_allow=1";
             }
             return result;
         }
