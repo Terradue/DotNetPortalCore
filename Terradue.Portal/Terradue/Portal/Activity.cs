@@ -2,6 +2,7 @@
 using Terradue.Util;
 using System.Collections.Generic;
 using Terradue.OpenSearch;
+using Terradue.Portal.OpenSearch;
 using Terradue.OpenSearch.Result;
 using System.Collections.Specialized;
 using Terradue.ServiceModel.Syndication;
@@ -31,7 +32,7 @@ namespace Terradue.Portal {
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
-    public class Activity : Entity, IAtomizable, IComparable<Activity> {
+    public class Activity : EntitySearchable, IAtomizable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
@@ -185,6 +186,19 @@ namespace Terradue.Portal {
             base.Store ();
         }
 
+        #region IEntitySearchable implementation
+        public new KeyValuePair<string,string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+                case "entitytype":
+                    var t = EntityType.GetEntityTypeFromKeyword(value);
+                    return new KeyValuePair<string, string>("EntityTypeId", t.Id.ToString());
+                default:
+                    return base.GetFilterForParameter(parameter, value);
+            }
+        }
+
+        #endregion
+
         #region IAtomizable implementation
         public bool IsSearchable (NameValueCollection parameters) {
             if (this.EntityId == 0 || Entity == null) return false;
@@ -259,8 +273,10 @@ namespace Terradue.Portal {
             return result;
         }
 
-        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+        public new NameValueCollection GetOpenSearchParameters() {
+            NameValueCollection nvc = base.GetOpenSearchParameters();
+            nvc.Add("entitytype", "{t2:entityType?}");
+            return nvc;
         }
 
         #endregion
