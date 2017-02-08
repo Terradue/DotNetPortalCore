@@ -2320,6 +2320,7 @@ CREATE TABLE activity (
     id_priv int unsigned COMMENT 'Privilege associated',
     id_type int unsigned COMMENT 'Entity type',
     id_owner int unsigned COMMENT 'User owning the entity related to the activity',
+    id_domain int unsigned COMMENT 'Domain of the activity',
     log_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Date/time of activity creation',
     CONSTRAINT pk_activity PRIMARY KEY (id),
     INDEX (id_usr),
