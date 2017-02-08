@@ -720,7 +720,7 @@ namespace Terradue.Portal {
                             break;
                     }
                         break;
-                    case "author":
+                    case "owner":
                         var u = User.ForceFromUsername(context, parameters[p]);
                         this.UserId = u.Id;
                         break;
@@ -863,13 +863,6 @@ namespace Terradue.Portal {
             foreach (var key in nvc.AllKeys) {
                 query.Set(key, nvc[key]);
             }
-            //add cache parameter
-            query.Set ("disableCache", "{t2:cache?}");
-
-            //add domain
-            query.Set ("domain", "{t2:domain?}");
-
-            query.Set ("visibility", "{t2:visibility?}");
 
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
@@ -889,11 +882,19 @@ namespace Terradue.Portal {
 
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 
+            var nvc = new NameValueCollection();
             T item = entityType.GetEntityInstance (context) as T;
             if(item is IAtomizable) 
-                return ((IAtomizable)item).GetOpenSearchParameters();
+                nvc = ((IAtomizable)item).GetOpenSearchParameters();
             else 
-                return OpenSearchFactory.GetBaseOpenSearchParameter();
+                nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
+
+            //add EntityCollections parameters
+            nvc.Set("disableCache", "{t2:cache?}");
+            nvc.Set("domain", "{t2:domain?}");
+            nvc.Set("owner", "{t2:owner?}");
+            nvc.Set("visibility", "{t2:visibility?}");
+            return nvc;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
