@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Terradue.Portal.Test</RootNamespace>
     <AssemblyName>Terradue.Portal.Test</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
