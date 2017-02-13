@@ -723,11 +723,10 @@ namespace Terradue.Portal {
                         break;
                     case "owner":
                         var u = User.ForceFromUsername(context, parameters[p]);
-                        this.UserId = u.Id;
+                        SetFilter("OwnerId", u.Id.ToString());
                         break;
                     case "domain":
                         var dm = Domain.FromIdentifier(context, parameters[p]);
-                        //this.DomainId = dm.Id;
                         SetFilter("DomainId", dm.Id.ToString());
                         break;
                     default:
@@ -826,7 +825,6 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public OpenSearchRequest Create (QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
-            UriBuilder url = new UriBuilder (context.BaseUrl);
             T item = entityType.GetEntityInstance (context) as T;
             if (item is IEntitySearchable) {
                 var sitem = item as IEntitySearchable;
@@ -835,23 +833,15 @@ namespace Terradue.Portal {
                         NameValueCollection newParamaters = new NameValueCollection (parameters);
                         newParamaters.Add ("sl", "ills");
 
-                        url.Path += "/" + this.Identifier + "";
-                        //var newarray = (from key in newParamaters.AllKeys
-                        //             from value in newParamaters.GetValues (key)
-                        //             select string.Format ("{0}={1}", HttpUtility.UrlEncode (key), HttpUtility.UrlEncode (value)))
-                        //    .ToArray ();
-                        //url.Query = string.Join ("&", newarray);
-
-                        //OpenSearchUrl queryUrl = new OpenSearchUrl(url.Uri);
-
                         OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
                         OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
                         return new IllimitedOpenSearchRequest<AtomFeed, AtomItem> (OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl);
                     }
                 }
             }
-            
-            url.Path += "/" + this.Identifier + "/";
+
+            UriBuilder url = new UriBuilder(context.BaseUrl);
+            url.Path += "/" + this.Identifier;
             var array = (from key in parameters.AllKeys
                          from value in parameters.GetValues (key)
                          select string.Format ("{0}={1}", HttpUtility.UrlEncode (key), HttpUtility.UrlEncode (value)))

@@ -29,7 +29,7 @@ namespace Terradue.Portal.OpenSearch {
         public KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
                 case "q":
-                    return new KeyValuePair<string, string>("Identifier", value);
+                    return new KeyValuePair<string, string>("Name", "*" + value + "*");
                 default:
                     return new KeyValuePair<string, string>();
             }
