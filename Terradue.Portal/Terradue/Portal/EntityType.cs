@@ -829,6 +829,8 @@ namespace Terradue.Portal {
 
         public object[] GetQueryParts(IfyContext context, bool list, int userId, int[] groupIds, EntityItemVisibility visibility, string condition, string sort = null, int limit = -1, int offset = 0, EntityAccessLevel accessLevel = EntityAccessLevel.None) {
 
+            if ((visibility & EntityItemVisibility.All) == 0) visibility |= EntityItemVisibility.All;
+
             string groupIdsStr = null;
 
             if (accessLevel == EntityAccessLevel.None) {
