@@ -293,6 +293,7 @@ namespace Terradue.Portal {
             if (!(entityType is EntityRelationshipType) && !entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
                 LoadList();
                 return;
+
             }
 
             Clear();
@@ -716,7 +717,7 @@ namespace Terradue.Portal {
                             this.ItemVisibility = EntityItemVisibility.Private;
                             break;
                         case "owned":
-                            this.ItemVisibility = EntityItemVisibility.OwnedOnly;
+                            this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
                             break;
                     }
                         break;
@@ -725,8 +726,9 @@ namespace Terradue.Portal {
                         this.UserId = u.Id;
                         break;
                     case "domain":
-                        var d = Domain.FromIdentifier(context, parameters[p]);
-                        this.DomainId = d.Id;
+                        var dm = Domain.FromIdentifier(context, parameters[p]);
+                        //this.DomainId = dm.Id;
+                        SetFilter("DomainId", dm.Id.ToString());
                         break;
                     default:
                         var kv = esT.GetFilterForParameter(p, parameters[p]);
@@ -796,11 +798,11 @@ namespace Terradue.Portal {
 
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl (string.Format("{0}/{1}/search", context.BaseUrl, entityType.Keyword));
+            return new OpenSearchUrl (string.Format("{0}/{1}/search", context.BaseUrl + "/" + Identifier, entityType.Keyword));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl (string.Format("{0}/{1}/description", context.BaseUrl, entityType.Keyword));
+            return new OpenSearchUrl (string.Format("{0}/{1}/description", context.BaseUrl + "/" + Identifier, entityType.Keyword));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -823,18 +825,43 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
-            UriBuilder url = new UriBuilder(context.BaseUrl);
-            url.Path += "/"+this.Identifier+"/";
-            var array = (from key in parameters.AllKeys
-                         from value in parameters.GetValues(key)
-                         select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
-                .ToArray();
-            url.Query = string.Join("&", array);
+        public OpenSearchRequest Create (QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
+            UriBuilder url = new UriBuilder (context.BaseUrl);
+            T item = entityType.GetEntityInstance (context) as T;
+            if (item is IEntitySearchable) {
+                var sitem = item as IEntitySearchable;
+                if (string.IsNullOrEmpty (parameters ["sl"])) {
+                    if (sitem.IsPostFiltered (parameters)) {
+                        NameValueCollection newParamaters = new NameValueCollection (parameters);
+                        newParamaters.Add ("sl", "ills");
 
-            var request = new AtomOpenSearchRequest(new OpenSearchUrl(url.Uri), GenerateSyndicationFeed);
+                        url.Path += "/" + this.Identifier + "";
+                        //var newarray = (from key in newParamaters.AllKeys
+                        //             from value in newParamaters.GetValues (key)
+                        //             select string.Format ("{0}={1}", HttpUtility.UrlEncode (key), HttpUtility.UrlEncode (value)))
+                        //    .ToArray ();
+                        //url.Query = string.Join ("&", newarray);
+
+                        //OpenSearchUrl queryUrl = new OpenSearchUrl(url.Uri);
+
+                        OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
+                        OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
+                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem> (OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl);
+                    }
+                }
+            }
+            
+            url.Path += "/" + this.Identifier + "/";
+            var array = (from key in parameters.AllKeys
+                         from value in parameters.GetValues (key)
+                         select string.Format ("{0}={1}", HttpUtility.UrlEncode (key), HttpUtility.UrlEncode (value)))
+                .ToArray ();
+            url.Query = string.Join ("&", array);
+
+            var request = new AtomOpenSearchRequest (new OpenSearchUrl (url.Uri), GenerateSyndicationFeed);
 
             return request;
+            
         }
 
         public OpenSearchDescription GetOpenSearchDescription() {
@@ -890,6 +917,7 @@ namespace Terradue.Portal {
                 nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
 
             //add EntityCollections parameters
+            nvc.Set("sl", "{t2:sl?}");
             nvc.Set("disableCache", "{t2:cache?}");
             nvc.Set("domain", "{t2:domain?}");
             nvc.Set("owner", "{t2:owner?}");

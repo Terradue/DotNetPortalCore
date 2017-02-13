@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
+using Terradue.OpenSearch.Result;
+using Terradue.Portal.OpenSearch;
+using Terradue.ServiceModel.Syndication;
 using Terradue.Util;
 
 
@@ -19,27 +23,27 @@ using Terradue.Util;
 
 namespace Terradue.Portal {
 
-    
+
 
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>Domain</summary>
     /// <description>A Domain is an organizational unit to regroup \ref Entity</description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("domain", EntityTableConfiguration.Custom, IdentifierField = "name")]
-    public class Domain : Entity {
-        
+    public class Domain : EntitySearchable {
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Description</summary>
         /// <description>Human readable description of the domain</description>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
-        public string Description { get; set; } 
+        public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -57,8 +61,8 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new Domain instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public Domain(IfyContext context) : base(context) {}
-        
+        public Domain(IfyContext context) : base(context) { }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new Domain instance.</summary>
@@ -67,7 +71,7 @@ namespace Terradue.Portal {
         public static Domain GetInstance(IfyContext context) {
             return new Domain(context);
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new Domain instance representing the domain with the specified ID.</summary>
@@ -97,8 +101,8 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The identifying condition sql.</returns>
         public override string GetIdentifyingConditionSql() {
-            if (Id == 0 && !string.IsNullOrEmpty (Identifier)) return String.Format ("t.name={0}", StringUtils.EscapeSql (Identifier));
-                return null;
+            if (Id == 0 && !string.IsNullOrEmpty(Identifier)) return String.Format("t.name={0}", StringUtils.EscapeSql(Identifier));
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -115,11 +119,11 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user for which the domain restriction check is performed.</param>
         /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c> or empty, the check is skipped resulting in no domain restriction (return value <c>null</c>. If the array is empty, the grant is empty (return value is an empty array).</param>
-        public static int[] GetGrantScope(IfyContext context, int userId, int[] groupIds, int[] roleIds) {
+        public static int [] GetGrantScope(IfyContext context, int userId, int [] groupIds, int [] roleIds) {
             if (roleIds == null) return null;
-            if (roleIds.Length == 0) return new int[] {0};
+            if (roleIds.Length == 0) return new int [] { 0 };
 
-            if (groupIds == null || groupIds.Length == 0) groupIds = new int[] {0};
+            if (groupIds == null || groupIds.Length == 0) groupIds = new int [] { 0 };
 
             List<int> domainIds = new List<int>();
             string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE rg.id_role IN ({2}) AND (rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", groupIds), String.Join(",", roleIds));
@@ -139,7 +143,108 @@ namespace Terradue.Portal {
             if (globallyAuthorized) return null;
             return domainIds.ToArray();
         }
-        
+
+        public KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+            //case "member":
+            //    return new KeyValuePair<string, string> ("EntityTypeId", t.Id.ToString ());
+            default:
+                return base.GetFilterForParameter(parameter, value);
+            }
+        }
+
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
+            bool ispublic = this.Kind == DomainKind.Public;
+            bool isprivate = this.Kind == DomainKind.Private;
+
+            //we only want thematic groups domains (public or private)
+            if (!ispublic && !isprivate) return null;
+
+            //if private, lets check the current user can access it (have a role in the domain)
+            if (isprivate) {
+                var proles = Role.GetUserRolesForDomain(context, context.UserId, this.Id);
+                if (proles == null || proles.Length == 0) return null;
+            }
+
+            var entityType = EntityType.GetEntityType(typeof(Domain));
+            Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
+
+            if (!string.IsNullOrEmpty(parameters ["q"])) {
+                string q = parameters ["q"].ToLower();
+                if (!this.Identifier.ToLower().Contains(q) && !(Description != null && Description.ToLower().Contains(q)))
+                    return null;
+            }
+
+            AtomItem result = new AtomItem();
+
+            result.Id = id.ToString();
+            result.Title = new TextSyndicationContent(Identifier);
+            result.Content = new TextSyndicationContent(Identifier);
+
+            result.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+            result.Summary = new TextSyndicationContent(Description);
+            result.ReferenceData = this;
+
+            result.PublishDate = new DateTimeOffset(DateTime.UtcNow);
+
+            //members
+            var roles = new EntityList<Role>(context);
+            roles.Load();
+            foreach (var role in roles) {
+                var usrs = role.GetUsers(this.Id);
+                foreach (var usrId in usrs) {
+                    User usr = User.FromId(context, usrId);
+                    SyndicationPerson author = new SyndicationPerson(usr.Email, usr.FirstName + " " + usr.LastName, "");
+                    author.ElementExtensions.Add(new SyndicationElementExtension("identifier", "http://purl.org/dc/elements/1.1/", usr.Username));
+                    author.ElementExtensions.Add(new SyndicationElementExtension("role", "http://purl.org/dc/elements/1.1/", role.Identifier));
+                    result.Authors.Add(author);
+                }
+            }
+
+            result.Links.Add(new SyndicationLink(id, "self", Identifier, "application/atom+xml", 0));
+            if (!string.IsNullOrEmpty(IconUrl)) {
+
+                Uri uri;
+                if (IconUrl.StartsWith("http")) {
+                    uri = new Uri(IconUrl);
+                } else {
+                    var urib = new UriBuilder(System.Web.HttpContext.Current.Request.Url);
+                    urib.Path = IconUrl;
+                    uri = urib.Uri;
+                }
+
+                result.Links.Add(new SyndicationLink(uri, "icon", "", GetImageMimeType(IconUrl), 0));
+            }
+
+            result.Categories.Add(new SyndicationCategory("visibility", null, ispublic ? "public" : "private"));
+
+            return result;
+        }
+
+        private string GetImageMimeType(string filename) {
+            string extension = filename.Substring(filename.LastIndexOf(".") + 1);
+            string result;
+
+            switch (extension.ToLower()) {
+            case "gif":
+                result = "image/gif";
+                break;
+            case "gtiff":
+                result = "image/tiff";
+                break;
+            case "jpeg":
+                result = "image/jpg";
+                break;
+            case "png":
+                result = "image/png";
+                break;
+            default:
+                result = "application/octet-stream";
+                break;
+            }
+            return result;
+        }
+
     }
 
 

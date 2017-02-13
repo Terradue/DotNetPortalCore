@@ -32,7 +32,7 @@ namespace Terradue.Portal {
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
-    public class Activity : EntitySearchable, IAtomizable, IComparable<Activity> {
+    public class Activity : EntitySearchable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
@@ -218,7 +218,7 @@ namespace Terradue.Portal {
         }
 
 
-        public AtomItem ToAtomItem(NameValueCollection parameters) {
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
 
 
             if (!IsSearchable (parameters)) return null;
