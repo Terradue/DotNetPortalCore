@@ -1149,7 +1149,7 @@ namespace Terradue.Portal {
             // Get roles that have view access on item's domain (i.e. any other operation than Search)
             int[] roleIds = EntityType.GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, true);
             if (roleIds != null) {
-                string domainCondition = EntityType.TopTable.HasDomainReference ? "true" : DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("id_domain={0}", DomainId);
+                string domainCondition = EntityType.TopTable.HasDomainReference ? DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("id_domain={0}", DomainId) : "true";
                 if (roleIds.Length != 0) {
                     string sql = String.Format("SELECT DISTINCT {4} FROM rolegrant AS rg{3} WHERE rg.id_role IN ({0}) AND {1} AND {2} ",
                         String.Join(",", roleIds),
