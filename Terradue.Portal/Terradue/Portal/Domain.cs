@@ -219,7 +219,7 @@ namespace Terradue.Portal {
             return result;
         }
 
-        private string GetImageMimeType(string filename) {
+        protected string GetImageMimeType(string filename) {
             string extension = filename.Substring(filename.LastIndexOf(".") + 1);
             string result;
 

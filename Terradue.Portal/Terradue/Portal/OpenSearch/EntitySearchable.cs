@@ -9,7 +9,7 @@ namespace Terradue.Portal.OpenSearch {
     public interface IEntitySearchable : IAtomizable {
         KeyValuePair<string, string> GetFilterForParameter(string parameter, string value);
 
-        bool IsPostFiltered (NameValueCollection parameters);
+        bool IsPostFiltered(NameValueCollection parameters);
     }
 
     /// <summary>
@@ -28,16 +28,23 @@ namespace Terradue.Portal.OpenSearch {
 
         public virtual KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
-                case "q":
-                    return new KeyValuePair<string, string>("Name", "*" + value + "*");
-                default:
+            case "uid":
+                return new KeyValuePair<string, string>("Identifier", value);
+            case "id":
+                return new KeyValuePair<string, string>("Identifier", value);
+            case "q":
+                if (!string.IsNullOrEmpty(value))
+                    return new KeyValuePair<string, string>("Identifier", "*" + value + "*");
+                else
                     return new KeyValuePair<string, string>();
+            default:
+                return new KeyValuePair<string, string>();
             }
         }
 
-        public abstract AtomItem ToAtomItem (NameValueCollection parameters);
+        public abstract AtomItem ToAtomItem(NameValueCollection parameters);
 
-        public virtual bool IsPostFiltered (NameValueCollection parameters) {
+        public virtual bool IsPostFiltered(NameValueCollection parameters) {
             return false;
         }
     }

@@ -687,10 +687,6 @@ namespace Terradue.Portal {
             List<AtomItem> items = new List<AtomItem>();
 
             //set search filters
-            this.ItemsPerPage = 20;
-            this.StartIndex = 1;
-            this.Page = 1;
-
             T t = entityType.GetEntityInstance(context) as T;
             if (t is EntitySearchable) {
                 foreach (var p in parameters.AllKeys) {
@@ -702,13 +698,9 @@ namespace Terradue.Portal {
                         this.StartIndex = int.Parse(parameters["startIndex"]);
                         break;
                     case "startPage":
-                        this.Page = int.Parse(parameters["startPage"]);
-                        break;
-                    case "uid":
-                        SetFilter("Identifier", parameters ["uid"]);
-                        break;
-                    case "id":
-                        SetFilter("Identifier", parameters["id"]);
+                        //startIndex is prioritary on startPage
+                        if(string.IsNullOrEmpty(parameters ["startIndex"]))
+                            this.Page = int.Parse(parameters["startPage"]);
                         break;
                     case "visibility":
                         switch (parameters[p]) {
@@ -912,6 +904,7 @@ namespace Terradue.Portal {
                 nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
 
             //add EntityCollections parameters
+            nvc.Set("id", "{t2:uid?}");
             nvc.Set("sl", "{t2:sl?}");
             nvc.Set("disableCache", "{t2:cache?}");
             nvc.Set("domain", "{t2:domain?}");
