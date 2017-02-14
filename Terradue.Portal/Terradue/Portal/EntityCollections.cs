@@ -693,7 +693,6 @@ namespace Terradue.Portal {
 
             T t = entityType.GetEntityInstance(context) as T;
             if (t is EntitySearchable) {
-                var esT = t as EntitySearchable;
                 foreach (var p in parameters.AllKeys) {
                     switch (p) {
                     case "count":
@@ -704,6 +703,12 @@ namespace Terradue.Portal {
                         break;
                     case "startPage":
                         this.Page = int.Parse(parameters["startPage"]);
+                        break;
+                    case "uid":
+                        SetFilter("Identifier", parameters ["uid"]);
+                        break;
+                    case "id":
+                        SetFilter("Identifier", parameters["id"]);
                         break;
                     case "visibility":
                         switch (parameters[p]) {
@@ -730,7 +735,7 @@ namespace Terradue.Portal {
                         SetFilter("DomainId", dm.Id.ToString());
                         break;
                     default:
-                        var kv = esT.GetFilterForParameter(p, parameters[p]);
+                        var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
                         if(!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
                         break;
                     }
@@ -828,14 +833,14 @@ namespace Terradue.Portal {
             T item = entityType.GetEntityInstance (context) as T;
             if (item is IEntitySearchable) {
                 var sitem = item as IEntitySearchable;
-                if (string.IsNullOrEmpty (parameters ["sl"])) {
+                if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty (parameters ["sl"])) {
                     if (sitem.IsPostFiltered (parameters)) {
                         NameValueCollection newParamaters = new NameValueCollection (parameters);
                         newParamaters.Add ("sl", "ills");
 
                         OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
                         OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
-                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem> (OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl);
+                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem> (OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
                     }
                 }
             }
@@ -912,6 +917,7 @@ namespace Terradue.Portal {
             nvc.Set("domain", "{t2:domain?}");
             nvc.Set("owner", "{t2:owner?}");
             nvc.Set("visibility", "{t2:visibility?}");
+            nvc.Add("correlatedTo", "{cor:with?}");
             return nvc;
         }
 

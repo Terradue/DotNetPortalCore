@@ -144,10 +144,8 @@ namespace Terradue.Portal {
             return domainIds.ToArray();
         }
 
-        public KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
-            //case "member":
-            //    return new KeyValuePair<string, string> ("EntityTypeId", t.Id.ToString ());
             default:
                 return base.GetFilterForParameter(parameter, value);
             }

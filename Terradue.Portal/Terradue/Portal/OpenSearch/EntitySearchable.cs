@@ -26,7 +26,7 @@ namespace Terradue.Portal.OpenSearch {
             return nvc;
         }
 
-        public KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public virtual KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
                 case "q":
                     return new KeyValuePair<string, string>("Name", "*" + value + "*");
