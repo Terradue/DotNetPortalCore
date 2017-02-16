@@ -706,6 +706,9 @@ namespace Terradue.Portal {
                         break;
                     case "visibility":
                         switch (parameters[p]) {
+                        case "all":
+                            this.ItemVisibility = EntityItemVisibility.All;
+                            break;
                         case "public":
                             this.ItemVisibility = EntityItemVisibility.Public;
                             break;
