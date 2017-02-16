@@ -691,6 +691,7 @@ namespace Terradue.Portal {
             T t = entityType.GetEntityInstance(context) as T;
             if (t is EntitySearchable) {
                 foreach (var p in parameters.AllKeys) {
+                    if (string.IsNullOrEmpty(parameters[p])) continue;
                     switch (p) {
                     case "count":
                         this.ItemsPerPage = int.Parse(parameters["count"]);
