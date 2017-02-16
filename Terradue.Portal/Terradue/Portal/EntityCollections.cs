@@ -723,7 +723,7 @@ namespace Terradue.Portal {
                             break;
                         }
                         break;
-                    case "owner":
+                    case "author":
                         var u = User.ForceFromUsername(context, parameters[p]);
                         SetFilter("OwnerId", u.Id.ToString());
                         break;
@@ -913,7 +913,7 @@ namespace Terradue.Portal {
             nvc.Set("sl", "{t2:sl?}");
             nvc.Set("disableCache", "{t2:cache?}");
             nvc.Set("domain", "{t2:domain?}");
-            nvc.Set("owner", "{t2:owner?}");
+            nvc.Set("author", "{t2:author?}");
             nvc.Set("visibility", "{t2:visibility?}");
             nvc.Add("correlatedTo", "{cor:with?}");
             return nvc;
