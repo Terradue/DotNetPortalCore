@@ -460,7 +460,8 @@ namespace Terradue.Portal {
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
                 /*if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
-                else*/ item.Store();
+                else*/
+                item.Store();
             }
 
             // TODO: This was done before the storage of the contained items (previous block).
@@ -677,8 +678,8 @@ namespace Terradue.Portal {
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
             myUrl.Query = string.Join("&", queryString);
 
-            AtomFeed feed = new AtomFeed("Discovery feed for "+this.Identifier,
-                                                       "This OpenSearch Service allows the discovery of the different items which are part of the "+this.Identifier+" collection. " +
+            AtomFeed feed = new AtomFeed("Discovery feed for " + this.Identifier,
+                                                       "This OpenSearch Service allows the discovery of the different items which are part of the " + this.Identifier + " collection. " +
                                                        "This search service is in accordance with the OGC 10-032r3 specification.",
                                                        myUrl.Uri, myUrl.ToString(), DateTimeOffset.UtcNow);
 
@@ -699,7 +700,7 @@ namespace Terradue.Portal {
                         break;
                     case "startPage":
                         //startIndex is prioritary on startPage
-                        if(string.IsNullOrEmpty(parameters ["startIndex"]))
+                        if (string.IsNullOrEmpty(parameters["startIndex"]))
                             this.Page = int.Parse(parameters["startPage"]);
                         break;
                     case "visibility":
@@ -716,7 +717,7 @@ namespace Terradue.Portal {
                         case "owned":
                             this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
                             break;
-                    }
+                        }
                         break;
                     case "owner":
                         var u = User.ForceFromUsername(context, parameters[p]);
@@ -728,7 +729,7 @@ namespace Terradue.Portal {
                         break;
                     default:
                         var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
-                        if(!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
                         break;
                     }
 
@@ -737,10 +738,10 @@ namespace Terradue.Portal {
             this.Load();
 
             foreach (T s in Items) {
-                
+
                 if (s is IAtomizable) {
-                    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
-                    if (item != null) items.Add (item);
+                    AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
+                    if (item != null) items.Add(item);
 
                 } else {
 
@@ -748,7 +749,7 @@ namespace Terradue.Portal {
                     var identifier = s.Identifier == null ? "" : s.Identifier;
                     var content = s.TextContent == null ? "" : s.TextContent;
 
-                    if (!string.IsNullOrEmpty(parameters["q"])) {  
+                    if (!string.IsNullOrEmpty(parameters["q"])) {
                         string q = parameters["q"];
                         if (!(name.Contains(q) || identifier.Contains(q) || content.Contains(q)))
                             continue;
@@ -770,7 +771,7 @@ namespace Terradue.Portal {
 
             // Load all avaialable Datasets according to the context
 
-            if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+            if (this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
             feed.Items = items;
             feed.TotalResults = TotalResults;
@@ -794,11 +795,11 @@ namespace Terradue.Portal {
 
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl (string.Format("{0}/{1}/search", context.BaseUrl + "/" + Identifier, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/search", context.BaseUrl + "/" + Identifier, entityType.Keyword));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl (string.Format("{0}/{1}/description", context.BaseUrl + "/" + Identifier, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/description", context.BaseUrl + "/" + Identifier, entityType.Keyword));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -821,18 +822,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public OpenSearchRequest Create (QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
-            T item = entityType.GetEntityInstance (context) as T;
+        public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
+            T item = entityType.GetEntityInstance(context) as T;
             if (item is IEntitySearchable) {
                 var sitem = item as IEntitySearchable;
-                if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty (parameters ["sl"])) {
-                    if (sitem.IsPostFiltered (parameters)) {
-                        NameValueCollection newParamaters = new NameValueCollection (parameters);
-                        newParamaters.Add ("sl", "ills");
+                if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty(parameters["sl"])) {
+                    if (sitem.IsPostFiltered(parameters)) {
+                        NameValueCollection newParamaters = new NameValueCollection(parameters);
+                        newParamaters.Add("sl", "ills");
 
                         OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
                         OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
-                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem> (OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
+                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem>(OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
                     }
                 }
             }
@@ -840,15 +841,15 @@ namespace Terradue.Portal {
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/" + this.Identifier;
             var array = (from key in parameters.AllKeys
-                         from value in parameters.GetValues (key)
-                         select string.Format ("{0}={1}", HttpUtility.UrlEncode (key), HttpUtility.UrlEncode (value)))
-                .ToArray ();
-            url.Query = string.Join ("&", array);
+                         from value in parameters.GetValues(key)
+                         select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
+                .ToArray();
+            url.Query = string.Join("&", array);
 
-            var request = new AtomOpenSearchRequest (new OpenSearchUrl (url.Uri), GenerateSyndicationFeed);
+            var request = new AtomOpenSearchRequest(new OpenSearchUrl(url.Uri), GenerateSyndicationFeed);
 
             return request;
-            
+
         }
 
         public OpenSearchDescription GetOpenSearchDescription() {
@@ -897,10 +898,10 @@ namespace Terradue.Portal {
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 
             var nvc = new NameValueCollection();
-            T item = entityType.GetEntityInstance (context) as T;
-            if(item is IAtomizable) 
+            T item = entityType.GetEntityInstance(context) as T;
+            if (item is IAtomizable)
                 nvc = ((IAtomizable)item).GetOpenSearchParameters();
-            else 
+            else
                 nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
 
             //add EntityCollections parameters
@@ -935,18 +936,16 @@ namespace Terradue.Portal {
 
         public event OpenSearchableChangeEventHandler OpenSearchableChange;
 
-        public void OnOpenSearchableChange (object sender,  OnOpenSearchableChangeEventArgs data)
-        {
+        public void OnOpenSearchableChange(object sender, OnOpenSearchableChangeEventArgs data) {
             // Check if there are any Subscribers
-            if (OpenSearchableChange != null)
-            {
+            if (OpenSearchableChange != null) {
                 // Call the Event
-                OpenSearchableChange (this, data);
+                OpenSearchableChange(this, data);
             }
         }
 
     }
-    
+
 
 
     //-------------------------------------------------------------------------------------------------------------------------
@@ -960,7 +959,7 @@ namespace Terradue.Portal {
     public class EntityList<T> : EntityCollection<T>, IOpenSearchable where T : Entity {
 
         private List<T> items;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets an IEnumerable of all items contained in this list.</summary>
@@ -978,7 +977,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityList instance instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public EntityList(IfyContext context) : base(context) {
@@ -996,7 +995,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityDictionary instance instance for items owned by the specified user.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The user who must be the owner of the items in the list.</param>
@@ -1005,7 +1004,7 @@ namespace Terradue.Portal {
             result.UserId = userId;
             return result;
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Removes all items from this list.</summary>
@@ -1016,7 +1015,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -1037,13 +1036,13 @@ namespace Terradue.Portal {
 
     }
 
-    
+
 
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique numeric database (or temporary) ID or by their string identifier.</summary>
     /// <remarks>
@@ -1090,7 +1089,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityDictionary instance instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public EntityDictionary(IfyContext context) : base(context) {
@@ -1119,7 +1118,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
@@ -1129,7 +1128,7 @@ namespace Terradue.Portal {
             if (EntityType.TopTable.HasIdentifierField) itemsByIdentifier[item.Identifier] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Checks whether this dictionary contains an item with the specified numeric key.</summary>
@@ -1170,14 +1169,14 @@ namespace Terradue.Portal {
         }
 
     }
-    
 
-    
+
+
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their numeric ID.</summary>
     /// <remarks>The key type of the dictionary is <i>int</i>. The key value of an item is the database ID of the item (property Entity.Id).</remarks>
@@ -1185,7 +1184,7 @@ namespace Terradue.Portal {
     public class EntityIdDictionary<T> : EntityCollection<T> where T : Entity {
 
         private Dictionary<int, T> items;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public T this[int id] {
@@ -1205,7 +1204,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         public EntityIdDictionary(IfyContext context) : base(context) {
             this.items = new Dictionary<int, T>();
         }
@@ -1225,7 +1224,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
@@ -1246,7 +1245,7 @@ namespace Terradue.Portal {
         public bool ContainsId(int id) {
             return items.ContainsKey(id);
         }
-        
+
     }
 
 
