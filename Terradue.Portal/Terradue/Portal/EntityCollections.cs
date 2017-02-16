@@ -268,7 +268,7 @@ namespace Terradue.Portal {
 
         public static void SetOpenSearchDefaults(IfyContext context) {
             DefaultItemsPerPage = 20;
-            DefaultItemOffset = 0;
+            DefaultItemOffset = 1;
             DefaultPageOffset = 1;
         }
 
