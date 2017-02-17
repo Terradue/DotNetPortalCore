@@ -70,7 +70,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        [EntityDataField("hostname")]
+        [EntityDataField("hostname", IsUsedInKeywordSearch = true)]
         public string Hostname { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        [EntityDataField("path")]
+        [EntityDataField("path", IsUsedInKeywordSearch = true)]
         public string Path { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the publish server root URL to which the results of a task are uploaded.</summary>
-        [EntityDataField("upload_url")]
+        [EntityDataField("upload_url", IsUsedInKeywordSearch = true)]
         public string UploadUrl { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------

@@ -489,13 +489,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates or decides whether the value is explicitly .</summary>
-        //public bool IgnoreIfNull { get; set; }
+        /// <summary>Indicates or determines whether the field is a foreign key field.</summary>
+        public bool IsForeignKey { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates or determines whether the field is a foreign key field.</summary>
-        public bool IsForeignKey { get; set; }
+        /// <summary>Indicates or determines whether the field is included in keyword searches.</summary>
+        public bool IsUsedInKeywordSearch { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 

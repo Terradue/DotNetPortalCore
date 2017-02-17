@@ -75,6 +75,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string SearchKeyword { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -484,7 +488,7 @@ namespace Terradue.Portal {
                     if (keepIds != null) {
                         sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
                         if (template != null) {
-                            string condition = entityType.GetTemplateCondition(template, true);
+                            string condition = entityType.GetTemplateConditionSql(template, true);
                             if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
                             //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
                         }

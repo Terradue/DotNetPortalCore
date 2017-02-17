@@ -129,6 +129,53 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
+        public void KeywordFilterTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
+
+            PublishServer p1 = new PublishServer(context);
+            p1.Name = "pf1 abc def ghi";
+            p1.Protocol = "ftp";
+            p1.Hostname = "test.org";
+            p1.Store();
+            PublishServer p2 = new PublishServer(context);
+            p2.Name = "pf2";
+            p2.Protocol = "ftp";
+            p2.Hostname = "def.org";
+            p2.Store();
+            PublishServer p3 = new PublishServer(context);
+            p3.Name = "pf3";
+            p3.Protocol = "ftp";
+            p3.Hostname = "test.org";
+            p3.Path = "/ghi/jkl";
+            p3.Store();
+
+            EntityDictionary<PublishServer> pd;
+
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "abc";
+            pd.Load();
+            Assert.AreEqual(1, pd.TotalResults);
+            Assert.AreEqual(1, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id));
+
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "def";
+            pd.Load();
+            Assert.AreEqual(2, pd.TotalResults);
+            Assert.AreEqual(2, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id));
+
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "ghi";
+            pd.Load();
+            Assert.AreEqual(2, pd.TotalResults);
+            Assert.AreEqual(2, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p3.Id));
+
+        }
+
+        [Test]
         public void PagingTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
             context.Execute("DELETE FROM series;");
