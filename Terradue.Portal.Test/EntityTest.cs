@@ -16,9 +16,9 @@ namespace Terradue.Portal.Test {
             s.Name = s.Identifier;
             s.Store();
 
-            Assert.False(s.DoesGrantGlobalPermission());
-            s.GrantGlobalPermissions();
-            Assert.True(s.DoesGrantGlobalPermission());
+            Assert.False(s.DoesGrantPermissionsToAll());
+            s.GrantPermissionsToAll();
+            Assert.True(s.DoesGrantPermissionsToAll());
 
             s.Delete();
         }

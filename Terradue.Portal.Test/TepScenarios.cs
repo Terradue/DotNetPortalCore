@@ -189,8 +189,8 @@ namespace Terradue.Portal.Test {
                 demSeries.CanProcess = true;
                 Console.WriteLine("  -> YES (OK)");
 
-                Console.WriteLine("Sarah grants global permissions on \"demSeries\"");
-                demSeries.GrantGlobalPermissions();
+                Console.WriteLine("Sarah grants permissions to all users on \"demSeries\"");
+                demSeries.GrantPermissionsToAll();
                 Console.WriteLine("  -> DONE (OK)");
 
                 context.EndImpersonation();
@@ -198,7 +198,7 @@ namespace Terradue.Portal.Test {
                 demSeries = Series.FromId(context, demSeries.Id); // reload "demSeries" with Marco's account
                 demSeries.CanDownload = true;
                 Assert.Throws<EntityUnauthorizedException>(delegate { 
-                    demSeries.GrantGlobalPermissions();
+                    demSeries.GrantPermissionsToAll();
                 });
 
                 context.EndImpersonation();

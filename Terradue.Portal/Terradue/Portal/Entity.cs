@@ -454,16 +454,16 @@ namespace Terradue.Portal {
             bool hasPermission = true;
             if (entityType.HasPermissionManagement) {
                 int anyUserCount = 0, anyGroupCount = 0;
-                bool hasGlobalPermission = false, hasUserPermission = false, hasGroupPermission = false;
+                bool permissionGrantedToAll = false, permissionGrantedToUser= false, permissionGrantedToGroup = false;
                 anyUserCount = context.GetIntegerValue(reader, index++);
                 anyGroupCount = context.GetIntegerValue(reader, index++);
-                hasGlobalPermission = context.GetBooleanValue(reader, index++);
+                permissionGrantedToAll = context.GetBooleanValue(reader, index++);
                 if (accessLevel != EntityAccessLevel.Administrator) {
-                    hasUserPermission = context.GetBooleanValue(reader, index++);
-                    hasGroupPermission = context.GetBooleanValue(reader, index++);
-                    hasPermission = hasUserPermission || hasGroupPermission || hasGlobalPermission;
+                    permissionGrantedToUser = context.GetBooleanValue(reader, index++);
+                    permissionGrantedToGroup = context.GetBooleanValue(reader, index++);
+                    hasPermission = permissionGrantedToUser || permissionGrantedToGroup || permissionGrantedToAll;
                 }
-                Visibility = hasGlobalPermission ? EntityItemVisibility.Public : anyUserCount != 1 || anyGroupCount + (hasGlobalPermission ? 1 : 0) != 0 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
+                Visibility = permissionGrantedToAll ? EntityItemVisibility.Public : anyUserCount != 1 || anyGroupCount + (permissionGrantedToAll ? 1 : 0) != 0 ? EntityItemVisibility.Restricted : EntityItemVisibility.Private;
             }
             int firstCustomFieldIndex = index;
 
@@ -907,12 +907,13 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
         
         /// <summary>Sets the permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
+        /// <param name="removeOthers">Determines whether permission settings at user and group level are removed or kept (default).</param>
         /// <remarks>
         ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
-        ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
+        ///     The permissions previously defined for users and groups are kept but, since the permissions to all override all finer grained settings, those have only effect for the permission properties that are not included in the permissions to all.
         /// </remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void GrantGlobalPermissions() {
+        public void GrantPermissionsToAll(bool removeOthers = false) {
             GrantPermissions(false, 0, null, false);
 
             //activity
@@ -920,52 +921,66 @@ namespace Terradue.Portal {
             activity.Store();
         }
         
-        [Obsolete("Use GrantGlobalPermissions (changed for terminology consistency)")]
-        public void StoreGlobalPrivileges() {
-            GrantGlobalPermissions();
+        [Obsolete("Use GrantPermissionsToAll (changed for terminology consistency)")]
+        public void GrantGlobalPermissions(bool removeOthers = false) {
+            GrantPermissionsToAll(removeOthers);
+        }
+
+        [Obsolete("Use GrantPermissionsToAll (changed for terminology consistency)")]
+        public void StoreGlobalPrivileges(bool removeOthers = false) {
+            GrantPermissionsToAll(removeOthers);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Sets global permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
-        /// <remarks>
-        ///     This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.
-        ///     The permissions previously defined for users and groups are kept but, since the global permission settings override all finer grained settings, those have only effect for the permissions that are not allowed by the global permission.
-        /// </remarks>
+        /// <summary>Reovkes the permissions granted to all users on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
+        /// <param name="keepSpecificPermissions">Decides whether individual user and group permissions are kept (default) or whether all permissions on the resource are revoked.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        public void RevokePermissionsFromAll(bool keepSpecificPermissions = true) {
+            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0}{3};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name, keepSpecificPermissions ? " AND id_usr IS NULL AND id_grp IS NULL" : String.Empty));
+        }
+
+        [Obsolete("Use RevokePermissionFromAll (changed for terminology consistency)")]
         public void RevokeGlobalPermission() {
-            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name));
+            RevokePermissionsFromAll(true);
         }
 
-        [Obsolete("Use RevokeGlobalPermission (changed for terminology consistency)")]
+        [Obsolete("Use RevokePermissionFromAll (changed for terminology consistency)")]
         public void RemoveGlobalPrivileges() {
-            RevokeGlobalPermission();
+            RevokePermissionsFromAll(true);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Determines whether global permissions are granted for this resource.</summary>
+        /// <summary>Determines whether permissions on this resource are granted universally to all users.</summary>
+        public bool DoesGrantPermissionsToAll() {
+            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+        }
+
+        [Obsolete("Use DoesGrantPermissionsToAll (changed for terminology consistency)")]
         public bool DoesGrantGlobalPermission() {
-            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+            return DoesGrantPermissionsToAll();
         }
 
-        [Obsolete("Use DoesGrantGlobalPermission (changed for terminology consistency)")]
+        [Obsolete("Use DoesGrantPermissionsToAll (changed for terminology consistency)")]
         public bool HasGlobalPrivilege() {
-            return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+            return DoesGrantPermissionsToAll();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
-        /// <summary>Sets global permissions on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
-        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to everybody.</remarks>
-        /// <param name="removeOthers">Determines whether permission settings at user and group level are removed.</param>
-        public void GrantGlobalPermissions(bool removeOthers) {
-            GrantPermissions(false, 0, null, removeOthers);
+
+        /// <summary>Determines whether permissions on this resource are granted to the user with the specified database ID.</summary>
+        public bool DoesGrantPermissionsToUser(int userId) {
+            throw new NotImplementedException();
+            //return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
         }
 
-        [Obsolete("Use AssignPermissionsGlobally (changed for terminology consistency)")]
-        public void StoreGlobalPrivileges(bool removeOthers) {
-            GrantGlobalPermissions(removeOthers);
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Determines whether permissions on this resource are granted to the group with the specified database ID.</summary>
+        public bool DoesGrantPermissionsToGroup(int groupId) {
+            throw new NotImplementedException();
+            //return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1076,7 +1091,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
-        /// <returns>A list of database IDs of the authorized users.</returns>
+        /// <returns>A list of database IDs of the authorized users or <em>null</em> if all users and groups are authorized.</returns>
         public int[] GetAuthorizedUserIds() {
             return GetAuthorizedSubjects(false);
         }
@@ -1084,7 +1099,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the users who are authorized to view this entity.</summary>
-        /// <returns>The authorized users.</returns>
+        /// <returns>The authorized users or <em>null</em> if all users and groups are authorized.</returns>
         public List<User> GetAuthorizedUsers() {
             List<User> result = new List<User>();
             int[] userIds = GetAuthorizedSubjects(false);
@@ -1095,7 +1110,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
-        /// <returns>A list of database IDs of the authorized users.</returns>
+        /// <returns>A list of database IDs of the authorized users or <em>null</em> if all users and groups are authorized.</returns>
         public int[] GetAuthorizedGroupIds() {
             return GetAuthorizedSubjects(true);
         }
@@ -1103,7 +1118,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the groups who are authorized to view this entity.</summary>
-        /// <returns>The authorized groups.</returns>
+        /// <returns>The authorized groups or <em>null</em> if all users and groups are authorized.</returns>
         public List<Group> GetAuthorizedGroups() {
             List<Group> result = new List<Group>();
             int[] groupIds = GetAuthorizedSubjects(true);
@@ -1114,7 +1129,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the users or groups who are authorized to view this entity via role privilege or item-specific permission.</summary>
-        /// <returns>The database IDs of the users or groups with view permission or privilege on this item. If <c>null</c> is returned, the item provides global permissions, i.e. all users are authorized to view the item.</returns>
+        /// <returns>The database IDs of the users or groups with view permission or privilege on this item. If <c>null</c> is returned, the item provides permissions to all users universally, i.e. all users are authorized to view the item.</returns>
         /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
         protected int[] GetAuthorizedSubjects(bool forGroups) {
             HashSet<int> ids = new HashSet<int>();
@@ -1127,9 +1142,9 @@ namespace Terradue.Portal {
                 );
                 IDbConnection dbConnection = context.GetDbConnection();
                 IDataReader reader = context.GetQueryResult(sql, dbConnection);
-                bool globalPermission = reader.Read();
+                bool permissionGrantedToAll = reader.Read();
                 context.CloseQueryResult(reader);
-                if (!globalPermission) {
+                if (!permissionGrantedToAll) {
                     sql = String.Format("SELECT {5} FROM {1} AS p{2} WHERE id_{3}={0} AND {4}",
                         Id,
                         EntityType.PermissionSubjectTable.PermissionTable,
@@ -1143,7 +1158,7 @@ namespace Terradue.Portal {
                     context.CloseQueryResult(reader);
                 }
                 context.CloseDbConnection(dbConnection);
-                if (globalPermission) return null;
+                if (permissionGrantedToAll) return null;
             }
 
             // Get roles that have view access on item's domain (i.e. any other operation than Search)

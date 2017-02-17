@@ -82,6 +82,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether whole words are to be matched in the keyword search.</summary>
+        public bool FindWholeWords { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -607,20 +612,20 @@ namespace Terradue.Portal {
         /// <remarks>
         /// Some examples for numeric searchTerm arguments in interval syntax:<br/>
         /// <list type="bullet">
-        ///     <item><c><strong>3</strong></c>: matches all items where the value is 3.</item>
-        ///     <item><c><strong>]3</strong> or <strong>(3</strong></c>: matches all items where the value is greater than 3.</item>
-        ///     <item><c><strong>[3</strong></c>: matches all items where the value is greater than or equal to 3.</item>
-        ///     <item><c><strong>3[</strong> or <strong>3)</strong></c>: matches all items where the value is less than 3.</item>
-        ///     <item><c><strong>3]</strong></c>: matches all items where the value is less than or equal to 3.</item>
-        ///     <item><c><strong>[3,7]</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included).</item>
-        ///     <item><c><strong>]3,7[</strong> or <strong>(3,7)</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 excluded).</item>
-        ///     <item><c><strong>[3,7[</strong> or <strong>[3,7)</strong></c>: matches all items where the value is between 3 and 7 (3 included but 7 excluded).</item>
-        ///     <item><c><strong>[3,7],[12,15]</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included).</item>
-        ///     <item><c><strong>[3,7],[12,15],18,23</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included) or 18 or 25.</item>
+        ///     <item><c><strong>3</strong></c>: matches the value 3.</item>
+        ///     <item><c><strong>]3</strong> or <strong>(3</strong></c>: matches all values greater than 3.</item>
+        ///     <item><c><strong>[3</strong></c>: matches all values greater than or equal to 3.</item>
+        ///     <item><c><strong>3[</strong> or <strong>3)</strong></c>: matches all values less than 3.</item>
+        ///     <item><c><strong>3]</strong></c>: matches all values less than or equal to 3.</item>
+        ///     <item><c><strong>[3,7]</strong></c>: matches all values between 3 and 7 (3 and 7 included).</item>
+        ///     <item><c><strong>]3,7[</strong> or <strong>(3,7)</strong></c>: matches all values between 3 and 7 (3 and 7 excluded).</item>
+        ///     <item><c><strong>[3,7[</strong> or <strong>[3,7)</strong></c>: matches all values between 3 and 7 (3 included but 7 excluded).</item>
+        ///     <item><c><strong>[3,7],[12,15]</strong></c>: matches all values between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included).</item>
+        ///     <item><c><strong>[3,7],[12,15],18,23</strong></c>: matches all items values between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included) or the single value 18 or the single value 25.</item>
         /// </list>
         /// The above examples can also be used with date/time values instead of numeric values. An additional useful examples for a date/time searchTerm argument:<br/>
         /// <list type="bullet">
-        ///     <item><c><strong>[2017-02-17T00:00:00Z,2017-02-18T00:00:00Z[</strong></c>: matches all items where the date is 2017-02-17. Avoid using this: <c><strong>[2017-02-17T00:00:00Z,2017-02-17T23:59:59Z[</strong></c></item>
+        ///     <item><c><strong>[2017-02-17T00:00:00Z,2017-02-18T00:00:00Z[</strong></c>: matches all possible time values of the entire day of 2017-02-17. For searches of full days or periods, avoid using search terms following (it does not cover the entire period): <c><strong>[2017-02-17T00:00:00Z,2017-02-17T23:59:59Z]</strong></c></item>
         /// </list>
         /// </remarks>
         public void SetFilter(string propertyName, string searchTerm) {

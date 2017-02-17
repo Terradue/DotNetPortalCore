@@ -82,6 +82,8 @@ namespace Terradue.Portal {
 
         private bool isSqlPrepared = false;
 
+        private Regex regexRegex = new Regex(@"[\[\]\(\)\{\}\?\*\+]");
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the direct subclass of Entity of which this entity type is derived./summary>
@@ -680,7 +682,7 @@ namespace Terradue.Portal {
                 }
             }
             if (AllowsKeywordSearch && items.SearchKeyword != null) {
-                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword);
+                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword, items.FindWholeWords);
                 if (keywordCondition != null) {
                     if (condition == null) condition = String.Empty;
                     else condition += " AND ";
@@ -1145,7 +1147,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetKeywordFilterSql(string searchTerm) {
+        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords) {
             string result = null;
             List<string> fieldNames = new List<string>();
 
@@ -1170,7 +1172,14 @@ namespace Terradue.Portal {
                 fieldNames.Add(field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
             }
             if (fieldNames.Count == 0) return null;
-            return String.Format("CONCAT_WS('\t', {0}) REGEXP '[[:<:]]{1}[[:>:]]'", String.Join(",", fieldNames), Regex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), "[\\[\\]\\(\\)\\{\\}\\?\\*\\+]", "\\\\$0"));
+
+
+            return String.Format("CONCAT_WS('\t', {0}) REGEXP '{2}{1}{3}'",
+                    String.Join(",", fieldNames),
+                    regexRegex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0"), 
+                    findWholeWords ? "[[:<:]]" : String.Empty, 
+                    findWholeWords ? "[[:>:]]" : String.Empty
+            );
         }
 
         //---------------------------------------------------------------------------------------------------------------------

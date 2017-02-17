@@ -173,6 +173,21 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd.Count);
             Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p3.Id));
 
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "de";
+            pd.FindWholeWords = true;
+            pd.Load();
+            Assert.AreEqual(0, pd.TotalResults);
+            Assert.AreEqual(0, pd.Count);
+
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "de";
+            pd.FindWholeWords = false;
+            pd.Load();
+            Assert.AreEqual(2, pd.TotalResults);
+            Assert.AreEqual(2, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id));
+
         }
 
         [Test]
@@ -359,14 +374,14 @@ namespace Terradue.Portal.Test {
             ppub.Protocol = "ftp";
             ppub.Hostname = "test.org";
             ppub.Store();
-            ppub.GrantGlobalPermissions();
+            ppub.GrantPermissionsToAll();
 
             PublishServer ppubresg = new PublishServer(context);
             ppubresg.Name = "public and assigned to group";
             ppubresg.Protocol = "ftp";
             ppubresg.Hostname = "test.org";
             ppubresg.Store();
-            ppubresg.GrantGlobalPermissions();
+            ppubresg.GrantPermissionsToAll();
             ppubresg.GrantPermissionsToGroups(new Group[] { group });
 
             PublishServer ppubresg2 = new PublishServer(context);
@@ -374,7 +389,7 @@ namespace Terradue.Portal.Test {
             ppubresg2.Protocol = "ftp";
             ppubresg2.Hostname = "test.org";
             ppubresg2.Store();
-            ppubresg2.GrantGlobalPermissions();
+            ppubresg2.GrantPermissionsToAll();
             ppubresg2.GrantPermissionsToGroups(new Group[] { group2 });
 
             PublishServer ppubresu = new PublishServer(context);
@@ -382,7 +397,7 @@ namespace Terradue.Portal.Test {
             ppubresu.Protocol = "ftp";
             ppubresu.Hostname = "test.org";
             ppubresu.Store();
-            ppubresu.GrantGlobalPermissions();
+            ppubresu.GrantPermissionsToAll();
             ppubresu.GrantPermissionsToUsers(new User[] { user });
 
             PublishServer ppubresu2 = new PublishServer(context);
@@ -390,7 +405,7 @@ namespace Terradue.Portal.Test {
             ppubresu2.Protocol = "ftp";
             ppubresu2.Hostname = "test.org";
             ppubresu2.Store();
-            ppubresu2.GrantGlobalPermissions();
+            ppubresu2.GrantPermissionsToAll();
             ppubresu2.GrantPermissionsToUsers(new User[] { user2 });
 
             PublishServer presg = new PublishServer(context);
@@ -413,7 +428,7 @@ namespace Terradue.Portal.Test {
             powna.Protocol = "ftp";
             powna.Hostname = "test.org";
             powna.Store();
-            powna.GrantGlobalPermissions();
+            powna.GrantPermissionsToAll();
 
             PublishServer powng = new PublishServer(context);
             powng.OwnerId = user.Id;
