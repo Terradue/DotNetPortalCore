@@ -235,6 +235,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool AllowsKeywordSearch { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public bool AutoCheckIdentifiers { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -556,6 +560,14 @@ namespace Terradue.Portal {
             }
 
             AppendProperties(type, tableIndex);
+            if (!AllowsKeywordSearch) {
+                foreach (FieldInfo field in Fields) {
+                    if (field.IsUsedInKeywordSearch) {
+                        AllowsKeywordSearch = true;
+                        break;
+                    }
+                }
+            }
 
             foreach (EntityTableAttribute t in Tables) {
                 AutoCheckIdentifiers |= t.AutoCheckIdentifiers;
@@ -652,18 +664,27 @@ namespace Terradue.Portal {
         /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition) {
             if (items.Template != null) {
-                string templateCondition = GetTemplateCondition(items.Template, false);
+                string templateCondition = GetTemplateConditionSql(items.Template, false);
                 if (templateCondition != null) {
                     if (condition == null) condition = String.Empty;
                     else condition += " AND ";
-                    condition += GetTemplateCondition(items.Template, false);
+                    condition += GetTemplateConditionSql(items.Template, false);
                 }
-            } else if (items.FilterValues != null) {
+            }
+            if (items.FilterValues != null) {
                 string filterCondition = GetFilterSql(items.FilterValues);
                 if (filterCondition != null) {
                     if (condition == null) condition = String.Empty;
                     else condition += " AND ";
                     condition += filterCondition;
+                }
+            }
+            if (AllowsKeywordSearch && items.SearchKeyword != null) {
+                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword);
+                if (keywordCondition != null) {
+                    if (condition == null) condition = String.Empty;
+                    else condition += " AND ";
+                    condition += keywordCondition;
                 }
             }
 
@@ -720,7 +741,7 @@ namespace Terradue.Portal {
         public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly, int limit = -1, int offset = 0) {
             string condition = null;
             if (template != null) {
-                condition = GetTemplateCondition(template, false);
+                condition = GetTemplateConditionSql(template, false);
             } else if (filterValues != null) {
                 string filterCondition = GetFilterSql(filterValues);
                 if (filterCondition != null) {
@@ -1053,7 +1074,7 @@ namespace Terradue.Portal {
         /// <param name="template">An instance of the represented Entity subclass for which the filtering properties are set to the desired filter values.</param>
         /// <param name="forDelete">Determines whether the condition will affect only the entity's top table so that it can be used in a <c>DELETE</c> command to delete multiple items.</param>
         /// <returns>The SQL conditional expression to be used in the <c>WHERE</c> clause of the filtering query.</returns>
-        public string GetTemplateCondition(Entity template, bool forDelete) {
+        public string GetTemplateConditionSql(Entity template, bool forDelete) {
             string result = null;
 
             foreach (FieldInfo field in Fields) {
@@ -1120,6 +1141,36 @@ namespace Terradue.Portal {
             }
 
             return false;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public string GetKeywordFilterSql(string searchTerm) {
+            string result = null;
+            List<string> fieldNames = new List<string>();
+
+            if (TopTable.HasIdentifierField) fieldNames.Add(TopTable.IdentifierField);
+            if (TopTable.HasNameField) fieldNames.Add(TopTable.NameField);
+            foreach (FieldInfo field in Fields) {
+                if (!field.IsUsedInKeywordSearch) continue;
+                string alias = null;
+                if (field.FieldType == EntityFieldType.ForeignField) {
+                    ForeignTableInfo foreignTableInfo = null;
+                    foreach (ForeignTableInfo fti in ForeignTables) {
+                        if (fti.ReferringTable == Tables[field.TableIndex] && fti.SubIndex == field.TableSubIndex) {
+                            foreignTableInfo = fti;
+                            break;
+                        }
+                    }
+                    if (foreignTableInfo == null) continue;
+                    if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
+                }
+                if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
+
+                fieldNames.Add(field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+            }
+            if (fieldNames.Count == 0) return null;
+            return String.Format("CONCAT_WS('\t', {0}) REGEXP '[[:<:]]{1}[[:>:]]'", String.Join(",", fieldNames), Regex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), "[\\[\\]\\(\\)\\{\\}\\?\\*\\+]", "\\\\$0"));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -2166,6 +2217,7 @@ namespace Terradue.Portal {
         public string Expression { get; protected set; }
         public bool IsReadOnly { get; protected set; }
         public bool IsForeignKey { get; protected set; }
+        public bool IsUsedInKeywordSearch { get; protected set; }
         public object NullValue { get; protected set; }
         public object IgnoreValue { get; protected set; }
         public Type UnderlyingType { get; protected set; }
@@ -2196,6 +2248,7 @@ namespace Terradue.Portal {
             this.FieldType = EntityFieldType.DataField;
             this.IsReadOnly = attribute.IsReadOnly;
             this.IsForeignKey = attribute.IsForeignKey;
+            this.IsUsedInKeywordSearch = attribute.IsUsedInKeywordSearch;
             Type type = @property.PropertyType;
             if (attribute.NullValue != null) this.NullValue = attribute.NullValue;
             else if (this.IsForeignKey) this.NullValue = 0;

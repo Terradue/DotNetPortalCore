@@ -61,17 +61,24 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>The <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
+        /// <summary>Gets or sets the <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
         public EntityAccessLevel AccessLevel { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>The visibility flags to be taken into account before loading the collection.</summary>
+        /// <summary>Gets or sets the visibility flags to be taken into account before loading the collection.</summary>
         public EntityItemVisibility ItemVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the collection of the filter values for properties.</summary>
         public Dictionary<FieldInfo, string> FilterValues { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the search term for the keyword search that can include several properties.</summary>
+        /// <remarks>Properties included in the search are <c>Identifier</c> and <c>Name</c> (if used) and any property that has the <c>IsUsedInKeywordSearch</c> set to <em>true</em> in its EntityDataAttribute.</remarks>
+        public string SearchKeyword { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -451,7 +458,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Stores the entity list.</summary>
-        /// <remarks></remearks>
+        /// <remarks></remarks>
         protected virtual void StoreList(bool removeOthers, bool onlyNewItems) {
 
             if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity collection");
@@ -484,7 +491,7 @@ namespace Terradue.Portal {
                     if (keepIds != null) {
                         sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
                         if (template != null) {
-                            string condition = entityType.GetTemplateCondition(template, true);
+                            string condition = entityType.GetTemplateConditionSql(template, true);
                             if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
                             //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
                         }
@@ -596,7 +603,26 @@ namespace Terradue.Portal {
 
         /// <summary>Sets the filter search term for the specified property.</summary>
         /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
-        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        /// <param name="searchTerm">The filter search string according to the property type. Interval syntax is allowed for numeric and date/time properties; wildcard characters '*' and '?' are allowed for string properties.</param>
+        /// <remarks>
+        /// Some examples for numeric searchTerm arguments in interval syntax:<br/>
+        /// <list type="bullet">
+        ///     <item><c><strong>3</strong></c>: matches all items where the value is 3.</item>
+        ///     <item><c><strong>]3</strong> or <strong>(3</strong></c>: matches all items where the value is greater than 3.</item>
+        ///     <item><c><strong>[3</strong></c>: matches all items where the value is greater than or equal to 3.</item>
+        ///     <item><c><strong>3[</strong> or <strong>3)</strong></c>: matches all items where the value is less than 3.</item>
+        ///     <item><c><strong>3]</strong></c>: matches all items where the value is less than or equal to 3.</item>
+        ///     <item><c><strong>[3,7]</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included).</item>
+        ///     <item><c><strong>]3,7[</strong> or <strong>(3,7)</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 excluded).</item>
+        ///     <item><c><strong>[3,7[</strong> or <strong>[3,7)</strong></c>: matches all items where the value is between 3 and 7 (3 included but 7 excluded).</item>
+        ///     <item><c><strong>[3,7],[12,15]</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included).</item>
+        ///     <item><c><strong>[3,7],[12,15],18,23</strong></c>: matches all items where the value is between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included) or 18 or 25.</item>
+        /// </list>
+        /// The above examples can also be used with date/time values instead of numeric values. An additional useful examples for a date/time searchTerm argument:<br/>
+        /// <list type="bullet">
+        ///     <item><c><strong>[2017-02-17T00:00:00Z,2017-02-18T00:00:00Z[</strong></c>: matches all items where the date is 2017-02-17. Avoid using this: <c><strong>[2017-02-17T00:00:00Z,2017-02-17T23:59:59Z[</strong></c></item>
+        /// </list>
+        /// </remarks>
         public void SetFilter(string propertyName, string searchTerm) {
             FieldInfo field = entityType.GetField(propertyName);
             if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
