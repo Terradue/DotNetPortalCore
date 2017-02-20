@@ -971,16 +971,40 @@ namespace Terradue.Portal {
 
         /// <summary>Determines whether permissions on this resource are granted to the user with the specified database ID.</summary>
         public bool DoesGrantPermissionsToUser(int userId) {
-            throw new NotImplementedException();
-            //return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+            return DoesGrantPermissionToSubject(false, userId);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Determines whether permissions on this resource are granted to the group with the specified database ID.</summary>
         public bool DoesGrantPermissionsToGroup(int groupId) {
-            throw new NotImplementedException();
-            //return context.GetQueryIntegerValue(String.Format("SELECT COUNT(*) FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name)) > 0;
+            return DoesGrantPermissionToSubject(true, groupId);
+        }
+
+        public bool DoesGrantPermissionToSubject(bool forGroups, int id) {
+            if (!EntityType.HasPermissionManagement) return true;
+
+            string sql = String.Format("SELECT true FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
+                Id,
+                EntityType.PermissionSubjectTable.PermissionTable,
+                EntityType.PermissionSubjectTable.Name
+            );
+            if (context.GetQueryBooleanValue(sql)) return true;
+
+            string filterSql = String.Format(forGroups ? "p.id_grp={0}" : "(p.id_usr={0} OR ug.id_usr={0})", id);
+
+            sql = String.Format("SELECT true FROM {1} AS p{2} WHERE id_{3}={0} AND {4};",
+                Id,
+                EntityType.PermissionSubjectTable.PermissionTable,
+                forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
+                EntityType.PermissionSubjectTable.Name,
+                filterSql
+            );
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool result = reader.Read();
+            context.CloseQueryResult(reader, dbConnection);
+            return result;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1135,50 +1159,50 @@ namespace Terradue.Portal {
             HashSet<int> ids = new HashSet<int>();
 
             if (EntityType.HasPermissionManagement) {
-                string sql = String.Format("SELECT NULL FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
+                string sql = String.Format("SELECT true FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
                     Id,
                     EntityType.PermissionSubjectTable.PermissionTable,
                     EntityType.PermissionSubjectTable.Name
                 );
+                if (context.GetQueryBooleanValue(sql)) return null;
+                sql = String.Format("SELECT {5} FROM {1} AS p{2} WHERE id_{3}={0} AND {4};",
+                    Id,
+                    EntityType.PermissionSubjectTable.PermissionTable,
+                    forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
+                    EntityType.PermissionSubjectTable.Name,
+                    forGroups ? "p.id_grp IS NOT NULL" : "(p.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
+                    forGroups ? "p.id_grp" : "CASE WHEN p.id_usr IS NULL THEN ug.id_usr ELSE p.id_usr END"
+                );
                 IDbConnection dbConnection = context.GetDbConnection();
                 IDataReader reader = context.GetQueryResult(sql, dbConnection);
-                bool permissionGrantedToAll = reader.Read();
-                context.CloseQueryResult(reader);
-                if (!permissionGrantedToAll) {
-                    sql = String.Format("SELECT {5} FROM {1} AS p{2} WHERE id_{3}={0} AND {4}",
-                        Id,
-                        EntityType.PermissionSubjectTable.PermissionTable,
-                        forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
-                        EntityType.PermissionSubjectTable.Name,
-                        forGroups ? "p.id_grp IS NOT NULL" : "(p.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
-                        forGroups ? "p.id_grp" : "CASE WHEN p.id_usr IS NULL THEN ug.id_usr ELSE p.id_usr END"
-                    );
-                    reader = context.GetQueryResult(sql, dbConnection);
-                    while (reader.Read()) ids.Add(reader.GetInt32(0));
-                    context.CloseQueryResult(reader);
-                }
-                context.CloseDbConnection(dbConnection);
-                if (permissionGrantedToAll) return null;
+                while (reader.Read()) ids.Add(reader.GetInt32(0));
+                context.CloseQueryResult(reader, dbConnection);
             }
 
-            // Get roles that have view access on item's domain (i.e. any other operation than Search)
+            // Get roles that have view access on item's domain (i.e. any other operation than just Search)
             int[] roleIds = EntityType.GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, true);
-            if (roleIds != null) {
-                string domainCondition = EntityType.TopTable.HasDomainReference ? DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("id_domain={0}", DomainId) : "true";
-                if (roleIds.Length != 0) {
-                    string sql = String.Format("SELECT DISTINCT {4} FROM rolegrant AS rg{3} WHERE rg.id_role IN ({0}) AND {1} AND {2} ",
-                        String.Join(",", roleIds),
-                        forGroups ? "rg.id_grp IS NOT NULL" : "(rg.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
-                        domainCondition,
-                        forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp",
-                        forGroups ? "rg.id_grp" : "CASE WHEN rg.id_usr IS NULL THEN ug.id_usr ELSE rg.id_usr END"
-                    );
-                    IDbConnection dbConnection = context.GetDbConnection();
-                    IDataReader reader = context.GetQueryResult(sql, dbConnection);
-                    while (reader.Read()) ids.Add(reader.GetInt32(0));
-                    context.CloseQueryResult(reader, dbConnection);
-                }
 
+            // If privilege is not defined (roleIds == null) and entity type does not allow to set item-based permissions, grant to all
+            if (roleIds == null && !EntityType.HasPermissionManagement) return null;
+            if (roleIds != null && roleIds.Length != 0) {
+                string domainCondition = EntityType.TopTable.HasDomainReference ? DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("(rg.id_domain IS NULL OR rg.id_domain={0})", DomainId) : "true";
+                string sql = String.Format("SELECT true FROM rolegrant WHERE id_role IN {0} AND id_usr IS NULL AND id_grp IS NULL AND {1};",
+                    String.Join(",", roleIds),
+                    domainCondition
+                );
+                if (context.GetQueryBooleanValue(sql)) return null;
+
+                sql = String.Format("SELECT DISTINCT {4} FROM rolegrant AS rg{1} WHERE rg.id_role IN ({0}) AND {2} AND {3};",
+                    String.Join(",", roleIds),
+                    forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp",
+                    forGroups ? "rg.id_grp IS NOT NULL" : "(rg.id_usr IS NOT NULL OR ug.id_usr IS NOT NULL)",
+                    domainCondition,
+                    forGroups ? "rg.id_grp" : "CASE WHEN rg.id_usr IS NULL THEN ug.id_usr ELSE rg.id_usr END"
+                );
+                IDbConnection dbConnection = context.GetDbConnection();
+                IDataReader reader = context.GetQueryResult(sql, dbConnection);
+                while (reader.Read()) ids.Add(reader.GetInt32(0));
+                context.CloseQueryResult(reader, dbConnection);
             }
 
             int[] result = new int[ids.Count];

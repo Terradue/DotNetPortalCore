@@ -1003,7 +1003,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Lists all roles that include the specified privilege for this entity type or, alternatively, any privilege for this entity type other than the specified one.</summary>
-        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
+        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege is not defined, in which case it would not make sense to deny authorisation.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="operation">The operation that, in combination with the entity type represented by this instance, defines the privilege.</param>
         /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privilege; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>
@@ -1015,7 +1015,7 @@ namespace Terradue.Portal {
         }
 
         /// <summary>Lists all roles that include the specified privileges for this entity type or, alternatively, any privilege for this entity type other than the specified ones.</summary>
-        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege does not exist, in which case it would not make sense to deny authorisation.</returns>
+        /// <returns>A list that contains the database IDs of all matching roles. If the list is empty, there is no matching role. If it is <c>null</c>, the privilege is not defined, in which case it would not make sense to deny authorisation.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="operations">The operations that, in combination with the entity type represented by this instance, defines the privileges.</param>
         /// <param name="inverse">If <c>false</c>, roles are selected if they contain the privileges; if <c>true</c>, roles are selected if they contain any of the other privileges related to this entity type.</param>

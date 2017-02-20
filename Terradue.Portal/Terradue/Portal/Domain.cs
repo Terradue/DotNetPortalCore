@@ -119,11 +119,11 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user for which the domain restriction check is performed.</param>
         /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c> or empty, the check is skipped resulting in no domain restriction (return value <c>null</c>. If the array is empty, the grant is empty (return value is an empty array).</param>
-        public static int [] GetGrantScope(IfyContext context, int userId, int [] groupIds, int [] roleIds) {
+        public static int[] GetGrantScope(IfyContext context, int userId, int[] groupIds, int[] roleIds) {
             if (roleIds == null) return null;
-            if (roleIds.Length == 0) return new int [] { 0 };
+            if (roleIds.Length == 0) return new int[] { 0 };
 
-            if (groupIds == null || groupIds.Length == 0) groupIds = new int [] { 0 };
+            if (groupIds == null || groupIds.Length == 0) groupIds = new int[] { 0 };
 
             List<int> domainIds = new List<int>();
             string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE rg.id_role IN ({2}) AND (rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", groupIds), String.Join(",", roleIds));
@@ -146,8 +146,8 @@ namespace Terradue.Portal {
 
         public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
-            default:
-                return base.GetFilterForParameter(parameter, value);
+                default:
+                    return base.GetFilterForParameter(parameter, value);
             }
         }
 
@@ -167,8 +167,8 @@ namespace Terradue.Portal {
             var entityType = EntityType.GetEntityType(typeof(Domain));
             Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
 
-            if (!string.IsNullOrEmpty(parameters ["q"])) {
-                string q = parameters ["q"].ToLower();
+            if (!string.IsNullOrEmpty(parameters["q"])) {
+                string q = parameters["q"].ToLower();
                 if (!this.Identifier.ToLower().Contains(q) && !(Description != null && Description.ToLower().Contains(q)))
                     return null;
             }
@@ -224,21 +224,21 @@ namespace Terradue.Portal {
             string result;
 
             switch (extension.ToLower()) {
-            case "gif":
-                result = "image/gif";
-                break;
-            case "gtiff":
-                result = "image/tiff";
-                break;
-            case "jpeg":
-                result = "image/jpg";
-                break;
-            case "png":
-                result = "image/png";
-                break;
-            default:
-                result = "application/octet-stream";
-                break;
+                case "gif":
+                    result = "image/gif";
+                    break;
+                case "gtiff":
+                    result = "image/tiff";
+                    break;
+                case "jpeg":
+                    result = "image/jpg";
+                    break;
+                case "png":
+                    result = "image/png";
+                    break;
+                default:
+                    result = "application/octet-stream";
+                    break;
             }
             return result;
         }
