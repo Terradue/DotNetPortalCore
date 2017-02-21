@@ -1186,7 +1186,7 @@ namespace Terradue.Portal {
             if (roleIds == null && !EntityType.HasPermissionManagement) return null;
             if (roleIds != null && roleIds.Length != 0) {
                 string domainCondition = EntityType.TopTable.HasDomainReference ? DomainId == 0 ? "rg.id_domain IS NULL" : String.Format("(rg.id_domain IS NULL OR rg.id_domain={0})", DomainId) : "true";
-                string sql = String.Format("SELECT true FROM rolegrant WHERE id_role IN {0} AND id_usr IS NULL AND id_grp IS NULL AND {1};",
+                string sql = String.Format("SELECT true FROM rolegrant AS rg WHERE id_role IN ({0}) AND id_usr IS NULL AND id_grp IS NULL AND {1};",
                     String.Join(",", roleIds),
                     domainCondition
                 );
