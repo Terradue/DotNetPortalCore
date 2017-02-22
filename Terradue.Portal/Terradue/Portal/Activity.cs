@@ -42,7 +42,7 @@ namespace Terradue.Portal {
         public new int OwnerId { get; set; }
 
         private Entity pentity;
-        private Entity Entity {
+        protected Entity Entity {
             get {
                 if (pentity == null) {
                     try {
@@ -232,16 +232,16 @@ namespace Terradue.Portal {
 
             switch (this.Privilege.Operation) {
                 case EntityOperationType.Create:
-                    description = string.Format("has created the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    description = string.Format("created the {0} {1}",this.ActivityEntityType.SingularCaption, name);
                     break;
                 case EntityOperationType.Change:
-                    description = string.Format("has updated the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    description = string.Format("updated the {0} {1}",this.ActivityEntityType.SingularCaption, name);
                     break;
                 case EntityOperationType.Delete:
-                    description = string.Format("has deleted the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    description = string.Format("deleted the {0} {1}",this.ActivityEntityType.SingularCaption, name);
                     break;
                 case EntityOperationType.Share:
-                    description = string.Format("has shared the {0} {1}",this.ActivityEntityType.Keyword, name);
+                    description = string.Format("shared the {0} {1}",this.ActivityEntityType.SingularCaption, name);
                     break;
                 default:
                     break;
@@ -268,7 +268,7 @@ namespace Terradue.Portal {
             result.Authors.Add(author);
             result.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
             Uri share = new Uri(context.BaseUrl + "/share?url=" +id.AbsoluteUri);
-            result.Links.Add(new SyndicationLink(share, "via", name, "application/atom+xml", 0));
+            result.Links.Add(new SyndicationLink(share, "via", "share", "application/atom+xml", 0));
 
             return result;
         }

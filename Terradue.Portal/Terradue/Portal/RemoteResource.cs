@@ -23,7 +23,7 @@ namespace Terradue.Portal {
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPermissionManagement = true, HasDomainReference = true)]
-    public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
+    public class RemoteResourceSet : EntitySearchable, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;
 
@@ -300,6 +300,10 @@ namespace Terradue.Portal {
                 // Call the Event
                 OpenSearchableChange(this, data);
             }
+        }
+
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
+            throw new NotImplementedException();
         }
     }
 
