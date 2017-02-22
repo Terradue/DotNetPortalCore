@@ -217,6 +217,11 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether this entity provides a keyword search parameter even if there is no keyword-searchable property.</summary>
+        public bool AllowsKeywordSearch { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityTableAttribute(string name, EntityTableConfiguration config) {
             this.Name = name;
             this.IdField = DefaultIdFieldName;

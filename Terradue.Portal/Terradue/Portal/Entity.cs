@@ -934,10 +934,12 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Reovkes the permissions granted to all users on the resource represented by this instance that will apply to all users according to the permission properties.</summary>
-        /// <param name="keepSpecificPermissions">Decides whether individual user and group permissions are kept (default) or whether all permissions on the resource are revoked.</param>
+        /// <param name="revokeFromOthers">Decides whether all individual user (other than the owner) and group permissions on this resource are revoked or whether they are kept (default).</param>
+        /// <param name="revokeFromOwner">Decides whether the owner's permissions on this resource are revoked or whether they are kept (default).</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void RevokePermissionsFromAll(bool keepSpecificPermissions = true) {
-            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0}{3};", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name, keepSpecificPermissions ? " AND id_usr IS NULL AND id_grp IS NULL" : String.Empty));
+        public void RevokePermissionsFromAll(bool revokeFromOthers = false, bool revokeFromOwner = false) {
+            string conditionSql = revokeFromOthers ? revokeFromOwner ? " OR true" : String.Format(" OR id_usr!={0}", OwnerId) : revokeFromOwner ? String.Format(" OR id_usr={0}", OwnerId) : String.Empty;
+            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND (id_usr IS NULL AND id_grp IS NULL{3});", Id, EntityType.PermissionSubjectTable.PermissionTable, EntityType.PermissionSubjectTable.Name, conditionSql));
         }
 
         [Obsolete("Use RevokePermissionFromAll (changed for terminology consistency)")]

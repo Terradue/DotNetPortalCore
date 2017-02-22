@@ -574,6 +574,7 @@ namespace Terradue.Portal {
             foreach (EntityTableAttribute t in Tables) {
                 AutoCheckIdentifiers |= t.AutoCheckIdentifiers;
                 AutoCorrectDuplicateIdentifiers |= t.AutoCorrectDuplicateIdentifiers;
+                AllowsKeywordSearch |= t.AllowsKeywordSearch;
             }
 
         }
