@@ -754,6 +754,10 @@ namespace Terradue.Portal {
                             break;
                         }
                         break;
+                    case "q":
+                        this.SearchKeyword = parameters[p];
+                        this.FindWholeWords = true;
+                        break;
                     case "author":
                         var u = User.ForceFromUsername(context, parameters[p]);
                         SetFilter("OwnerId", u.Id.ToString());

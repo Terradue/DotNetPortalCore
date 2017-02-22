@@ -165,8 +165,9 @@ namespace Terradue.Portal {
             /*if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"] == "true") {
                 return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
             }*/
-
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
+            //TODO: if only one result dont use Multi
+            var entities = GetOpenSearchableArray();
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, entities, querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
