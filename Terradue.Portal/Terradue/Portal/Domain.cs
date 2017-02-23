@@ -34,7 +34,7 @@ namespace Terradue.Portal {
     /// <summary>Domain</summary>
     /// <description>A Domain is an organizational unit to regroup \ref Entity</description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("domain", EntityTableConfiguration.Custom, IdentifierField = "name")]
+    [EntityTable("domain", EntityTableConfiguration.Custom, IdentifierField = "name", AllowsKeywordSearch = true)]
     public class Domain : EntitySearchable {
 
         //---------------------------------------------------------------------------------------------------------------------

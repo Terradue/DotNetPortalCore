@@ -756,7 +756,7 @@ namespace Terradue.Portal {
                         break;
                     case "q":
                         this.SearchKeyword = parameters[p];
-                        this.FindWholeWords = true;
+                        this.FindWholeWords = false;
                         break;
                     case "author":
                         var u = User.ForceFromUsername(context, parameters[p]);

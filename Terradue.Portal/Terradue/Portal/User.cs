@@ -41,7 +41,7 @@ namespace Terradue.Portal {
     /// </description>
     /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
-    [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
+    [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true, AllowsKeywordSearch = true)]
     public class User : EntitySearchable {
 
         private string activationToken;
@@ -92,19 +92,19 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the e-mail address of the user.</summary>
-        [EntityDataField("email")]
+        [EntityDataField("email", IsUsedInKeywordSearch = true)]
         public string Email { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the first name of the user.</summary>
-        [EntityDataField("firstname")]
+        [EntityDataField("firstname", IsUsedInKeywordSearch = true)]
         public string FirstName { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the last name of the user.</summary>
-        [EntityDataField("lastname")]
+        [EntityDataField("lastname", IsUsedInKeywordSearch = true)]
         public string LastName { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
