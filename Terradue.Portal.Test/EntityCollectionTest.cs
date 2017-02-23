@@ -230,7 +230,7 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(50, sd4.TotalResults);
             Assert.AreEqual(17, sd4.Count);
             Series s4 = sd4.FirstOrDefault((s => true));
-            Assert.AreEqual("SERIES14", s4.Identifier);
+            Assert.AreEqual("SERIES13", s4.Identifier);
         }
 
         [Test]

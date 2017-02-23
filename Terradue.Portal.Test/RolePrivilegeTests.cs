@@ -20,7 +20,13 @@ namespace Terradue.Portal.Test {
         Role seriesShareRole;
         Domain seriesShareDomain;
 
-        [Test]
+        [TestFixtureSetUp]
+        public override void FixtureSetup() {
+            base.FixtureSetup();
+            _CreateData();
+
+        }
+
         public void _CreateData() {
             try {
                 if (rebuildData) {
@@ -98,6 +104,7 @@ namespace Terradue.Portal.Test {
                     ps1.Name = "ps-1";
                     ps1.Hostname = "mytest.host";
                     ps1.Domain = domain1;
+                    ps1.Protocol = "http";
                     ps1.Store();
 
                     seriesShareDomain = new Domain(context);
