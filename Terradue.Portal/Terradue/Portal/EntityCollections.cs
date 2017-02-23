@@ -834,11 +834,11 @@ namespace Terradue.Portal {
 
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl(string.Format("{0}/{1}/search", context.BaseUrl + "/" + Identifier, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/search", context.BaseUrl, entityType.Keyword));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl(string.Format("{0}/{1}/description", context.BaseUrl + "/" + Identifier, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/description", context.BaseUrl, entityType.Keyword));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
