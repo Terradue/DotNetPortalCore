@@ -227,7 +227,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
+        public virtual System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
             if (mimeType != "application/atom+xml") return null;
             var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
             parameters.Set("grouped", "{os:grouped?}");
