@@ -159,6 +159,8 @@ namespace Terradue.Portal.Test {
                     Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
                     cloudProvider.Identifier = "cloud-provider";
                     cloudProvider.Name = "Cloud Provider";
+                    cloudProvider.AccessPoint = "cloud-dev.terradue.int";
+                    cloudProvider.WebAdminUrl = "admin@terradue.com";
                     cloudProvider.Store();
 
                     Terradue.Sandbox.Laboratory laboratory = Terradue.Sandbox.Laboratory.ForProvider(context, cloudProvider);
