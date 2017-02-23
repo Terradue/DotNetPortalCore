@@ -159,6 +159,8 @@ namespace Terradue.Portal.Test {
                     Terradue.Cloud.CloudProvider cloudProvider = new Terradue.Cloud.GenericCloudProvider(context);
                     cloudProvider.Identifier = "cloud-provider";
                     cloudProvider.Name = "Cloud Provider";
+                    cloudProvider.AccessPoint = "cloud-dev.terradue.int";
+                    cloudProvider.WebAdminUrl = "admin@terradue.com";
                     cloudProvider.Store();
 
                     Terradue.Sandbox.Laboratory laboratory = Terradue.Sandbox.Laboratory.ForProvider(context, cloudProvider);
@@ -189,8 +191,8 @@ namespace Terradue.Portal.Test {
                 demSeries.CanProcess = true;
                 Console.WriteLine("  -> YES (OK)");
 
-                Console.WriteLine("Sarah grants global permissions on \"demSeries\"");
-                demSeries.GrantGlobalPermissions();
+                Console.WriteLine("Sarah grants permissions to all users on \"demSeries\"");
+                demSeries.GrantPermissionsToAll();
                 Console.WriteLine("  -> DONE (OK)");
 
                 context.EndImpersonation();
@@ -198,7 +200,7 @@ namespace Terradue.Portal.Test {
                 demSeries = Series.FromId(context, demSeries.Id); // reload "demSeries" with Marco's account
                 demSeries.CanDownload = true;
                 Assert.Throws<EntityUnauthorizedException>(delegate { 
-                    demSeries.GrantGlobalPermissions();
+                    demSeries.GrantPermissionsToAll();
                 });
 
                 context.EndImpersonation();

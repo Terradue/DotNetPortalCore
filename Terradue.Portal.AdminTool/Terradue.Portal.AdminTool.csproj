@@ -13,6 +13,7 @@
     <SynchReleaseVersion>false</SynchReleaseVersion>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,14 +26,65 @@
     <Externalconsole>true</Externalconsole>
     <CustomCommands>
       <CustomCommands>
-        <Command type="Custom" name="create db corporate" command="mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/corporate/root -u root -S corporate" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
-        <Command type="Custom" name="create db eceo" command="mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/eceo/root -u root -S eceo" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
-        <Command type="Custom" name="create db ngeo" command="mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/ngeo/root -u root -S ngeo-ws" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
-        <Command type="Custom" name="create db tepqw" command="mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/tepqw/root -u root -S tepqw" workingdir="${SolutionDir}" externalConsole="True" />
-        <Command type="Custom" name="create db t2portal" command="mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/t2portal/root -u root -S t2portal" workingdir="$(SolutionDir)" externalConsole="True" />
-        <Command type="Custom" name="auto update db eceo" command="mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/eceo/root -u root -S eceo" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
-        <Command type="Custom" name="auto update db ngeo" command="mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/ngeo/root -u root -S ngeo-ws" workingdir="${SolutionDir}" />
-        <Command type="Custom" name="install ngeo test data" command="mysql -u root &lt; webtest/src/test/webtest/sql/Init-DatabaseInit.sql" workingdir="$(SolutionDir)" externalConsole="True" />
+        <Command>
+          <type>Custom</type>
+          <name>create db corporate</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/corporate/root -u root -S corporate</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db eceo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/eceo/root -u root -S eceo</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db ngeo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/ngeo/root -u root -S ngeo-ws</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db tepqw</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/tepqw/root -u root -S tepqw</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db t2portal</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/t2portal/root -u root -S t2portal</command>
+          <workingdir>/Users/floeschau/Work/repo/platforms/tep</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>auto update db eceo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/eceo/root -u root -S eceo</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>auto update db ngeo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/ngeo/root -u root -S ngeo-ws</command>
+          <workingdir>${SolutionDir}</workingdir>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>install ngeo test data</name>
+          <command>mysql -u root &lt; webtest/src/test/webtest/sql/Init-DatabaseInit.sql</command>
+          <workingdir>/Users/floeschau/Work/repo/platforms/tep</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
       </CustomCommands>
     </CustomCommands>
   </PropertyGroup>
@@ -48,11 +100,11 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="Terradue.Util">
       <HintPath>..\packages\Terradue.Util.1.4.0\lib\net40\Terradue.Util.dll</HintPath>
-    </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\packages\MySql.Data.6.9.6\lib\net40\MySql.Data.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -66,6 +118,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Terradue.Portal.AdminTool.csproj" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj">

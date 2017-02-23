@@ -87,7 +87,7 @@ namespace Terradue.Portal {
     /// <description>Abstract base object for processing services.</description>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
+    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true, AllowsKeywordSearch = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
     public abstract class Service : Entity, IAtomizable {
         private const int CLASS_TABLE = 1;

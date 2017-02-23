@@ -298,6 +298,10 @@ namespace Terradue.Portal {
         public void GrantToUser(User user, Domain domain) {
             Grant(false, new int[] {user.Id}, domain == null ? 0 : domain.Id);
         }
+        public void GrantToUser(int userId, int domainId) {
+            Grant(false, new int [] { userId }, domainId);
+        }
+
 
         //---------------------------------------------------------------------------------------------------------------------
 

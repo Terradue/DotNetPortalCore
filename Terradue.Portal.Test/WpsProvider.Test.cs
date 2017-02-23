@@ -13,10 +13,11 @@ namespace Terradue.Portal.Test {
         string processIdentifier, processVersion, processSecretIdentifier, processSecretVersion;
 
         [TestFixtureSetUp]
-        public void FixtureSetup(){
+        public override void FixtureSetup(){
             base.FixtureSetup();
             context.BaseUrl = "http://localhost:8080/api";
 
+            context.AccessLevel = EntityAccessLevel.Administrator;
             provider = new WpsProvider(context);
             provider.Identifier = "wpsprovider";
             provider.Name = "test-wpsprovider";
@@ -34,6 +35,12 @@ namespace Terradue.Portal.Test {
 
             processSecretIdentifier = "urbantep-local~1.0~Subset";
             processSecretVersion = "1.0";
+
+            provider.Store();
+            provider.StoreProcessOfferings();
+
+            providerSecret.Store();
+            providerSecret.StoreProcessOfferings();
         }
 
         [Test]
@@ -64,9 +71,8 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
-        public void StoreProcessOffering() {
-            provider.Store();
-            provider.StoreProcessOfferings();
+        public void GetProcessBriefTypes() {
+            
             List<ProcessBriefType> process = provider.GetProcessBriefTypes();
             Assert.That(process.Count == 1);
             Assert.That(process[0].Title != null);

@@ -13,6 +13,7 @@
     <UseMSBuildEngine>False</UseMSBuildEngine>
     <ReleaseVersion>1.4</ReleaseVersion>
     <SynchReleaseVersion>false</SynchReleaseVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

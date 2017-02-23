@@ -14,7 +14,7 @@ using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
-
+using Terradue.Portal.OpenSearch;
 
 
 
@@ -61,7 +61,29 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
+        public EntityAccessLevel AccessLevel { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the visibility flags to be taken into account before loading the collection.</summary>
+        public EntityItemVisibility ItemVisibility { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the collection of the filter values for properties.</summary>
         public Dictionary<FieldInfo, string> FilterValues { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the search term for the keyword search that can include several properties.</summary>
+        /// <remarks>Properties included in the search are <c>Identifier</c> and <c>Name</c> (if used) and any property that has the <c>IsUsedInKeywordSearch</c> set to <em>true</em> in its EntityDataAttribute.</remarks>
+        public string SearchKeyword { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether whole words are to be matched in the keyword search.</summary>
+        public bool FindWholeWords { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -73,11 +95,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string Identifier { get; set; }
+        public int DomainId { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public bool OwnedItemsOnly { get; set; }
+        public string Identifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -162,6 +184,8 @@ namespace Terradue.Portal {
         public EntityCollection(IfyContext context, EntityType entityType, Entity referringItem) {
             this.context = context;
             this.entityType = entityType;
+            this.AccessLevel = context.AccessLevel;
+            this.ItemVisibility = EntityItemVisibility.All;
             if (context != null) this.UserId = context.UserId;
             this.ReferringItem = referringItem;
             this.UsePaging = false;
@@ -256,7 +280,7 @@ namespace Terradue.Portal {
 
         public static void SetOpenSearchDefaults(IfyContext context) {
             DefaultItemsPerPage = 20;
-            DefaultItemOffset = 0;
+            DefaultItemOffset = 1;
             DefaultPageOffset = 1;
         }
 
@@ -281,14 +305,17 @@ namespace Terradue.Portal {
             if (!(entityType is EntityRelationshipType) && !entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
                 LoadList();
                 return;
+
             }
 
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetIdQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -332,10 +359,12 @@ namespace Terradue.Portal {
             this.IsReadOnly = true;
             this.ItemSource = source;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, true, EntityAccessLevel.None);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetIdQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             List<int> ids = new List<int>();
@@ -363,10 +392,12 @@ namespace Terradue.Portal {
         protected virtual void LoadList() {
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null, false, EntityAccessLevel.None);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -374,7 +405,7 @@ namespace Terradue.Portal {
             IsLoading = true;
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader, EntityAccessLevel.None);
+                item.Load(entityType, reader, AccessLevel);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -389,17 +420,19 @@ namespace Terradue.Portal {
         public virtual void LoadGroupAccessibleItems(int[] groupIds) {
             IsReadOnly = true;
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null, false, EntityAccessLevel.None);
-            TotalResults = context.GetQueryLongIntegerValue(entityType.GetCountQuery(queryParts));
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            string sql = entityType.GetQuery(queryParts);
+            sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader, EntityAccessLevel.None);
+                item.Load(entityType, reader, AccessLevel);
                 if (template != null) AlignWithTemplate(item, false);
                 IncludeInternal(item);
             }
@@ -430,7 +463,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Stores the entity list.</summary>
-        /// <remarks></remearks>
+        /// <remarks></remarks>
         protected virtual void StoreList(bool removeOthers, bool onlyNewItems) {
 
             if (IsReadOnly) throw new InvalidOperationException("Cannot store read-only entity collection");
@@ -439,7 +472,8 @@ namespace Terradue.Portal {
             foreach (T item in Items) {
                 if (onlyNewItems && item.Exists || !item.IsInCollection) continue;
                 /*if (isRelationship) item.Store(entityType as EntityRelationshipType, ReferringItem);
-                else*/ item.Store();
+                else*/
+                item.Store();
             }
 
             // TODO: This was done before the storage of the contained items (previous block).
@@ -462,7 +496,7 @@ namespace Terradue.Portal {
                     if (keepIds != null) {
                         sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
                         if (template != null) {
-                            string condition = entityType.GetTemplateCondition(template, true);
+                            string condition = entityType.GetTemplateConditionSql(template, true);
                             if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
                             //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
                         }
@@ -574,7 +608,26 @@ namespace Terradue.Portal {
 
         /// <summary>Sets the filter search term for the specified property.</summary>
         /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
-        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        /// <param name="searchTerm">The filter search string according to the property type. Interval syntax is allowed for numeric and date/time properties; wildcard characters '*' and '?' are allowed for string properties.</param>
+        /// <remarks>
+        /// Some examples for numeric searchTerm arguments in interval syntax:<br/>
+        /// <list type="bullet">
+        ///     <item><c><strong>3</strong></c>: matches the value 3.</item>
+        ///     <item><c><strong>]3</strong> or <strong>(3</strong></c>: matches all values greater than 3.</item>
+        ///     <item><c><strong>[3</strong></c>: matches all values greater than or equal to 3.</item>
+        ///     <item><c><strong>3[</strong> or <strong>3)</strong></c>: matches all values less than 3.</item>
+        ///     <item><c><strong>3]</strong></c>: matches all values less than or equal to 3.</item>
+        ///     <item><c><strong>[3,7]</strong></c>: matches all values between 3 and 7 (3 and 7 included).</item>
+        ///     <item><c><strong>]3,7[</strong> or <strong>(3,7)</strong></c>: matches all values between 3 and 7 (3 and 7 excluded).</item>
+        ///     <item><c><strong>[3,7[</strong> or <strong>[3,7)</strong></c>: matches all values between 3 and 7 (3 included but 7 excluded).</item>
+        ///     <item><c><strong>[3,7],[12,15]</strong></c>: matches all values between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included).</item>
+        ///     <item><c><strong>[3,7],[12,15],18,23</strong></c>: matches all items values between 3 and 7 (3 and 7 included) or between 12 and 15 (12 and 15 included) or the single value 18 or the single value 25.</item>
+        /// </list>
+        /// The above examples can also be used with date/time values instead of numeric values. An additional useful examples for a date/time searchTerm argument:<br/>
+        /// <list type="bullet">
+        ///     <item><c><strong>[2017-02-17T00:00:00Z,2017-02-18T00:00:00Z[</strong></c>: matches all possible time values of the entire day of 2017-02-17. For searches of full days or periods, avoid using search terms following (it does not cover the entire period): <c><strong>[2017-02-17T00:00:00Z,2017-02-17T23:59:59Z]</strong></c></item>
+        /// </list>
+        /// </remarks>
         public void SetFilter(string propertyName, string searchTerm) {
             FieldInfo field = entityType.GetField(propertyName);
             if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
@@ -656,8 +709,8 @@ namespace Terradue.Portal {
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
             myUrl.Query = string.Join("&", queryString);
 
-            AtomFeed feed = new AtomFeed("Discovery feed for "+this.Identifier,
-                                                       "This OpenSearch Service allows the discovery of the different items which are part of the "+this.Identifier+" collection. " +
+            AtomFeed feed = new AtomFeed("Discovery feed for " + this.Identifier,
+                                                       "This OpenSearch Service allows the discovery of the different items which are part of the " + this.Identifier + " collection. " +
                                                        "This search service is in accordance with the OGC 10-032r3 specification.",
                                                        myUrl.Uri, myUrl.ToString(), DateTimeOffset.UtcNow);
 
@@ -665,66 +718,69 @@ namespace Terradue.Portal {
 
             List<AtomItem> items = new List<AtomItem>();
 
-            Terradue.OpenSearch.Request.PaginatedList<AtomItem> pds = new Terradue.OpenSearch.Request.PaginatedList<AtomItem> ();
+            //set search filters
+            T t = entityType.GetEntityInstance(context) as T;
+            if (t is EntitySearchable) {
+                foreach (var p in parameters.AllKeys) {
+                    if (string.IsNullOrEmpty(parameters[p])) continue;
+                    switch (p) {
+                    case "count":
+                        this.ItemsPerPage = int.Parse(parameters["count"]);
+                        break;
+                    case "startIndex":
+                        this.StartIndex = int.Parse(parameters["startIndex"]);
+                        break;
+                    case "startPage":
+                        //startIndex is prioritary on startPage
+                        if (string.IsNullOrEmpty(parameters["startIndex"]))
+                            this.Page = int.Parse(parameters["startPage"]);
+                        break;
+                    case "visibility":
+                        switch (parameters[p]) {
+                        case "all":
+                            this.ItemVisibility = EntityItemVisibility.All;
+                            break;
+                        case "public":
+                            this.ItemVisibility = EntityItemVisibility.Public;
+                            break;
+                        case "restricted":
+                            this.ItemVisibility = EntityItemVisibility.Restricted;
+                            break;
+                        case "private":
+                            this.ItemVisibility = EntityItemVisibility.Private;
+                            break;
+                        case "owned":
+                            this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
+                            break;
+                        }
+                        break;
+                    case "q":
+                        this.SearchKeyword = parameters[p];
+                        this.FindWholeWords = false;
+                        break;
+                    case "author":
+                        var u = User.ForceFromUsername(context, parameters[p]);
+                        SetFilter("OwnerId", u.Id.ToString());
+                        break;
+                    case "domain":
+                        var dm = Domain.FromIdentifier(context, parameters[p]);
+                        SetFilter("DomainId", dm.Id.ToString());
+                        break;
+                    default:
+                        var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
+                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                        break;
+                    }
 
-            int startIndex = 1;
-            if (parameters ["startIndex"] != null) startIndex = int.Parse (parameters ["startIndex"]);
+                }
+            }
+            this.Load();
 
-            pds.PageNo = 1;
-            if (parameters ["startPage"] != null) pds.PageNo = int.Parse (parameters ["startPage"]);
-
-            pds.PageSize = 20;
-            if (parameters ["count"] != null) pds.PageSize = int.Parse (parameters ["count"]);
-
-            pds.StartIndex = startIndex - 1;
-
-            //var entityatomizable = false;
-            //int i = 0;
-            //int totalresults = 0;
             foreach (T s in Items) {
 
-                if (!string.IsNullOrEmpty(parameters["id"])) { 
-                    if ( s.Identifier != parameters["id"] )
-                        continue;
-                }
-
-                if (!string.IsNullOrEmpty(parameters["author"])) {
-                    if (!(User.ForceFromId(context, s.OwnerId)).Username.Equals(parameters["author"])) continue;
-                }
-
-                if (!string.IsNullOrEmpty (parameters ["domain"])) {
-                    Domain domain;
-                    try {
-                        domain = Domain.FromIdentifier (context, parameters ["domain"]);
-                        if (s.Domain == null || s.Domain.Identifier != domain.Identifier) continue;
-                    } catch (Exception e){
-                        context.LogError (this, e.Message + "-" + e.StackTrace);
-                        continue;
-                    }
-                }
-
                 if (s is IAtomizable) {
-                    //if (s is IEntityAtomizable) {
-                    //    entityatomizable = true;
-                    //    var sa = s as IEntityAtomizable;
-
-                    //    //we do ToAtomItem only if we skipped the good number of items and still have less than max count items
-                    //    if ((i >= startIndex - 1 + pds.PageSize * (pds.PageNo - 1)) && items.Count < pds.PageSize) {
-                    //        AtomItem item = sa.ToAtomItem (parameters);
-                    //        if (item != null) {
-                    //            totalresults++;
-                    //            items.Add (item);
-                    //        }
-                    //    } else {
-                    //        if (sa.IsSearchable (parameters)) totalresults++;
-                    //    }
-                    //} else {
-                    //    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
-                    //    if (item != null) items.Add (item);
-                    //}
-
-                    AtomItem item = (s as IAtomizable).ToAtomItem (parameters);
-                    if (item != null) items.Add (item);
+                    AtomItem item = (s as IAtomizable).ToAtomItem(parameters);
+                    if (item != null) items.Add(item);
 
                 } else {
 
@@ -732,7 +788,7 @@ namespace Terradue.Portal {
                     var identifier = s.Identifier == null ? "" : s.Identifier;
                     var content = s.TextContent == null ? "" : s.TextContent;
 
-                    if (!string.IsNullOrEmpty(parameters["q"])) {  
+                    if (!string.IsNullOrEmpty(parameters["q"])) {
                         string q = parameters["q"];
                         if (!(name.Contains(q) || identifier.Contains(q) || content.Contains(q)))
                             continue;
@@ -749,27 +805,15 @@ namespace Terradue.Portal {
                     entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", identifier);
 
                     items.Add(entry);
-                    //totalresults++;
                 }
-                //i++;
             }
 
             // Load all avaialable Datasets according to the context
 
-            if(this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+            if (this.Identifier != null) feed.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
-            //if (entityatomizable) {
-            //    feed.Items = items;
-            //    feed.TotalResults = totalresults;
-            //} else {
-            //    pds.AddRange (items);
-            //    feed.Items = pds.GetCurrentPage ();
-            //    feed.TotalResults = pds.Count;
-            //}
-
-            pds.AddRange (items);
-            feed.Items = pds.GetCurrentPage ();
-            feed.TotalResults = pds.Count;
+            feed.Items = items;
+            feed.TotalResults = TotalResults;
 
             return feed;
 
@@ -790,11 +834,11 @@ namespace Terradue.Portal {
 
 
         public virtual OpenSearchUrl GetSearchBaseUrl(string mimetype) {
-            return new OpenSearchUrl (string.Format("{0}/{1}/search", context.BaseUrl, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/search", context.BaseUrl, entityType.Keyword));
         }
 
         public virtual OpenSearchUrl GetDescriptionBaseUrl() {
-            return new OpenSearchUrl (string.Format("{0}/{1}/description", context.BaseUrl, entityType.Keyword));
+            return new OpenSearchUrl(string.Format("{0}/{1}/description", context.BaseUrl, entityType.Keyword));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -818,8 +862,23 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
+            T item = entityType.GetEntityInstance(context) as T;
+            if (item is IEntitySearchable) {
+                var sitem = item as IEntitySearchable;
+                if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty(parameters["sl"])) {
+                    if (sitem.IsPostFiltered(parameters)) {
+                        NameValueCollection newParamaters = new NameValueCollection(parameters);
+                        newParamaters.Add("sl", "ills");
+
+                        OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
+                        OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
+                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem>(OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
+                    }
+                }
+            }
+
             UriBuilder url = new UriBuilder(context.BaseUrl);
-            url.Path += "/"+this.Identifier+"/";
+            url.Path += "/" + this.Identifier;
             var array = (from key in parameters.AllKeys
                          from value in parameters.GetValues(key)
                          select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
@@ -829,6 +888,7 @@ namespace Terradue.Portal {
             var request = new AtomOpenSearchRequest(new OpenSearchUrl(url.Uri), GenerateSyndicationFeed);
 
             return request;
+
         }
 
         public OpenSearchDescription GetOpenSearchDescription() {
@@ -857,11 +917,6 @@ namespace Terradue.Portal {
             foreach (var key in nvc.AllKeys) {
                 query.Set(key, nvc[key]);
             }
-            //add cache parameter
-            query.Set ("disableCache", "{t2:cache?}");
-
-            //add domain
-            query.Set ("domain", "{t2:domain?}");
 
             foreach (var osee in OpenSearchEngine.Extensions.Values) {
                 query.Set("format", osee.Identifier);
@@ -881,11 +936,22 @@ namespace Terradue.Portal {
 
         public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
 
-            T item = entityType.GetEntityInstance (context) as T;
-            if(item is IAtomizable) 
-                return ((IAtomizable)item).GetOpenSearchParameters();
-            else 
-                return OpenSearchFactory.GetBaseOpenSearchParameter();
+            var nvc = new NameValueCollection();
+            T item = entityType.GetEntityInstance(context) as T;
+            if (item is IAtomizable)
+                nvc = ((IAtomizable)item).GetOpenSearchParameters();
+            else
+                nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
+
+            //add EntityCollections parameters
+            nvc.Set("id", "{t2:uid?}");
+            nvc.Set("sl", "{t2:sl?}");
+            nvc.Set("disableCache", "{t2:cache?}");
+            nvc.Set("domain", "{t2:domain?}");
+            nvc.Set("author", "{t2:author?}");
+            nvc.Set("visibility", "{t2:visibility?}");
+            nvc.Add("correlatedTo", "{cor:with?}");
+            return nvc;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -909,18 +975,16 @@ namespace Terradue.Portal {
 
         public event OpenSearchableChangeEventHandler OpenSearchableChange;
 
-        public void OnOpenSearchableChange (object sender,  OnOpenSearchableChangeEventArgs data)
-        {
+        public void OnOpenSearchableChange(object sender, OnOpenSearchableChangeEventArgs data) {
             // Check if there are any Subscribers
-            if (OpenSearchableChange != null)
-            {
+            if (OpenSearchableChange != null) {
                 // Call the Event
-                OpenSearchableChange (this, data);
+                OpenSearchableChange(this, data);
             }
         }
 
     }
-    
+
 
 
     //-------------------------------------------------------------------------------------------------------------------------
@@ -934,7 +998,7 @@ namespace Terradue.Portal {
     public class EntityList<T> : EntityCollection<T>, IOpenSearchable where T : Entity {
 
         private List<T> items;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets an IEnumerable of all items contained in this list.</summary>
@@ -952,7 +1016,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityList instance instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public EntityList(IfyContext context) : base(context) {
@@ -970,7 +1034,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityDictionary instance instance for items owned by the specified user.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The user who must be the owner of the items in the list.</param>
@@ -979,7 +1043,7 @@ namespace Terradue.Portal {
             result.UserId = userId;
             return result;
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Removes all items from this list.</summary>
@@ -990,7 +1054,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this list.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -1011,13 +1075,13 @@ namespace Terradue.Portal {
 
     }
 
-    
+
 
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their unique numeric database (or temporary) ID or by their string identifier.</summary>
     /// <remarks>
@@ -1064,7 +1128,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Creates a new EntityDictionary instance instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public EntityDictionary(IfyContext context) : base(context) {
@@ -1093,7 +1157,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
@@ -1103,7 +1167,7 @@ namespace Terradue.Portal {
             if (EntityType.TopTable.HasIdentifierField) itemsByIdentifier[item.Identifier] = item;
             OnOpenSearchableChange(this, new OnOpenSearchableChangeEventArgs(this));
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Checks whether this dictionary contains an item with the specified numeric key.</summary>
@@ -1144,14 +1208,14 @@ namespace Terradue.Portal {
         }
 
     }
-    
 
-    
+
+
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-    
+
 
     /// <summary>A dictionary of entities of a specific type, where items are addressed by their numeric ID.</summary>
     /// <remarks>The key type of the dictionary is <i>int</i>. The key value of an item is the database ID of the item (property Entity.Id).</remarks>
@@ -1159,7 +1223,7 @@ namespace Terradue.Portal {
     public class EntityIdDictionary<T> : EntityCollection<T> where T : Entity {
 
         private Dictionary<int, T> items;
-        
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public T this[int id] {
@@ -1179,7 +1243,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         public EntityIdDictionary(IfyContext context) : base(context) {
             this.items = new Dictionary<int, T>();
         }
@@ -1199,7 +1263,7 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Includes an item in this dictionary.</summary>
         /// <parameter name="item">The item to be included.</parameter>
         protected override void IncludeInternal(T item) {
@@ -1220,12 +1284,17 @@ namespace Terradue.Portal {
         public bool ContainsId(int id) {
             return items.ContainsKey(id);
         }
-        
+
     }
 
 
+    /// <summary>Enumaration for the way of how items are ordered by sort criteria in a collection.</summary>
     public enum SortDirection {
+
+        /// <summary>Items are ordered by a criteria in ascending order.</summary>
         Ascending,
+
+        /// <summary>Items are ordered by a criteria in descending order.</summary>
         Descending
     }
 

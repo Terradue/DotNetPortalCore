@@ -2,6 +2,7 @@
 using Terradue.Util;
 using System.Collections.Generic;
 using Terradue.OpenSearch;
+using Terradue.Portal.OpenSearch;
 using Terradue.OpenSearch.Result;
 using System.Collections.Specialized;
 using Terradue.ServiceModel.Syndication;
@@ -30,20 +31,23 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true)]
-    public class Activity : Entity, IAtomizable, IComparable<Activity> {
+    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
+    public class Activity : EntitySearchable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
         [EntityDataField("id_entity")]
         public int EntityId { get; set; }
 
+        [EntityDataField("id_owner")]
+        public new int OwnerId { get; set; }
+
         private Entity pentity;
-        private Entity Entity {
+        protected Entity Entity {
             get {
                 if (pentity == null) {
                     try {
-                        pentity = this.ActivityEntityType.GetEntityInstanceFromId (context, this.EntityId);
-                        pentity.Load (this.EntityId);
+                        pentity = this.ActivityEntityType.GetEntityInstanceFromId(context, this.EntityId);
+                        pentity.Load(this.EntityId);
                     } catch (Exception) { return null; }
                 }
                 return pentity;
@@ -63,19 +67,19 @@ namespace Terradue.Portal {
 
         private Privilege priv;
         /// <summary>Gets or sets the privilege.</summary>
-        public Privilege Privilege { 
+        public Privilege Privilege {
             get {
                 if (priv == null && PrivilegeId != 0) {
                     try {
-                        priv = Privilege.FromId (context, PrivilegeId);
+                        priv = Privilege.FromId(context, PrivilegeId);
                     } catch (Exception) { priv = null; }
                 }
                 return priv;
             }
-            set{
+            set {
                 priv = value;
                 this.PrivilegeId = priv.Id;
-            } 
+            }
         }
 
         /// <summary>Gets the Entity Type Id</summary>
@@ -83,15 +87,15 @@ namespace Terradue.Portal {
         public int EntityTypeId { get; protected set; }
 
         private EntityType entityType;
-        public EntityType ActivityEntityType { 
+        public EntityType ActivityEntityType {
             get {
                 if (entityType == null && this.EntityTypeId != 0) {
                     try {
-                        entityType = EntityType.GetEntityTypeFromId (this.EntityTypeId);
+                        entityType = EntityType.GetEntityTypeFromId(this.EntityTypeId);
                     } catch (Exception) { entityType = null; }
                 }
                 return entityType;
-            } 
+            }
 
             protected set {
                 entityType = value;
@@ -103,21 +107,14 @@ namespace Terradue.Portal {
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
 
-        private Domain domain;
-        public override Domain Domain { 
-            get {
-                if(domain == null && this.Entity != null) domain = this.Entity.Domain;
-                return domain;
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
         /// </summary>
         /// <param name="context">Context.</param>
-        public Activity(IfyContext context) : base(context) {}
+        public Activity(IfyContext context) : base(context) { }
 
-        public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {}
+        public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
@@ -132,8 +129,10 @@ namespace Terradue.Portal {
                     this.EntityIdentifier = entity.Identifier;
                     this.ActivityEntityType = EntityType.GetEntityType(entity.GetType());
                     this.EntityTypeId = (this.ActivityEntityType.Id != 0 ? this.ActivityEntityType.Id : this.ActivityEntityType.TopTypeId);
+                    this.DomainId = entity.DomainId;
                     this.Privilege = Privilege.Get(EntityType.GetEntityTypeFromId(this.EntityTypeId), Privilege.GetOperationType(operation));
-                } catch (Exception) {
+                } catch (Exception e) {
+                    var t = e;
                 }
             }
             this.OwnerId = entity.OwnerId;
@@ -145,7 +144,7 @@ namespace Terradue.Portal {
         /// <returns>The identifier.</returns>
         /// <param name="context">Context.</param>
         /// <param name="id">Identifier.</param>
-        public static Activity FromId(IfyContext context, int id){
+        public static Activity FromId(IfyContext context, int id) {
             Activity result = new Activity(context);
             result.Id = id;
             result.Load();
@@ -158,7 +157,7 @@ namespace Terradue.Portal {
         /// <returns>The user.</returns>
         /// <param name="context">Context.</param>
         /// <param name="usrId">Usr identifier.</param>
-        public static EntityList<Activity> ForUser(IfyContext context, int usrId){
+        public static EntityList<Activity> ForUser(IfyContext context, int usrId) {
             EntityList<Activity> results = new EntityList<Activity>(context);
             results.Template.UserId = usrId;
             results.Load();
@@ -168,7 +167,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// Store this instance.
         /// </summary>
-        public override void Store(){
+        public override void Store() {
 
             context.LogDebug(this, string.Format("Storing activity: {0},{1},{2},{3}", this.context.UserId, this.PrivilegeId, this.EntityTypeId, (this.Privilege != null ? this.Privilege.EnableLog.ToString() : "null")));
             if (this.context.UserId == 0 || this.PrivilegeId == 0 || this.EntityTypeId == 0 || !this.Privilege.EnableLog) return;
@@ -176,39 +175,44 @@ namespace Terradue.Portal {
             this.UserId = context.UserId;
             this.CreationTime = DateTime.UtcNow;
 
-            string sql = String.Format("INSERT INTO activity (id_usr, id_priv, id_type, id_owner, id_entity, log_time) VALUES ({0},{1},{2},{3},{4},{5});",
-                                       this.UserId, 
-                                       this.PrivilegeId, 
-                                       this.EntityTypeId, 
-                                       this.OwnerId, 
-                                       this.EntityId,
-                                       StringUtils.EscapeSql(this.CreationTime.ToString("yyyy-MM-dd hh:mm:ss")));
-            context.Execute(sql);
+            base.Store();
         }
 
+        #region IEntitySearchable implementation
+        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+            case "entitytype":
+                var t = EntityType.GetEntityTypeFromKeyword(value);
+                return new KeyValuePair<string, string>("EntityTypeId", t.Id.ToString());
+            case "operation":
+                var privList = new EntityList<Privilege>(context);
+                privList.SetFilter("OperationChar", value);
+                privList.Load();
+                var items = privList.GetItemsAsList();
+                var ids = new List<int>();
+                foreach (var item in items) ids.Add(item.Id);
+                return new KeyValuePair<string, string>("PrivilegeId", string.Join(",", ids));
+            default:
+                return base.GetFilterForParameter(parameter, value);
+            }
+        }
+
+        #endregion
+
         #region IAtomizable implementation
-        public bool IsSearchable (NameValueCollection parameters) {
+        public bool IsSearchable(NameValueCollection parameters) {
             if (this.EntityId == 0 || Entity == null) return false;
             if (this.Privilege == null) return false;
             if (this.ActivityEntityType == null) return false;
-
-            string name = (Entity.Name != null ? Entity.Name : Entity.Identifier);
-            string text = (this.TextContent != null ? this.TextContent : "");
-
-            if (!string.IsNullOrEmpty (parameters ["q"])) {
-                string q = parameters ["q"].ToLower ();
-                if (!(name.ToLower ().Contains (q) || Entity.Identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q)))
-                    return false;
-            }
 
             return true;
         }
 
 
-        public AtomItem ToAtomItem(NameValueCollection parameters) {
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
 
 
-            if (!IsSearchable (parameters)) return null;
+            if (!IsSearchable(parameters)) return null;
 
             User owner = User.ForceFromId(context, this.OwnerId);
 
@@ -218,20 +222,20 @@ namespace Terradue.Portal {
             Uri id = new Uri(context.BaseUrl + "/" + this.ActivityEntityType.Keyword + "/search?id=" + Entity.Identifier);
 
             switch (this.Privilege.Operation) {
-                case EntityOperationType.Create:
-                    description = string.Format("has created the {0} {1}",this.ActivityEntityType.Keyword, name);
-                    break;
-                case EntityOperationType.Change:
-                    description = string.Format("has updated the {0} {1}",this.ActivityEntityType.Keyword, name);
-                    break;
-                case EntityOperationType.Delete:
-                    description = string.Format("has deleted the {0} {1}",this.ActivityEntityType.Keyword, name);
-                    break;
-                case EntityOperationType.Share:
-                    description = string.Format("has shared the {0} {1}",this.ActivityEntityType.Keyword, name);
-                    break;
-                default:
-                    break;
+            case EntityOperationType.Create:
+                description = string.Format("created the {0} {1}", this.ActivityEntityType.SingularCaption, name);
+                break;
+            case EntityOperationType.Change:
+                description = string.Format("updated the {0} {1}", this.ActivityEntityType.SingularCaption, name);
+                break;
+            case EntityOperationType.Delete:
+                description = string.Format("deleted the {0} {1}", this.ActivityEntityType.SingularCaption, name);
+                break;
+            case EntityOperationType.Share:
+                description = string.Format("shared the {0} {1}", this.ActivityEntityType.SingularCaption, name);
+                break;
+            default:
+                break;
             }
 
             //AtomItem atomEntry = null;
@@ -248,20 +252,23 @@ namespace Terradue.Portal {
             result.LastUpdatedTime = this.CreationTime;
             var basepath = new UriBuilder(context.BaseUrl);
             basepath.Path = "user";
-            string usrUri = basepath.Uri.AbsoluteUri + "/" + owner.Username ;
+            string usrUri = basepath.Uri.AbsoluteUri + "/" + owner.Username;
             string usrName = (!String.IsNullOrEmpty(owner.FirstName) && !String.IsNullOrEmpty(owner.LastName) ? owner.FirstName + " " + owner.LastName : owner.Username);
             SyndicationPerson author = new SyndicationPerson(owner.Email, usrName, usrUri);
             author.ElementExtensions.Add(new SyndicationElementExtension("identifier", "http://purl.org/dc/elements/1.1/", owner.Username));
             result.Authors.Add(author);
             result.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
-            Uri share = new Uri(context.BaseUrl + "/share?url=" +id.AbsoluteUri);
-            result.Links.Add(new SyndicationLink(share, "via", name, "application/atom+xml", 0));
+            Uri share = new Uri(context.BaseUrl + "/share?url=" + id.AbsoluteUri);
+            result.Links.Add(new SyndicationLink(share, "via", "share", "application/atom+xml", 0));
 
             return result;
         }
 
-        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters() {
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+        public new NameValueCollection GetOpenSearchParameters() {
+            NameValueCollection nvc = base.GetOpenSearchParameters();
+            nvc.Add("entitytype", "{t2:entityType?}");
+            nvc.Add("operation", "{t2:operation?}");
+            return nvc;
         }
 
         #endregion

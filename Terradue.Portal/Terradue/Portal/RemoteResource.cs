@@ -22,15 +22,22 @@ namespace Terradue.Portal {
     /// Remote resource set.
     /// </summary>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPermissionManagement = true, HasDomainReference = true)]
-    public class RemoteResourceSet : Entity, IMonitoredOpenSearchable, IProxiedOpenSearchable {
+    [EntityTable("resourceset", EntityTableConfiguration.Full, HasOwnerReference = true, HasPermissionManagement = true, HasDomainReference = true, AllowsKeywordSearch = true)]
+    public class RemoteResourceSet : EntitySearchable, IMonitoredOpenSearchable, IProxiedOpenSearchable {
 
         protected OpenSearchEngine ose;
 
         //---------------------------------------------------------------------------------------------------------------------
 		
-        [EntityDataField("is_default")]
-        public bool IsDefault { get; set; }
+        /// <summary>
+        /// Gets or sets the kind.
+        /// </summary>
+        /// <value>The kind.</value>
+        [EntityDataField("kind")]
+        public int Kind { get; set; }
+
+        public static readonly int KINDRESOURCESETNORMAL = 0; //default type of remote resource
+        public static readonly int KINDRESOURCESETUSER = 1; //Type of remote resource private to user
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -158,8 +165,9 @@ namespace Terradue.Portal {
             /*if (!String.IsNullOrEmpty(parameters["grouped"]) && parameters["grouped"] == "true") {
                 return new MultiAtomGroupedOpenSearchRequest(ose, GetOpenSearchableArray(), type, new OpenSearchUrl(url.ToString()), true);
             }*/
-
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, GetOpenSearchableArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
+            //TODO: if only one result dont use Multi
+            var entities = GetOpenSearchableArray();
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, entities, querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
@@ -219,7 +227,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
+        public virtual System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
             if (mimeType != "application/atom+xml") return null;
             var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
             parameters.Set("grouped", "{os:grouped?}");
@@ -293,6 +301,10 @@ namespace Terradue.Portal {
                 // Call the Event
                 OpenSearchableChange(this, data);
             }
+        }
+
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
+            throw new NotImplementedException();
         }
     }
 

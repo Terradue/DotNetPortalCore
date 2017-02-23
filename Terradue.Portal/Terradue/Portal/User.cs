@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml;
+using Terradue.OpenSearch.Result;
+using Terradue.Portal.OpenSearch;
 using Terradue.Util;
 
 
@@ -38,8 +41,8 @@ namespace Terradue.Portal {
     /// </description>
     /// \ingroup Core
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation" 
-    [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true)]
-    public class User : Entity {
+    [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true, AllowsKeywordSearch = true)]
+    public class User : EntitySearchable {
 
         private string activationToken;
         private bool emailChanged;
@@ -89,19 +92,19 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the e-mail address of the user.</summary>
-        [EntityDataField("email")]
+        [EntityDataField("email", IsUsedInKeywordSearch = true)]
         public string Email { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the first name of the user.</summary>
-        [EntityDataField("firstname")]
+        [EntityDataField("firstname", IsUsedInKeywordSearch = true)]
         public string FirstName { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the last name of the user.</summary>
-        [EntityDataField("lastname")]
+        [EntityDataField("lastname", IsUsedInKeywordSearch = true)]
         public string LastName { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -262,8 +265,6 @@ namespace Terradue.Portal {
                 context.AccessLevel = EntityAccessLevel.Administrator;
                 result = FromId(context, userId);
                 context.AccessLevel = oldAccessLevel;
-                activity = new Activity(context, result, OperationPriv.LOGIN);
-                activity.Store();
                 return result;
             } else {
                 IfyWebContext webContext = context as IfyWebContext;
@@ -336,6 +337,19 @@ namespace Terradue.Portal {
         public static User ForceFromId(IfyContext context, int id) {
             User result = GetInstance(context);
             result.Id = id;
+            result.Load(EntityAccessLevel.Administrator);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new User instance representing the user with the specified username, ignoring permission- and privliege-based restrictions.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="username">the user username</param>
+        /// <returns>the created User object</returns>
+        public static User ForceFromUsername(IfyContext context, string username) {
+            User result = GetInstance(context);
+            result.Username= username;
             result.Load(EntityAccessLevel.Administrator);
             return result;
         }
@@ -670,6 +684,10 @@ namespace Terradue.Portal {
 
         protected string GetActivationToken(){
             return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
+        }
+
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
+            throw new NotImplementedException();
         }
 
     }
