@@ -34,7 +34,7 @@ namespace Terradue.Portal {
     /// <summary>Domain</summary>
     /// <description>A Domain is an organizational unit to regroup \ref Entity</description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("domain", EntityTableConfiguration.Custom, IdentifierField = "name", AllowsKeywordSearch = true)]
+    [EntityTable("domain", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", AllowsKeywordSearch = true)]
     public class Domain : EntitySearchable {
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The identifying condition sql.</returns>
         public override string GetIdentifyingConditionSql() {
-            if (Id == 0 && !string.IsNullOrEmpty(Identifier)) return String.Format("t.name={0}", StringUtils.EscapeSql(Identifier));
+            if (Id == 0 && !string.IsNullOrEmpty(Identifier)) return String.Format("t.identifier={0}", StringUtils.EscapeSql(Identifier));
             return null;
         }
 
