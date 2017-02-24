@@ -1,4 +1,4 @@
--- VERSION 2.7.3.2
+-- VERSION 2.7.4
 
 USE $MAIN$;
 
@@ -371,12 +371,13 @@ CREATE TABLE application (
 
 CREATE TABLE domain (
     id int unsigned NOT NULL auto_increment,
-    name varchar(100) NOT NULL COMMENT 'Unique name',
+    identifier varchar(100) NOT NULL COMMENT 'Unique identifier',
+    name varchar(100) COMMENT 'name',
     description text COMMENT 'Description',
     kind tinyint unsigned COMMENT 'Kind of domain',
     icon_url varchar(200) COMMENT 'Icon URL',
     CONSTRAINT pk_domain PRIMARY KEY (id),
-    UNIQUE INDEX (name)
+    UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Domains';
 -- CHECKPOINT C-07
 
