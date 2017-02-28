@@ -283,6 +283,18 @@ namespace Terradue.Portal {
         [EntityDataField("url")]
         public string BaseUrl { get; set; }
 
+        private string wpsversion;
+        public string WPSVersion { 
+            get {
+                if (string.IsNullOrEmpty(wpsversion)) { 
+                    //we get the WPS version from the provider Base Url, if not present, we use 1.0.0
+                    var qs = HttpUtility.ParseQueryString(new Uri(BaseUrl).Query.ToLower());
+                    wpsversion = qs["version"] ?? "1.0.0";
+                }
+                return wpsversion;
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -524,9 +536,9 @@ namespace Terradue.Portal {
 
             if (string.IsNullOrEmpty (BaseUrl)) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
-            string query = "Service=WPS&Request=GetCapabilities";
             var uri = new UriBuilder (BaseUrl);
-            uri.Query = query;
+            //in case complete url is not set
+            if(!BaseUrl.ToLower().Contains("getcapabilities")) uri.Query = "Service=WPS&Request=GetCapabilities&Version=1.0.0";
             var getCapUrl = uri.Uri.AbsoluteUri;
             context.LogDebug (this, "GetWPSCapabilities -- url = " + getCapUrl);
 
@@ -557,11 +569,11 @@ namespace Terradue.Portal {
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public ProcessDescriptionType GetWPSDescribeProcess(string identifier, string version) {
+        public ProcessDescriptionType GetWPSDescribeProcess(string identifier, string processVersion) {
 
             if (string.IsNullOrEmpty(BaseUrl)) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
-            string query = string.Format("Service=WPS&Request=DescribeProcess&Identifier={0}&Version={1}",identifier,version);
+            string query = string.Format("Service=WPS&Request=DescribeProcess&Identifier={0}&Version={1}",identifier,WPSVersion);
             var uri = new UriBuilder (BaseUrl);
             uri.Query = query;
             var descPUrl = uri.Uri.AbsoluteUri;

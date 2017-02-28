@@ -125,8 +125,8 @@ namespace Terradue.Portal {
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
             query += "&Identifier=" + identifier;
             
-            if (Version != null) 
-                query += "&Version=" + Version;
+            if (this.Provider != null) 
+                query += "&Version=" + this.Provider.WPSVersion;
 
             var uri = new UriBuilder (Provider.BaseUrl);
             uri.Query = query;
@@ -163,7 +163,7 @@ namespace Terradue.Portal {
             var identifier = (RemoteIdentifier != null ? RemoteIdentifier : Identifier);
             executeInput.Identifier = new CodeType{ Value = identifier };
 
-            if (!string.IsNullOrEmpty(Version) && !Version.Equals(executeInput.version)) executeInput.version = Version;
+            if (this.Provider != null && !this.Provider.WPSVersion.Equals(executeInput.version)) executeInput.version = this.Provider.WPSVersion;
 
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
             HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
@@ -386,14 +386,14 @@ namespace Terradue.Portal {
 
             var describeurl = providerUrl + "?service=WPS" +
                               "&request=DescribeProcess" +
-                              "&version=" + this.Version +
+                              "&version=" + this.Provider.WPSVersion +
                               "&identifier=" + identifier;
             log.Debug("describeprocess url = " + describeurl);
             Uri describeUri = new Uri(describeurl);
 
             var executeurl = providerUrl + "?service=WPS" +
                 "&request=Execute" +
-                "&version=" + this.Version +
+                "&version=" + this.Provider.WPSVersion +
                 "&identifier=" + identifier;
             log.Debug("execute url = " + executeurl);
             Uri executeUri = new Uri(executeurl);

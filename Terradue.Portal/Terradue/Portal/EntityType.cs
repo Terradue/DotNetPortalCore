@@ -1222,6 +1222,7 @@ namespace Terradue.Portal {
                 } else if (field.Property.PropertyType == typeof(DateTime)) { 
                     condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
                 } else if (field.Property.PropertyType.IsEnum) {
+                    condition = GetNumericConditionSql(fieldExpression, searchTerm);
                 }
 
                 if (condition == null) continue;
