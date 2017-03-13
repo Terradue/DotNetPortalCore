@@ -10,7 +10,10 @@ namespace Terradue.Portal.OpenSearch {
         KeyValuePair<string, string> GetFilterForParameter(string parameter, string value);
 
         bool IsPostFiltered(NameValueCollection parameters);
-    }
+
+        int GetEntityListTotalResults(IfyContext context, NameValueCollection parameters);
+
+        }
 
     /// <summary>
     /// Interface to implement a class as an item in a generic or heterogeneous OpenSearchable entity.
@@ -41,6 +44,10 @@ namespace Terradue.Portal.OpenSearch {
 
         public virtual bool IsPostFiltered(NameValueCollection parameters) {
             return false;
+        }
+
+        public virtual int GetEntityListTotalResults(IfyContext context, NameValueCollection parameters) { 
+            return 0;
         }
     }
 }

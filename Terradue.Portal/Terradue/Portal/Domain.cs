@@ -155,9 +155,6 @@ namespace Terradue.Portal {
             bool ispublic = this.Kind == DomainKind.Public;
             bool isprivate = this.Kind == DomainKind.Private;
 
-            //we only want thematic groups domains (public or private)
-            if (!ispublic && !isprivate) return null;
-
             //if private, lets check the current user can access it (have a role in the domain)
             if (isprivate) {
                 var proles = Role.GetUserRolesForDomain(context, context.UserId, this.Id);

@@ -815,6 +815,13 @@ namespace Terradue.Portal {
             feed.Items = items;
             feed.TotalResults = TotalResults;
 
+            if (t is EntitySearchable) {
+                var st = t as EntitySearchable;
+                if (st.IsPostFiltered(parameters)) {
+                    feed.TotalResults = st.GetEntityListTotalResults(context, parameters);
+                }
+            }
+
             return feed;
 
         }
@@ -862,20 +869,20 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public OpenSearchRequest Create(QuerySettings querySettings, System.Collections.Specialized.NameValueCollection parameters) {
-            T item = entityType.GetEntityInstance(context) as T;
-            if (item is IEntitySearchable) {
-                var sitem = item as IEntitySearchable;
-                if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty(parameters["sl"])) {
-                    if (sitem.IsPostFiltered(parameters)) {
-                        NameValueCollection newParamaters = new NameValueCollection(parameters);
-                        newParamaters.Add("sl", "ills");
+            //T item = entityType.GetEntityInstance(context) as T;
+            //if (item is IEntitySearchable) {
+            //    var sitem = item as IEntitySearchable;
+            //    if (!querySettings.OpenSearchUrlOnly && string.IsNullOrEmpty(parameters["sl"])) {
+            //        if (sitem.IsPostFiltered(parameters)) {
+            //            NameValueCollection newParamaters = new NameValueCollection(parameters);
+            //            newParamaters.Add("sl", "ills");
 
-                        OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
-                        OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
-                        return new IllimitedOpenSearchRequest<AtomFeed, AtomItem>(OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
-                    }
-                }
-            }
+            //            OpenSearchDescriptionUrl url2 = OpenSearchFactory.GetOpenSearchUrlByType(GetOpenSearchDescription(), querySettings.PreferredContentType);
+            //            OpenSearchUrl queryUrl = OpenSearchFactory.BuildRequestUrlForTemplate(url2, newParamaters, querySettings);
+            //            return new IllimitedOpenSearchRequest<AtomFeed, AtomItem>(OpenSearchEngine, this, querySettings.PreferredContentType, queryUrl, newParamaters);
+            //        }
+            //    }
+            //}
 
             UriBuilder url = new UriBuilder(context.BaseUrl);
             url.Path += "/" + this.Identifier;
