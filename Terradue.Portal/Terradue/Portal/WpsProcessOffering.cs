@@ -18,6 +18,7 @@ using OpenGis.Wps;
 using System.Xml;
 using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
 using System.Linq;
+using Terradue.Portal.OpenSearch;
 
 namespace Terradue.Portal {
 
@@ -291,12 +292,37 @@ namespace Terradue.Portal {
                 if (this.Provider.BaseUrl != parameters ["wpsUrl"] || this.RemoteIdentifier != parameters ["pId"]) return false;
             }
 
+            //case of query for sandbox or operational provider
+            if (parameters["sandbox"] != null) {
+                if (parameters["sandbox"] == "true" && !this.Provider.IsSandbox) return false;
+                if (parameters["sandbox"] == "false" && this.Provider.IsSandbox) return false;
+            }
+
+            //case of query on provider hostname
+            if (parameters["hostname"] != null) {
+                var uriHost = new UriBuilder(this.Provider.BaseUrl);
+                var r = new System.Text.RegularExpressions.Regex(parameters["hostname"]);
+                var m = r.Match(uriHost.Host);
+                if (!m.Success) return false;
+            }
+
+            //case of query on service tags
+            if (parameters["tag"] != null) {
+                var queryTags = parameters["tag"].Split(",".ToCharArray()).ToList();
+                var serviceTags = GetTagsAsList();
+
+                bool found = false;
+                foreach (var qtag in queryTags)
+                    if (serviceTags.Any(str => str.Contains(qtag))) found = true;
+                return found;
+            }
+
             return true;
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        public new AtomItem ToAtomItem(NameValueCollection parameters) {
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string providerUrl = null;
             string identifier = null;
@@ -321,41 +347,6 @@ namespace Terradue.Portal {
             string text = (this.TextContent != null ? this.TextContent : "");
 
             if (!IsSearchable (parameters)) return null;
-
-            //if query on parameter q we check one of the properties contains q
-            if (parameters ["q"] != null) {
-                string q = parameters ["q"].ToLower ();
-                if (!(name.ToLower ().Contains (q) || identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q))) return null;
-            }
-
-            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
-            if (parameters["wpsUrl"] != null && parameters["pId"] != null) {
-                if (this.Provider.BaseUrl != parameters["wpsUrl"] || this.RemoteIdentifier != parameters["pId"]) return null;
-            }
-
-            //case of query for sandbox or operational provider
-            if (parameters ["sandbox"] != null){
-                if (parameters ["sandbox"] == "true" && !this.Provider.IsSandbox) return null;
-                if (parameters ["sandbox"] == "false" && this.Provider.IsSandbox) return null;
-            }
-
-            //case of query on provider hostname
-            if (parameters ["hostname"] != null) {
-                var uriHost = new UriBuilder (this.Provider.BaseUrl);
-                var r = new System.Text.RegularExpressions.Regex (parameters ["hostname"]);
-                var m = r.Match (uriHost.Host);
-                if (!m.Success) return null;
-            }
-
-            //case of query on service tags
-            if (parameters ["tag"] != null) {
-                var queryTags = parameters ["tag"].Split ("/".ToCharArray ()).ToList ();
-                var serviceTags = GetTagsAsList ();
-
-                foreach (var qtag in queryTags)
-                    if (!serviceTags.Any (str => str.Contains (qtag))) return null;
-                
-            }
 
             var capurl = providerUrl + "?service=WPS&request=GetCapabilities";
             log.Debug("capabilities = " + capurl);
