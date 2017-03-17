@@ -991,7 +991,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets values to complete the aggregate selection fields for the database query based on the specified user and groups.</summary>
-        /// <returns>A string array of two elements: the database ID of a user to be matched; the database IDs of groups to be matched.</returns>
+        /// <returns>The database IDs of groups to be matched.</returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">Database ID of a user.</param>
         /// <param name="groupIds">Database IDs of groups. If the value is <c>null</c>, the user's group are selected if necessary.</param>

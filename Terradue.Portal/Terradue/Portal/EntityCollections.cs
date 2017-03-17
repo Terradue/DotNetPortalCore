@@ -389,10 +389,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected virtual void LoadList() {
+        protected virtual void LoadList(string condition = null) {
             Clear();
 
-            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, condition);
             string sql = entityType.GetCountQuery(queryParts);
             if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
             TotalResults = context.GetQueryLongIntegerValue(sql);
