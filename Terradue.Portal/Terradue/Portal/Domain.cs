@@ -251,8 +251,18 @@ namespace Terradue.Portal {
 
         private EntityType entityType;
 
+        /// <summary>Indicates or decides whether the standard query is used for this domain collection.</summary>
+        /// <remarks>If the value is true, a call to <see cref="Load">Load</see> produces a list containing all domains in which the user has a role and domains that are public. The default is <c><false</c>, which means that the normal behaviour of EntityCollection applies.</remarks>
+        public bool UseNormalSelection { get; set; }
+
         public DomainCollection(IfyContext context) : base(context) {
             this.entityType = GetEntityStructure();
+            this.UseNormalSelection = false;
+        }
+
+        public override void Load() {
+            if (UseNormalSelection) base.Load();
+            else LoadRestricted();
         }
 
         /// <summary>Loads a collection of domains restricted by kinds and a user's roles.</summary>
