@@ -55,10 +55,7 @@ using Terradue.OpenSearch.Request;
 using System.Web;
 using Terradue.OpenSearch.Engine;
 using Terradue.ServiceModel.Syndication;
-
-
-
-
+using Terradue.Portal.OpenSearch;
 
 namespace Terradue.Portal {
 
@@ -89,7 +86,7 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true, AllowsKeywordSearch = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
-    public abstract class Service : Entity, IAtomizable {
+    public abstract class Service : EntitySearchable, IAtomizable {
         private const int CLASS_TABLE = 1;
 
         //private double minPriority = 0, maxPriority = 0;
@@ -113,14 +110,14 @@ namespace Terradue.Portal {
         /// The tags used to describe and filter the service.
         /// </summary>
         [EntityDataField ("tags")]
-        public string tags { get; set; }
+        public string Tags { get; set; }
 
         /// <summary>
         /// Adds a tag to the tags list.
         /// </summary>
         /// <param name="tag">Tag.</param>
         public void AddTag (string tag) {
-            tags += string.IsNullOrEmpty (tags) ? tag : "," + tag;
+            Tags += string.IsNullOrEmpty (Tags) ? tag : "," + tag;
         }
 
         /// <summary>
@@ -128,8 +125,8 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>The tags as list.</returns>
         public List<string> GetTagsAsList () {
-            if (tags != null)
-                return tags.Split (",".ToCharArray ()).ToList ();
+            if (Tags != null)
+                return Tags.Split (",".ToCharArray ()).ToList ();
             else return new List<string> ();
         }
 
@@ -686,7 +683,7 @@ namespace Terradue.Portal {
             return true;
         }
 
-        public AtomItem ToAtomItem(NameValueCollection parameters) {
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string identifier = (this.Identifier != null ? this.Identifier : "service" + this.Id);
             string name = (this.Name != null ? this.Name : identifier);
@@ -704,7 +701,7 @@ namespace Terradue.Portal {
             return entry;
         }
 
-        public NameValueCollection GetOpenSearchParameters() {
+        public new NameValueCollection GetOpenSearchParameters() {
             return OpenSearchFactory.GetBaseOpenSearchParameter();
         }
 

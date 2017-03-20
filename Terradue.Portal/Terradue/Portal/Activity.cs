@@ -31,7 +31,7 @@ namespace Terradue.Portal {
     /// -> Actions as View, Share, ... should not be done at Entity level but at subclass level (so we better control what we log)
     /// </description>
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("activity", EntityTableConfiguration.Custom, HasOwnerReference = true, HasDomainReference = true)]
+    [EntityTable("activity", EntityTableConfiguration.Custom, HasDomainReference = true)]
     public class Activity : EntitySearchable, IComparable<Activity> {
 
         /// <summary>Gets the Entity Id</summary>
@@ -40,6 +40,9 @@ namespace Terradue.Portal {
 
         [EntityDataField("id_owner")]
         public new int OwnerId { get; set; }
+
+        [EntityDataField("id_usr")]
+        public new int UserId { get; set; }
 
         private Entity pentity;
         protected Entity Entity {
@@ -149,6 +152,32 @@ namespace Terradue.Portal {
             result.Id = id;
             result.Load();
             return result;
+        }
+
+        /// <summary>
+        /// Froms the entity and privilege.
+        /// </summary>
+        /// <returns>The entity and privilege.</returns>
+        /// <param name="context">Context.</param>
+        /// <param name="entity">Entity.</param>
+        /// <param name="operation">Operation.</param>
+        public static Activity FromEntityAndPrivilege(IfyContext context, Entity entity, EntityOperationType operation) {
+            var etype = EntityType.GetEntityType(entity.GetType());
+            var priv = Privilege.Get(EntityType.GetEntityTypeFromId(etype.Id), Privilege.GetOperationType(((char)operation).ToString()));
+            Activity result = new Activity(context);
+            result.Entity = entity;
+            result.EntityTypeId = etype.Id;
+            result.Privilege = priv;
+            result.Load();
+            return result;
+        }
+
+        public override string GetIdentifyingConditionSql() {
+            if (Entity != null && Privilege != null) {
+                if (EntityTypeId == 0) EntityTypeId = EntityType.GetEntityType(Entity.GetType()).Id;
+                return String.Format("t.id_entity='{0}' AND t.id_type='{1}' AND t.id_priv='{2}'", Entity.Id, EntityTypeId, Privilege.Id);
+            }
+            return null;
         }
 
         /// <summary>

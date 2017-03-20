@@ -118,22 +118,24 @@ namespace Terradue.Portal {
         /// </returns>
         /// <param name="context">The execution environment context.</param>
         /// <param name="userId">The database ID of the user for which the domain restriction check is performed.</param>
-        /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c> or empty, the check is skipped resulting in no domain restriction (return value <c>null</c>. If the array is empty, the grant is empty (return value is an empty array).</param>
+        /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c>, the method returns all domains on which the user or groups have any role. If the array is empty, the grant is empty (return value is an empty array).</param>
         public static int[] GetGrantScope(IfyContext context, int userId, int[] groupIds, int[] roleIds) {
-            if (roleIds == null) return null;
-            if (roleIds.Length == 0) return new int[] { 0 };
+            if (roleIds != null && roleIds.Length == 0) return new int[] {};
 
             if (groupIds == null || groupIds.Length == 0) groupIds = new int[] { 0 };
 
+            string roleCondition = roleIds == null ? String.Empty : String.Format("rg.id_role IN ({0})", String.Join(",", roleIds));
+
             List<int> domainIds = new List<int>();
-            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE rg.id_role IN ({2}) AND (rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", groupIds), String.Join(",", roleIds));
+            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE {2}{3}(rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", groupIds), roleCondition, String.IsNullOrEmpty(roleCondition) ? String.Empty : " AND ");
             //Console.WriteLine("DOMAINS: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             bool globallyAuthorized = false;
             while (reader.Read()) {
                 // The domain ID NULL means that the user has the privilege globally and other any additional domains do not matter
-                if (reader.GetValue(0) == DBNull.Value) {
+                // This applies only if a role was specifically queried, but not if all domains on which a user has any role are queried.
+                if (roleIds != null && reader.GetValue(0) == DBNull.Value) {
                     globallyAuthorized = true;
                     break;
                 }
@@ -242,6 +244,69 @@ namespace Terradue.Portal {
 
     }
 
+
+
+
+    public class DomainCollection : EntityDictionary<Domain> {
+
+        private EntityType entityType;
+
+        /// <summary>Indicates or decides whether the standard query is used for this domain collection.</summary>
+        /// <remarks>If the value is true, a call to <see cref="Load">Load</see> produces a list containing all domains in which the user has a role and domains that are public. The default is <c><false</c>, which means that the normal behaviour of EntityCollection applies.</remarks>
+        public bool UseNormalSelection { get; set; }
+
+        public DomainCollection(IfyContext context) : base(context) {
+            this.entityType = GetEntityStructure();
+            this.UseNormalSelection = false;
+        }
+
+        public override void Load() {
+            if (UseNormalSelection) base.Load();
+            else LoadRestricted();
+        }
+
+        /// <summary>Loads a collection of domains restricted by kinds and a user's roles.</summary>
+        /// <param name="includedKinds">The domain kinds of domains on which a user has no explicit role but should in any case be included in the collection.</param>
+        public void LoadRestricted(DomainKind[] includedKinds = null) {
+
+            int[] kindIds;
+            if (includedKinds == null) {
+                kindIds = new int[] { (int)DomainKind.Public };
+            } else {
+                kindIds = new int[includedKinds.Length];
+                for (int i = 0; i < includedKinds.Length; i++) kindIds[i] = (int)includedKinds[i];
+            }
+
+            int[] domainIds = Domain.GetGrantScope(context, UserId, null, null);
+
+            string condition = String.Format("(t.id IN ({0}) OR t.kind IN ({1}))",
+                    domainIds.Length == 0 ? "0" : String.Join(",", domainIds),
+                    kindIds.Length == 0 ? "-1" : String.Join(",", kindIds)
+            );
+
+            Clear();
+
+            object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, condition);
+            string sql = entityType.GetCountQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            TotalResults = context.GetQueryLongIntegerValue(sql);
+
+            sql = entityType.GetQuery(queryParts);
+            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IsLoading = true;
+            while (reader.Read()) {
+                Domain item = entityType.GetEntityInstance(context) as Domain;
+                item.Load(entityType, reader, AccessLevel);
+                IncludeInternal(item);
+            }
+            IsLoading = false;
+            context.CloseQueryResult(reader, dbConnection);
+        }
+
+    }
 
 
     //-------------------------------------------------------------------------------------------------------------------------
