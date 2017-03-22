@@ -741,7 +741,7 @@ namespace Terradue.Portal {
         /// <param name="offset">Starting offset of records to be retrieved (optional, defaults to 0, i.e. no offset)</param>
         /// <returns>The SQL query.</returns>
         [Obsolete("Use GetListQuery with EntityCollection argument")]
-        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, string> filterValues, bool idsOnly, int limit = -1, int offset = 0) {
+        public string GetListQuery(IfyContext context, int userId, Entity template, Dictionary<FieldInfo, object> filterValues, bool idsOnly, int limit = -1, int offset = 0) {
             string condition = null;
             if (template != null) {
                 condition = GetTemplateConditionSql(template, false);
@@ -1185,15 +1185,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetFilterSql(Dictionary<FieldInfo, string> filterValues) {
+        public string GetFilterSql(Dictionary<FieldInfo, object> filterValues) {
             if (filterValues == null) return null;
 
             string result = null;
             bool hasCondition = false;
 
             foreach (FieldInfo field in filterValues.Keys) {
+                object searchValue = filterValues[field];
                 string condition = null;
-                string searchTerm = filterValues[field];
 
                 string alias = null;
                 if (field.FieldType == EntityFieldType.ForeignField) {
@@ -1210,19 +1210,28 @@ namespace Terradue.Portal {
                 if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
                 string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
 
-                if (field.Property.PropertyType == typeof(string)) {
-                    condition = GetStringConditionSql(fieldExpression, searchTerm);
-                } else if (field.Property.PropertyType == typeof(bool)) {
-                    if (String.IsNullOrEmpty(searchTerm)) continue;
-                    searchTerm = searchTerm.ToLower();
+                if (searchValue == null || searchValue.Equals(SpecialSearchValue.Null)) {
+                    condition = String.Format("{0} IS NULL", fieldExpression);
+                } else if (searchValue.Equals(SpecialSearchValue.NotNull)) {
+                    condition = String.Format("{0} IS NOT NULL", fieldExpression);
+                } else if (searchValue is String) {
 
-                    condition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
-                } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
-                    condition = GetNumericConditionSql(fieldExpression, searchTerm);
-                } else if (field.Property.PropertyType == typeof(DateTime)) { 
-                    condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
-                } else if (field.Property.PropertyType.IsEnum) {
-                    condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                    string searchTerm = searchValue as string;
+
+                    if (field.Property.PropertyType == typeof(string)) {
+                        condition = GetStringConditionSql(fieldExpression, searchTerm);
+                    } else if (field.Property.PropertyType == typeof(bool)) {
+                        if (String.IsNullOrEmpty(searchTerm)) continue;
+                        searchTerm = searchTerm.ToLower();
+
+                        condition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
+                    } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
+                        condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                    } else if (field.Property.PropertyType == typeof(DateTime)) {
+                        condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
+                    } else if (field.Property.PropertyType.IsEnum) {
+                        condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                    }
                 }
 
                 if (condition == null) continue;

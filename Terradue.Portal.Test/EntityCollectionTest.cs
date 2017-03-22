@@ -72,6 +72,7 @@ namespace Terradue.Portal.Test {
             p1.Protocol = "ftp";
             p1.Hostname = "test.org";
             p1.Port = 23;
+            p1.FileRootDir = "/dir";
             p1.Store();
             PublishServer p2 = new PublishServer(context);
             p2.Name = "pf2";
@@ -126,6 +127,22 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd5.TotalResults);
             Assert.AreEqual(2, pd5.Count);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
+
+            context.ConsoleDebug = true;
+
+            EntityDictionary<PublishServer> pd6 = new EntityDictionary<PublishServer>(context);
+            pd6.SetFilter("FileRootDir", SpecialSearchValue.Null);
+            pd6.Load();
+            Assert.AreEqual(3, pd6.TotalResults);
+            Assert.AreEqual(3, pd6.Count);
+            Assert.IsTrue(pd6.Contains(p2.Id) && pd6.Contains(p3a.Id) && pd3.Contains(p3b.Id));
+
+            EntityDictionary<PublishServer> pd7 = new EntityDictionary<PublishServer>(context);
+            pd7.SetFilter("FileRootDir", SpecialSearchValue.NotNull);
+            pd7.Load();
+            Assert.AreEqual(1, pd7.TotalResults);
+            Assert.AreEqual(1, pd7.Count);
+            Assert.IsTrue(pd7.Contains(p1.Id));
         }
 
         [Test]
