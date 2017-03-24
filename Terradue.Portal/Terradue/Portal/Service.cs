@@ -84,7 +84,7 @@ namespace Terradue.Portal {
     /// <description>Abstract base object for processing services.</description>
     /// \ingroup Service
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true, AllowsKeywordSearch = true)]
+    [EntityTable("service", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true, AllowsKeywordSearch = true, HasOwnerReference = true)]
     [EntityReferenceTable("serviceclass", CLASS_TABLE, ReferenceField = "id_class")]
     public abstract class Service : EntitySearchable, IAtomizable {
         private const int CLASS_TABLE = 1;
@@ -103,6 +103,15 @@ namespace Terradue.Portal {
         /// <summary>Indicates whether the service is available to common users.</summary>
         [EntityDataField("available")]
         public bool Available { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProcessOffering"/> is quotable.
+        /// </summary>
+        /// <value><c>true</c> if is quotable; otherwise, <c>false</c>.</value>
+        [EntityDataFieldAttribute("quotable")]
+        public bool Quotable { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 

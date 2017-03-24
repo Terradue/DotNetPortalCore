@@ -409,6 +409,8 @@ namespace Terradue.Portal {
                 entry.Categories.Add (new SyndicationCategory (tag));
             }
 
+            if (this.IsQuotable) entry.Categories.Add(new SyndicationCategory("Quotable"));
+
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
