@@ -193,7 +193,6 @@
     <Compile Include="Terradue\Portal\DBCookie.cs" />
     <Compile Include="Terradue\Portal\OpenSearch\EntitySearchable.cs" />
     <Compile Include="Mono.Options\Options.cs" />
-    <Compile Include="Terradue\Portal\generated\wpst2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
