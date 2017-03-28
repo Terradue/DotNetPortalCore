@@ -409,7 +409,7 @@ namespace Terradue.Portal {
                 entry.Categories.Add (new SyndicationCategory (tag));
             }
 
-            if (this.Quotable) entry.Categories.Add(new SyndicationCategory("Quotable"));
+            if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
 
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
