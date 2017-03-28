@@ -72,7 +72,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the collection of the filter values for properties.</summary>
-        public Dictionary<FieldInfo, string> FilterValues { get; protected set; }
+        public Dictionary<FieldInfo, object> FilterValues { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -210,7 +210,7 @@ namespace Terradue.Portal {
         private EntityType entityType;
         private T template;
         private OpenSearchEngine ose;
-        private Dictionary<FieldInfo, string> filterValues;
+        private Dictionary<FieldInfo, object> filterValues;
         private Dictionary<FieldInfo, SortDirection> sortCriteria;
 
         public EntityType EntityType {
@@ -636,17 +636,25 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public void SetFilter(string propertyName, SpecialSearchValue searchValue) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
+            SetFilter(field, searchValue);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
         /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
-        public void SetFilter(FieldInfo field, string searchTerm) {
+        public void SetFilter(FieldInfo field, object searchValue) {
             if (field == null) throw new ArgumentNullException("field", "No filtering field specified");
             if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
             if (filterValues == null) {
-                filterValues = new Dictionary<FieldInfo, string>();
+                filterValues = new Dictionary<FieldInfo, object>();
                 base.FilterValues = filterValues;
             }
-            filterValues[field] = searchTerm;
+            filterValues[field] = searchValue;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1303,6 +1311,19 @@ namespace Terradue.Portal {
 
         /// <summary>Items are ordered by a criteria in descending order.</summary>
         Descending
+    }
+
+
+
+    /// <summary>Enumeration of special search values.</summary>
+    public enum SpecialSearchValue {
+
+        /// <summary>The <c>null</c> value.</summary>
+        Null,
+
+        /// <summary>Any value other than <c>null</c>.</summary>
+        NotNull
+
     }
 
 }
