@@ -1,4 +1,4 @@
--- VERSION 2.7.4
+-- VERSION 2.7.8
 
 USE $MAIN$;
 
@@ -1844,6 +1844,7 @@ CREATE TABLE service (
     id_class int unsigned COMMENT 'FK: Service class',
     conf_deleg boolean NOT NULL DEFAULT false COMMENT 'If true, service can be configured by other domains',
     available boolean NOT NULL DEFAULT true COMMENT 'If true, service is available',
+    id_usr INT(10) UNSIGNED NULL COMMENT 'FK: User',
     identifier varchar(50) NOT NULL COMMENT 'Unique identifier',
     name varchar(100) NOT NULL COMMENT 'Name',
     description text NOT NULL COMMENT 'Description',
@@ -1857,10 +1858,12 @@ CREATE TABLE service (
     created datetime,
     modified datetime,
     tags varchar(150) NULL DEFAULT NULL COMMENT 'Tags describing the service',
+    quotable boolean DEFAULT false,
     CONSTRAINT pk_service PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_service_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
-    CONSTRAINT fk_service_class FOREIGN KEY (id_class) REFERENCES serviceclass(id) ON DELETE SET NULL
+    CONSTRAINT fk_service_class FOREIGN KEY (id_class) REFERENCES serviceclass(id) ON DELETE SET NULL,
+    CONSTRAINT fk_service_user FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE SET NULL
 ) Engine=InnoDB COMMENT 'Processing services';
 -- CHECKPOINT C-46a
 
