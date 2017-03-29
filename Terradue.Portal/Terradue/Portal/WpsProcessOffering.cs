@@ -153,7 +153,7 @@ namespace Terradue.Portal {
             return describeProcess;
         }
 
-        public HttpWebRequest PrepareExecuteRequest(Execute executeInput){
+        public HttpWebRequest PrepareExecuteRequest(Execute executeInput, string jobreference){
             //build "real" execute url
             var uriExec = new UriBuilder(Provider.BaseUrl);
             uriExec.Query = "";
@@ -167,7 +167,7 @@ namespace Terradue.Portal {
             if (this.Provider != null && !this.Provider.WPSVersion.Equals(executeInput.version)) executeInput.version = this.Provider.WPSVersion;
 
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
-            HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri, jobreference);
 
             executeHttpRequest.Method = "POST";
             executeHttpRequest.ContentType = "application/xml";
@@ -215,12 +215,12 @@ namespace Terradue.Portal {
             }
         }
 
-        public object Execute(Execute executeInput){
+        public object Execute(Execute executeInput, string jobreference){
 
             //We first validate that the user can use the service
             if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
 
-            var executeHttpRequest = PrepareExecuteRequest(executeInput);        
+            var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
             OpenGis.Wps.ExceptionReport exceptionReport = null;
@@ -408,6 +408,8 @@ namespace Terradue.Portal {
             foreach (var tag in GetTagsAsList ()){
                 entry.Categories.Add (new SyndicationCategory (tag));
             }
+
+            if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
 
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
 
