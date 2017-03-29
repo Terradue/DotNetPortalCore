@@ -153,7 +153,7 @@ namespace Terradue.Portal {
             return describeProcess;
         }
 
-        public HttpWebRequest PrepareExecuteRequest(Execute executeInput){
+        public HttpWebRequest PrepareExecuteRequest(Execute executeInput, string jobreference){
             //build "real" execute url
             var uriExec = new UriBuilder(Provider.BaseUrl);
             uriExec.Query = "";
@@ -167,7 +167,7 @@ namespace Terradue.Portal {
             if (this.Provider != null && !this.Provider.WPSVersion.Equals(executeInput.version)) executeInput.version = this.Provider.WPSVersion;
 
             log.Info("Execute Uri: " + uriExec.Uri.AbsoluteUri);
-            HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri);
+            HttpWebRequest executeHttpRequest = this.Provider.CreateWebRequest(uriExec.Uri.AbsoluteUri, jobreference);
 
             executeHttpRequest.Method = "POST";
             executeHttpRequest.ContentType = "application/xml";
