@@ -721,7 +721,7 @@ namespace Terradue.Portal {
         /// <returns>The web request.</returns>
         /// <param name="url">URL.</param>
         /// <param name="method">Method.</param>
-        public HttpWebRequest CreateWebRequest (string url)
+        public HttpWebRequest CreateWebRequest (string url, string jobreference=null)
         {
             this.context.LogDebug (this, "CreateWebRequest : " + url);
 
@@ -732,11 +732,11 @@ namespace Terradue.Portal {
                 credentials = new NetworkCredential (uri.UserName, uri.Password);
             }
 
-            var request = CreateWebRequest (url, credentials, context.Username);
+            var request = CreateWebRequest (url, credentials, context.Username, jobreference);
             return request;
         }
 
-        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference=null)
+        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference)
         {
 
             HttpWebRequest request;
