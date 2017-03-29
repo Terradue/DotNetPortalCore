@@ -1367,7 +1367,8 @@ namespace Terradue.Portal {
 
 
     public class FileNameComparer : IComparer<string> {
-        private static readonly Regex regex = new Regex(@"^(db-)?([\d\.]+)([#c]\.sql)?$");
+        private static readonly Regex versionRegex = new Regex(@"[\d\.]+");
+        private static readonly Regex fileRegex = new Regex(@"db-([\d\.]+)[#c]?\.sql$");
 
         int IComparer<string>.Compare(string x, string y) {
             return Compare(x, y);
@@ -1379,12 +1380,18 @@ namespace Terradue.Portal {
             if (y == null) return 1;
 
             Match match;
-            match = regex.Match(x);
-            if (!match.Success) return 0;
-            x = match.Groups[2].Value;
-            match = regex.Match(y);
-            if (!match.Success) return 0;
-            y = match.Groups[2].Value;
+            match = versionRegex.Match(x);
+            if (!match.Success) {
+                match = fileRegex.Match(x);
+                if (!match.Success) return 0;
+                x = match.Groups[2].Value;
+            }
+            match = versionRegex.Match(y);
+            if (!match.Success) {
+                match = fileRegex.Match(x);
+                if (!match.Success) return 0;
+                y = match.Groups[2].Value;
+            }
 
             string[] xa = x.Split('.');
             string[] ya = y.Split('.');
