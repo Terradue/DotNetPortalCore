@@ -736,7 +736,7 @@ namespace Terradue.Portal {
             return request;
         }
 
-        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference)
+        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference=null)
         {
 
             HttpWebRequest request;
