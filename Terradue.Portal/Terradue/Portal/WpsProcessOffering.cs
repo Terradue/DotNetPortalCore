@@ -224,14 +224,6 @@ namespace Terradue.Portal {
             OpenGis.Wps.ExceptionReport exceptionReport = null;
             MemoryStream memStream = new MemoryStream();
 
-            //TEMPORARY
-            var xmlresultFAKE = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<wps:ExecuteResponse serviceInstance=\"http://www.brockmann-consult.de/bc-wps/wps/calvalus?\" service=\"WPS\" version=\"1.0.0\" xml:lang=\"en\" xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd\" xmlns:bc=\"http://www.brockmann-consult.de/calwps/calwpsL3Parameters-schema.xsd\" xmlns:ows=\"http://www.opengis.net/ows/1.1\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:wps=\"http://www.opengis.net/wps/1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n    <wps:Process wps:processVersion=\"1.0\">\n        <ows:Identifier>urbantep-local~1.0~Subset</ows:Identifier>\n        <ows:Title>urbantep-local~1.0~Subset</ows:Title>\n    </wps:Process>\n    <wps:Status creationTime=\"2017-03-29T22:08:45.877+02:00\">\n        <wps:ProcessSucceeded>The request has been quoted successfully.</wps:ProcessSucceeded>\n    </wps:Status>\n    <wps:ProcessOutputs>\n        <wps:Output>\n            <ows:Identifier>QUOTATION</ows:Identifier>\n            <ows:Title>Job Quotation</ows:Title>\n            <wps:Data>\n                <wps:ComplexData mimeType=\"application/json\"> {\n  \"account\": {\n    \"platform\": \"Brockmann Consult Processing Center\",\n    \"username\": \"tep_hans.permana.bc\"\n  },\n  \"compound\": {\n    \"id\": \"any-id\",\n    \"name\": \"processName\",\n    \"type\": \"processType\"\n  },\n  \"quantity\": [\n    {\n      \"id\": \"CPU_MILLISECONDS\",\n      \"value\": 1\n    },\n    {\n      \"id\": \"PHYSICAL_MEMORY_BYTES\",\n      \"value\": 1\n    },\n    {\n      \"id\": \"PROC_VOLUME_BYTES\",\n      \"value\": 1\n    },\n    {\n      \"id\": \"PROC_INSTANCE\",\n      \"value\": 1\n    }\n  ],\n  \"hostName\": \"www.brockmann-consult.de\",\n  \"timeStamp\": \"29.03.2017 22:08:45\",\n  \"status\": \"QUOTATION\"\n}></wps:ComplexData>\n            </wps:Data>\n        </wps:Output>\n    </wps:ProcessOutputs>\n</wps:ExecuteResponse>";
-            using (TextReader reader = new StringReader(xmlresultFAKE)) {
-                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(reader);
-            }
-            return execResponse;
-            //End TEMPORARY
-
             var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
 
             try {
