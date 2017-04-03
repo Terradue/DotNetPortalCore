@@ -721,7 +721,7 @@ namespace Terradue.Portal {
         /// <returns>The web request.</returns>
         /// <param name="url">URL.</param>
         /// <param name="method">Method.</param>
-        public HttpWebRequest CreateWebRequest (string url)
+        public HttpWebRequest CreateWebRequest (string url, string jobreference=null)
         {
             this.context.LogDebug (this, "CreateWebRequest : " + url);
 
@@ -732,11 +732,11 @@ namespace Terradue.Portal {
                 credentials = new NetworkCredential (uri.UserName, uri.Password);
             }
 
-            var request = CreateWebRequest (url, credentials, context.Username);
+            var request = CreateWebRequest (url, credentials, context.Username, jobreference);
             return request;
         }
 
-        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username)
+        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference=null)
         {
 
             HttpWebRequest request;
@@ -745,9 +745,16 @@ namespace Terradue.Portal {
             request.Method = "GET";
             request.Timeout = 5000;
 
-            log.DebugFormat ("CreateWebRequest '{0}' with Header REMOTE_USER={1}", url, username);
+            log.DebugFormat ("CreateWebRequest '{0}'", url);
 
-            if (!string.IsNullOrEmpty (username) && !(url.Contains ("gpod.eo.esa.int"))) request.Headers.Add ("REMOTE_USER", username);
+            if (!string.IsNullOrEmpty (username) && !(url.Contains ("gpod.eo.esa.int"))){
+                request.Headers.Add ("REMOTE_USER", username);
+                log.DebugFormat ("Adding Header REMOTE_USER={0}", username);
+            }
+            if (!string.IsNullOrEmpty (jobreference) && !(url.Contains ("gpod.eo.esa.int"))){
+                request.Headers.Add ("REMOTE_REF", jobreference);
+                log.DebugFormat ("Adding Header REMOTE_REF={0}", jobreference);
+            }
             if (credentials != null) request.Credentials = credentials;
 
             return request;
