@@ -110,10 +110,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the URI at which this catalogue's OpenSearch description can be accessed.</summary>
         public Uri OpenSearchDescriptionUri { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the URI at which this catalogue's OpenSearch description can be accessed.</summary>
         public Uri BaseUri { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -136,7 +138,7 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new Catalogue instance representing the catalogue with the specified database ID.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="name">The database ID of the catalogue.</param>
+        /// <param name="id">The database ID of the catalogue.</param>
         /// <returns>The created Catalogue object.</returns>
         public static Catalogue FromId(IfyContext context, int id) {
             Catalogue result = new Catalogue(context);

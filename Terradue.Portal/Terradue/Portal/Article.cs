@@ -34,7 +34,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the content of the text.</summary>
+        /// <summary>Gets the content of the article or the abstract if no further content is available.</summary>
         public override string TextContent {
             get {
                 return (this.Content != null ? this.Content : this.Abstract);

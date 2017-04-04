@@ -110,6 +110,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Stops the background agent.</summary>
         public void End() {
             Close();
             autoEvent.Set();
@@ -117,6 +118,8 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Stops the background agent.</summary>
+        /// <param name="message">A message to be written before stopping the agent.</param>
         public void End(string message) {
             context.WriteSeparator();
             context.WriteInfo(message);
@@ -289,16 +292,42 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Helper class representing an agent action and its execution settings.</summary>
     public class ActionExecution {
+
+        /// <summary>Gets or sets the action's database ID.</summary>
         public int Id { get; set; }
+
+        /// <summary>Gets or sets the action's unique identifier.</summary>
         public string Identifier { get; set; }
+
+        /// <summary>Gets or sets the action's human-readable name.</summary>
         public string Name { get; set; }
+
+        /// <summary>Gets or sets the fully qualified name of the class containing the action's execution method.</summary>
         public string ClassName { get; set; }
+
+        /// <summary>Gets or sets the name of the method for the execution of the action.</summary>
         public string MethodName { get; set; }
+
+        /// <summary>Gets or sets the action's execution interval in seconds.</summary>
         public int Interval { get; set; }
+
+        /// <summary>Gets or sets the action's next execution time.</summary>
         public DateTime NextExecutionTime { get; set; }
+
+        /// <summary>Indicates or decides whether the action is executed immediately with the next cycle of the agent.</summary>
         public bool Immediate { get; set; }
 
+        /// <summary>Creats a new instance of an ActionExecution.</summary>
+        /// <param name="id">The action's database ID.</param>
+        /// <param name="identifier">The action's unique identifier.</param>
+        /// <param name="name">The action's human-readable name.</param>
+        /// <param name="className">The fully qualified name of the class containing the action's execution method.</param>
+        /// <param name="methodName">The name of the method for the execution of the action.</param>
+        /// <param name="interval">The action's execution interval in seconds.</param>
+        /// <param name="nextExecutionTime">The action's next execution time.</param>
+        /// <param name="immediate">Whether or not the action is executed immediately with the next cycle of the agent.</param>
         public ActionExecution(int id, string identifier, string name, string className, string methodName, int interval, DateTime nextExecutionTime, bool immediate) {
             this.Id = id;
             this.Identifier = identifier;
