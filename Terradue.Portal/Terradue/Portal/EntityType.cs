@@ -1152,8 +1152,8 @@ namespace Terradue.Portal {
             string result = null;
             List<string> fieldNames = new List<string>();
 
-            if (TopTable.HasIdentifierField) fieldNames.Add(TopTable.IdentifierField);
-            if (TopTable.HasNameField) fieldNames.Add(TopTable.NameField);
+            if (TopTable.HasIdentifierField) fieldNames.Add(String.Format("t.{0}", TopTable.IdentifierField));
+            if (TopTable.HasNameField) fieldNames.Add(String.Format("t.{0}", TopTable.NameField));
             foreach (FieldInfo field in Fields) {
                 if (!field.IsUsedInKeywordSearch) continue;
                 string alias = null;
