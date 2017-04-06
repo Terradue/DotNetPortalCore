@@ -57,7 +57,7 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new Action instance representing the action with the specified unique name.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="name">The unique name of the action.</param>
+        /// <param name="identifier">The unique identifier of the action.</param>
         /// <returns>The created Action object.</returns>
         public static Action FromIdentifier(IfyContext context, string identifier) {
             Action result = new Action(context);

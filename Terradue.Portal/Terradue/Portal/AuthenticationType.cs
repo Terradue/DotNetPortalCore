@@ -80,9 +80,9 @@ namespace Terradue.Portal {
 
     /// <summary>Represents an authentication type.</summary>
     /// <remarks>
-    ///     This class provides an abstract model for basic functionality of internal and external authentication methods.
-    ///     Implementing classes must provide a method to recognise a user identity from an HTTP request (if automatic user detection is possible) and may implement a method that checks whether an external session is still active.
-    ///     Implementing classes may also implement specific methods, especially for the initiation of an authentication process, such as an HTTP redirect to an external sign-in page.
+    ///     <para>This class provides an abstract model for basic functionality of internal and external authentication methods.</para>
+    ///     <para>Implementing classes must provide a method to recognise a user identity from an HTTP request (if automatic user detection is possible) and may implement a method that checks whether an external session is still active.</para>
+    ///     <para>Implementing classes may also implement specific methods, especially for the initiation of an authentication process, such as an HTTP redirect to an external sign-in page.</para>
     /// </remarks>
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("auth", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", TypeField = "type")]
@@ -96,7 +96,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets (protected) the rule for the activation of user accounts created by this .</summary>
+        /// <summary>Gets or sets (protected) the rule for how new user accounts are created by this authentication type are activated.</summary>
         /// \xrefitem uml "UML" "UML Diagram"
         [EntityDataField("activation_rule")]
         public int AccountActivationRule { get; protected set; }
@@ -146,7 +146,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the authentication type depends on external identity providers.</summary>
+        /// <summary>In a derived class, indicates whether the authentication type depends on external identity providers.</summary>
         /// <remarks>Derived classes must provide the correct value that applies to the application type.</remarks>
         /// \xrefitem uml "UML" "UML Diagram"
         public abstract bool UsesExternalIdentityProvider { get; }
@@ -154,12 +154,16 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new AuthenticationType instance.</summary>
-        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         /// <param name="context">The execution environment context.</param>
+        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         public AuthenticationType(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new AuthenticationType instance representing the authentication type with the specified database ID.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">The database ID of the authentication type.</param>
+        /// <returns>The created AuthenticationType object.</returns>
         public static AuthenticationType FromId(IfyContext context, int id) {
             EntityType entityType = EntityType.GetEntityType(typeof(AuthenticationType));
             AuthenticationType result = (AuthenticationType)entityType.GetEntityInstanceFromId(context, id); 
@@ -171,6 +175,10 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>In a derived class, obtains the user information from the current HTTP request's URL, headers or content.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
+        /// <param name="strict">If set to <c>true</c> the method should never return null but throws always an exception even if the authentication type does not apply.</param>
+        /// <returns>An instance of User representing the user profile information or <c>null</c> if no such information is available.</returns>
         /// <remarks>
         ///     This method works only in an HTTP context, i.e. within a web application. It is called by <see cref="Terradue.Portal.IfyWebContext"/> when the current request is not yet authenticated with this web server, i.e. with the first contact.
         ///     The method returns a <see cref="Terradue.Portal.User"/> instance that is either an existing user (if recognised from the request information) or a new user where all properties are filled with the available information from the request.
@@ -179,16 +187,12 @@ namespace Terradue.Portal {
         ///     If <c>strict</c> is set to <c>true</c>, the method should always throw an exception to inform the calling method about the specific problem.
         ///     The calling IfyWebContext then deals with the further processing of the request, including the user creation or authentication (or rejection of the request).
         /// </remarks>
-        /// <param name="context">The execution environment context.</param>
-        /// <param name="request">The current HttpRequest to analyse.</param>
-        /// <param name="strict">If set to <c>true</c> the method should never return null but throws always an exception even if the authentication type does not apply.</param>
-        /// <returns>An instance of User representing the user profile information or <c>null</c> if no such information is available.</returns>
         /// \xrefitem uml "UML" "UML Diagram"
         public abstract User GetUserProfile(IfyWebContext context, HttpRequest request, bool strict);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, checks whether an session corresponding to the current web server session exists on the external identity provider.</summary>
+        /// <summary>In a derived class, checks whether a session corresponding to the current web server session exists on the external identity provider.</summary>
         /// <remarks>
         ///     This method works only in an HTTP context, i.e. within a web application. It is called by <see cref="Terradue.Portal.IfyWebContext"/> when the current request is authenticated with this web server in order to determine whether this is also the case with the external identity provider.
         ///     The user might have authenticated with the portal, but in the meantime he might have signed from the identity provider.
@@ -204,11 +208,11 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Performs additional operations for the account of a successfully authenticated user based on the current HTTP request information.</summary>
-        /// <remarks>This method can be used to define additional and complex authorization settings.</remarks>
         /// <param name="user">The concerned user.</param>
         /// <param name="request">The current HttpRequest to analyse.</param>
         /// <param name="isNewUser">Indicates whether the user has just been created. Usually there is nothing to do for an existing account.</param>
         /// <returns><c>true</c> if the authentication type handles additional fully autonomously.</returns>
+        /// <remarks>This method can be used to define additional and complex authorization settings.</remarks>
         /// \xrefitem uml "UML" "UML Diagram"
         public virtual bool SetAuthorizations(User user, HttpRequest request, bool isNewUser) {
             return false;
@@ -217,15 +221,17 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Terminates the user's session with the external identity provider.</summary>
-        /// <remarks>This method is called from <see cref="Terradue.Portal.IfyWebContext.EndSession"/> if the authentication type uses external identity providers.</remarks>
         /// <param name="context">The execution environment context.</param>
         /// <param name="request">The current HttpRequest for reference.</param>
         /// <param name="response">The current HttpResponse for reference.</param>
         /// \xrefitem uml "UML" "UML Diagram"
+        /// <remarks>This method is called from <see cref="Terradue.Portal.IfyWebContext.EndSession"/> if the authentication type uses external identity providers.</remarks>
         public virtual void EndExternalSession(IfyWebContext context, HttpRequest request, HttpResponse response) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Returns the account status a newly created user account.</summary>
+        /// <returns>The account status (<see cref="AccountStatusType"/>) based on this authentication type's activation rule.</returns>
         public int GetDefaultAccountStatus() {
             switch (AccountActivationRule) {
                 case AccountActivationRuleType.ActiveAfterApproval :
@@ -246,9 +252,7 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
 
-    /// <summary>
-    /// Password authentication type.
-    /// </summary>
+    /// <summary>Defines settings for authentication via username and password where the user accounts are maintained by the Terradue.Portal installation.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     public class PasswordAuthenticationType : AuthenticationType {
 
@@ -258,17 +262,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates that PasswordAuthenticationType instances do not depend on an external identity provider.</summary>
+        /// <value>Always <c>false</c> for PasswordAuthenticationType since the Terradue.Portal installation is its own identity provider.</value>
         public override bool UsesExternalIdentityProvider {
             get { return false; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="Terradue.Portal.PasswordAuthenticationType"/> force
-        /// strong passwords.
-        /// </summary>
-        /// <value><c>true</c> if force strong passwords; otherwise, <c>false</c>.</value>
+        /// <summary>Indicates whether this password authentication type requires the user to have strong passwords.</summary>
+        /// <remarks>Strong passwords follow certain rules about the type characters that have to be used.</remarks>
         /// \xrefitem uml "UML" "UML Diagram"
         public bool ForceStrongPasswords {
             get { return forceStrongPasswords; }
@@ -277,10 +280,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets or sets the password expire time.
-        /// </summary>
-        /// <value>The password expire time.</value>
+        /// <summary>Gets or sets the password expiratation time in seconds.</summary>
         /// \xrefitem uml "UML" "UML Diagram"
         public int PasswordExpireTime {
             get { return passwordExpireTime; }
@@ -290,10 +290,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
 
-        /// <summary>
-        /// Gets or sets the max failed logins.
-        /// </summary>
-        /// <value>The max failed logins.</value>
+        /// <summary>Gets or sets the maximum possible number of failed logins before the account is blocked.</summary>
         /// \xrefitem uml "UML" "UML Diagram"
         public int MaxFailedLogins {
             get { return maxFailedLogins; }
@@ -302,10 +299,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new PasswordAuthenticationType instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         public PasswordAuthenticationType(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Load this instance.</summary>
         public override void Load() {
             base.Load();
             forceStrongPasswords = context.GetConfigBooleanValue("ForceStrongPasswords");
@@ -315,6 +316,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Does nothing or throws an exception (method is not applicable to this authentication type).</summary>
+        /// <returns><c>null</c> if strict is <c>false</c>.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
+        /// <param name="strict">If set to <c>true</c> the method throws an exception since the user identity is not obtained from an HTTP request.</param>
         public override User GetUserProfile(IfyWebContext context, HttpRequest request, bool strict) {
             if (strict) throw new InvalidOperationException("Password authentication not possible without explicit initiation");
             return null;
@@ -322,19 +328,21 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Always returns true (method is not applicable to this authentication type).</summary>
+        /// <returns><c>true</c> as is the expected behaviour for authentication types with no external identity provider.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
         public override bool IsExternalSessionActive(IfyWebContext context, HttpRequest request) {
             return true;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Authenticates the user.
-        /// </summary>
-        /// <returns>The user.</returns>
-        /// <param name="context">Context.</param>
-        /// <param name="username">Username.</param>
-        /// <param name="password">Password.</param>
+        /// <summary>Authenticates the user via the specified username and password.</summary>
+        /// <returns>An instance of User representing the authenticated user if the authentication was successful.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
         /// \xrefitem uml "UML" "UML Diagram"
         public User AuthenticateUser(IfyWebContext context, string username, string password) {
             if (!IsEnabled) throw new InvalidOperationException("Password authentication is not enabled");
@@ -364,6 +372,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Performs the background action for the password expiration check.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <remarks>
+        ///     The background agent action <em>Password expiration check</em> deactivates user accounts for which the password has not been set for longer than the password expiration time (see <see cref="PasswordExpireTime"/>.
+        ///     Users can still use their accounts after setting a new password.
+        /// </remarks>
         public static void ExecutePasswordExpirationCheck(IfyContext context) {
             if (context.DebugLevel >= 3) context.WriteDebug(3, "PasswordExpireTime seconds: " + passwordExpireTime);
 
@@ -386,22 +400,30 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
 
-    /// <summary>
-    /// Token authentication type.
-    /// </summary>
+    /// <summary>Defines settings for authentication via a secret token.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     public class TokenAuthenticationType : AuthenticationType {
 
+        /// <summary>Indicates that TokenAuthenticationType instances do not depend on an external identity provider.</summary>
+        /// <value>Always <c>false</c> for TokenAuthenticationType since in this case the Terradue.Portal installation acts as its own identity provider.</value>
         public override bool UsesExternalIdentityProvider {
             get { return false; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new TokenAuthenticationType instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         public TokenAuthenticationType(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Does nothing or throws an exception (method is not applicable to this authentication type).</summary>
+        /// <returns><c>null</c> if strict is <c>false</c>.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
+        /// <param name="strict">If set to <c>true</c> the method throws an exception since the user identity is not obtained from an HTTP request.</param>
         public override User GetUserProfile(IfyWebContext context, HttpRequest request, bool strict) {
             if (strict) throw new InvalidOperationException("Token authentication not possible without explicit initiation");
             return null;
@@ -409,21 +431,24 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Always returns true (method is not applicable to this authentication type).</summary>
+        /// <returns><c>true</c> as is the expected behaviour for authentication types with no external identity provider.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
         public override bool IsExternalSessionActive(IfyWebContext context, HttpRequest request) {
             return true;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Authenticates the user via the specified username and password.</summary>
+        /// <returns>An instance of User representing the authenticated user if the authentication was successful.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="token">The secret token (e.g. a UUID a user received via e-mail).</param>
         /// <summary>
-        /// Authenticates the user.
-        /// </summary>
-        /// <returns>The user.</returns>
-        /// <param name="context">Context.</param>
-        /// <param name="token">Token.</param>
         /// \xrefitem uml "UML" "UML Diagram"
         public User AuthenticateUser(IfyWebContext context, string token) {
-            if (token == null) throw new ArgumentNullException("No account key or token specified");
+            if (token == null) throw new ArgumentNullException("token", "No account key or token specified");
             int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
             if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
 
@@ -452,25 +477,33 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
 
 
-    /// <summary>
-    /// Certificate authentication type.
-    /// </summary>
+    /// <summary>Defines settings for authentication via a certificate subject.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     public class CertificateAuthenticationType : AuthenticationType {
 
+        /// <summary>Indicates that CertificateAuthenticationType instances do not depend on an external identity provider.</summary>
+        /// <value>Always <c>false</c> for CertificateAuthenticationType since in this case the Terradue.Portal installation acts as its own identity provider.</value>
         public override bool UsesExternalIdentityProvider {
             get { return false; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new CertificateAuthenticationType instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         public CertificateAuthenticationType(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Obtains the user information from the X509 certificate in the current HTTP request.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
+        /// <param name="strict">If set to <c>true</c> the method should never return null but throws always an exception even if the authentication type does not apply.</param>
+        /// <returns>An instance of User representing the user profile information or <c>null</c> if no such information is available.</returns>
         public override User GetUserProfile(IfyWebContext context, HttpRequest request, bool strict) {
             if (request == null || request.ClientCertificate == null) {
-                if (strict) throw new ArgumentNullException("Missing client certificate information");
+                if (strict) throw new ArgumentNullException("request", "Missing client certificate information");
                 return null;
             }
 
@@ -489,6 +522,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Always returns true (method is not applicable to this authentication type).</summary>
+        /// <returns><c>true</c> as is the expected behaviour for authentication types with no external identity provider.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
         public override bool IsExternalSessionActive(IfyWebContext context, HttpRequest request) {
             return true;
         }
@@ -503,34 +540,51 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Defines settings for one-time authentication that is valid only for the current request.</summary>
     public class SessionlessAuthenticationType : AuthenticationType {
 
+        /// <summary>Indicates that the SessionlessAuthenticationType instances do not support sessions.</summary>
+        /// <value>Always <c>false</c> for SessionlessAuthenticationType as the name suggests.</value>
         public override bool SupportsSessions {
-            get { return false; }
+            get {
+                return false;
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates that SessionlessAuthenticationType instances do not depend on an external identity provider.</summary>
+        /// <value>Always <c>false</c> for SessionlessAuthenticationType since in this case the Terradue.Portal installation acts as its own identity provider.</value>
         public override bool UsesExternalIdentityProvider {
             get { return false; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates that the user account information in the database has not to be updated after a new successful authentication.</summary>
+        /// <value>Always <c>false</c> for SessionlessAuthenticationType since there is usually no additional user infomation in the request.</value>
         public override bool AlwaysRefreshAccount {
             get { return false; }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new SessionlessAuthenticationType instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <remarks>The provided <c>IfyContext</c> is not used except for loading the information from the database, since instances of this class will be used within a static collection and other methods must use their own <c>IfyContext</c>.</remarks>
         public SessionlessAuthenticationType(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Obtains the user information from the current HTTP request.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
+        /// <param name="strict">If set to <c>true</c> the method should never return null but throws always an exception even if the authentication type does not apply.</param>
+        /// <returns>An instance of User representing the user profile information or <c>null</c> if no such information is available.</returns>
         public override User GetUserProfile(IfyWebContext context, HttpRequest request, bool strict) {
             if (!IsEnabled) throw new InvalidOperationException("Sessionless requests are not allowed");
 
-            if (request == null) throw new ArgumentNullException("Missing request information");
+            if (request == null) throw new ArgumentNullException("request", "Missing request information");
 
             string username = GetUsername(request);
 
@@ -553,6 +607,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Always returns false (method is not applicable to this authentication type).</summary>
+        /// <returns><c>false</c> unlike the expected behaviour for authentication types with no external identity provider (<c>true</c>) because SessionlessAuthenticationType instances do not support essions at all.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="request">The current HttpRequest to analyse.</param>
         public override bool IsExternalSessionActive(IfyWebContext context, HttpRequest request) {
             return false;
         }

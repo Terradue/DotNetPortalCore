@@ -86,9 +86,9 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new Group instance representing the group with the specified ID.</summary>
+        /// <summary>Creates a new Group instance representing the group with the specified database ID.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The group ID.</param>
+        /// <param name="id">The database ID of the group.</param>
         /// <returns>The created Group object.</returns>
         public static Group FromId(IfyContext context, int id) {
             Group result = new Group(context);
@@ -99,9 +99,9 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new Group instance representing the group with the specified name.</summary>
+        /// <summary>Creates a new Group instance representing the group with the specified identifier.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The group ID.</param>
+        /// <param name="identifier">The unique identifier of the group.</param>
         /// <returns>The created Group object.</returns>
         public static Group FromIdentifier(IfyContext context, string identifier) {
             Group result = new Group(context);

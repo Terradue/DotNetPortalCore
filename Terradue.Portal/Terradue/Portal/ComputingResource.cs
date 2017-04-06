@@ -48,8 +48,8 @@ namespace Terradue.Portal {
 
     /// <summary>Represents a computing resource that can be used for the processing of tasks.</summary>
     /// <remarks>
-    ///     <p>This is an abstract class that defines properties and methods to provide a common interface for all types of computing resources.</p>
-    ///     <p>The most important part of the defined members regard task- and job-related operations. Members of derived classes are usually not called directly by custom code, but by the core classes that the operation is performed on (e.g. <see cref="Terradue.Portal.Task"/> Task and <see cref="Terradue.Portal.Job"/>).</p>
+    ///     <para>This is an abstract class that defines properties and methods to provide a common interface for all types of computing resources.</para>
+    ///     <para>The most important part of the defined members regard task- and job-related operations. Members of derived classes are usually not called directly by custom code, but by the core classes that the operation is performed on (e.g. <see cref="Terradue.Portal.Task"/> Task and <see cref="Terradue.Portal.Job"/>).</para>
     /// </remarks>
     /// \ingroup ComputingResource
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -74,7 +74,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the computing resource is available to common users.</summary>
+        /// <summary>Indicates whether this computing resource is available to common users.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public bool IsAvailable { 
             get { return Availability == IfyContext.MaxUserLevel; } 
@@ -82,20 +82,22 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the description of the computing resource.</summary>
+        /// <summary>Gets the description of this computing resource.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("description")]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary>Gets the fully qualified DNS hostname for the computing resource.</summary>
+        /// <summary>Gets the fully qualified DNS hostname for this computing resource.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("hostname")]
         public string Hostname { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets a value indicating whether real-time capacity status information has to be requested every time for this compthis computing resource.</summary>
+        /// <remarks>If the value is <c>false</c>, capacity status information remains valid for as long as defined by <see cref="IfyContext.ComputingResourceStatusValidity"/> before an update is requested.</remarks>
         public bool ForceRefresh {
             get {
                 return forceRefresh; 
@@ -108,20 +110,20 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the URL of the icon used to represent the computing resource.</summary>
+        /// <summary>Gets or sets the URL of the icon used to represent this computing resource.</summary>
         [EntityDataField("icon_url")]
         public string IconUrl { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the maximum processing capacity of the computing resource.</summary>
+        /// <summary>Gets or sets the maximum processing capacity of this computing resource.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("capacity")]
         public int MaxCapacity { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the current total processing capacity of the computing resource.</summary>
+        /// <summary>Gets or sets the current total processing capacity of this computing resource.</summary>
         /// <remarks>The current capacity is usually the same as the total capacity</remarks>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityForeignField("total_nodes", STATE_TABLE)]
@@ -137,7 +139,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the free processing capacity of the computing resource.</summary>
+        /// <summary>Gets the free processing capacity of this computing resource.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityForeignField("free_nodes", STATE_TABLE)]
         public int FreeCapacity { 
@@ -152,12 +154,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the time when the capacity status information was last updated.</summary>
         [EntityForeignField("modified", STATE_TABLE)]
         public DateTime LastStatusUpdateTime { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the load of the computing resource in percent.</summary>
+        /// <summary>Gets the load of this computing resource in percent.</summary>
         public int LoadPercentage {
             get {
                 if (!Refreshed) GetStatus();
@@ -168,19 +171,19 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the computing resource has a credit control where credits are configured for each user.</summary>
+        /// <summary>Indicates whether this computing resource has a credit control where credits are configured for each user.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("credit_control")]
         public bool UserCreditControl { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the capacity status has been refreshed.</summary>
+        /// <summary>Indicates whether the capacity status information has been refreshed.</summary>
         public bool Refreshed { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the computing resource is able to monitor its own status.</summary>
+        /// <summary>Indicates whether this computing resource provides interfaces to monitor its capacity status.</summary>
         public abstract bool CanMonitorStatus { get; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -209,7 +212,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Returns an instance of a ComputingResource subclass representing the computing resource with the specified ID.</summary>
+        /// <summary>Returns an instance of a ComputingResource subclass representing the computing resource with the specified database ID.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="id">The database ID of the computing resource.</param>
         /// <returns>The created ComputingResource subclass instance.</returns>
@@ -254,6 +257,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Store this computing resource in the database.</summary>
         public override void Store() {
             if (Name == null) Name = Identifier;
             base.Store();
@@ -301,10 +305,10 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, obtains the status information for the computing resource.</summary>
+        /// <summary>In a derived class, obtains the status information for this computing resource.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         public virtual void GetStatus() {
-            if (ForceRefresh) return; 
+            if (ForceRefresh) return; // this method only gets the latest status information from the database, with ForceRefresh = true. the derived class obtains real-time status information
 
             DateTime LastModifiedTime = DateTime.MinValue;
             
@@ -323,7 +327,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, creates a representation of the specified task on the computing resource.</summary>
+        /// <summary>In a derived class, creates a representation of the specified task on this computing resource.</summary>
         /// <param name="task">The task to be created.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -331,7 +335,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, checks whether it is possible to start the execution of the specified task on the computing resource.</summary>
+        /// <summary>In a derived class, checks whether it is possible to start the execution of the specified task on this computing resource.</summary>
         /// <param name="task">The task to be started.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public virtual bool CanStartTask(Task task) {
@@ -341,7 +345,7 @@ namespace Terradue.Portal {
             double consumedUserCredits = context.GetQueryDoubleValue(String.Format("SELECT SUM(resources * priority) FROM task AS t WHERE t.id_cr={0} AND t.id_usr={1} AND t.id_cr={1} AND t.status=20;", Id, task.UserId));
             
             if (task.Cost > totalUserCredits - consumedUserCredits) {
-                context.AddError("The task cost exceeds the available credits on the computing resource");
+                context.AddError("The task cost exceeds the available credits on this computing resource");
                 return false;
             }
             return true;
@@ -349,7 +353,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, requests the the execution of the specified task on the computing resource.</summary>
+        /// <summary>In a derived class, requests the the execution of the specified task on this computing resource.</summary>
         /// <param name="task">The task to be started.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -357,7 +361,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, stops the execution of the specified task on the computing resource.</summary>
+        /// <summary>In a derived class, stops the execution of the specified task on this computing resource.</summary>
         /// <param name="task">The task to be stopped.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -365,7 +369,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, obtains status information of the specified job from the computing resource.</summary>
+        /// <summary>In a derived class, obtains status information of the specified job from this computing resource.</summary>
         /// <param name="task">The task to be queried.</param>
         /// <returns><c>true</c> if the status information was received correctly, <c>false</c> otherwise.</returns>
         /// <remarks>The status information must contain not only the status value, but also information such as results as soon as they are available.</remarks>
@@ -374,7 +378,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, destroys the representation of the specified task on the computing resource.</summary>
+        /// <summary>In a derived class, destroys the representation of the specified task on this computing resource.</summary>
         /// <param name="task">The task to be destroyed.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
@@ -382,63 +386,63 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, creates a representation of the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, creates a representation of the specified job on this computing resource.</summary>
         /// <param name="job">The job to be created.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool CreateJob(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, updates the information and parameters of the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, updates the information and parameters of the specified job on this computing resource.</summary>
         /// <param name="job">The job to be updated.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool UpdateJob(Job job);
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, starts or restarts the execution of the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, starts or restarts the execution of the specified job on this computing resource.</summary>
         /// <param name="job">The job to be started.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool StartJob(Job job);
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, suspends the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, suspends the specified job on this computing resource.</summary>
         /// <param name="job">The job to be suspended.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool SuspendJob(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, resumes the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, resumes the specified job on this computing resource.</summary>
         /// <param name="job">The job to be resumed.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool ResumeJob(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, stops the specified job on the computing resource.</summary>
+        /// <summary>In a derived class, stops the specified job on this computing resource.</summary>
         /// <param name="job">The job to be stopped.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool StopJob(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, requests the computing resource to accept the specified job as completed.</summary>
+        /// <summary>In a derived class, requests this computing resource to accept the specified job as completed.</summary>
         /// <param name="job">The job to be completed.</param>
         /// <returns><c>true</c> if the operation was successful, <c>false</c> otherwise.</returns>
         public abstract bool CompleteJob(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, obtains status information of the specified job from the computing resource.</summary>
+        /// <summary>In a derived class, obtains status information of the specified job from this computing resource.</summary>
         /// <param name="job">The job to be queried.</param>
         /// <returns><c>true</c> if the status information was received correctly, <c>false</c> otherwise.</returns>
         public abstract bool GetJobStatus(Job job);
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>In a derived class, obtains information on the results of the specified task from the computing resource.</summary>
+        /// <summary>In a derived class, obtains information on the results of the specified task from this computing resource.</summary>
         /// <param name="task">The task to be queried.</param>
         /// <returns><c>true</c> if the result information was received correctly, <c>false</c> otherwise.</returns>
         public abstract bool GetTaskResult(Task task);
@@ -452,9 +456,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Checks whether the computing resource is compatible with the specified service.</summary>
+        /// <summary>Checks whether this computing resource is compatible with the specified service.</summary>
         /// <param name="serviceId">The database ID of the service.</param>
-        /// <returns><c>true</c> if the computing resource is compatible with the service.</returns>
+        /// <returns><c>true</c> if this computing resource is compatible with the service.</returns>
         public bool CanBeUsedWithService(int serviceId) {
             return (context.GetQueryIntegerValue("SELECT COUNT(*) FROM service_cr WHERE id_service=" + serviceId + " AND id_cr=" + Id + ";") != 0);
         }
@@ -509,6 +513,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Writes to the specified XmlWriter opening the RDF container element for RDF document containing the task results.</summary>
+        /// <param name="output">The XmlWriter instance to write to.</param>
+        /// <remarks>This method is called by derived classes that prepare result RDF documents.</remarks>
         protected void StartRdfContainer(XmlWriter output) {
             output.WriteStartElement("rdf:RDF");
             WriteNamespaceDefinition(output, "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
@@ -532,12 +539,19 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Writes to the specified XmlWriter closing the RDF container element for RDF document containing the task results.</summary>
+        /// <param name="output">The XmlWriter instance to write to.</param>
+        /// <remarks>This method is called by derived classes that prepare result RDF documents.</remarks>
         protected void EndRdfContainer(XmlWriter output) {
             output.WriteEndElement();
         }
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Writes a namespace definition to the specified XmlWriter.</summary>
+        /// <param name="output">The XmlWriter instance to write to.</param>
+        /// <param name="prefix">The namespace prefix.</param>
+        /// <param name="ns">The namespace URI.</param>
         protected void WriteNamespaceDefinition(XmlWriter output, string prefix, string ns) {
             output.WriteAttributeString("xmlns", prefix, null, ns);
         }
@@ -560,6 +574,8 @@ namespace Terradue.Portal {
     /// \ingroup ComputingResource
     public class GenericComputingResource : ComputingResource {
         
+        /// <summary>Indicates that this computing resource provides no interface to monitor its capacity status.</summary>
+        /// <value>Always <c>false</c> for GenericComputingResource instances.</value>
         public override bool CanMonitorStatus {
             get { return false; }
         }

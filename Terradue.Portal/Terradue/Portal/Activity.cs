@@ -12,7 +12,7 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Activity</summary>
+    /// <summary>Represents an activity related to or performed on an item of an Entity subclass.</summary>
     /// <description>
     /// Activity class
     /// -> log activities made by users
@@ -34,13 +34,15 @@ namespace Terradue.Portal {
     [EntityTable("activity", EntityTableConfiguration.Custom, HasDomainReference = true)]
     public class Activity : EntitySearchable, IComparable<Activity> {
 
-        /// <summary>Gets the Entity Id</summary>
+        /// <summary>Gets or sets the database ID of the entity item.</summary>
         [EntityDataField("id_entity")]
         public int EntityId { get; set; }
 
+        /// <summary>Gets or sets the database ID of the entity item's owner.</summary>
         [EntityDataField("id_owner")]
         public new int OwnerId { get; set; }
 
+        /// <summary>Gets or sets the database ID of the user performing this activity.</summary>
         [EntityDataField("id_usr")]
         public new int UserId { get; set; }
 
@@ -60,16 +62,17 @@ namespace Terradue.Portal {
             }
         }
 
-        /// <summary>Gets the Entity Id</summary>
+        /// <summary>Gets or sets the unique identifier of the Entity item.</summary>
         [EntityDataField("identifier_entity")]
         public string EntityIdentifier { get; set; }
 
-        /// <summary>Gets the Privilege Id</summary>
+        /// <summary>Gets or sets the database ID of the privilege that applies to this activity.</summary>
         [EntityDataField("id_priv")]
         public int PrivilegeId { get; set; }
 
         private Privilege priv;
-        /// <summary>Gets or sets the privilege.</summary>
+
+        /// <summary>Gets or sets the privilege that applies to this activity.</summary>
         public Privilege Privilege {
             get {
                 if (priv == null && PrivilegeId != 0) {
@@ -85,11 +88,13 @@ namespace Terradue.Portal {
             }
         }
 
-        /// <summary>Gets the Entity Type Id</summary>
+        /// <summary>Gets or sets the database ID of the entity type of the item used by activity.</summary>
         [EntityDataField("id_type")]
         public int EntityTypeId { get; protected set; }
 
         private EntityType entityType;
+
+        /// <summary>Gets or sets the entity type of the item used by activity.</summary>
         public EntityType ActivityEntityType {
             get {
                 if (entityType == null && this.EntityTypeId != 0) {
@@ -110,10 +115,8 @@ namespace Terradue.Portal {
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
-        /// </summary>
-        /// <param name="context">Context.</param>
+        /// <summary>Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.</summary>
+        /// <param name="context">The execution environment context.</param>
         public Activity(IfyContext context) : base(context) { }
 
         public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {
@@ -141,12 +144,10 @@ namespace Terradue.Portal {
             this.OwnerId = entity.OwnerId;
         }
 
-        /// <summary>
-        /// Froms the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
-        /// <param name="context">Context.</param>
-        /// <param name="id">Identifier.</param>
+        /// <summary>Creates a new Activity instance representing the activity with the specified database ID.</summary>
+        /// <returns>The created Activity object.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="id">The database ID of the activity.</param>
         public static Activity FromId(IfyContext context, int id) {
             Activity result = new Activity(context);
             result.Id = id;
@@ -154,13 +155,11 @@ namespace Terradue.Portal {
             return result;
         }
 
-        /// <summary>
-        /// Froms the entity and privilege.
-        /// </summary>
-        /// <returns>The entity and privilege.</returns>
-        /// <param name="context">Context.</param>
-        /// <param name="entity">Entity.</param>
-        /// <param name="operation">Operation.</param>
+        /// <summary>Creates a new Activity instance representing an existing activity with the specified entity and operation.</summary>
+        /// <returns>The created Activity object.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entity">The entity to which the activity relates.</param>
+        /// <param name="operation">The operation performed on the entity.</param>
         public static Activity FromEntityAndPrivilege(IfyContext context, Entity entity, EntityOperationType operation) {
             var etype = EntityType.GetEntityType(entity.GetType());
             var priv = Privilege.Get(EntityType.GetEntityTypeFromId(etype.Id), Privilege.GetOperationType(((char)operation).ToString()));
@@ -172,6 +171,8 @@ namespace Terradue.Portal {
             return result;
         }
 
+        /// <summary>Returns an SQL conditional expression to select an activity item based on property values of this activity.</summary>
+        /// <returns>The SQL conditional expression corresponding to the property values.</returns>
         public override string GetIdentifyingConditionSql() {
             if (Entity != null && Privilege != null) {
                 if (EntityTypeId == 0) EntityTypeId = EntityType.GetEntityType(Entity.GetType()).Id;
@@ -180,12 +181,10 @@ namespace Terradue.Portal {
             return null;
         }
 
-        /// <summary>
-        /// Fors the user.
-        /// </summary>
-        /// <returns>The user.</returns>
-        /// <param name="context">Context.</param>
-        /// <param name="usrId">Usr identifier.</param>
+        /// <summary>Loads the activities for the specified user.</summary>
+        /// <returns>An EntityList<Activity> object containing the activities of the user.</returns>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="usrId">The database ID of the user.</param>
         public static EntityList<Activity> ForUser(IfyContext context, int usrId) {
             EntityList<Activity> results = new EntityList<Activity>(context);
             results.Template.UserId = usrId;
@@ -193,9 +192,7 @@ namespace Terradue.Portal {
             return results;
         }
 
-        /// <summary>
-        /// Store this instance.
-        /// </summary>
+        /// <summary>Store this activity in the database.</summary>
         public override void Store() {
 
             context.LogDebug(this, string.Format("Storing activity: {0},{1},{2},{3}", this.context.UserId, this.PrivilegeId, this.EntityTypeId, (this.Privilege != null ? this.Privilege.EnableLog.ToString() : "null")));

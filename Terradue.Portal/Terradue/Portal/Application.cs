@@ -10,7 +10,7 @@ using Terradue.Util;
 
 namespace Terradue.Portal {
 
-    /// <summary>Represents an external application of an Ify installation, such as a web service.</summary>
+    /// <summary>Represents an external application of a portal based on Terradue.Portal, such as a web service.</summary>
     [EntityTable("application", EntityTableConfiguration.Full)]
     public class Application : Entity {
         
@@ -18,51 +18,50 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Indicates whether the application is available.
+        /// <summary>Indicates or decides whether this application is available for users.</summary>
         [EntityDataField("available")]
-        public bool Available { get; protected set; }
+        public bool Available { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Gets the location of the application configuration file.
+        /// <summary>Gets or sets the location of the configuration file for this application.</summary>
         [EntityDataField("config_file")]
-        public string ConfigurationFilename { get; protected set; }
+        public string ConfigurationFilename { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Gets the log level of the application.
-        public int LogLevel { get; protected set; } 
+        /// <summary>Gets or sets the log level for this application.</summary>
+        /// <remarks>Values are <c>0</c> for no logging, <c>1</c> for errors, <c>2</c> for errors and warnings, <c>3</c> for errors, warnings and information messages.</remarks>
+        public int LogLevel { get; set; } 
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Gets the location of the application log file.
-        public string LogFilename { get; protected set; }
+        /// <summary>Gets or sets the location of the log file for this application.</summary>
+        public string LogFilename { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Gets the debug level of the application.
-        public int DebugLevel { get; protected set; }
+        /// <summary>Gets or sets the debug level for this application.</summary>
+        /// <remarks>Values can range from <c>0</c> to <c>3</c>, with <c>3</c> for most detailed debug messages.</remarks>
+        public int DebugLevel { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        // Gets the location of the application debug log file.
-        public string DebugFilename { get; protected set; }
+        /// <summary>Gets or sets the location of the debug file for this application.</summary>
+        public string DebugFilename { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new Application instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        */
+        
         public Application(IfyContext context) : base(context) {}
         
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Creates a new Application instance.</summary>
-        /*!
         /// <param name="context">The execution environment context.</param>
-        /// <returns>the created Application object</returns>
-        */
+        /// <returns>The created Application object.</returns>
         public static Application GetInstance(IfyContext context) {
             EntityType entityType = EntityType.GetEntityType(typeof(Application));
             return (Application)entityType.GetEntityInstance(context); 
@@ -70,12 +69,10 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new Application instance representing the application with the specified ID.</summary>
-        /*!
+        /// <summary>Creates a new Application instance representing the application with the specified database ID.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">the application ID</param>
-        /// <returns>the created Application object</returns>
-        */
+        /// <param name="id">The database ID of the application.</param>
+        /// <returns>The created Application object.</returns>
         public static Application FromId(IfyContext context, int id) {
             Application result = GetInstance(context);
             result.Id = id;
@@ -85,12 +82,10 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new Application instance representing the application with the specified unique name.</summary>
-        /*!
+        /// <summary>Creates a new Application instance representing the application with the specified unique identifier.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="name">the unique application name</param>
-        /// <returns>the created Application object</returns>
-        */
+        /// <param name="identifier">The unique identifier of the application.</param>
+        /// <returns>The created Application object.</returns>
         public static Application FromIdentifier(IfyContext context, string identifier) {
             Application result = GetInstance(context);
             result.Identifier = identifier;
@@ -112,7 +107,9 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Reads a the configuration file of the application.</summary>
+        /// <summary>Obtains information bout a task template from the configuration file.</summary>
+        /// <returns>A TaskTemplate instance matching the specified template name.</returns>
+        /// <param name="templateName">The name of the TaskTemplate to be returned.</param>
         public TaskTemplate ReadConfigurationFile(string templateName) {
             if (ConfigurationFilename == null || !File.Exists(ConfigurationFilename)) throw new FileNotFoundException("Application configuration file not defined or not found", ConfigurationFilename);
 
@@ -190,27 +187,27 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the unique identifier of the task template.</summary>
+        /// <summary>Gets or sets (protected) the unique identifier of the task template.</summary>
         public string Identifier { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the version of the task template.</summary>
+        /// <summary>Gets or sets (protected) the version of the task template.</summary>
         public string Version { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the task template is available and accepts requests.</summary>
+        /// <summary>Indicates or decides (protected) whether the task template is available and accepts requests.</summary>
         public bool Available { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the name of the service on which the task template is based.</summary>
+        /// <summary>Gets or sets (protected) the name of the service on which the task template is based.</summary>
         public string ServiceIdentifier { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the service on which the task template is based.</summary>
+        /// <summary>Gets or sets (protected) the service on which the task template is based.</summary>
         public Service Service {
             get {
                 if (service == null && ServiceIdentifier != null) service = Service.FromIdentifier(context, ServiceIdentifier);
@@ -221,47 +218,49 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the task template caption or title.</summary>
+        /// <summary>Gets or sets (protected) the task template caption or title.</summary>
         public string Name { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the task template description or abstract.</summary>
+        /// <summary>Gets or sets (protected) the task template description or abstract.</summary>
         public string Description { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the maximum priority for tasks defined by the task template.</summary>
+        /// <summary>Gets or sets (protected) the maximum priority for tasks defined by the task template.</summary>
         public double MaxPriority { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Indicates whether the submission of tasks defined by the template can be postponed if it is not possible immediately.</summary>
-        /*!
-            If the value is set to <i>true</i>, task submissions fail in case of insufficient credits or Computing Elelement unavailability.
-        */
+        /// <summary>Indicates or decides (protected) whether the submission of tasks defined by the template can be postponed if it is not possible immediately.</summary>
+        // <remarks>If the value is set to <i>true</i>, task submissions fail in case of insufficient credits or Computing Elelement unavailability.</remarks>
         public bool AllowPending { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides (protected) whether this task tamplate allows the explicit specification of input files.</summary>
         public bool AllowInputFilesParameter { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides (protected) whether for this task tamplate the explicit specification of input files is mandatory.</summary>
         public bool ForceInputFilesParameter { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the default parameter values for tasks defined by the template.</summary>
+        /// <summary>Gets or sets (protected) the default parameter values for tasks defined by the template.</summary>
         public RequestParameterCollection DefaultParameters { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the unchangeable parameter values for tasks defined by the template.</summary>
+        /// <summary>Gets or sets (protected) the unchangeable parameter values for tasks defined by the template.</summary>
         public RequestParameterCollection FixedParameters { get; protected set; }
         
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Creates a new TaskTemplate instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         protected TaskTemplate(IfyContext context) {
             this.context = context;
             DefaultParameters = new RequestParameterCollection();
@@ -270,6 +269,16 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
+        public static TaskTemplate FromXml(IfyContext context, XmlElement templateElem) {
+            TaskTemplate result = new TaskTemplate(context);
+            result.LoadFromXml(templateElem);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
+        /// <summary>Loads the template information from the specified XML Element.</summary>
+        /// <param name="templateElem">The XML element descriping the task template.</param>
         protected void LoadFromXml(XmlElement templateElem) {
             AllowPending = true;
             if (!templateElem.HasAttribute("name")) throw new Exception("Template without name found in configuration file");
@@ -322,6 +331,8 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Resets this TaskTemplate instance and loads the template information from the specified XML Element.</summary>
+        /// <param name="templateElem">The XML element descriping the task template.</param>
         public void LoadNewFromXml(XmlElement templateElem) {
             Name = null;
             Description = null;
@@ -331,13 +342,6 @@ namespace Terradue.Portal {
             LoadFromXml(templateElem);
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
-        
-        public static TaskTemplate FromXml(IfyContext context, XmlElement templateElem) {
-            TaskTemplate result = new TaskTemplate(context);
-            result.LoadFromXml(templateElem);
-            return result;
-        }
     }
 
 }
