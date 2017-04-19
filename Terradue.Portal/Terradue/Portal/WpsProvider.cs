@@ -317,6 +317,15 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProvider"/> synchronize automatically.
+        /// </summary>
+        /// <value><c>true</c> if auto sync; otherwise, <c>false</c>.</value>
+        [EntityDataField("autosync")]
+        public bool AutoSync { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Specify if the provider is a sandbox or is operational.
         /// </summary>
         public bool IsSandbox;

@@ -1,4 +1,4 @@
--- VERSION 2.7.8
+-- VERSION 2.7.9
 
 USE $MAIN$;
 
@@ -1617,6 +1617,7 @@ CREATE TABLE wpsprovider (
     url varchar(100) COMMENT 'Base WPS access point',
     proxy boolean NOT NULL DEFAULT false COMMENT 'If true, wps is proxied',
     contact varchar(200) COMMENT 'WPS contact point (link or email)',
+    autosync boolean NOT NULL DEFAULT false COMMENT 'If true, wps is automatically synchronized',
     CONSTRAINT pk_wpsprovider PRIMARY KEY (id),
     CONSTRAINT fk_wpsprovider_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Web Processing Service (WPS) providers';
