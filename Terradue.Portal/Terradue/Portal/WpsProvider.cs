@@ -500,7 +500,11 @@ namespace Terradue.Portal {
             }
         }
 
-        public void UpdateProcessOfferings() {
+        /// <summary>
+        /// Updates the process offerings.
+        /// </summary>
+        /// <param name="setAsAvailable">If set to <c>true</c> set as available.</param>
+        public void UpdateProcessOfferings(bool setAsAvailable = false) {
             List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
@@ -518,8 +522,10 @@ namespace Terradue.Portal {
                     }
                 }
                 // if pR not in pDB -> we add pR (store in DB)
-                if (!existsPrInDb) 
-                    pR.Store(); 
+                if (!existsPrInDb) {
+                    pR.Available = setAsAvailable;
+                    pR.Store();
+                }
             }
 
             foreach (WpsProcessOffering pDB in dbProcesses) {
