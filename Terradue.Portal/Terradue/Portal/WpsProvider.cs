@@ -524,6 +524,7 @@ namespace Terradue.Portal {
                 // if pR not in pDB -> we add pR (store in DB)
                 if (!existsPrInDb) {
                     pR.Available = setAsAvailable;
+                    pR.DomainId = this.DomainId;
                     pR.Store();
                 }
             }
