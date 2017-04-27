@@ -32,9 +32,13 @@ namespace Terradue.Portal.OpenSearch {
         public virtual KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "uid":
-                return new KeyValuePair<string, string>("Identifier", value);
+                if(!string.IsNullOrEmpty(value))
+                    return new KeyValuePair<string, string>("Identifier", value);
+                else return new KeyValuePair<string, string>();
             case "id":
-                return new KeyValuePair<string, string>("Identifier", value);
+                if (!string.IsNullOrEmpty(value))
+                    return new KeyValuePair<string, string>("Identifier", value);
+                else return new KeyValuePair<string, string>();
             default:
                 return new KeyValuePair<string, string>();
             }
