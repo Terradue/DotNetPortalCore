@@ -429,9 +429,10 @@ namespace Terradue.Portal {
             parameters.Add("id", "{geo:uid?}");
             parameters.Add("wpsUrl", "{ows:url?}");
             parameters.Add("pid", "{ows:id?}");
-            parameters.Add ("sandbox", "{t2:sandbox?}");
-            parameters.Add ("hostname", "{t2:hostname?}");
-            parameters.Add ("tag", "{t2:tag?}");
+            parameters.Add ("sandbox", "{t2:cloudsandbox?}");
+            parameters.Add ("cloud", "{t2:cloud?}");
+            parameters.Add ("hostname", "{t2:cloudhostname?}");
+            parameters.Add ("tag", "{t2:cloudtag?}");
             return parameters;
         }
 
