@@ -566,7 +566,7 @@ namespace Terradue.Portal {
                 if (activationToken == null) CreateActivationToken();
             }
 
-            var baseurl = !string.IsNullOrEmpty(webContext.BaseUrl) ? webContext.BaseUrl : webContext.GetConfigValue ("BaseUrl");
+            var baseurl = webContext.GetConfigValue ("BaseUrl");
 
             // activationToken also used here to avoid endless nested replacements
             subject = subject.Replace("$(SITENAME)", context.SiteName);
