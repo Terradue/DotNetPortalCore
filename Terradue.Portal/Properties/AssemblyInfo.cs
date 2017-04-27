@@ -4,7 +4,7 @@
 @{
     Terradue.Portal is a low level library that provides with the core entities and interfaces for a CMS
 
-    \xrefitem sw_version "Versions" "Software Package Version" 2.7.15
+    \xrefitem sw_version "Versions" "Software Package Version" 2.7.16
 
     \xrefitem sw_link "Links" "Software Package List" [Terradue.Portal](https://git.terradue.com/sugar/terradue-portal)
 
@@ -34,6 +34,6 @@ using NuGet4Mono.Extensions;
 [assembly: AssemblyLicenseUrl("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("2.7.15")]
-[assembly: AssemblyInformationalVersion("2.7.15")]
+[assembly: AssemblyVersion("2.7.16")]
+[assembly: AssemblyInformationalVersion("2.7.16")]
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
