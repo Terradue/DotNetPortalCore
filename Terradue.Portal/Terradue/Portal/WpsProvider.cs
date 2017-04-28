@@ -568,7 +568,7 @@ namespace Terradue.Portal {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
-                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
@@ -607,7 +607,7 @@ namespace Terradue.Portal {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
                             result = response.ProcessDescription [0];
-                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
