@@ -512,13 +512,17 @@ namespace Terradue.Portal {
                 bool existsPrInDb = false;
                 foreach(WpsProcessOffering pDB in dbProcesses) {
                     // if pDB in pR -> we update pDB with pR
-                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier)) {
-                        existsPrInDb = true;
-                        pDB.Name = pR.Name;
-                        pDB.Description = pR.Description;
-                        pDB.Version = pR.Version;
-                        pDB.Store();
-                        break;
+                    try {
+                        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier)) {
+                            existsPrInDb = true;
+                            pDB.Name = pR.Name;
+                            pDB.Description = pR.Description;
+                            pDB.Version = pR.Version;
+                            pDB.Store();
+                            break;
+                        }
+                    } catch (Exception e) {
+                        context.LogError(this, e.Message);
                     }
                 }
                 // if pR not in pDB -> we add pR (store in DB)
@@ -529,16 +533,16 @@ namespace Terradue.Portal {
                 }
             }
 
-            foreach (WpsProcessOffering pDB in dbProcesses) {
-                bool existsPdbInPr = false;
-                foreach (WpsProcessOffering pR in remoteProcesses) {
-                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
-                        existsPdbInPr = true;
-                }
-                // if pDb not in pR -> we remove pDb
-                if (!existsPdbInPr)
-                    pDB.Delete();
-            }
+            //foreach (WpsProcessOffering pDB in dbProcesses) {
+            //    bool existsPdbInPr = false;
+            //    foreach (WpsProcessOffering pR in remoteProcesses) {
+            //        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
+            //            existsPdbInPr = true;
+            //    }
+            //    // if pDb not in pR -> we remove pDb
+            //    if (!existsPdbInPr)
+            //        pDB.Delete();
+            //}
         }
 
         //---------------------------------------------------------------------------------------------------------------------
