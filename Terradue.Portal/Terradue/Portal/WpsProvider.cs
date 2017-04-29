@@ -512,13 +512,17 @@ namespace Terradue.Portal {
                 bool existsPrInDb = false;
                 foreach(WpsProcessOffering pDB in dbProcesses) {
                     // if pDB in pR -> we update pDB with pR
-                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier)) {
-                        existsPrInDb = true;
-                        pDB.Name = pR.Name;
-                        pDB.Description = pR.Description;
-                        pDB.Version = pR.Version;
-                        pDB.Store();
-                        break;
+                    try {
+                        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier)) {
+                            existsPrInDb = true;
+                            pDB.Name = pR.Name;
+                            pDB.Description = pR.Description;
+                            pDB.Version = pR.Version;
+                            pDB.Store();
+                            break;
+                        }
+                    } catch (Exception e) {
+                        context.LogError(this, e.Message);
                     }
                 }
                 // if pR not in pDB -> we add pR (store in DB)
@@ -529,16 +533,16 @@ namespace Terradue.Portal {
                 }
             }
 
-            foreach (WpsProcessOffering pDB in dbProcesses) {
-                bool existsPdbInPr = false;
-                foreach (WpsProcessOffering pR in remoteProcesses) {
-                    if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
-                        existsPdbInPr = true;
-                }
-                // if pDb not in pR -> we remove pDb
-                if (!existsPdbInPr)
-                    pDB.Delete();
-            }
+            //foreach (WpsProcessOffering pDB in dbProcesses) {
+            //    bool existsPdbInPr = false;
+            //    foreach (WpsProcessOffering pR in remoteProcesses) {
+            //        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
+            //            existsPdbInPr = true;
+            //    }
+            //    // if pDb not in pR -> we remove pDb
+            //    if (!existsPdbInPr)
+            //        pDB.Delete();
+            //}
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -568,7 +572,7 @@ namespace Terradue.Portal {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
-                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
@@ -607,7 +611,7 @@ namespace Terradue.Portal {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
                             result = response.ProcessDescription [0];
-                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (12) });
+                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
@@ -759,7 +763,7 @@ namespace Terradue.Portal {
             request = (HttpWebRequest)WebRequest.Create (url);
             request.Proxy = null;
             request.Method = "GET";
-            request.Timeout = 5000;
+            request.Timeout = 10000;
 
             log.DebugFormat ("CreateWebRequest '{0}'", url);
 
