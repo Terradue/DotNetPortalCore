@@ -763,7 +763,7 @@ namespace Terradue.Portal {
             request = (HttpWebRequest)WebRequest.Create (url);
             request.Proxy = null;
             request.Method = "GET";
-            request.Timeout = 5000;
+            request.Timeout = 10000;
 
             log.DebugFormat ("CreateWebRequest '{0}'", url);
 
