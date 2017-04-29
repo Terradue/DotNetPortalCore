@@ -242,6 +242,7 @@ namespace Terradue.Portal {
                 execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
                 return execResponse;
             } catch (WebException we){
+                if (we.Response == null) throw new Exception(we.Message);
                 using (WebResponse response = we.Response){
                     using (var httpResponse = (HttpWebResponse)response){
                         using (var stream = httpResponse.GetResponseStream ()){
@@ -249,8 +250,8 @@ namespace Terradue.Portal {
                         }
                         log.Debug ("Execute response code : " + httpResponse.StatusCode);
                     }
-                    return ExecuteError(memStream);
                 }
+                return ExecuteError(memStream);
             } catch (InvalidOperationException ioe) {
                 log.Error("InvalidOperationException : " + ioe.Message + " - " + ioe.StackTrace);
                 //bug 52 NORTH - to be removed once AIR updated
