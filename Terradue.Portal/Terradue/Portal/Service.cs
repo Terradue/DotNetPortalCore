@@ -677,6 +677,18 @@ namespace Terradue.Portal {
             }
         }
 
+        #region IEntitySearchable implementation
+        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+            case "tag":
+                return new KeyValuePair<string, string>("Tags", '*' + value + '*');
+            default:
+                return base.GetFilterForParameter(parameter, value);
+            }
+        }
+
+        #endregion
+
         #region IAtomizable implementation
 
         public bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters)
