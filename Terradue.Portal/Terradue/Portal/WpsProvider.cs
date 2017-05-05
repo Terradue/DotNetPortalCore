@@ -504,8 +504,8 @@ namespace Terradue.Portal {
         /// Updates the process offerings.
         /// </summary>
         /// <param name="setAsAvailable">If set to <c>true</c> set as available.</param>
-        public void UpdateProcessOfferings(bool setAsAvailable = false) {
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true);
+        public void UpdateProcessOfferings(bool setAsAvailable = false, string username = null) {
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, username);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
@@ -552,14 +552,14 @@ namespace Terradue.Portal {
         /// </summary>
         /// <returns>GetCapabilities.</returns>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public WPSCapabilitiesType GetWPSCapabilities() {
+        public WPSCapabilitiesType GetWPSCapabilities(string username = null) {
 
             if (string.IsNullOrEmpty (BaseUrl)) throw new Exception("Cannot GetCapabilities, baseUrl of WPS is null");
 
             var uri = new UriBuilder (BaseUrl);
             //in case complete url is not set
             if(!BaseUrl.ToLower().Contains("getcapabilities")) uri.Query = "Service=WPS&Request=GetCapabilities&Version=1.0.0";
-            var getCapUrl = uri.Uri.AbsoluteUri;
+            var getCapUrl = uri.Uri.AbsoluteUri + (!string.IsNullOrEmpty(username) ? "_"+username : "");
             context.LogDebug (this, "GetWPSCapabilities -- url = " + getCapUrl);
 
             WPSCapabilitiesType response = null;
@@ -567,7 +567,8 @@ namespace Terradue.Portal {
             if (cacheItem != null && CanCache) {
                 response = (WPSCapabilitiesType)cacheItem.Value;
             } else {
-                HttpWebRequest request = CreateWebRequest (getCapUrl);
+                HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
+                if(!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
@@ -589,7 +590,7 @@ namespace Terradue.Portal {
         /// <returns>The WPS describe process from URL.</returns>
         /// <param name="url">URL.</param>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public ProcessDescriptionType GetWPSDescribeProcess(string identifier, string processVersion) {
+        public ProcessDescriptionType GetWPSDescribeProcess(string identifier, string processVersion, string username = null) {
 
             if (string.IsNullOrEmpty(BaseUrl)) throw new Exception("Cannot get DescribeProcess, baseUrl of WPS is null");
 
@@ -606,6 +607,7 @@ namespace Terradue.Portal {
                 result = (ProcessDescriptionType)cacheItem.Value;
             } else {
                 HttpWebRequest request = CreateWebRequest (descPUrl);
+                if (!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
@@ -630,9 +632,9 @@ namespace Terradue.Portal {
         /// <returns>The wps process offerings from URL.</returns>
         /// <param name="baseurl">Baseurl.</param>
         /// <param name="updateProviderInfo">If set to <c>true</c> update provider info.</param>
-        public List<WpsProcessOffering> GetWpsProcessOfferingsFromRemote(bool updateProviderInfo = false) {
+        public List<WpsProcessOffering> GetWpsProcessOfferingsFromRemote(bool updateProviderInfo = false, string username = null) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
-            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilities();
+            OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilities(username);
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
             string url = "";
             foreach (Operation operation in operations) {
@@ -659,7 +661,7 @@ namespace Terradue.Portal {
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
                     try{
-                        ProcessDescriptionType describeProcess = GetWPSDescribeProcess(wpsProcess.RemoteIdentifier, process.processVersion);
+                        ProcessDescriptionType describeProcess = GetWPSDescribeProcess(wpsProcess.RemoteIdentifier, process.processVersion, username);
                         wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
                     }catch(Exception e){
                     }
