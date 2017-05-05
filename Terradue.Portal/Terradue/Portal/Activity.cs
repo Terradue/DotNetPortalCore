@@ -115,18 +115,21 @@ namespace Terradue.Portal {
         [EntityDataField("log_time")]
         public DateTime CreationTime { get; protected set; }
 
-        /// <summary>Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.</summary>
+        /// <summary>Creates a new Activity instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Activity(IfyContext context) : base(context) { }
 
+        /// <summary>Creates a new Activity instance.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="entity">The entity to which the activity relates.</param>
+        /// <param name="operation">The operation performed on the entity.</param>
         public Activity(IfyContext context, Entity entity, EntityOperationType operation) : this(context, entity, ((char)operation).ToString()) {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Terradue.Portal.Activity"/> class.
-        /// </summary>
-        /// <param name="context">Context.</param>
+        /// <summary>Creates a new Activity instance.</summary>
+        /// <param name="context">The execution environment context.</param>
         /// <param name="entity">Entity.</param>
+        /// <param name="operation">The name of the operation performed on the entity.</param>
         public Activity(IfyContext context, Entity entity, string operation) : base(context) {
             if (entity != null) {
                 try {

@@ -17,8 +17,13 @@ namespace Terradue.Portal {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class EntityTableAttribute : System.Attribute {
         
+        /// <summary>The default name of the database ID field: <c>id</c>.</summary>
         public const string DefaultIdFieldName = "id";
+
+        /// <summary>The default name of the unique identifier field: <c>identifier</c>.</summary>
         public const string DefaultIdentifierFieldName = "identifier";
+
+        /// <summary>The default name of the human-readable name field: <c>name</c>.</summary>
         public const string DefaultNameFieldName = "name";
 
         private bool autoCheckIdentifiers = true;
@@ -198,6 +203,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether entity items of the related type can have nested data.</summary>
         public bool HasNestedData { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -209,10 +215,12 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the relative position of the class that is responsible for the storage of the property values.</summary>
         public EntityTableStorage Storage { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the relative position of the class that is responsible for the storage of the property values.</summary>
         public string ReferringItemField { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
