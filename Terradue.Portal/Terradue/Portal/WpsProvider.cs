@@ -504,8 +504,8 @@ namespace Terradue.Portal {
         /// Updates the process offerings.
         /// </summary>
         /// <param name="setAsAvailable">If set to <c>true</c> set as available.</param>
-        public void UpdateProcessOfferings(bool setAsAvailable = false, string username = null) {
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, username);
+        public void UpdateProcessOfferings(bool setAsAvailable = false, User owner = null) {
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, owner != null ? owner.Username : null);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
@@ -529,6 +529,7 @@ namespace Terradue.Portal {
                 if (!existsPrInDb) {
                     pR.Available = setAsAvailable;
                     pR.DomainId = this.DomainId;
+                    if (owner != null) pR.OwnerId = owner.Id;
                     pR.Store();
                 }
             }
