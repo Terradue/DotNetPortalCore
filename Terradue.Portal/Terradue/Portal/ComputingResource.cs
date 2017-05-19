@@ -568,8 +568,8 @@ namespace Terradue.Portal {
 
     /// <summary>Empty implementation of ComputingResource.</summary>
     /// <remarks>
-    ///     <p>This class is only used when a generic instance derived from the abstract ComputingResource class is needed in order to combine different types of computing resources (e.g. for producing an item list).</p>
-    ///     <p>It provides only the functionality inherited from the superclasses of ComputingResource (e.g. Entity) but no functionality of a real computing resource.</p>
+    ///     <para>This class is only used when a generic instance derived from the abstract ComputingResource class is needed in order to combine different types of computing resources (e.g. for producing an item list).</para>
+    ///     <para>It only implements the abstract members inherited from the ComputingResource and its superclass (Entity), but no functionality of a real computing resource.</para>
     /// </remarks>
     /// \ingroup ComputingResource
     public class GenericComputingResource : ComputingResource {

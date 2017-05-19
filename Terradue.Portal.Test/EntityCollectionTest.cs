@@ -205,6 +205,12 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd.Count);
             Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id));
 
+            EntityList<WpsProcessOffering> el = new EntityList<WpsProcessOffering>(context);
+            el.SearchKeyword = "bla";
+            context.ConsoleDebug = true;
+            el.Load();
+
+
         }
 
         [Test]

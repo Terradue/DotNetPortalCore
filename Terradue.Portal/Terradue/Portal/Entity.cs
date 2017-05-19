@@ -376,7 +376,7 @@ namespace Terradue.Portal {
             else if (entityType.TopTable.HasIdentifierField && Identifier != null) condition = String.Format("t.{0}={1}", entityType.TopTable.IdentifierField, StringUtils.EscapeSql(Identifier));
             //else if (!entityType.TopTable.HasAutomaticIds) condition = String.Format("t.{0}={1}", entityType.TopTable.IdField, Id);
             else condition = GetIdentifyingConditionSql();
-            if (condition == null) throw new EntityNotAvailableException("No identifying attribute specified for item");
+            if (condition == null) throw new EntityNotFoundException("No identifying attribute specified for item");
 
             // Do not restrict query (a single item is requested)
             //EntityQueryMode queryMode = context.AdminMode ? EntityQueryMode.Administrator : EntityQueryMode.Unrestricted;
@@ -555,7 +555,6 @@ namespace Terradue.Portal {
         /// <param name="entityRelationshipType">Entity relationship type.</param>
         /// <param name="referringItem">Referring item.</param>
         public virtual void Store(EntityRelationshipType entityRelationshipType, Entity referringItem) {*/
-            //EntityType entityType = (entityRelationshipType == null ? this.EntityType : entityRelationshipType);
             EntityType entityType = this.EntityType;
             bool hasAutoStoreFields = false;
             
@@ -1071,7 +1070,7 @@ namespace Terradue.Portal {
         /// <summary>Sets permissions on resources for a single user.</summary>
         /// <remarks>This method allows managing permissions from a single user's point of view: one user has permissions on several resources.</remarks>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="userId">The ID of the user for which permissions on entity items are provided.</param>
+        /// <param name="userId">The ID of the user to which permissions on entity items are granted.</param>
         /// <param name="items">An array containing the Entity instances with the permission values set according to the user's actual permissions.</param>
         /// <param name="removeOthers">Determines whether permission settings for other resources not contained in <c>items</c> are removed.</param>
         public static void GrantPermissionsToUser(IfyContext context, int userId, Entity[] items, bool removeOthers) {
@@ -1088,7 +1087,7 @@ namespace Terradue.Portal {
         /// <summary>Sets permissions on resources for a single group.</summary>
         /// <remarks>This method allows managing permissions from a single group's point of view: one group has permissions on several resources.</remarks>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="groupId">The ID of the group for which permissions on entity items are provided.</param>
+        /// <param name="groupId">The ID of the group to which permissions on entity items are granted.</param>
         /// <param name="items">An array containing the Entity instances with the permission values set according to the group's actual permissions.</param>
         /// <param name="removeOthers">Determines whether permission settings for other resources not contained in <c>items</c> are removed.</param>
         public static void GrantPermissionsToGroup(IfyContext context, int groupId, Entity[] items, bool removeOthers) {
@@ -1102,8 +1101,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
         
-        /// <summary></summary>
-        /// <remarks></remarks>
+        /// <summary>Sets permissions on resources for a single group.</summary>
+        /// <remarks>This method allows managing permissions from a single group's point of view: one group has permissions on several resources.</remarks>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given ID as group ID, otherwise as user IDs.</param>
+        /// <param name="id">The database ID of the user or group to which permissions on entity items are granted.</param>
+        /// <param name="items">An array containing the Entity instances with the permission values set according to the group's actual permissions.</param>
+        /// <param name="removeOthers">Determines whether permission settings for other resources not contained in <c>items</c> are removed.</param>
         protected static void GrantPermissions(IfyContext context, bool forGroup, int id, Entity[] items, bool removeOthers) {
             if (removeOthers && items.Length != 0) {
                 context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", items[0].EntityType.PermissionSubjectTable.PermissionTable, forGroup ? "id_grp" : "id_usr", id));
@@ -1268,6 +1272,9 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Loads the values of complex properties, such as collections of items of other types.</summary>
+        /// <param name="all">Decides whether all complex fields are loaded; if set to <c>true</c> all are loaded.</param>
+        [Obsolete("Do not use")]
         public virtual void LoadComplexFields(bool all) {
 /*            if (context.ConsoleDebug) Console.WriteLine("LCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
@@ -1311,6 +1318,9 @@ namespace Terradue.Portal {
                 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Stores the values of complex properties, such as collections of items of other types.</summary>
+        /// <param name="all">Decides whether all complex fields are stored; if set to <c>true</c> all are stored.</param>
+        [Obsolete("Do not use")]
         public virtual void StoreComplexFields(bool all) {
 /*            if (context.ConsoleDebug) Console.WriteLine("SCF " + all);
             foreach (FieldInfo field in EntityType.Fields) {
@@ -1370,16 +1380,25 @@ namespace Terradue.Portal {
     
     
 
+    /// <summary>Exception class for situations in which an entity item cannot be loaded.</summary>
     public class EntityNotFoundException : Exception {
 
+        /// <summary>Gets or sets (protected) the EntityType of the entity.</summary>
         public EntityType EntityType { get; protected set; }
 
+        /// <summary>Gets or sets (protected) a term to describe the item that could not be loaded.</summary>
         public string LoadTerm { get; protected set; }
 
+        /// <summary>Creates a new EntityNotFoundException instance with the specified message.</summary>
+        /// <param name="message">The error message.</param>
         public EntityNotFoundException(string message) : base(message) {
 
         }
 
+        /// <summary>Creates a new EntityNotFoundException instance with the specified parameters.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="entityType">The EntityType of the entity.</param>
+        /// <param name="loadTerm">A term to describe the item that could not be loaded.</param>
         public EntityNotFoundException(string message, EntityType entityType, string loadTerm) : base(message) {
             this.EntityType = entityType;
             this.LoadTerm = loadTerm;
@@ -1397,14 +1416,23 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Exception class for situations in which an entity item cannot be accessed due to insufficient privileges or permissions.</summary>
     public class EntityUnauthorizedException : UnauthorizedAccessException {
 
+        /// <summary>Gets or sets (protected) the EntityType of the entity.</summary>
         public EntityType EntityType { get; protected set; }
 
+        /// <summary>Gets or sets (protected) the Entity item that could not be loaded.</summary>
         public Entity Entity { get; protected set; }
 
+        /// <summary>Gets or sets (protected) the database ID of the unauthorized user.</summary>
         public int UserId { get; protected set; }
 
+        /// <summary>Creates a new EntityUnauthorizedException instance with the specified parameters.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="entityType">The EntityType of the entity.</param>
+        /// <param name="entity">The entity item in question.</param>
+        /// <param name="userId">The database ID of the unauthorized user.</param>
         public EntityUnauthorizedException(string message, EntityType entityType, Entity entity, int userId) : base(message) {
             this.EntityType = entityType;
             this.Entity = entity;
@@ -1421,12 +1449,19 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Exception class for situations in which an entity item cannot be accessed due to unavailability.</summary>
     public class EntityUnavailableException : Exception {
 
+        /// <summary>Gets or sets (protected) the EntityType of the entity.</summary>
         public EntityType EntityType { get; protected set; }
 
+        /// <summary>Gets or sets (protected) the Entity item that could not be loaded.</summary>
         public Entity Entity { get; protected set; }
 
+        /// <summary>Creates a new UnavailableException instance with the specified parameters.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="entityType">The EntityType of the entity.</param>
+        /// <param name="entity">The entity item in question.</param>
         public EntityUnavailableException(string message, EntityType entityType, Entity entity) : base(message) {
             this.EntityType = entityType;
             this.Entity = entity;
@@ -1442,19 +1477,30 @@ namespace Terradue.Portal {
 
 
 
+    /// <summary>Exception class for situations in which an entity item cannot be stored because another item with the same identifier already exists.</summary>
     public class DuplicateEntityIdentifierException : Exception {
 
+        /// <summary>Gets or sets (protected) the EntityType of the entity.</summary>
         public EntityType EntityType { get; protected set; }
 
+        /// <summary>Gets or sets (protected) the Entity item that could not be loaded.</summary>
         public Entity Entity { get; protected set; }
 
+        /// <summary>The identifier that already exists.</summary>
         public string Identifier { get; protected set; }
 
+        /// <summary>Creates a new DuplicateEntityIdentifierException instance with the specified parameters.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="entityType">The EntityType of the entity.</param>
+        /// <param name="identifier">The duplicte identifier.</param>
         public DuplicateEntityIdentifierException(string message, EntityType entityType, string identifier) : base(message) {
             this.EntityType = entityType;
             this.Identifier = identifier;
         }
 
+        /// <summary>Creates a new DuplicateEntityIdentifierException instance with the specified message and inner exception.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="e">An inner exception.</param>
         public DuplicateEntityIdentifierException(string message, Exception e) : base(message, e) {
         }
     }
@@ -1467,6 +1513,7 @@ namespace Terradue.Portal {
 
     
 
+    [Obsolete("Use EntityUnavailableException")]
     public class EntityNotAvailableException : Exception {
         public EntityNotAvailableException(string message) : base(message) {
         }
@@ -1480,6 +1527,7 @@ namespace Terradue.Portal {
 
     
 
+    [Obsolete("Use EntityUnauthorizedException")]
     public class EntityNotOwnedException : Exception {
         public EntityNotOwnedException(string message) : base(message) {
         }
@@ -1493,43 +1541,10 @@ namespace Terradue.Portal {
 
     
 
-    // IICD-WC-WS exception
-    public class ResourceNotFoundException : Exception {
-        public ResourceNotFoundException(string message) : base(message) {
-        }
-    }
-
-    /*    public class EntityNotAccessibleException : Exception { 
-        public EntityNotAccessibleException(string message) : base(message) {}
-    }
-
-    public class PermissionDeniedException : Exception { 
-        public PermissionDeniedException(string message) : base(message) {}
-    }
-
-    public class BadValueException : Exception { 
-        public BadValueException(string message) : base(message) {}
-    }
-
-    public class MissingParameterException : Exception { 
-        public MissingParameterException(string message) : base(message) {}
-    }
-
-    public class IncorrectRequestFormatException : Exception { 
-        public IncorrectRequestFormatException(string message) : base(message) {}
-    }
-*/
-
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-    
-
     /// <summary>Generic operation types for entities.</summary>
+    [Obsolete("No longer used in Terradue.Portal")]
     public enum OperationType {
+
         /// <summary>View the item list.</summary>
         ViewList,
 
