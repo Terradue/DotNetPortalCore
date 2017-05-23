@@ -28,7 +28,8 @@ namespace Terradue.Portal {
 
 
 
-    /// <summary>Represents a user group</summary>
+    /// <summary>Represents a role a user or a group can assume.</summary>
+    /// <remarks>A role is composed of privileges (see <see cref="Privilege"/>). A user or a group assuming this role is granted all the privileges contained in the role.</remarks>
     [EntityTable("role", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name")]
     public class Role : Entity {
 
@@ -43,15 +44,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new ManagerRole instance.</summary>
+        /// <summary>Creates a new Role instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Role(IfyContext context) : base(context) {}
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new ManagerRole instance.</summary>
+        /// <summary>Creates a new Role instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <returns>the created ManagerRole object</returns>
+        /// <returns>the created Role object</returns>
         public static Role GetInstance(IfyContext context) {
             return new Role(context);
         }
@@ -71,7 +72,7 @@ namespace Terradue.Portal {
 
         /// <summary>Creates a new Role instance representing the role with the specified Identifier.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The role Identifier.</param>
+        /// <param name="identifier">The role identifier.</param>
         /// <returns>The created Role object.</returns>
         public static Role FromIdentifier(IfyContext context, string identifier) {
             Role result = new Role(context);
