@@ -112,7 +112,7 @@ namespace Terradue.Portal {
         
         /// <summary>Creates a new Group instance representing the group with the specified name (alias for FromIdentifier).</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The group ID.</param>
+        /// <param name="name">The group ID.</param>
         /// <returns>The created Group object.</returns>
         public static Group FromName(IfyContext context, string name) {
             return FromIdentifier(context, name);

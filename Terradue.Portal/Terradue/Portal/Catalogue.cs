@@ -169,6 +169,9 @@ namespace Terradue.Portal {
 
         #region IOpenSearchable implementation
 
+        /// <summary>Compares this instance of Catalogue to another one.</summary>
+        /// <returns>A value indicating whether this instance is considered less than (negative value), greater than (positive value) or equal to (0) the other instance.</returns>
+        /// <param name="obj">The instance to which this instance is compared.</param>
         public int CompareTo(object obj) {
             throw new NotImplementedException();
         }

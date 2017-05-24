@@ -302,7 +302,7 @@ namespace Terradue.Portal {
         public virtual void Load() {
             Identifier = entityType.Keyword;
 
-            if (!(entityType is EntityRelationshipType) && !entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
+            if (!entityType.TopTable.HasExtensions && !entityType.HasNestedData) {
                 LoadList();
                 return;
 
@@ -481,37 +481,32 @@ namespace Terradue.Portal {
             EntityTableAttribute storeTable = entityType.TopStoreTable;
             string sql = null;
 
-            if (entityType is EntityRelationshipType) {
-                sql = String.Format("{1}={0}", ReferringItem.Id, storeTable.ReferringItemField);
-
-            } else {
-                if (removeOthers) {
-                    // Remove items that are not or no longer contained in the collection
-                    string keepIds = null;
-                    foreach (T item in Items) {
-                        if (!item.IsInCollection) continue;
-                        if (keepIds == null) keepIds = String.Empty; else keepIds += ", ";
-                        keepIds += item.Id;
-                    }
-                    if (keepIds != null) {
-                        sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
-                        if (template != null) {
-                            string condition = entityType.GetTemplateConditionSql(template, true);
-                            if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
-                            //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
-                        }
-                    }
-                } else {
-                    // Remove items that are no longer in the collection (unlinked)
-                    string deleteIds = null;
-                    foreach (T item in Items) {
-                        if (item.IsInCollection) continue;
-                        if (deleteIds == null) deleteIds = String.Empty;
-                        else deleteIds += ", ";
-                        deleteIds += item.Id;
-                    }
-                    if (deleteIds != null) sql = String.Format("{0} IN ({1})", storeTable.IdField, deleteIds);
+            if (removeOthers) {
+                // Remove items that are not or no longer contained in the collection
+                string keepIds = null;
+                foreach (T item in Items) {
+                    if (!item.IsInCollection) continue;
+                    if (keepIds == null) keepIds = String.Empty; else keepIds += ", ";
+                    keepIds += item.Id;
                 }
+                if (keepIds != null) {
+                    sql = String.Format("{0} NOT IN ({1})", storeTable.IdField, keepIds);
+                    if (template != null) {
+                        string condition = entityType.GetTemplateConditionSql(template, true);
+                        if (condition != null) sql = String.Format("{0} AND {1}", sql, condition);
+                        //if (hasParentReference && Parent != null) sql += String.Format(" AND {1}={0}", Parent.Id, storeTable.ParentReferenceField);
+                    }
+                }
+            } else {
+                // Remove items that are no longer in the collection (unlinked)
+                string deleteIds = null;
+                foreach (T item in Items) {
+                    if (item.IsInCollection) continue;
+                    if (deleteIds == null) deleteIds = String.Empty;
+                    else deleteIds += ", ";
+                    deleteIds += item.Id;
+                }
+                if (deleteIds != null) sql = String.Format("{0} IN ({1})", storeTable.IdField, deleteIds);
             }
 
             if (sql != null) {

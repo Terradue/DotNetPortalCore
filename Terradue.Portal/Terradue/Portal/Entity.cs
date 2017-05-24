@@ -44,7 +44,9 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract partial class Entity {
 
+        /// <summary>Execution environment context this entity instance was created with.</summary>
         protected IfyContext context;
+
         private int domainId;
         private Domain domain;
         private int userId;
@@ -264,7 +266,7 @@ namespace Terradue.Portal {
         }
 
         [Obsolete("Obsolete, please use CanChange instead")]
-        public bool CanModify { 
+        public bool CanModify {
             get { return CanChange; }
             set { }
         }
@@ -312,7 +314,7 @@ namespace Terradue.Portal {
 
         [Obsolete("Use GetIdentifyingConditionSql")]
         public virtual string AlternativeIdentifyingCondition {
-            get { return null; }
+            get { return GetIdentifyingConditionSql(); }
         }
 
         //----------------------------------------------------------------------------        -----------------------------------------
@@ -354,7 +356,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Reads the information of an item from the database based on the permissions of the current user.</summary>
-        /// </remarks>
+        /// <remarks>
         ///     The method performs the necessary <c>SELECT</c> command to obtain an item of a derived class of Entity from the database.
         ///     The database table(s) and fields to be used must be linked to the corresponding class(es) and its/their properties via the appropriate attributes.
         /// </remarks>
@@ -778,7 +780,7 @@ namespace Terradue.Portal {
         ///     This way of selecting entity items should, however, not be used frequently. Selected items by their primary keys or, if supported, unique secondary keys is the preferred way. This is done by FromId and FromIdentifier methods present in many Entity subclasses.</remarks>
         /// <returns>The SQL conditional expression that can be used to select a single item. Fields of the entity's main table should be qualified with the alias <c>t</c> to avoid ambiguity errors.</returns>
         public virtual string GetIdentifyingConditionSql() { 
-            return AlternativeIdentifyingCondition; // TODO: property still present for backward compatibilty; remove with a later version (replace with: return null)
+            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -971,6 +973,8 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Determines whether permissions on this resource are granted to the user with the specified database ID.</summary>
+        /// <returns><c>true</c>, if the user has any permission on this resource, <c>false</c> otherwise.</returns>
+        /// <param name="userId">The database ID of the user.</param>
         public bool DoesGrantPermissionsToUser(int userId) {
             return DoesGrantPermissionToSubject(false, userId);
         }
@@ -978,11 +982,19 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Determines whether permissions on this resource are granted to the group with the specified database ID.</summary>
+        /// <returns><c>true</c>, if the group has any permission on this resource, <c>false</c> otherwise.</returns>
+        /// <param name="groupId">The database ID of the group.</param>
         public bool DoesGrantPermissionsToGroup(int groupId) {
             return DoesGrantPermissionToSubject(true, groupId);
         }
 
-        public bool DoesGrantPermissionToSubject(bool forGroups, int id) {
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Determines whether permissions on this resource are granted to the user or group with the specified database ID.</summary>
+        /// <returns><c>true</c>, if the user or group has any permission on this resource, <c>false</c> otherwise.</returns>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given ID as group ID, otherwise as user ID.</param>
+        /// <param name="id">The user or group identifier.</param>
+        public bool DoesGrantPermissionToSubject(bool forGroup, int id) {
             if (!EntityType.HasPermissionManagement) return true;
 
             string sql = String.Format("SELECT true FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
@@ -992,12 +1004,12 @@ namespace Terradue.Portal {
             );
             if (context.GetQueryBooleanValue(sql)) return true;
 
-            string filterSql = String.Format(forGroups ? "p.id_grp={0}" : "(p.id_usr={0} OR ug.id_usr={0})", id);
+            string filterSql = String.Format(forGroup ? "p.id_grp={0}" : "(p.id_usr={0} OR ug.id_usr={0})", id);
 
             sql = String.Format("SELECT true FROM {1} AS p{2} WHERE id_{3}={0} AND {4};",
                 Id,
                 EntityType.PermissionSubjectTable.PermissionTable,
-                forGroups ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
+                forGroup ? String.Empty : " LEFT JOIN usr_grp AS ug ON p.id_grp=ug.id_grp",
                 EntityType.PermissionSubjectTable.Name,
                 filterSql
             );
@@ -1272,7 +1284,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Loads the values of complex properties, such as collections of items of other types.</summary>
+        /// <summary>Obsolete, do not use (should load the values of complex properties, such as collections of items of other types).</summary>
         /// <param name="all">Decides whether all complex fields are loaded; if set to <c>true</c> all are loaded.</param>
         [Obsolete("Do not use")]
         public virtual void LoadComplexFields(bool all) {
@@ -1395,7 +1407,7 @@ namespace Terradue.Portal {
 
         }
 
-        /// <summary>Creates a new EntityNotFoundException instance with the specified parameters.</summary>
+        /// <summary>Creates a new EntityNotFoundException instance with the specified information about the exception circumstances.</summary>
         /// <param name="message">The error message.</param>
         /// <param name="entityType">The EntityType of the entity.</param>
         /// <param name="loadTerm">A term to describe the item that could not be loaded.</param>
@@ -1404,6 +1416,9 @@ namespace Terradue.Portal {
             this.LoadTerm = loadTerm;
         }
 
+        /// <summary>Creates a new EntityNotFoundException instance with the specified message and inner exception.</summary>
+        /// <param name="message">The error message.</param>
+        /// <param name="e">An inner exception.</param>
         public EntityNotFoundException(string message, Exception e) : base(message, e) {
         }
     }
