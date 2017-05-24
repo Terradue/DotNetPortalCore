@@ -72,8 +72,6 @@ namespace Terradue.Portal {
         // Static list of entity type metadata; loaded at application startup and used as reference for lookup throughout the runtime
         private static Dictionary<Type, EntityType> entityTypes = new Dictionary<Type, EntityType>();
 
-        private static Dictionary<PropertyInfo, EntityRelationshipType> entityRelationshipTypes = new Dictionary<PropertyInfo, EntityRelationshipType>();
-
         private string singularCaption, pluralCaption;
 
         private string restrictedJoinSql, unrestrictedJoinSql, adminJoinSql;
@@ -396,11 +394,8 @@ namespace Terradue.Portal {
 
             while (type != null && type != typeof(Entity)) {
                 foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
-                    if (attribute is EntityRelationshipTableAttribute) entityType = new EntityRelationshipType(actualType);
-                    else if (attribute is EntityTableAttribute) entityType = new EntityType(actualType);
-                    else {
-                        continue;
-                    }
+                    if (attribute is EntityTableAttribute) entityType = new EntityType(actualType);
+                    else continue;
                     entityTypes[actualType] = entityType;
                     return entityType;
                 }
@@ -425,33 +420,6 @@ namespace Terradue.Portal {
                 if (result == null || result.Tables.Count == 0) throw new InvalidOperationException(String.Format("Entity information not available: {0}", type.FullName));
             }
             return result;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public static EntityRelationshipType AddEntityRelationshipType(PropertyInfo referencingProperty, Type type) {
-            EntityRelationshipType entityRelationshipType = new EntityRelationshipType(type, referencingProperty);
-            entityRelationshipTypes[referencingProperty] = entityRelationshipType;
-            return entityRelationshipType;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public static EntityRelationshipType GetOrAddEntityRelationshipType(PropertyInfo propertyInfo) {
-            Type actualType = (propertyInfo.PropertyType.GetGenericArguments().Length == 1 ? propertyInfo.PropertyType.GetGenericArguments()[0] : null);
-            if (actualType == null) throw new InvalidOperationException("Entity information not available because property type has no type parameter");
-
-            EntityRelationshipType result = (entityTypes.ContainsKey(actualType) ? entityTypes[actualType] as EntityRelationshipType : null);
-            if (result != null) return result;
-
-            result = (entityRelationshipTypes.ContainsKey(propertyInfo) ? entityRelationshipTypes[propertyInfo] : null);
-            if (result == null) {
-                result = AddEntityRelationshipType(propertyInfo, actualType);
-                if (result == null || result.Tables.Count == 0) throw new InvalidOperationException(String.Format("Entity information not available: {0}", actualType.FullName));
-                return result;
-            }
-
-            return null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -518,8 +486,7 @@ namespace Terradue.Portal {
             EntityTableAttribute tableInfo = null;
             
             foreach (System.Attribute attribute in type.GetCustomAttributes(true)) {
-                if (attribute is EntityRelationshipTableAttribute) tableInfo = attribute as EntityRelationshipTableAttribute;
-                else if (attribute is EntityTableAttribute) tableInfo = attribute as EntityTableAttribute;
+                if (attribute is EntityTableAttribute) tableInfo = attribute as EntityTableAttribute;
                 else continue;
                 break;
             }
@@ -597,13 +564,7 @@ namespace Terradue.Portal {
                     } else if (attribute is EntityEntityFieldAttribute) {
                         if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [E] {0,-20} {1}", (attribute as EntityEntityFieldAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
                         Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityEntityFieldAttribute));
-                    } else if (attribute is EntityRelationshipAttribute) {
-                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [R] {0,-20} {1}", (attribute as EntityRelationshipAttribute).Name,  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
-                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityRelationshipAttribute));
-                    }/* else if (attribute is EntityComplexFieldAttribute) {
-                        if (IfyContext.DefaultConsoleDebug) Console.WriteLine("  - [C] {0,-20} {1}", "[no name]",  " (" + pi.DeclaringType.Name + "." + pi.Name + ")");
-                        Fields.Add(new FieldInfo(pi, tableIndex, attribute as EntityComplexFieldAttribute));
-                    }*/
+                    }
                 }
             }
         }
@@ -657,6 +618,8 @@ namespace Terradue.Portal {
             return idsOnly ? GetIdQuery(parts) : GetQuery(parts);
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Gets the parts to build the full or IDs-only SQL query for selecting an item list on behalf of the specified user.</summary>
         /// <returns>An array of objects containing the components of the SQL query in a defined order.</returns>
         /// <param name="context">The execution environment context.</param>
@@ -664,7 +627,6 @@ namespace Terradue.Portal {
         /// <param name="userId">The database ID of the user on whose behalf the item is selected.</param>
         /// <param name="groupIds">An optional array of IDs of the groups to take into account for the permission filtering.</param>
         /// <param name="condition">Additional SQL conditaion.</param>
-        /// <param name="idsOnly">Decides whether the returned query selects only the database IDs of matching item.</param>
         public object[] GetListQueryParts(IfyContext context, EntityCollection items, int userId, int[] groupIds, string condition) {
             if (items.Template != null) {
                 string templateCondition = GetTemplateConditionSql(items.Template, false);
@@ -694,11 +656,6 @@ namespace Terradue.Portal {
             if ((items.ItemVisibility & EntityItemVisibility.OwnedOnly) == EntityItemVisibility.OwnedOnly && userId != 0 && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
-            }
-
-            if (this is EntityRelationshipType && items.ReferringItem != null) {
-                if (condition == null) condition = String.Empty; else condition += " AND ";
-                condition += String.Format("t{0}.{1}={2}", TopStoreTableIndex == 0 ? String.Empty : TopStoreTableIndex.ToString(), TopStoreTable.ReferringItemField, items.ReferringItem.Id);
             }
 
             string sort = (items.SortCriteria == null ? null : GetSortSql(items.SortCriteria));
@@ -1891,71 +1848,6 @@ namespace Terradue.Portal {
 
 
 
-    public class EntityRelationshipType : EntityType {
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override EntityTableAttribute TopStoreTable {
-            get { return Tables[TopStoreTableIndex]; }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public override int TopStoreTableIndex {
-            get { return Tables.Count - 1; }
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public EntityRelationshipType(Type type) : base(type) {
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public EntityRelationshipType(Type type, PropertyInfo referencingProperty) : base(type) {
-            AddRelationship(referencingProperty);
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public void AddRelationship(PropertyInfo referencingProperty) {
-            string tableName = null;
-            string referringItemField = null;
-            string referencedItemField = null;
-
-            foreach (System.Attribute attribute in referencingProperty.GetCustomAttributes(true)) {
-                if (attribute is EntityRelationshipAttribute) {
-                    tableName = (attribute as EntityRelationshipAttribute).Name;
-                    referringItemField = (attribute as EntityRelationshipAttribute).ReferringItemField;
-                    referencedItemField = (attribute as EntityRelationshipAttribute).ReferencedItemField;
-                }
-            }
-
-            if (referringItemField == null) referringItemField = String.Format("id_{0}", GetOrAddEntityType(referencingProperty.DeclaringType).TopTable.Name);
-            if (referencedItemField == null) referencedItemField = String.Format("id_{0}", TopTable.Name);
-
-            EntityTableAttribute table;
-            if (Tables.Count != 0 && (tableName == null || Tables[Tables.Count - 1].Name == tableName)) {
-                table = Tables[Tables.Count - 1];
-            } else {
-                table = new EntityTableAttribute(tableName, EntityTableConfiguration.Custom);
-                table.ReferringItemField = referringItemField;
-                table.IdField = referencedItemField;
-                Tables.Add(table);
-            }
-        
-        }
-
-    }
-
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-
-
     public class TableInfo {
 
         private bool autoCheckIdentifiers = true;
@@ -2290,12 +2182,6 @@ namespace Terradue.Portal {
 
         public FieldInfo(PropertyInfo @property, int tableIndex, EntityEntityFieldAttribute attribute) : this(@property, tableIndex, attribute.Name) {
             this.FieldType = EntityFieldType.EntityField;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public FieldInfo(PropertyInfo @property, int tableIndex, EntityRelationshipAttribute attribute) : this(@property, tableIndex, attribute.Name) {
-            this.FieldType = EntityFieldType.RelationshipField;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

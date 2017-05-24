@@ -220,7 +220,8 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the relative position of the class that is responsible for the storage of the property values.</summary>
+        /// <summary>Gets or sets the name of the database field in a table that contains the foreign keys linking a record to a record in another table.</summary>
+        /// <remarks>The field is the foreign key field, i.e. the field pointing towards another table (e.g. the field <c>wheel.id_car</c>).</remarks>
         public string ReferringItemField { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -230,6 +231,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityTableAttribute instance.</summary>
+        /// <param name="name">The name of the database table that holds the items of the entity.</param>
+        /// <param name="config">The entity table configuration (<see cref="EntityTableConfiguration"/>) regarding the basic data table fields.</param>
         public EntityTableAttribute(string name, EntityTableConfiguration config) {
             this.Name = name;
             this.IdField = DefaultIdFieldName;
@@ -250,37 +254,9 @@ namespace Terradue.Portal {
     //-------------------------------------------------------------------------------------------------------------------------
     //-------------------------------------------------------------------------------------------------------------------------
 
-
-
-    /// <summary>Attribute that allows to link a subclass of Entity to a database table.</summary>
-    /// <remarks>This attribute is used in combination with the EntityDataFieldAttribute attributes at property level.</remarks>
-    /// \ingroup Persistence
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class EntityRelationshipTableAttribute : EntityTableAttribute {
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public EntityRelationshipTableAttribute(string name, string referringItemField, string referencedItemField) : base(name, EntityTableConfiguration.Custom) {
-            this.Name = name;
-            this.ReferringItemField = referringItemField;
-            this.IdField = referencedItemField;
-            this.HasAutomaticIds = false;
-            this.Storage = EntityTableStorage.Here;
-            this.IsRequired = true;
-        }
-
-    }
-
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
     
 
-    /// <summary>Attribute that allows to link a referenced table to the entity's main table or a subtable.</summary>
+    /// <summary>Attribute that allows to define a relationship to an additional entity type via a forign key relationship.</summary>
     /// <remarks>This attribute is used in combination with the EntityForeignFieldAttribute attributes at property level.</remarks>
     //[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
     public abstract class EntityForeignTableAttribute : System.Attribute {
@@ -319,6 +295,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new EntityRelationshipTableAttribute instance.</summary>
+        /// <param name="name">Name of the foreign table.</param>
+        /// <param name="subIndex">A numeric value to distinguish the table from others.</param>
         public EntityForeignTableAttribute(string name, int subIndex) {
             this.Name = name;
             this.SubIndex = subIndex;
@@ -351,46 +330,6 @@ namespace Terradue.Portal {
             this.SubIndex = subIndex;
             this.IdField = EntityTableAttribute.DefaultIdFieldName;
             this.ReferenceField = EntityTableAttribute.DefaultIdFieldName;
-        }
-
-    }
-
-
-
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------------------------------
-
-
-
-    /// <summary>Attribute that represents a relationships.</summary>
-    /// <remarks>This attribute is used on properties that are  combination with the EntityDataFieldAttribute attributes at property level.</remarks>
-    /// \ingroup Persistence
-    /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-    [AttributeUsage(AttributeTargets.Property, Inherited = false)]
-    [Obsolete("No longer supported")]
-    public class EntityRelationshipAttribute : System.Attribute {
-
-        public string Name { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets or sets the name of the table's primary key field.</summary>
-        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public string ReferringItemField { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>Gets or sets the name of the table's primary key field.</summary>
-        /// <remarks>By default, it is assumed that the primary key field is named <c>id</c> and of numeric type.</remarks>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public string ReferencedItemField { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public EntityRelationshipAttribute(string name) {
-            this.Name = name;
         }
 
     }
@@ -683,8 +622,13 @@ namespace Terradue.Portal {
 
     
 
+    /// <summary>An enumeration for the typical configurations of entity tables regarding their basic fields.</summary>
     public enum EntityTableConfiguration {
+
+        /// <summary>The entity table has an identifier and a name field.</summary>
         Full,
+
+        /// <summary>The entity table has fields as defined by additional properties.</summary>
         Custom
     }
 

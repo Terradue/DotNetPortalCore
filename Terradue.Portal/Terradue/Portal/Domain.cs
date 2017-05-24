@@ -74,9 +74,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new Domain instance representing the domain with the specified ID.</summary>
+        /// <summary>Creates a new Domain instance representing the domain with the specified database ID.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The domain ID.</param>
+        /// <param name="id">The database ID of the domain.</param>
         /// <returns>The created Domain object.</returns>
         public static Domain FromId(IfyContext context, int id) {
             Domain result = new Domain(context);
@@ -85,9 +85,11 @@ namespace Terradue.Portal {
             return result;
         }
 
-        /// <summary>Creates a new Domain instance representing the domain with the specified Identifier.</summary>
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Creates a new Domain instance representing the domain with the specified identifier.</summary>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="id">The domain Identifier.</param>
+        /// <param name="identifier">The unique identifier of the domain.</param>
         /// <returns>The created Domain object.</returns>
         public static Domain FromIdentifier(IfyContext context, string identifier) {
             Domain result = new Domain(context);
@@ -96,10 +98,10 @@ namespace Terradue.Portal {
             return result;
         }
 
-        /// <summary>
-        /// Gets the identifying condition sql.
-        /// </summary>
-        /// <returns>The identifying condition sql.</returns>
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets the identifying SQL conditional expression based on this instances property values.</summary>
+        /// <returns>The identifying SQL conditional expression.</returns>
         public override string GetIdentifyingConditionSql() {
             if (Id == 0 && !string.IsNullOrEmpty(Identifier)) return String.Format("t.identifier={0}", StringUtils.EscapeSql(Identifier));
             return null;
@@ -117,7 +119,8 @@ namespace Terradue.Portal {
         ///     </list>
         /// </returns>
         /// <param name="context">The execution environment context.</param>
-        /// <param name="userId">The database ID of the user for which the domain restriction check is performed.</param>
+        /// <param name="userId">The database ID of the user for which the domain restriction check is performed. This can be used in combination with <em>groupIds</em>. If no specific user is to be taken into account, the value <em>0</em> can be provided.</param>
+        /// <param name="groupIds">The database IDs of the groups for which the domain restriction check is performed. This can be used in combination with <em>userId</em>. If no group is to be taken into account, <em>null</em> can be used.</param>
         /// <param name="roleIds">An array of database IDs for the roles that are to be checked in relation to the user. If the array is <c>null</c>, the method returns all domains on which the user or groups have any role. If the array is empty, the grant is empty (return value is an empty array).</param>
         public static int[] GetGrantScope(IfyContext context, int userId, int[] groupIds, int[] roleIds) {
             if (roleIds != null && roleIds.Length == 0) return new int[] {};
@@ -127,7 +130,12 @@ namespace Terradue.Portal {
             string roleCondition = roleIds == null ? String.Empty : String.Format("rg.id_role IN ({0})", String.Join(",", roleIds));
 
             List<int> domainIds = new List<int>();
-            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE {2}{3}(rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", userId, String.Join(",", groupIds), roleCondition, String.IsNullOrEmpty(roleCondition) ? String.Empty : " AND ");
+            string sql = String.Format("SELECT DISTINCT rg.id_domain FROM rolegrant AS rg LEFT JOIN usr_grp AS ug ON rg.id_grp=ug.id_grp WHERE {2}{3}(rg.id_usr={0} OR ug.id_usr={0} OR rg.id_grp IN ({1})) ORDER BY rg.id_domain IS NULL, rg.id_domain;", 
+                    userId, 
+                    String.Join(",", groupIds), 
+                    roleCondition,
+                    String.IsNullOrEmpty(roleCondition) ? String.Empty : " AND "
+            );
             //Console.WriteLine("DOMAINS: {0}", sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);

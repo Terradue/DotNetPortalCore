@@ -275,8 +275,8 @@ namespace Terradue.Portal {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
            (System.Reflection.MethodBase.GetCurrentMethod ().DeclaringType);
 
-        static MemoryCache DescribeProcessCache = new MemoryCache ("wpsProviderDescribeProcessCache");
-        static MemoryCache GetCapabilitiesCache = new MemoryCache ("wpsProviderGetCapabilitiesCache");
+        //static MemoryCache DescribeProcessCache = new MemoryCache ("wpsProviderDescribeProcessCache");
+        //static MemoryCache GetCapabilitiesCache = new MemoryCache ("wpsProviderGetCapabilitiesCache");
 
         /// <summary>Gets or sets the base access point of the WPS provider.</summary>
         /// <remarks>The value must not contain the <c>service</c> or <c>request</c> query string parameters.</remarks>
@@ -564,23 +564,23 @@ namespace Terradue.Portal {
             context.LogDebug (this, "GetWPSCapabilities -- url = " + getCapUrl);
 
             WPSCapabilitiesType response = null;
-            var cacheItem = GetCapabilitiesCache.GetCacheItem (getCapUrl);
-            if (cacheItem != null && CanCache) {
-                response = (WPSCapabilitiesType)cacheItem.Value;
-            } else {
+            //var cacheItem = GetCapabilitiesCache.GetCacheItem (getCapUrl);
+            //if (cacheItem != null && CanCache) {
+            //    response = (WPSCapabilitiesType)cacheItem.Value;
+            //} else {
                 HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
                 if(!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
-                            GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
+                            //GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
                     throw e;
                 }
-            }
+            //}
             return response;
 
         }
@@ -603,10 +603,10 @@ namespace Terradue.Portal {
 
             ProcessDescriptionType result = null;
 
-            var cacheItem = DescribeProcessCache.GetCacheItem (descPUrl);
-            if (cacheItem != null && CanCache) {
-                result = (ProcessDescriptionType)cacheItem.Value;
-            } else {
+            //var cacheItem = DescribeProcessCache.GetCacheItem (descPUrl);
+            //if (cacheItem != null && CanCache) {
+            //    result = (ProcessDescriptionType)cacheItem.Value;
+            //} else {
                 HttpWebRequest request = CreateWebRequest (descPUrl);
                 if (!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
@@ -614,13 +614,13 @@ namespace Terradue.Portal {
                         using (var stream = httpResponse.GetResponseStream ()) {
                             var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
                             result = response.ProcessDescription [0];
-                            DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
+                            //DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
                     throw e;
                 }
-            }
+            //}
             return result;
 
         }
@@ -635,7 +635,11 @@ namespace Terradue.Portal {
         /// <param name="updateProviderInfo">If set to <c>true</c> update provider info.</param>
         public List<WpsProcessOffering> GetWpsProcessOfferingsFromRemote(bool updateProviderInfo = false, string username = null) {
             List<WpsProcessOffering> wpsProcessList = new List<WpsProcessOffering>();
+
             OpenGis.Wps.WPSCapabilitiesType capabilities = GetWPSCapabilities(username);
+
+            if (capabilities.ProcessOfferings == null || capabilities.ProcessOfferings.Process == null) return wpsProcessList;
+
             List<Operation> operations = capabilities.OperationsMetadata.Operation;
             string url = "";
             foreach (Operation operation in operations) {
