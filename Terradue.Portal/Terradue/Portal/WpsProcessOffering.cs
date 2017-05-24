@@ -227,13 +227,17 @@ namespace Terradue.Portal {
             var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
 
             try {
-                using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse ()) {
-                    using (var stream = executeResponse.GetResponseStream ()){
-                        stream.CopyTo (memStream);
+                using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse()) {
+                    using (var stream = executeResponse.GetResponseStream()){
+                        stream.CopyTo(memStream);
                     }
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    var reader = new StreamReader(memStream);
+                    string textResponse = reader.ReadToEnd();
+                    log.Debug("Execute response : " + textResponse);
 
                     if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                        log.Debug ("Execute response code : " + executeResponse.StatusCode);
+                       log.Debug ("Execute response code : " + executeResponse.StatusCode);
                         return ExecuteError (memStream);
                     }
                 }
