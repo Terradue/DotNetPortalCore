@@ -661,6 +661,7 @@ namespace Terradue.Portal {
                 wpsProcess.Name = (process.Title != null ? process.Title.Value : null);
                 wpsProcess.Description = (process.Abstract != null ? process.Abstract.Value : null);
                 wpsProcess.Version = process.processVersion;
+                wpsProcess.Available = true;
                 wpsProcess.Url = url;
                 foreach (var tag in Tags) wpsProcess.AddTag(tag);
 
