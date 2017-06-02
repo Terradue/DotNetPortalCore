@@ -569,15 +569,18 @@ namespace Terradue.Portal {
             //    response = (WPSCapabilitiesType)cacheItem.Value;
             //} else {
                 HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
-                if(!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
+                if (!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
+                            context.LogDebug (this, "GetWPSCapabilities -- deserialize response");
                             response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
+                            context.LogDebug (this, "GetWPSCapabilities -- deserialize response OK");
                             //GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
                     }
                 } catch (Exception e) {
+                    context.LogError(this, e.Message);
                     throw e;
                 }
             //}
@@ -612,7 +615,9 @@ namespace Terradue.Portal {
                 try {
                     using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
                         using (var stream = httpResponse.GetResponseStream ()) {
+                            context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response");
                             var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
+                            context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response OK");
                             result = response.ProcessDescription [0];
                             //DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
                         }
@@ -640,14 +645,18 @@ namespace Terradue.Portal {
 
             if (capabilities.ProcessOfferings == null || capabilities.ProcessOfferings.Process == null) return wpsProcessList;
 
-            List<Operation> operations = capabilities.OperationsMetadata.Operation;
             string url = "";
-            foreach (Operation operation in operations) {
-                if (operation.name == "DescribeProcess") {
-                    url = operation.DCP[0].Item.Items[0].href;
-                    break;
+            if (capabilities.OperationsMetadata != null && capabilities.OperationsMetadata.Operation != null) {
+                List<Operation> operations = capabilities.OperationsMetadata.Operation;
+                foreach (Operation operation in operations) {
+                    if (operation.name == "DescribeProcess") {
+                        url = operation.DCP[0].Item.Items[0].href;
+                        break;
+                    }
                 }
-            }
+            } else url = this.BaseUrl;
+
+            context.LogDebug(this, "GetWpsProcessOfferingsFromRemote - loop on processes");
 
             foreach (ProcessBriefType process in capabilities.ProcessOfferings.Process) {
                 WpsProcessOffering wpsProcess = new WpsProcessOffering(context);
@@ -661,9 +670,9 @@ namespace Terradue.Portal {
                 wpsProcess.Name = (process.Title != null ? process.Title.Value : null);
                 wpsProcess.Description = (process.Abstract != null ? process.Abstract.Value : null);
                 wpsProcess.Version = process.processVersion;
-                wpsProcess.Available = true;
                 wpsProcess.Url = url;
-                foreach (var tag in Tags) wpsProcess.AddTag(tag);
+                if(Tags != null) 
+                    foreach (var tag in Tags) wpsProcess.AddTag(tag);
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {
@@ -676,6 +685,7 @@ namespace Terradue.Portal {
                 wpsProcessList.Add(wpsProcess);
             }
 
+            context.LogDebug(this, "GetWpsProcessOfferingsFromRemote - loop on processes");
             if (updateProviderInfo) {
                 if (capabilities.ServiceProvider != null) {
                     if (capabilities.ServiceProvider.ServiceContact != null
