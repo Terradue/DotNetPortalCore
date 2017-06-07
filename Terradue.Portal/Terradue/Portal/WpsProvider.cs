@@ -771,7 +771,7 @@ namespace Terradue.Portal {
                 credentials = new NetworkCredential (uri.UserName, uri.Password);
             }
 
-            var request = CreateWebRequest (url, credentials, context.Username, jobreference, context.GetQueryIntegerValue("wpsrequest-timeout"));
+            var request = CreateWebRequest (url, credentials, context.Username, jobreference, context.GetConfigIntegerValue("wpsrequest-timeout"));
             return request;
         }
 
