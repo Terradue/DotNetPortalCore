@@ -771,18 +771,18 @@ namespace Terradue.Portal {
                 credentials = new NetworkCredential (uri.UserName, uri.Password);
             }
 
-            var request = CreateWebRequest (url, credentials, context.Username, jobreference);
+            var request = CreateWebRequest (url, credentials, context.Username, jobreference, context.GetQueryIntegerValue("wpsrequest-timeout"));
             return request;
         }
 
-        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference=null)
+        public static HttpWebRequest CreateWebRequest (string url, NetworkCredential credentials, string username, string jobreference=null, int timeout = 10000)
         {
 
             HttpWebRequest request;
             request = (HttpWebRequest)WebRequest.Create (url);
             request.Proxy = null;
             request.Method = "GET";
-            request.Timeout = 10000;
+            request.Timeout = timeout;
 
             log.DebugFormat ("CreateWebRequest '{0}'", url);
 
