@@ -499,7 +499,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-        protected void CreateActivationToken() {
+        public void CreateActivationToken() {
             activationToken = Guid.NewGuid().ToString();
             context.Execute(String.Format("DELETE FROM usrreg WHERE id_usr={0};", Id));
             var sql = String.Format ("INSERT INTO usrreg (id_usr, token, reg_date, reg_origin) VALUES ({0}, {1}, {2}, {3});",
@@ -574,9 +574,9 @@ namespace Terradue.Portal {
                     break;
             }
             
-            if (activationToken == null) {
-                activationToken = context.GetQueryStringValue(String.Format("SELECT token FROM usrreg WHERE id_usr={0};", Id));
-                if (activationToken == null) CreateActivationToken();
+            if (string.IsNullOrEmpty(activationToken)) {
+                activationToken = GetActivationToken();
+                if (string.IsNullOrEmpty(activationToken)) CreateActivationToken();
             }
 
             var baseurl = webContext.GetConfigValue ("BaseUrl");
@@ -695,7 +695,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected string GetActivationToken(){
+        public string GetActivationToken(){
             return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
         }
 
