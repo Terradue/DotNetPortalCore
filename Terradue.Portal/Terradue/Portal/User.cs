@@ -354,15 +354,28 @@ namespace Terradue.Portal {
             return result;
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
+		//---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
-        /// <param name="context">The execution environment context.</param>
-        /// <param name="name">the unique user username</param>
-        /// <returns>the created User object</returns>
-        public static User FromUsername(IfyContext context, string username) {
+		/// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
+		/// <param name="context">The execution environment context.</param>
+		/// <param name="name">the unique user username</param>
+		/// <returns>the created User object</returns>
+		public static User FromUsername(IfyContext context, string username) {
+			User result = GetInstance(context);
+			result.Identifier = username;
+			result.Load(EntityAccessLevel.Administrator);
+			return result;
+		}
+
+		//---------------------------------------------------------------------------------------------------------------------
+
+		/// <summary>Creates a new User instance representing the user with the specified unique email, ignoring permission- and privliege-based restrictions.</summary>
+		/// <param name="context">The execution environment context.</param>
+		/// <param name="email">the unique user email</param>
+		/// <returns>the created User object</returns>
+		public static User FromEmail(IfyContext context, string email) {
             User result = GetInstance(context);
-            result.Identifier = username;
+            result.Email = email;
             result.Load(EntityAccessLevel.Administrator);
             return result;
         }
