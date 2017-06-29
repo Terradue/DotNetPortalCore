@@ -354,15 +354,28 @@ namespace Terradue.Portal {
             return result;
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
+		//---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
-        /// <param name="context">The execution environment context.</param>
-        /// <param name="name">the unique user username</param>
-        /// <returns>the created User object</returns>
-        public static User FromUsername(IfyContext context, string username) {
+		/// <summary>Creates a new User instance representing the user with the specified unique name, ignoring permission- and privliege-based restrictions.</summary>
+		/// <param name="context">The execution environment context.</param>
+		/// <param name="name">the unique user username</param>
+		/// <returns>the created User object</returns>
+		public static User FromUsername(IfyContext context, string username) {
+			User result = GetInstance(context);
+			result.Identifier = username;
+			result.Load(EntityAccessLevel.Administrator);
+			return result;
+		}
+
+		//---------------------------------------------------------------------------------------------------------------------
+
+		/// <summary>Creates a new User instance representing the user with the specified unique email, ignoring permission- and privliege-based restrictions.</summary>
+		/// <param name="context">The execution environment context.</param>
+		/// <param name="email">the unique user email</param>
+		/// <returns>the created User object</returns>
+		public static User FromEmail(IfyContext context, string email) {
             User result = GetInstance(context);
-            result.Identifier = username;
+            result.Email = email;
             result.Load(EntityAccessLevel.Administrator);
             return result;
         }
@@ -486,7 +499,7 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-        protected void CreateActivationToken() {
+        public void CreateActivationToken() {
             activationToken = Guid.NewGuid().ToString();
             context.Execute(String.Format("DELETE FROM usrreg WHERE id_usr={0};", Id));
             var sql = String.Format ("INSERT INTO usrreg (id_usr, token, reg_date, reg_origin) VALUES ({0}, {1}, {2}, {3});",
@@ -561,9 +574,9 @@ namespace Terradue.Portal {
                     break;
             }
             
-            if (activationToken == null) {
-                activationToken = context.GetQueryStringValue(String.Format("SELECT token FROM usrreg WHERE id_usr={0};", Id));
-                if (activationToken == null) CreateActivationToken();
+            if (string.IsNullOrEmpty(activationToken)) {
+                activationToken = GetActivationToken();
+                if (string.IsNullOrEmpty(activationToken)) CreateActivationToken();
             }
 
             var baseurl = webContext.GetConfigValue ("BaseUrl");
@@ -682,7 +695,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        protected string GetActivationToken(){
+        public string GetActivationToken(){
             return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
         }
 
