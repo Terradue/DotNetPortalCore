@@ -15,6 +15,7 @@ using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.Util;
+using Terradue.Portal.OpenSearch;
 
 
 /*!
@@ -37,7 +38,7 @@ It implements the mechanism to search for the dataset defined in the series via 
 @}
  */
 
- 
+
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -145,7 +146,7 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     [EntityTable("series", EntityTableConfiguration.Full, HasExtensions = true, HasDomainReference = true, HasPermissionManagement = true)]
     [EntityReferenceTable("catalogue", CATALOGUE_TABLE)]
-    public class Series : Entity, IOpenSearchable {
+    public class Series : EntitySearchable, IOpenSearchable {
         
         private const int CATALOGUE_TABLE = 1;
         private int catalogueId;
@@ -638,6 +639,41 @@ namespace Terradue.Portal {
 
 
         public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr, string finalContentType) {
+        }
+
+        public override AtomItem ToAtomItem(NameValueCollection parameters) {
+			string identifier = this.Identifier;
+			string name = (this.Name != null ? this.Name : this.Identifier);
+			string text = (this.TextContent != null ? this.TextContent : "");
+
+			AtomItem atomEntry = null;
+			var entityType = EntityType.GetEntityType(typeof(Series));
+			Uri id = new Uri(context.BaseUrl + "/" + entityType.Keyword + "/search?id=" + this.Identifier);
+			try {
+				atomEntry = new AtomItem(identifier, name, null, id.ToString(), DateTime.UtcNow);
+			} catch (Exception e) {
+				atomEntry = new AtomItem();
+			}
+
+			atomEntry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+
+			atomEntry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
+
+			UriBuilder search = new UriBuilder(context.BaseUrl + "/" + entityType.Keyword + "/description");
+			atomEntry.Links.Add(new SyndicationLink(search.Uri, "search", name, "application/atom+xml", 0));
+
+			search = new UriBuilder(context.BaseUrl + "/" + entityType.Keyword + "/" + identifier + "/search");
+
+			atomEntry.Links.Add(new SyndicationLink(search.Uri, "public", name, "application/atom+xml", 0));
+
+			Uri share = new Uri(context.BaseUrl + "/share?url=" + id.AbsoluteUri);
+			atomEntry.Links.Add(new SyndicationLink(share, "via", name, "application/atom+xml", 0));
+			atomEntry.ReferenceData = this;
+
+			var basepath = new UriBuilder(context.BaseUrl);
+			basepath.Path = "user";
+
+			return atomEntry;
         }
         #endregion
 

@@ -412,7 +412,7 @@ namespace Terradue.Portal {
             if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             foreach (var tag in GetTagsAsList ()){
-                entry.Categories.Add (new SyndicationCategory (tag));
+                entry.Categories.Add (new SyndicationCategory ("tag","",tag));
             }
 
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
