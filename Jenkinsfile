@@ -25,7 +25,6 @@ pipeline {
       steps {
         parallel(
           "Package": {
-            sh "nuget4mono -g origin/${env.BRANCH_NAME} -p Terradue.Tep/packages.config Terradue.Tep/bin/Terradue.Tep.dll Terradue.Tep/Resources/**/*,content/modules/tep"
             sh "nuget4mono -g origin/${env.BRANCH_NAME} -p Terradue.Portal/packages.config Terradue.Portal/bin/Terradue.Portal.dll Terradue.Portal.Agent/bin/Terradue.Portal.Agent.exe Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe core/**/*,content/core"
             sh 'cat *.nuspec'
             sh 'nuget pack -OutputDirectory build'
