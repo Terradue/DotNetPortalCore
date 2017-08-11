@@ -110,7 +110,8 @@ namespace Terradue.Portal {
                 select string.Format("{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value)))
                 .ToArray();
             url.Query = string.Join("&", array);
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, Series.ToArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
+            OpenSearchableFactorySettings settings = new OpenSearchableFactorySettings(ose) { Credentials = querySettings.Credentials };
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(settings, Series.ToArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public OpenSearchDescription GetOpenSearchDescription() {

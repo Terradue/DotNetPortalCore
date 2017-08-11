@@ -50,6 +50,7 @@ namespace Terradue.Portal {
     public class Catalogue : Entity, IOpenSearchable {
 
         OpenSearchDescription osd;
+        static OpenSearchEngine ose;
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -123,6 +124,10 @@ namespace Terradue.Portal {
         /// <summary>Creates a new Catalogue instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Catalogue(IfyContext context) : base(context) {
+            if (ose == null) {
+                ose = new OpenSearchEngine();
+                ose.LoadPlugins();
+            }
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -198,7 +203,7 @@ namespace Terradue.Portal {
 
         public OpenSearchDescription GetOpenSearchDescription() {
 
-            if (osd == null) osd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(new OpenSearchUrl(this.OpenSearchDescriptionUri));
+            if (osd == null) osd =  ose.AutoDiscoverFromQueryUrl(new OpenSearchUrl(this.OpenSearchDescriptionUri));
             return osd;
 
         }
