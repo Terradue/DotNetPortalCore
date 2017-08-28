@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Specialized;
 using Terradue.OpenSearch;
 
 
@@ -10,6 +11,7 @@ using Terradue.OpenSearch;
 //-----------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------
 using Terradue.OpenSearch.Result;
+using Terradue.Portal.OpenSearch;
 using Terradue.ServiceModel.Syndication;
 
 
@@ -30,7 +32,7 @@ namespace Terradue.Portal {
     /// <summary>Represents a news article published on the portal.</summary>
     /// \xrefitem uml "UML" "UML Diagram"
     [EntityTable("article", EntityTableConfiguration.Custom, NameField = "title", IdentifierField = "identifier", HasExtensions = true)]
-    public class Article : Entity, IAtomizable, IComparable<Article> {
+    public class Article : EntitySearchable, IAtomizable, IComparable<Article> {
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -161,7 +163,7 @@ namespace Terradue.Portal {
             return true;
         }
 
-        public Terradue.OpenSearch.Result.AtomItem ToAtomItem(System.Collections.Specialized.NameValueCollection parameters) {
+        public override Terradue.OpenSearch.Result.AtomItem ToAtomItem(System.Collections.Specialized.NameValueCollection parameters) {
 
             string name = (this.Title != null ? this.Title : this.Identifier);
             var entityType = EntityType.GetEntityType(typeof(Article));
