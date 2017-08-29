@@ -153,6 +153,7 @@ namespace Terradue.Portal {
         private Catalogue catalogue;
 
         OpenSearchDescription osd;
+        static OpenSearchEngine ose;
         
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -317,7 +318,12 @@ namespace Terradue.Portal {
         
         /// <summary>Creates a new Series instance.</summary>
         /// <param name="context">The execution environment context.</param>
-        public Series(IfyContext context) : base(context) {}
+        public Series(IfyContext context) : base(context) {
+            if (ose == null) {
+                ose = new OpenSearchEngine();
+                ose.LoadPlugins();
+            }
+        }
         
         //---------------------------------------------------------------------------------------------------------------------
         
@@ -377,30 +383,6 @@ namespace Terradue.Portal {
             result.Id = id;
             result.Identifier = s;
             result.Load();
-            return result;
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Create the series from an OpenSearch url.
-        /// </summary>
-        /// <returns>The open search URL.</returns>
-        /// <param name="osUrl">Os URL.</param>
-        /// <param name="context">Context.</param>
-        /// <param name="exists">If set to <c>true</c> exists.</param>
-        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public static Series FromOpenSearchUrl(OpenSearchUrl osUrl, IfyContext context, bool exists = true) {
-            Series result = new Series (context);
-            OpenSearchDescription osdd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(osUrl);
-
-            result.Identifier = osdd.ShortName;
-
-            if (exists) return Series.FromIdentifier(context, result.Identifier);
-
-            result.Identifier = osdd.ShortName;
-            result.Name = osdd.LongName;
-
             return result;
         }
         
@@ -588,8 +570,9 @@ namespace Terradue.Portal {
         /// </returns>
         /// \ingroup Series
         public virtual OpenSearchDescription GetOpenSearchDescription(){
-            if ( osd == null )  
-                osd = OpenSearchFactory.LoadOpenSearchDescriptionDocument(new OpenSearchUrl(CatalogueDescriptionUrl));
+            if (osd == null) {
+                osd = ose.AutoDiscoverFromQueryUrl(new OpenSearchUrl(CatalogueDescriptionUrl));
+            }
             return osd;
         }
 
@@ -603,9 +586,7 @@ namespace Terradue.Portal {
             get {
                 
                 if (totalResult <= 0) {
-                    OpenSearchEngine ose = new OpenSearchEngine();
-                    AtomOpenSearchEngineExtension aosee = new AtomOpenSearchEngineExtension();
-                    ose.RegisterExtension(aosee);
+                    
 
                     try {
                         // Let's try to get the cache count value

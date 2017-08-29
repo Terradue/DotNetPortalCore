@@ -130,16 +130,12 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         public virtual IOpenSearchable[] GetOpenSearchableArray() {
-            List<SmartGenericOpenSearchable> osResources = new List<SmartGenericOpenSearchable>(Resources.Count);
+            List<IOpenSearchable> osResources = new List<IOpenSearchable>(Resources.Count);
+
+            var settings = new OpenSearchableFactorySettings(ose);
 
             foreach (RemoteResource res in Resources) {
-                var entity = new SmartGenericOpenSearchable(new OpenSearchUrl(res.Location), ose);
-                var eosd = entity.GetOpenSearchDescription();
-                if (eosd.DefaultUrl != null && eosd.DefaultUrl.Type == "application/json") {
-                    var atomUrl = eosd.Url.FirstOrDefault(u => u.Type == "application/atom+xml");
-                    if (atomUrl != null) eosd.DefaultUrl = atomUrl;
-                }
-
+                var entity = OpenSearchFactory.FindOpenSearchable(settings, new Uri(res.Location));
                 osResources.Add(entity);
             }
 
@@ -167,7 +163,8 @@ namespace Terradue.Portal {
             }*/
             //TODO: if only one result dont use Multi
             var entities = GetOpenSearchableArray();
-            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(ose, entities, querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
+            OpenSearchableFactorySettings settings = new OpenSearchableFactorySettings(ose) { Credentials = querySettings.Credentials };
+            return new MultiOpenSearchRequest<AtomFeed, AtomItem>(settings, entities, querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
         public QuerySettings GetQuerySettings(OpenSearchEngine ose) {
