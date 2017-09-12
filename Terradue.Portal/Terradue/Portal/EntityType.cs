@@ -653,7 +653,7 @@ namespace Terradue.Portal {
                 }
             }
 
-            if ((items.ItemVisibility & EntityItemVisibility.OwnedOnly) == EntityItemVisibility.OwnedOnly && userId != 0 && TopTable.HasOwnerReference) {
+            if ((items.ItemVisibility & EntityItemVisibility.OwnedOnly) == EntityItemVisibility.OwnedOnly && TopTable.HasOwnerReference) {
                 if (condition == null) condition = String.Empty; else condition += " AND ";
                 condition += String.Format("t.{0}={1}", TopTable.OwnerReferenceField, userId);
             }
