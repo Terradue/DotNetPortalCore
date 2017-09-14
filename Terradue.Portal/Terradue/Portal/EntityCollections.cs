@@ -821,7 +821,8 @@ namespace Terradue.Portal {
             if (t is EntitySearchable) {
                 var st = t as EntitySearchable;
                 if (st.IsPostFiltered(parameters)) {
-                    feed.TotalResults = st.GetEntityListTotalResults(context, parameters);
+                    //feed.TotalResults = st.GetEntityListTotalResults(context, parameters);
+                    feed.TotalResults = items.Count;
                 }
             }
 

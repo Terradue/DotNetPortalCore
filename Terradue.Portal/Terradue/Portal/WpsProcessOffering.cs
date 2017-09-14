@@ -317,10 +317,8 @@ namespace Terradue.Portal {
                 var queryTags = parameters["tag"].Split(",".ToCharArray()).ToList();
                 var serviceTags = GetTagsAsList();
 
-                bool found = false;
                 foreach (var qtag in queryTags)
-                    if (serviceTags.Any(str => str.Contains(qtag))) found = true;
-                return found;
+                    if (!serviceTags.Any(str => str.Contains(qtag))) return false;
             }
 
             return true;
