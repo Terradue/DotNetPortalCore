@@ -185,18 +185,16 @@ namespace Terradue.Portal {
                 Encoding = new System.Text.UTF8Encoding(false)
             };
 
-            using (var writer = XmlWriter.Create(executeHttpRequest.GetRequestStream(),settings)) {
-                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(writer, executeInput, ns);
-                writer.Flush();
-                writer.Close();
+            using (var stream = executeHttpRequest.GetRequestStream()){
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(stream, executeInput, ns);
             }
 
-            using(StringWriter textWriter = new StringWriter())
-            {
-                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
-                var xmlinput = textWriter.ToString();
-                log.Debug("Execute request : " + xmlinput);
-            }
+            //using(StringWriter textWriter = new StringWriter())
+            //{
+            //    new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
+            //    var xmlinput = textWriter.ToString();
+            //    log.Debug("Execute request : " + xmlinput);
+            //}
 
             return executeHttpRequest;
         }
@@ -221,7 +219,6 @@ namespace Terradue.Portal {
             if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
-            OpenGis.Wps.ExceptionReport exceptionReport = null;
             MemoryStream memStream = new MemoryStream();
 
             var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
