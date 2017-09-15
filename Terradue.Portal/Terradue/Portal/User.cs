@@ -44,7 +44,6 @@ namespace Terradue.Portal {
     [EntityTable("usr", EntityTableConfiguration.Custom, IdentifierField = "username", AutoCorrectDuplicateIdentifiers = true, AllowsKeywordSearch = true)]
     public class User : EntitySearchable {
 
-        private string activationToken;
         private bool emailChanged;
         
         private string accessibleResourcesString;
@@ -61,6 +60,16 @@ namespace Terradue.Portal {
             get { return base.CanDelete || UserId == Id; }
         }
 
+        private string activationtoken;
+        public string ActivationToken {
+            get {
+                if (string.IsNullOrEmpty(activationtoken)) {
+                    activationtoken = GetActivationToken();
+                    if (string.IsNullOrEmpty(activationtoken)) activationtoken = CreateActivationToken();
+                }
+                return activationtoken;
+            }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -499,15 +508,24 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
-        public void CreateActivationToken() {
-            activationToken = Guid.NewGuid().ToString();
-            context.Execute(String.Format("DELETE FROM usrreg WHERE id_usr={0};", Id));
-            var sql = String.Format ("INSERT INTO usrreg (id_usr, token, reg_date, reg_origin) VALUES ({0}, {1}, {2}, {3});",
-                                          Id,
-                                          StringUtils.EscapeSql (activationToken),
-                                          StringUtils.EscapeSql (DateTime.UtcNow.ToString (@"yyyy\-MM\-dd\THH\:mm\:ss")),
-                                     string.IsNullOrEmpty (RegistrationOrigin) ? "NULL" : StringUtils.EscapeSql (RegistrationOrigin));
-            context.Execute(sql);
+        private string CreateActivationToken() {
+            var token = Guid.NewGuid().ToString();
+            context.LogInfo(this,"Create Activation token for user " + this.Username + " -- id_usr = " + Id + " ; token = " + token + " ; reg_date = " + DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss") + " ; reg_origin = " + (string.IsNullOrEmpty(RegistrationOrigin) ? "NULL" : StringUtils.EscapeSql(RegistrationOrigin)));
+            try {
+                context.Execute(String.Format("DELETE FROM usrreg WHERE id_usr={0};", Id));
+                var sql = String.Format("INSERT INTO usrreg (id_usr, token, reg_date, reg_origin) VALUES ({0}, {1}, {2}, {3});",
+                                              Id,
+                                              StringUtils.EscapeSql(token),
+                                              StringUtils.EscapeSql(DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss")),
+                                         string.IsNullOrEmpty(RegistrationOrigin) ? "NULL" : StringUtils.EscapeSql(RegistrationOrigin));
+                context.LogDebug(this, "Activation token sql : " + sql);
+                context.Execute(sql);
+                context.LogDebug(this, "Activation token created");
+            }catch(Exception e){
+                context.LogError(this, e.Message);
+                throw e;
+            }
+            return token;
         }
         
         //---------------------------------------------------------------------------------------------------------------------
@@ -530,7 +548,7 @@ namespace Terradue.Portal {
                     webContext.BaseUrl,
                     webContext.AccountRootUrl,
                     type == UserMailType.Registration ? "activate" : "recover",
-                    activationToken,
+                    ActivationToken,
                     webContext.ScriptUrl
                 );
             }
@@ -570,13 +588,8 @@ namespace Terradue.Portal {
                     body = context.GetConfigValue("EmailChangedMailBody");
                     html = context.GetConfigBooleanValue("EmailChangedMailHtml");
                     if (subject == null) subject = "E-mail changed"; 
-                    if (body == null) body = String.Format("Dear sir/madam,\n\nYou changed your e-mail address linked to your user account on {0}.\n\nPlease confirm the email by clicking on the following link:\n{1}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your e-mail address has changed.", context.GetConfigValue("SiteName"), activationToken);
+                    if (body == null) body = String.Format("Dear sir/madam,\n\nYou changed your e-mail address linked to your user account on {0}.\n\nPlease confirm the email by clicking on the following link:\n{1}\n\nBest regards,\nThe team of {0}\n\nP.S. Please do not reply to this mail, it has been generated automatically. If you think you received this mail by mistake, please take into account that your e-mail address has changed.", context.GetConfigValue("SiteName"), ActivationToken);
                     break;
-            }
-            
-            if (string.IsNullOrEmpty(activationToken)) {
-                activationToken = GetActivationToken();
-                if (string.IsNullOrEmpty(activationToken)) CreateActivationToken();
             }
 
             var baseurl = webContext.GetConfigValue ("BaseUrl");
@@ -584,17 +597,17 @@ namespace Terradue.Portal {
             // activationToken also used here to avoid endless nested replacements
             subject = subject.Replace("$(SITENAME)", context.SiteName);
             body = body.Replace(@"\n", Environment.NewLine);
-            body = body.Replace("$(", "$" + activationToken + "(");
-            body = body.Replace("$" + activationToken + "(USERCAPTION)", Caption);
-            body = body.Replace("$" + activationToken + "(USERNAME)", Username);
-            body = body.Replace("$" + activationToken + "(SITENAME)", context.SiteName);
-            body = body.Replace("$" + activationToken + "(SITEURL)", baseurl);
-            body = body.Replace("$" + activationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", baseurl).Replace("$(TOKEN)", activationToken));
-            if (body.Contains("$" + activationToken + "(SERVICES)")) {
-                body = body.Replace("$" + activationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
+            body = body.Replace("$(", "$" + ActivationToken + "(");
+            body = body.Replace("$" + ActivationToken + "(USERCAPTION)", Caption);
+            body = body.Replace("$" + ActivationToken + "(USERNAME)", Username);
+            body = body.Replace("$" + ActivationToken + "(SITENAME)", context.SiteName);
+            body = body.Replace("$" + ActivationToken + "(SITEURL)", baseurl);
+            body = body.Replace("$" + ActivationToken + "(ACTIVATIONURL)", emailConfirmationUrl.Replace("$(BASEURL)", baseurl).Replace("$(TOKEN)", ActivationToken));
+            if (body.Contains("$" + ActivationToken + "(SERVICES)")) {
+                body = body.Replace("$" + ActivationToken + "(SERVICES)", GetUserAccessibleResourcesString(Service.GetInstance(context), html));
             }
-            if (body.Contains("$" + activationToken + "(SERIES)")) {
-                body = body.Replace("$" + activationToken + "(SERIES)", GetUserAccessibleResourcesString(Series.GetInstance(context), html));
+            if (body.Contains("$" + ActivationToken + "(SERIES)")) {
+                body = body.Replace("$" + ActivationToken + "(SERIES)", GetUserAccessibleResourcesString(Series.GetInstance(context), html));
             }
 
             MailMessage message = new MailMessage();
@@ -695,7 +708,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetActivationToken(){
+        private string GetActivationToken(){
             return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
         }
 
