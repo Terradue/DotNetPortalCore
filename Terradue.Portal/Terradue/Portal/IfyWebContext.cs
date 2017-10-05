@@ -774,7 +774,7 @@ namespace Terradue.Portal {
                 if (HttpContext.Current != null) {
                     if (User.ProfileExtension != null) User.ProfileExtension.OnSessionStarting(this, user, HttpContext.Current.Request);
                     HttpContext.Current.Session["user"] = UserInformation;
-                    HttpContext.Current.Session.Timeout = (authenticationType.UsesExternalIdentityProvider ? 5 : 1440);
+                    HttpContext.Current.Session.Timeout = authenticationType.SessionTimeout;
                 }
             }
         }

@@ -88,6 +88,8 @@ namespace Terradue.Portal {
     [EntityTable("auth", EntityTableConfiguration.Custom, IdentifierField = "identifier", NameField = "name", TypeField = "type")]
     public abstract class AuthenticationType : Entity {
 
+        private int sessionTimeout;
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Indicates or decides whether this authentication method is enabled.</summary>
@@ -124,6 +126,19 @@ namespace Terradue.Portal {
         /// <summary>Gets or sets (protected) the location of an optional configuration file for complex profile mapping settings.</summary>
         [EntityDataField("config")]
         public string ConfigurationFile { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets (protected) the time after which the web portal's HTTP session expires if no new request is made.</summary>
+        [EntityDataField("timeout")]
+        public int SessionTimeout {
+            get {
+                return (sessionTimeout == 0 ? UsesExternalIdentityProvider ? 5 : 1440 : sessionTimeout);
+            }
+            protected set {
+                sessionTimeout = value;
+            }
+        }
 
         //---------------------------------------------------------------------------------------------------------------------
 
