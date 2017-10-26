@@ -1242,7 +1242,7 @@ namespace Terradue.Portal {
             while (reader.Read()) {
                 if (reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
             }
-            reader.Close();
+            context.CloseQueryResult(reader, dbConnection);
             return ids;
         }
 
@@ -1260,7 +1260,7 @@ namespace Terradue.Portal {
             while (reader.Read()) {
                 if (reader.GetValue(0) != DBNull.Value) ids.Add(reader.GetInt32(0));
             }
-            reader.Close();
+            context.CloseQueryResult(reader, dbConnection);
             return ids;
         }
 
