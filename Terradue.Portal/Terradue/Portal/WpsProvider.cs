@@ -504,7 +504,7 @@ namespace Terradue.Portal {
         /// Updates the process offerings.
         /// </summary>
         /// <param name="setAsAvailable">If set to <c>true</c> set as available.</param>
-        public void UpdateProcessOfferings(bool setAsAvailable = false, User owner = null) {
+        public void UpdateProcessOfferings(bool setAsAvailable = false, User owner = null, bool removeMissings = false) {
             List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, owner != null ? owner.Username : null);
             EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
@@ -534,16 +534,18 @@ namespace Terradue.Portal {
                 }
             }
 
-            //foreach (WpsProcessOffering pDB in dbProcesses) {
-            //    bool existsPdbInPr = false;
-            //    foreach (WpsProcessOffering pR in remoteProcesses) {
-            //        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
-            //            existsPdbInPr = true;
-            //    }
-            //    // if pDb not in pR -> we remove pDb
-            //    if (!existsPdbInPr)
-            //        pDB.Delete();
-            //}
+            if (removeMissings) {
+                foreach (WpsProcessOffering pDB in dbProcesses) {
+                    bool existsPdbInPr = false;
+                    foreach (WpsProcessOffering pR in remoteProcesses) {
+                        if (pDB.RemoteIdentifier.Equals(pR.RemoteIdentifier))
+                            existsPdbInPr = true;
+                    }
+                    // if pDb not in pR -> we remove pDb
+                    if (!existsPdbInPr)
+                        pDB.Delete();
+                }
+            }
         }
 
         //---------------------------------------------------------------------------------------------------------------------

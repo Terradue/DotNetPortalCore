@@ -740,6 +740,11 @@ namespace Terradue.Portal {
                         break;
                     case "visibility":
                         switch (parameters[p]) {
+                        case "admin":
+                            if (context.UserLevel == UserLevel.Administrator) {
+                                //this.ItemVisibility = EntityItemVisibility.Admin;//TODO: FRANK -- should allow to see all items
+                            }
+                            break;
                         case "all":
                             this.ItemVisibility = EntityItemVisibility.All;
                             break;
@@ -821,7 +826,8 @@ namespace Terradue.Portal {
             if (t is EntitySearchable) {
                 var st = t as EntitySearchable;
                 if (st.IsPostFiltered(parameters)) {
-                    feed.TotalResults = st.GetEntityListTotalResults(context, parameters);
+                    //feed.TotalResults = st.GetEntityListTotalResults(context, parameters);
+                    feed.TotalResults = items.Count;
                 }
             }
 

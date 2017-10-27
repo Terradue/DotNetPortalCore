@@ -185,18 +185,16 @@ namespace Terradue.Portal {
                 Encoding = new System.Text.UTF8Encoding(false)
             };
 
-            using (var writer = XmlWriter.Create(executeHttpRequest.GetRequestStream(),settings)) {
-                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(writer, executeInput, ns);
-                writer.Flush();
-                writer.Close();
+            using (var stream = executeHttpRequest.GetRequestStream()){
+                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(stream, executeInput, ns);
             }
 
-            using(StringWriter textWriter = new StringWriter())
-            {
-                new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
-                var xmlinput = textWriter.ToString();
-                log.Debug("Execute request : " + xmlinput);
-            }
+            //using(StringWriter textWriter = new StringWriter())
+            //{
+            //    new System.Xml.Serialization.XmlSerializer(typeof(OpenGis.Wps.Execute)).Serialize(textWriter, executeInput, ns);
+            //    var xmlinput = textWriter.ToString();
+            //    log.Debug("Execute request : " + xmlinput);
+            //}
 
             return executeHttpRequest;
         }
@@ -221,7 +219,6 @@ namespace Terradue.Portal {
             if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
-            OpenGis.Wps.ExceptionReport exceptionReport = null;
             MemoryStream memStream = new MemoryStream();
 
             var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
@@ -317,10 +314,8 @@ namespace Terradue.Portal {
                 var queryTags = parameters["tag"].Split(",".ToCharArray()).ToList();
                 var serviceTags = GetTagsAsList();
 
-                bool found = false;
                 foreach (var qtag in queryTags)
-                    if (serviceTags.Any(str => str.Contains(qtag))) found = true;
-                return found;
+                    if (!serviceTags.Any(str => str.Contains(qtag))) return false;
             }
 
             return true;
@@ -412,7 +407,7 @@ namespace Terradue.Portal {
             if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             foreach (var tag in GetTagsAsList ()){
-                entry.Categories.Add (new SyndicationCategory (tag));
+                entry.Categories.Add (new SyndicationCategory ("tag","",tag));
             }
 
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));

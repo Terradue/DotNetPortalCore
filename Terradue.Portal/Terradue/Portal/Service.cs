@@ -681,11 +681,24 @@ namespace Terradue.Portal {
         public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "tag":
-                return new KeyValuePair<string, string>("Tags", '*' + value + '*');
+                    var tags = value.Split(",".ToArray());
+                    IEnumerable<IEnumerable<string>> permutations = GetPermutations(tags, tags.Count());
+					var r1 = permutations.Select(subset => string.Join("*", subset.Select(t => t).ToArray())).ToArray();
+                    var result = string.Join(",", r1.Select(t => "*" + t + "*"));
+					return new KeyValuePair<string, string>("Tags", result);
             default:
                 return base.GetFilterForParameter(parameter, value);
             }
         }
+
+		private IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length) {
+			if (length == 1) return list.Select(t => new T[] { t });
+
+			return GetPermutations(list, length - 1)
+				.SelectMany(t => list.Where(e => !t.Contains(e)),
+					(t1, t2) => t1.Concat(new T[] { t2 }));
+		}
+
 
         #endregion
 
