@@ -1,4 +1,4 @@
--- VERSION 2.7.11
+-- VERSION 2.7.12
 
 USE $MAIN$;
 
@@ -306,6 +306,7 @@ CREATE TABLE auth (
     normal_rule int NOT NULL DEFAULT 2 COMMENT 'Rule for normal accounts',
     refresh_period int NOT NULL DEFAULT 0 COMMENT 'Refresh period for external authentication',
     config varchar(200) COMMENT 'Path to configuration file',
+    timeout int COMMENT 'HTTP session timeout',
     CONSTRAINT pk_auth PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'User authentication types';

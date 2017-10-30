@@ -740,6 +740,11 @@ namespace Terradue.Portal {
                         break;
                     case "visibility":
                         switch (parameters[p]) {
+                        case "admin":
+                            if (context.UserLevel == UserLevel.Administrator) {
+                                //this.ItemVisibility = EntityItemVisibility.Admin;//TODO: FRANK -- should allow to see all items
+                            }
+                            break;
                         case "all":
                             this.ItemVisibility = EntityItemVisibility.All;
                             break;
