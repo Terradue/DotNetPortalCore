@@ -12,6 +12,7 @@ namespace Terradue.Portal.Test {
         public void LoadingTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
             context.Execute("DELETE FROM pubserver;");
+            context.Execute("DELETE FROM usr WHERE username IN ('user1', 'user2');");
 
             User user1 = new User(context);
             user1.Username = "user1";
@@ -61,6 +62,43 @@ namespace Terradue.Portal.Test {
             context.EndImpersonation();
         }
 
+
+        [Test]
+        public void AdminLoadingTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM series;");
+            context.Execute("DELETE FROM usr WHERE username IN ('user1', 'user2');");
+
+            User user1 = new User(context);
+            user1.Username = "user1";
+            user1.Store();
+
+            context.StartImpersonation(user1.Id);
+            Series series1 = new Series(context);
+            series1.Identifier = "SERIES_PUBLIC";
+            series1.Name = "Series public";
+            series1.Store();
+            series1.GrantPermissionsToAll();
+
+            Series series2 = new Series(context);
+            series2.Identifier = "SERIES_PRIVATE";
+            series2.Name = "Series private";
+            series2.Store();
+
+            context.EndImpersonation();
+
+            EntityDictionary<Series> sd1 = new EntityDictionary<Series>(context);
+            sd1.AccessLevel = EntityAccessLevel.Privilege;
+            sd1.ItemVisibility = EntityItemVisibility.All;
+            sd1.Load();
+            Assert.AreEqual(1, sd1.Count);
+
+            EntityDictionary<Series> sd2 = new EntityDictionary<Series>(context);
+            sd2.AccessLevel = EntityAccessLevel.Administrator;
+            sd2.ItemVisibility = EntityItemVisibility.All;
+            sd2.Load();
+            Assert.AreEqual(2, sd2.Count);
+        }
 
         [Test]
         public void FilterTest() {

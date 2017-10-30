@@ -727,57 +727,58 @@ namespace Terradue.Portal {
                 foreach (var p in parameters.AllKeys) {
                     if (string.IsNullOrEmpty(parameters[p])) continue;
                     switch (p) {
-                    case "count":
-                        this.ItemsPerPage = int.Parse(parameters["count"]);
-                        break;
-                    case "startIndex":
-                        this.StartIndex = int.Parse(parameters["startIndex"]);
-                        break;
-                    case "startPage":
-                        //startIndex is prioritary on startPage
-                        if (string.IsNullOrEmpty(parameters["startIndex"]))
-                            this.Page = int.Parse(parameters["startPage"]);
-                        break;
-                    case "visibility":
-                        switch (parameters[p]) {
-                        case "admin":
-                            if (context.UserLevel == UserLevel.Administrator) {
-                                //this.ItemVisibility = EntityItemVisibility.Admin;//TODO: FRANK -- should allow to see all items
+                        case "count":
+                            this.ItemsPerPage = int.Parse(parameters["count"]);
+                            break;
+                        case "startIndex":
+                            this.StartIndex = int.Parse(parameters["startIndex"]);
+                            break;
+                        case "startPage":
+                            //startIndex is prioritary on startPage
+                            if (string.IsNullOrEmpty(parameters["startIndex"]))
+                                this.Page = int.Parse(parameters["startPage"]);
+                            break;
+                        case "visibility":
+                            switch (parameters[p]) {
+                                case "admin":
+                                    if (context.UserLevel == UserLevel.Administrator) {
+                                        this.AccessLevel = EntityAccessLevel.Administrator;
+                                        this.ItemVisibility = EntityItemVisibility.All;
+                                    }
+                                    break;
+                                case "all":
+                                    this.ItemVisibility = EntityItemVisibility.All;
+                                    break;
+                                case "public":
+                                    this.ItemVisibility = EntityItemVisibility.Public;
+                                    break;
+                                case "restricted":
+                                    this.ItemVisibility = EntityItemVisibility.Restricted;
+                                    break;
+                                case "private":
+                                    this.ItemVisibility = EntityItemVisibility.Private;
+                                    break;
+                                case "owned":
+                                    this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
+                                    break;
                             }
                             break;
-                        case "all":
-                            this.ItemVisibility = EntityItemVisibility.All;
+                        case "q":
+                            this.SearchKeyword = parameters[p];
+                            this.FindWholeWords = false;
                             break;
-                        case "public":
-                            this.ItemVisibility = EntityItemVisibility.Public;
+                        case "author":
+                            var u = User.ForceFromUsername(context, parameters[p]);
+                            SetFilter("OwnerId", u.Id.ToString());
                             break;
-                        case "restricted":
-                            this.ItemVisibility = EntityItemVisibility.Restricted;
+                        case "domain":
+                            var dm = Domain.FromIdentifier(context, parameters[p]);
+                            SetFilter("DomainId", dm.Id.ToString());
                             break;
-                        case "private":
-                            this.ItemVisibility = EntityItemVisibility.Private;
+                        default:
+                            var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
+                            if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
                             break;
-                        case "owned":
-                            this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
-                            break;
-                        }
-                        break;
-                    case "q":
-                        this.SearchKeyword = parameters[p];
-                        this.FindWholeWords = false;
-                        break;
-                    case "author":
-                        var u = User.ForceFromUsername(context, parameters[p]);
-                        SetFilter("OwnerId", u.Id.ToString());
-                        break;
-                    case "domain":
-                        var dm = Domain.FromIdentifier(context, parameters[p]);
-                        SetFilter("DomainId", dm.Id.ToString());
-                        break;
-                    default:
-                        var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
-                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
-                        break;
                     }
 
                 }
