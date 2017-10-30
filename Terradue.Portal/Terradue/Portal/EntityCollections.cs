@@ -62,11 +62,19 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
+        /// <remarks>
+        ///     <para>This property determines the user's <see cref="UserId"/> authorisation level for the loading of the list content.</para>
+        ///     <para>This is different from <see cref="AccessLevel"/> which determines what sort of items the list contains, according to what degree of visibility they have from the user's points of view.</para>
+        /// </remarks>
         public EntityAccessLevel AccessLevel { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the visibility flags to be taken into account before loading the collection.</summary>
+        /// <remarks>
+        ///     <para>This property determines what sort of items the list contains, according to what degree of visibility they have from the user's <see cref="UserId"/> points of view.</para>
+        ///     <para>This is different from <see cref="AccessLevel"/> which determines the user's authorisation level for the loading of the list content.</para>
+        /// </remarks>
         public EntityItemVisibility ItemVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
