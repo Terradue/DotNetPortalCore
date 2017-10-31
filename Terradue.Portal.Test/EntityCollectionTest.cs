@@ -243,6 +243,16 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd.Count);
             Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id));
 
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "*";
+            pd.FindWholeWords = false;
+            context.ConsoleDebug = true;
+            pd.Load();
+            Console.WriteLine("TotalResults={0}, Count={1}", pd.TotalResults, pd.Count);
+            Assert.AreEqual(3, pd.TotalResults);
+            Assert.AreEqual(3, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id) && pd.Contains(p3.Id));
+
             EntityList<WpsProcessOffering> el = new EntityList<WpsProcessOffering>(context);
             el.SearchKeyword = "bla";
             context.ConsoleDebug = true;

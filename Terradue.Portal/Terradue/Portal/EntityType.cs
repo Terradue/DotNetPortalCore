@@ -80,7 +80,7 @@ namespace Terradue.Portal {
 
         private bool isSqlPrepared = false;
 
-        private Regex regexRegex = new Regex(@"[\[\]\(\)\{\}\?\*\+]");
+        private Regex regexRegex = new Regex(@"[\[\]\(\)\{\}\.\+]");
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -1105,8 +1105,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords) {
-            string result = null;
+        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords, bool useWildcardCharacters = true) {
             List<string> fieldNames = new List<string>();
 
             if (TopTable.HasIdentifierField) fieldNames.Add(String.Format("t.{0}", TopTable.IdentifierField));
@@ -1131,11 +1130,12 @@ namespace Terradue.Portal {
             }
             if (fieldNames.Count == 0) return null;
 
-
-            return String.Format("CONCAT_WS('\t', {0}) REGEXP '{2}{1}{3}'",
+            string searchTermSql = regexRegex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0");
+            if (useWildcardCharacters) searchTermSql = searchTermSql.Replace("*", ".*").Replace("?", ".");
+            return String.Format("CONCAT_WS('\t', {0}) REGEXP '{2}{1}{3}' /*" + searchTerm + "*/",
                     String.Join(",", fieldNames),
-                    regexRegex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0"), 
-                    findWholeWords ? "[[:<:]]" : String.Empty, 
+                    searchTermSql,
+                    findWholeWords ? "[[:<:]]" : String.Empty,
                     findWholeWords ? "[[:>:]]" : String.Empty
             );
         }
