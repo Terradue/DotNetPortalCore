@@ -95,6 +95,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether wildcard characters ('*' and '?') are interpreted literally in the keyword search.</summary>
+        public bool LiteralSearch { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
