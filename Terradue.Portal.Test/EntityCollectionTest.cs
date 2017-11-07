@@ -166,8 +166,6 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd5.Count);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
 
-            context.ConsoleDebug = true;
-
             EntityDictionary<PublishServer> pd6 = new EntityDictionary<PublishServer>(context);
             pd6.SetFilter("FileRootDir", SpecialSearchValue.Null);
             pd6.Load();
@@ -264,12 +262,6 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(1, pd.TotalResults);
             Assert.AreEqual(1, pd.Count);
             Assert.IsTrue(pd.Contains(p4.Id));
-
-            EntityList<WpsProcessOffering> el = new EntityList<WpsProcessOffering>(context);
-            el.SearchKeyword = "bla";
-            context.ConsoleDebug = true;
-            el.Load();
-
 
         }
 
