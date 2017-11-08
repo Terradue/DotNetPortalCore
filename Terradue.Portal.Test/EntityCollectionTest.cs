@@ -12,6 +12,7 @@ namespace Terradue.Portal.Test {
         public void LoadingTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
             context.Execute("DELETE FROM pubserver;");
+            context.Execute("DELETE FROM usr WHERE username IN ('user1', 'user2');");
 
             User user1 = new User(context);
             user1.Username = "user1";
@@ -61,6 +62,43 @@ namespace Terradue.Portal.Test {
             context.EndImpersonation();
         }
 
+
+        [Test]
+        public void AdminLoadingTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM series;");
+            context.Execute("DELETE FROM usr WHERE username IN ('user1', 'user2');");
+
+            User user1 = new User(context);
+            user1.Username = "user1";
+            user1.Store();
+
+            context.StartImpersonation(user1.Id);
+            Series series1 = new Series(context);
+            series1.Identifier = "SERIES_PUBLIC";
+            series1.Name = "Series public";
+            series1.Store();
+            series1.GrantPermissionsToAll();
+
+            Series series2 = new Series(context);
+            series2.Identifier = "SERIES_PRIVATE";
+            series2.Name = "Series private";
+            series2.Store();
+
+            context.EndImpersonation();
+
+            EntityDictionary<Series> sd1 = new EntityDictionary<Series>(context);
+            sd1.AccessLevel = EntityAccessLevel.Privilege;
+            sd1.ItemVisibility = EntityItemVisibility.All;
+            sd1.Load();
+            Assert.AreEqual(1, sd1.Count);
+
+            EntityDictionary<Series> sd2 = new EntityDictionary<Series>(context);
+            sd2.AccessLevel = EntityAccessLevel.Administrator;
+            sd2.ItemVisibility = EntityItemVisibility.All;
+            sd2.Load();
+            Assert.AreEqual(2, sd2.Count);
+        }
 
         [Test]
         public void FilterTest() {
@@ -128,8 +166,6 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd5.Count);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
 
-            context.ConsoleDebug = true;
-
             EntityDictionary<PublishServer> pd6 = new EntityDictionary<PublishServer>(context);
             pd6.SetFilter("FileRootDir", SpecialSearchValue.Null);
             pd6.Load();
@@ -166,7 +202,12 @@ namespace Terradue.Portal.Test {
             p3.Hostname = "test.org";
             p3.Path = "/ghi/jkl";
             p3.Store();
-
+            PublishServer p4 = new PublishServer(context);
+            p4.Name = "z*";
+            p4.Protocol = "z";
+            p4.Hostname = "z.org";
+            p4.Path = "/z";
+            p4.Store();
             EntityDictionary<PublishServer> pd;
 
             pd = new EntityDictionary<PublishServer>(context);
@@ -205,11 +246,22 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd.Count);
             Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id));
 
-            EntityList<WpsProcessOffering> el = new EntityList<WpsProcessOffering>(context);
-            el.SearchKeyword = "bla";
-            context.ConsoleDebug = true;
-            el.Load();
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "*";
+            pd.FindWholeWords = false;
+            pd.Load();
+            Assert.AreEqual(4, pd.TotalResults);
+            Assert.AreEqual(4, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id) && pd.Contains(p3.Id) && pd.Contains(p4.Id));
 
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "z*";
+            pd.FindWholeWords = false;
+            pd.LiteralSearch = true;
+            pd.Load();
+            Assert.AreEqual(1, pd.TotalResults);
+            Assert.AreEqual(1, pd.Count);
+            Assert.IsTrue(pd.Contains(p4.Id));
 
         }
 

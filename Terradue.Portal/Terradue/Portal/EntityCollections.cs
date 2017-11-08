@@ -62,11 +62,19 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
+        /// <remarks>
+        ///     <para>This property determines the user's <see cref="UserId"/> authorisation level for the loading of the list content.</para>
+        ///     <para>This is different from <see cref="AccessLevel"/> which determines what sort of items the list contains, according to what degree of visibility they have from the user's points of view.</para>
+        /// </remarks>
         public EntityAccessLevel AccessLevel { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the visibility flags to be taken into account before loading the collection.</summary>
+        /// <remarks>
+        ///     <para>This property determines what sort of items the list contains, according to what degree of visibility they have from the user's <see cref="UserId"/> points of view.</para>
+        ///     <para>This is different from <see cref="AccessLevel"/> which determines the user's authorisation level for the loading of the list content.</para>
+        /// </remarks>
         public EntityItemVisibility ItemVisibility { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -84,6 +92,11 @@ namespace Terradue.Portal {
 
         /// <summary>Indicates or decides whether whole words are to be matched in the keyword search.</summary>
         public bool FindWholeWords { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Indicates or decides whether wildcard characters ('*' and '?') are interpreted literally in the keyword search.</summary>
+        public bool LiteralSearch { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -727,57 +740,58 @@ namespace Terradue.Portal {
                 foreach (var p in parameters.AllKeys) {
                     if (string.IsNullOrEmpty(parameters[p])) continue;
                     switch (p) {
-                    case "count":
-                        this.ItemsPerPage = int.Parse(parameters["count"]);
-                        break;
-                    case "startIndex":
-                        this.StartIndex = int.Parse(parameters["startIndex"]);
-                        break;
-                    case "startPage":
-                        //startIndex is prioritary on startPage
-                        if (string.IsNullOrEmpty(parameters["startIndex"]))
-                            this.Page = int.Parse(parameters["startPage"]);
-                        break;
-                    case "visibility":
-                        switch (parameters[p]) {
-                        case "admin":
-                            if (context.UserLevel == UserLevel.Administrator) {
-                                //this.ItemVisibility = EntityItemVisibility.Admin;//TODO: FRANK -- should allow to see all items
+                        case "count":
+                            this.ItemsPerPage = int.Parse(parameters["count"]);
+                            break;
+                        case "startIndex":
+                            this.StartIndex = int.Parse(parameters["startIndex"]);
+                            break;
+                        case "startPage":
+                            //startIndex is prioritary on startPage
+                            if (string.IsNullOrEmpty(parameters["startIndex"]))
+                                this.Page = int.Parse(parameters["startPage"]);
+                            break;
+                        case "visibility":
+                            switch (parameters[p]) {
+                                case "admin":
+                                    if (context.UserLevel == UserLevel.Administrator) {
+                                        this.AccessLevel = EntityAccessLevel.Administrator;
+                                        this.ItemVisibility = EntityItemVisibility.All;
+                                    }
+                                    break;
+                                case "all":
+                                    this.ItemVisibility = EntityItemVisibility.All;
+                                    break;
+                                case "public":
+                                    this.ItemVisibility = EntityItemVisibility.Public;
+                                    break;
+                                case "restricted":
+                                    this.ItemVisibility = EntityItemVisibility.Restricted;
+                                    break;
+                                case "private":
+                                    this.ItemVisibility = EntityItemVisibility.Private;
+                                    break;
+                                case "owned":
+                                    this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
+                                    break;
                             }
                             break;
-                        case "all":
-                            this.ItemVisibility = EntityItemVisibility.All;
+                        case "q":
+                            this.SearchKeyword = parameters[p];
+                            this.FindWholeWords = false;
                             break;
-                        case "public":
-                            this.ItemVisibility = EntityItemVisibility.Public;
+                        case "author":
+                            var u = User.ForceFromUsername(context, parameters[p]);
+                            SetFilter("OwnerId", u.Id.ToString());
                             break;
-                        case "restricted":
-                            this.ItemVisibility = EntityItemVisibility.Restricted;
+                        case "domain":
+                            var dm = Domain.FromIdentifier(context, parameters[p]);
+                            SetFilter("DomainId", dm.Id.ToString());
                             break;
-                        case "private":
-                            this.ItemVisibility = EntityItemVisibility.Private;
+                        default:
+                            var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
+                            if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
                             break;
-                        case "owned":
-                            this.ItemVisibility = EntityItemVisibility.All | EntityItemVisibility.OwnedOnly;
-                            break;
-                        }
-                        break;
-                    case "q":
-                        this.SearchKeyword = parameters[p];
-                        this.FindWholeWords = false;
-                        break;
-                    case "author":
-                        var u = User.ForceFromUsername(context, parameters[p]);
-                        SetFilter("OwnerId", u.Id.ToString());
-                        break;
-                    case "domain":
-                        var dm = Domain.FromIdentifier(context, parameters[p]);
-                        SetFilter("DomainId", dm.Id.ToString());
-                        break;
-                    default:
-                        var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
-                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
-                        break;
                     }
 
                 }
