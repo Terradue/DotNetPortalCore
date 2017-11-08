@@ -681,6 +681,20 @@ namespace Terradue.Portal {
                     try{
                         ProcessDescriptionType describeProcess = GetWPSDescribeProcess(wpsProcess.RemoteIdentifier, process.processVersion, username);
                         wpsProcess.Description = (describeProcess.Abstract != null ? describeProcess.Abstract.Value : null);
+                        //geometry
+                        if (describeProcess.Metadata != null) {
+                            foreach (var metadata in describeProcess.Metadata) {
+                                if (metadata.AbstractMetaData is BoundingBoxType) {
+                                    var bbox = metadata.AbstractMetaData as BoundingBoxType;
+                                    var geometry = string.Format("{0} {1} {2} {3}",
+                                                                 bbox.LowerCorner.Trim(' ').Split(' ')[0],
+                                                                 bbox.LowerCorner.Trim(' ').Split(' ')[1],
+                                                                 bbox.UpperCorner.Trim(' ').Split(' ')[0],
+                                                                 bbox.UpperCorner.Trim(' ').Split(' ')[1]);
+                                    wpsProcess.Geometry = geometry;
+                                }
+                            }
+                        }
                     }catch(Exception e){
                     }
                 }

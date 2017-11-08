@@ -421,6 +421,8 @@ namespace Terradue.Portal {
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
 
+            if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
+
             return new AtomItem(entry);
         }
 

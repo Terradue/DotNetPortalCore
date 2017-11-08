@@ -187,6 +187,13 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Geometry defining the AOI of the service</summary>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("geometry")]
+        public string Geometry { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Class identifier. Can be used to classify the maturity level.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityForeignField("id", CLASS_TABLE)]
