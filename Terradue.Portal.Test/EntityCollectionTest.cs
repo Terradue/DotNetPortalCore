@@ -166,8 +166,6 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd5.Count);
             Assert.IsTrue(pd5.Contains(p3a.Id) && pd3.Contains(p3b.Id));
 
-            context.ConsoleDebug = true;
-
             EntityDictionary<PublishServer> pd6 = new EntityDictionary<PublishServer>(context);
             pd6.SetFilter("FileRootDir", SpecialSearchValue.Null);
             pd6.Load();
@@ -204,7 +202,12 @@ namespace Terradue.Portal.Test {
             p3.Hostname = "test.org";
             p3.Path = "/ghi/jkl";
             p3.Store();
-
+            PublishServer p4 = new PublishServer(context);
+            p4.Name = "z*";
+            p4.Protocol = "z";
+            p4.Hostname = "z.org";
+            p4.Path = "/z";
+            p4.Store();
             EntityDictionary<PublishServer> pd;
 
             pd = new EntityDictionary<PublishServer>(context);
@@ -246,18 +249,19 @@ namespace Terradue.Portal.Test {
             pd = new EntityDictionary<PublishServer>(context);
             pd.SearchKeyword = "*";
             pd.FindWholeWords = false;
-            context.ConsoleDebug = true;
             pd.Load();
-            Console.WriteLine("TotalResults={0}, Count={1}", pd.TotalResults, pd.Count);
-            Assert.AreEqual(3, pd.TotalResults);
-            Assert.AreEqual(3, pd.Count);
-            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id) && pd.Contains(p3.Id));
+            Assert.AreEqual(4, pd.TotalResults);
+            Assert.AreEqual(4, pd.Count);
+            Assert.IsTrue(pd.Contains(p1.Id) && pd.Contains(p2.Id) && pd.Contains(p3.Id) && pd.Contains(p4.Id));
 
-            EntityList<WpsProcessOffering> el = new EntityList<WpsProcessOffering>(context);
-            el.SearchKeyword = "bla";
-            context.ConsoleDebug = true;
-            el.Load();
-
+            pd = new EntityDictionary<PublishServer>(context);
+            pd.SearchKeyword = "z*";
+            pd.FindWholeWords = false;
+            pd.LiteralSearch = true;
+            pd.Load();
+            Assert.AreEqual(1, pd.TotalResults);
+            Assert.AreEqual(1, pd.Count);
+            Assert.IsTrue(pd.Contains(p4.Id));
 
         }
 

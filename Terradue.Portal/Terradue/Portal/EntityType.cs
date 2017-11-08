@@ -80,7 +80,8 @@ namespace Terradue.Portal {
 
         private bool isSqlPrepared = false;
 
-        private Regex regexRegex = new Regex(@"[\[\]\(\)\{\}\.\+]");
+        private Regex baseRegexRegex = new Regex(@"[\[\]\(\)\{\}\.\+]");
+        private Regex literalRegexRegex = new Regex(@"[\[\]\(\)\{\}\.\+\?\*]");
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -645,7 +646,7 @@ namespace Terradue.Portal {
                 }
             }
             if (AllowsKeywordSearch && items.SearchKeyword != null) {
-                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword, items.FindWholeWords);
+                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword, items.FindWholeWords, items.LiteralSearch);
                 if (keywordCondition != null) {
                     if (condition == null) condition = String.Empty;
                     else condition += " AND ";
@@ -1105,7 +1106,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords, bool useWildcardCharacters = true) {
+        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords, bool literalSearch = false) {
             List<string> fieldNames = new List<string>();
 
             if (TopTable.HasIdentifierField) fieldNames.Add(String.Format("t.{0}", TopTable.IdentifierField));
@@ -1130,9 +1131,9 @@ namespace Terradue.Portal {
             }
             if (fieldNames.Count == 0) return null;
 
-            string searchTermSql = regexRegex.Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0");
-            if (useWildcardCharacters) searchTermSql = searchTermSql.Replace("*", ".*").Replace("?", ".");
-            return String.Format("CONCAT_WS('\t', {0}) REGEXP '{2}{1}{3}' /*" + searchTerm + "*/",
+            string searchTermSql = (literalSearch ? literalRegexRegex : baseRegexRegex).Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0");
+            if (!literalSearch) searchTermSql = searchTermSql.Replace("*", ".*").Replace("?", ".");
+            return String.Format("CONCAT_WS('\t', {0}) REGEXP '{2}{1}{3}'",
                     String.Join(",", fieldNames),
                     searchTermSql,
                     findWholeWords ? "[[:<:]]" : String.Empty,
