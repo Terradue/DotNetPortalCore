@@ -97,8 +97,8 @@ namespace Terradue.Portal {
 
         /// <summary>/// Deletes the cookie.</summary>
         public void Delete(bool emptyValue = true) {
-            if (string.IsNullOrEmpty(Session)) throw new Exception("Empty Session ID");
-            if (string.IsNullOrEmpty(Identifier)) throw new Exception("Empty Identifier");
+            if (string.IsNullOrEmpty(Session)) return;
+            if (string.IsNullOrEmpty(Identifier)) return;
 
             string sql = string.Format("DELETE FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(Session), StringUtils.EscapeSql(Identifier));
             Context.Execute(sql);
