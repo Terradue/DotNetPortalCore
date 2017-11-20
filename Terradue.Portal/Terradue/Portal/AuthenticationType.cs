@@ -189,6 +189,20 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Creates a new AuthenticationType instance representing the authentication type with the specified database identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="identifier">The database identifier of the authentication type.</param>
+        /// <returns>The created AuthenticationType object.</returns>
+        public static AuthenticationType FromIdentifier(IfyContext context, string identifier) {
+            EntityType entityType = EntityType.GetEntityType(typeof(AuthenticationType));
+            AuthenticationType result = (AuthenticationType)entityType.GetEntityInstanceFromIdentifier(context, identifier);
+            result.Identifier = identifier;
+            result.Load();
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>In a derived class, obtains the user information from the current HTTP request's URL, headers or content.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="request">The current HttpRequest to analyse.</param>
@@ -463,11 +477,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// \xrefitem uml "UML" "UML Diagram"
         public User AuthenticateUser(IfyWebContext context, string token) {
-            if (token == null) throw new ArgumentNullException("token", "No account key or token specified");
-            int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
-            if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
-
-            User user = User.ForceFromId(context, userId);
+            User user = User.FromActivationToken(context, token);
             if (user.AccountStatus == AccountStatusType.Enabled) throw new InvalidOperationException("Account already enabled");
 
             if (user.AccountStatus == AccountStatusType.PendingActivation || user.AccountStatus == AccountStatusType.PasswordReset || user.FailedLogins != 0) {

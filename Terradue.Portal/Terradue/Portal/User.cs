@@ -408,6 +408,22 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Get User from the activation token.
+        /// </summary>
+        /// <returns>The activation token.</returns>
+        /// <param name="context">Context.</param>
+        /// <param name="token">Token.</param>
+        public static User FromActivationToken(IfyContext context, string token) {
+            if (token == null) throw new ArgumentNullException("token", "No account key or token specified");
+            int userId = context.GetQueryIntegerValue(String.Format("SELECT t.id_usr FROM usrreg AS t WHERE t.token={0};", StringUtils.EscapeSql(token)));
+            if (userId == 0) throw new UnauthorizedAccessException("Invalid account key");
+
+            return User.ForceFromId(context, userId);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public static void SetAccountStatus(IfyContext context, int[] ids, int accountStatus) {
             if (context.AccessLevel != EntityAccessLevel.Administrator) throw new EntityUnauthorizedException("You are not authorized to enable or disable user accounts", null, null, 0);
             string idsStr = "";
@@ -527,9 +543,9 @@ namespace Terradue.Portal {
             }
             return token;
         }
-        
+
         //---------------------------------------------------------------------------------------------------------------------
-        
+
         /// <summary>Sends a mail to a user.</summary>
         /// \ingroup Authorisation
         public bool SendMail(UserMailType type, bool forAuthenticatedUser) {
