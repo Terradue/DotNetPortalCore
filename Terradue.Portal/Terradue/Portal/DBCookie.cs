@@ -62,6 +62,7 @@ namespace Terradue.Portal {
         /// <param name="session">The related session ID.</param>
         /// <param name="identifier">The unique identifier of the cookie.</param>
         public static void DeleteDBCookie(IfyContext context, string session, string identifier) {
+            if (string.IsNullOrEmpty(session) || string.IsNullOrEmpty(identifier)) return;
             DBCookie cookie = DBCookie.FromSessionAndIdentifier(context, session, identifier);
             cookie.Delete();
         }
@@ -70,6 +71,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="session">The related session ID.</param>
         public static void DeleteDBCookies(IfyContext context, string session) {
+            if (string.IsNullOrEmpty(session)) return;
             string sql = string.Format("DELETE FROM cookie WHERE session='{0}';", session);
             context.Execute(sql);
         }
@@ -97,8 +99,7 @@ namespace Terradue.Portal {
 
         /// <summary>/// Deletes the cookie.</summary>
         public void Delete(bool emptyValue = true) {
-            if (string.IsNullOrEmpty(Session)) return;
-            if (string.IsNullOrEmpty(Identifier)) return;
+            if (string.IsNullOrEmpty(Session) || string.IsNullOrEmpty(Identifier)) return;
 
             string sql = string.Format("DELETE FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(Session), StringUtils.EscapeSql(Identifier));
             Context.Execute(sql);
