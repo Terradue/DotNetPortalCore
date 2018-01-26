@@ -111,7 +111,7 @@ namespace Terradue.Portal {
                 .ToArray();
             url.Query = string.Join("&", array);
             OpenSearchableFactorySettings settings = new OpenSearchableFactorySettings(ose) { Credentials = querySettings.Credentials };
-            settings.MergeFilters = Terradue.Metadata.EarthObservation.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
+            settings.MergeFilters = Terradue.Metadata.EarthObservation.Helpers.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
             return new MultiOpenSearchRequest<AtomFeed, AtomItem>(settings, Series.ToArray(), querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 

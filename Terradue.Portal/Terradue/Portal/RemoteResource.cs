@@ -133,7 +133,7 @@ namespace Terradue.Portal {
             List<IOpenSearchable> osResources = new List<IOpenSearchable>(Resources.Count);
 
             var settings = new OpenSearchableFactorySettings(ose);
-            settings.MergeFilters = Terradue.Metadata.EarthObservation.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
+            settings.MergeFilters = Terradue.Metadata.EarthObservation.Helpers.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
 
             foreach (RemoteResource res in Resources) {
                 var entity = OpenSearchFactory.FindOpenSearchable(settings, new Uri(res.Location));
@@ -165,7 +165,7 @@ namespace Terradue.Portal {
             //TODO: if only one result dont use Multi
             var entities = GetOpenSearchableArray();
             OpenSearchableFactorySettings settings = new OpenSearchableFactorySettings(ose) { Credentials = querySettings.Credentials };
-            settings.MergeFilters = Terradue.Metadata.EarthObservation.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
+            settings.MergeFilters = Terradue.Metadata.EarthObservation.Helpers.GeoTimeOpenSearchHelper.MergeGeoTimeFilters;
             return new MultiOpenSearchRequest<AtomFeed, AtomItem>(settings, entities, querySettings.PreferredContentType, new OpenSearchUrl(url.ToString()), true, this);
         }
 
