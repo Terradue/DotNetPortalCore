@@ -323,7 +323,7 @@ namespace Terradue.Portal {
             RemoteResource newItem = null;
             if (!IsLoading && !AllowDuplicates) {
                 foreach (RemoteResource resource in Items) {
-                    if (resource.Location == item.Location) newItem = item;
+                    if (resource.Location == item.Location) newItem = resource;
                 }
             }
             base.IncludeInternal(newItem == null ? item : newItem);
