@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Web;
 using Terradue.Util;
 
 namespace Terradue.Portal {
@@ -12,11 +13,15 @@ namespace Terradue.Portal {
         public DateTime Expire { get; set; }
         public DateTime CreationDate { get; set; }
 
+        /*****************************************************************************************************************/
+
         /// <summary>Creates a new DBCookie instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public DBCookie(IfyContext context) {
             this.Context = context;
         }
+
+        /*****************************************************************************************************************/
 
         /// <summary>Creates a new DBCookie instance representing the cookie with the specified session ID and unique identifier.</summary>
         /// <param name="context">The execution environment context.</param>
@@ -42,13 +47,27 @@ namespace Terradue.Portal {
             return cookie;
         }
 
+        /// <summary>
+        /// Loads the DB cookie.
+        /// </summary>
+        /// <returns>The cookie.</returns>
+        /// <param name="context">Context.</param>
+        /// <param name="identifier">Identifier.</param>
+        public static DBCookie LoadDBCookie(IfyContext context, string identifier) {
+            if (HttpContext.Current.Session == null) return new DBCookie(context);
+            return DBCookie.FromSessionAndIdentifier(context, HttpContext.Current.Session.SessionID, identifier);
+        }
+
+        /*****************************************************************************************************************/
+
         /// <summary>Stores the DB cookie.</summary>
         /// <param name="context">The execution environment context.</param>
         /// <param name="session">The related session ID.</param>
         /// <param name="identifier">The unique identifier of the cookie.</param>
         /// <param name="value">The cookie value.</param>
-        /// <param name="expire">The expiration time.</param>
+        /// <param name="expire">The expiration date.</param>
         public static void StoreDBCookie(IfyContext context, string session, string identifier, string value, DateTime expire) {
+            if (string.IsNullOrEmpty(session) || string.IsNullOrEmpty(identifier)) return;
             DBCookie cookie = new DBCookie(context);
             cookie.Session = session;
             cookie.Identifier = identifier;
@@ -56,6 +75,18 @@ namespace Terradue.Portal {
             cookie.Expire = expire;
             cookie.Store();
         }
+
+        /// <summary>Stores the DB cookie.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="identifier">The unique identifier of the cookie.</param>
+        /// <param name="value">The cookie value.</param>
+        /// <param name="expire">The expiration time in seconds (default = 1 day).</param>
+        public static void StoreDBCookie(IfyContext context, string identifier, string value, long expire = 86400) {
+            if (HttpContext.Current.Session == null) return;
+            DBCookie.StoreDBCookie(context, HttpContext.Current.Session.SessionID, identifier, value, DateTime.UtcNow.AddSeconds(expire));
+        }
+
+        /*****************************************************************************************************************/
 
         /// <summary>Deletes the DB cookie.</summary>
         /// <param name="context">The execution environment context.</param>
@@ -67,6 +98,18 @@ namespace Terradue.Portal {
             cookie.Delete();
         }
 
+        /// <summary>
+        /// Deletes the DB cookie.
+        /// </summary>
+        /// <param name="context">Context.</param>
+        /// <param name="identifier">Identifier.</param>
+        public static void DeleteDBCookie(IfyContext context, string identifier) {
+            if (HttpContext.Current.Session == null) return;
+            DBCookie.DeleteDBCookie(context, HttpContext.Current.Session.SessionID, identifier);
+        }
+
+        /*****************************************************************************************************************/
+
         /// <summary>Deletes all DB cookies from a session.</summary> 
         /// <param name="context">The execution environment context.</param>
         /// <param name="session">The related session ID.</param>
@@ -75,6 +118,17 @@ namespace Terradue.Portal {
             string sql = string.Format("DELETE FROM cookie WHERE session='{0}';", session);
             context.Execute(sql);
         }
+
+        /// <summary>
+        /// Revokes the session cookies.
+        /// </summary>
+        /// <param name="context">Context.</param>
+        public static void RevokeSessionCookies(IfyContext context) {
+            if (HttpContext.Current.Session == null) return;
+            DBCookie.DeleteDBCookies(context, HttpContext.Current.Session.SessionID);
+        }
+
+        /*****************************************************************************************************************/
 
         /// <summary>Stores the DB cookie.</summary>
         public void Store() {
@@ -107,5 +161,8 @@ namespace Terradue.Portal {
 
             if (emptyValue) Value = null;
         }
+
+        /*****************************************************************************************************************/
+
     }
 }
