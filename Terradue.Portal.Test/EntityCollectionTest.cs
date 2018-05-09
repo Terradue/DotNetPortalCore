@@ -110,13 +110,14 @@ namespace Terradue.Portal.Test {
             p1.Protocol = "ftp";
             p1.Hostname = "test.org";
             p1.Port = 23;
-            p1.FileRootDir = "/dir";
+            p1.FileRootDir = "/dir1";
             p1.Store();
             PublishServer p2 = new PublishServer(context);
             p2.Name = "pf2";
             p2.Protocol = "ftp";
             p2.Hostname = "anothertest.org";
             p2.Port = 123;
+            p2.FileRootDir = "/dir2";
             p2.Store();
             PublishServer p3a = new PublishServer(context);
             p3a.Name = "pf3a";
@@ -169,16 +170,24 @@ namespace Terradue.Portal.Test {
             EntityDictionary<PublishServer> pd6 = new EntityDictionary<PublishServer>(context);
             pd6.SetFilter("FileRootDir", SpecialSearchValue.Null);
             pd6.Load();
-            Assert.AreEqual(3, pd6.TotalResults);
-            Assert.AreEqual(3, pd6.Count);
-            Assert.IsTrue(pd6.Contains(p2.Id) && pd6.Contains(p3a.Id) && pd3.Contains(p3b.Id));
+            Assert.AreEqual(2, pd6.TotalResults);
+            Assert.AreEqual(2, pd6.Count);
+            Assert.IsTrue(pd6.Contains(p3a.Id) && pd6.Contains(p3b.Id));
 
             EntityDictionary<PublishServer> pd7 = new EntityDictionary<PublishServer>(context);
             pd7.SetFilter("FileRootDir", SpecialSearchValue.NotNull);
             pd7.Load();
-            Assert.AreEqual(1, pd7.TotalResults);
-            Assert.AreEqual(1, pd7.Count);
-            Assert.IsTrue(pd7.Contains(p1.Id));
+            Assert.AreEqual(2, pd7.TotalResults);
+            Assert.AreEqual(2, pd7.Count);
+            Assert.IsTrue(pd7.Contains(p1.Id) && pd7.Contains(p2.Id));
+
+
+            EntityDictionary<PublishServer> pd8 = new EntityDictionary<PublishServer>(context);
+            pd8.SetFilter("FileRootDir", new object[] { "/dir2", SpecialSearchValue.Null });
+            pd8.Load();
+            Assert.AreEqual(3, pd8.TotalResults);
+            Assert.AreEqual(3, pd8.Count);
+            Assert.IsTrue(pd8.Contains(p2.Id) && pd8.Contains(p3a.Id) && pd8.Contains(p3b.Id));
         }
 
         [Test]

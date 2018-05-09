@@ -1150,8 +1150,12 @@ namespace Terradue.Portal {
             bool hasCondition = false;
 
             foreach (FieldInfo field in filterValues.Keys) {
-                object searchValue = filterValues[field];
+                object searchObject = filterValues[field];
+
+                object[] searchValues = (searchObject is object[] ? searchObject as object[] : new object[] { searchObject });
+                    
                 string condition = null;
+                bool multipleSubConditions = false;
 
                 string alias = null;
                 if (field.FieldType == EntityFieldType.ForeignField) {
@@ -1168,28 +1172,42 @@ namespace Terradue.Portal {
                 if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
                 string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
 
-                if (searchValue == null || searchValue.Equals(SpecialSearchValue.Null)) {
-                    condition = String.Format("{0} IS NULL", fieldExpression);
-                } else if (searchValue.Equals(SpecialSearchValue.NotNull)) {
-                    condition = String.Format("{0} IS NOT NULL", fieldExpression);
-                } else if (searchValue is String) {
+                foreach (object searchValue in searchValues) {
+                    string subCondition = null;
 
-                    string searchTerm = searchValue as string;
+                    if (searchValue == null || searchValue.Equals(SpecialSearchValue.Null)) {
+                        subCondition = String.Format("{0} IS NULL", fieldExpression);
+                    } else if (searchValue.Equals(SpecialSearchValue.NotNull)) {
+                        subCondition = String.Format("{0} IS NOT NULL", fieldExpression);
+                    } else if (searchValue is String) {
 
-                    if (field.Property.PropertyType == typeof(string)) {
-                        condition = GetStringConditionSql(fieldExpression, searchTerm);
-                    } else if (field.Property.PropertyType == typeof(bool)) {
-                        if (String.IsNullOrEmpty(searchTerm)) continue;
-                        searchTerm = searchTerm.ToLower();
+                        string searchTerm = searchValue as string;
 
-                        condition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
-                    } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
-                        condition = GetNumericConditionSql(fieldExpression, searchTerm);
-                    } else if (field.Property.PropertyType == typeof(DateTime)) {
-                        condition = GetDateTimeConditionSql(fieldExpression, searchTerm);
-                    } else if (field.Property.PropertyType.IsEnum) {
-                        condition = GetNumericConditionSql(fieldExpression, searchTerm);
+                        if (field.Property.PropertyType == typeof(string)) {
+                            subCondition = GetStringConditionSql(fieldExpression, searchTerm);
+                        } else if (field.Property.PropertyType == typeof(bool)) {
+                            if (String.IsNullOrEmpty(searchTerm)) continue;
+                            subCondition = searchTerm.ToLower();
+
+                            subCondition = String.Format("{1}{0}", fieldExpression, searchTerm == "true" || searchTerm == "yes" ? String.Empty : "!");
+                        } else if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long) || field.Property.PropertyType == typeof(double)) {
+                            subCondition = GetNumericConditionSql(fieldExpression, searchTerm);
+                        } else if (field.Property.PropertyType == typeof(DateTime)) {
+                            subCondition = GetDateTimeConditionSql(fieldExpression, searchTerm);
+                        } else if (field.Property.PropertyType.IsEnum) {
+                            subCondition = GetNumericConditionSql(fieldExpression, searchTerm);
+                        }
                     }
+
+                    if (subCondition == null) continue;
+
+                    if (condition == null) {
+                        condition = String.Empty;
+                    } else {
+                        multipleSubConditions = true; // to put parenthesis around overall condition
+                        condition += " OR ";
+                    }
+                    condition += subCondition;
                 }
 
                 if (condition == null) continue;
@@ -1197,7 +1215,7 @@ namespace Terradue.Portal {
                 if (hasCondition) result += " AND ";
                 else result = String.Empty;
 
-                result += condition;
+                result += String.Format("{1}{0}{2}", condition, multipleSubConditions ? "(" : String.Empty, multipleSubConditions ? ")" : String.Empty);
 
                 hasCondition = true;
             }

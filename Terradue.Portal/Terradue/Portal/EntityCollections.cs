@@ -652,6 +652,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public void SetFilter(string propertyName, object searchValue) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
+            SetFilter(field, searchValue);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
         /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
