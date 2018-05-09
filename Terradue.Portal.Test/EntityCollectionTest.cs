@@ -103,7 +103,16 @@ namespace Terradue.Portal.Test {
         [Test]
         public void FilterTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM domain;");
             context.Execute("DELETE FROM pubserver;");
+
+            Domain testDomain1 = new Domain(context);
+            testDomain1.Identifier = "domain1";
+            testDomain1.Store();
+
+            Domain testDomain2 = new Domain(context);
+            testDomain2.Identifier = "domain2";
+            testDomain2.Store();
 
             PublishServer p1 = new PublishServer(context);
             p1.Name = "pf1";
@@ -111,6 +120,7 @@ namespace Terradue.Portal.Test {
             p1.Hostname = "test.org";
             p1.Port = 23;
             p1.FileRootDir = "/dir1";
+            p1.Domain = testDomain1;
             p1.Store();
             PublishServer p2 = new PublishServer(context);
             p2.Name = "pf2";
@@ -130,6 +140,7 @@ namespace Terradue.Portal.Test {
             p3b.Protocol = "ftp";
             p3b.Hostname = "try.org";
             p3b.Port = 345;
+            p3b.Domain = testDomain2;
             p3b.Store();
 
             EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
@@ -181,13 +192,19 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(2, pd7.Count);
             Assert.IsTrue(pd7.Contains(p1.Id) && pd7.Contains(p2.Id));
 
-
             EntityDictionary<PublishServer> pd8 = new EntityDictionary<PublishServer>(context);
             pd8.SetFilter("FileRootDir", new object[] { "/dir2", SpecialSearchValue.Null });
             pd8.Load();
             Assert.AreEqual(3, pd8.TotalResults);
             Assert.AreEqual(3, pd8.Count);
             Assert.IsTrue(pd8.Contains(p2.Id) && pd8.Contains(p3a.Id) && pd8.Contains(p3b.Id));
+
+            EntityDictionary<PublishServer> pd9 = new EntityDictionary<PublishServer>(context);
+            pd9.SetFilter("DomainId", new object[] { testDomain1.Id, SpecialSearchValue.Null });
+            pd9.Load();
+            Assert.AreEqual(3, pd9.TotalResults);
+            Assert.AreEqual(3, pd9.Count);
+            Assert.IsTrue(pd9.Contains(p1.Id) && pd9.Contains(p2.Id) && pd9.Contains(p3a.Id));
         }
 
         [Test]

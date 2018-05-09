@@ -1173,13 +1173,14 @@ namespace Terradue.Portal {
                 string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
 
                 foreach (object searchValue in searchValues) {
+
                     string subCondition = null;
 
                     if (searchValue == null || searchValue.Equals(SpecialSearchValue.Null)) {
                         subCondition = String.Format("{0} IS NULL", fieldExpression);
                     } else if (searchValue.Equals(SpecialSearchValue.NotNull)) {
                         subCondition = String.Format("{0} IS NOT NULL", fieldExpression);
-                    } else if (searchValue is String) {
+                    } else if (searchValue is string) {
 
                         string searchTerm = searchValue as string;
 
@@ -1196,6 +1197,30 @@ namespace Terradue.Portal {
                             subCondition = GetDateTimeConditionSql(fieldExpression, searchTerm);
                         } else if (field.Property.PropertyType.IsEnum) {
                             subCondition = GetNumericConditionSql(fieldExpression, searchTerm);
+                        }
+
+                    } else if (searchValue is int) {
+
+                        int searchTerm = (int)searchValue;
+
+                        if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long)) {
+                            subCondition = String.Format("{0}={1}", fieldExpression, searchTerm);
+                        }
+
+                    } else if (searchValue is long) {
+
+                        long searchTerm = (long)searchValue;
+
+                        if (field.Property.PropertyType == typeof(int) || field.Property.PropertyType == typeof(long)) {
+                            subCondition = String.Format("{0}={1}", fieldExpression, searchTerm);
+                        }
+
+                    } else if (searchValue is double) {
+
+                        double searchTerm = (double)searchValue;
+
+                        if (field.Property.PropertyType == typeof(double)) {
+                            subCondition = String.Format("{0}={1}", fieldExpression, searchTerm);
                         }
                     }
 

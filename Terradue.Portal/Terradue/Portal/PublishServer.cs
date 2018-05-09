@@ -59,7 +59,7 @@ namespace Terradue.Portal {
         
         Publish servers may define a <b>download URL</b> different from the upload URL; if it is not defined, the download URL is assumed being the same as the upload URL.
     */
-    [EntityTable("pubserver", EntityTableConfiguration.Custom, NameField = "name", HasOwnerReference = true, HasPermissionManagement = true)]
+    [EntityTable("pubserver", EntityTableConfiguration.Custom, NameField = "name", HasDomainReference = true, HasOwnerReference = true, HasPermissionManagement = true)]
     public class PublishServer : Entity {
         
 
