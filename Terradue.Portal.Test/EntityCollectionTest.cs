@@ -208,6 +208,46 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
+        public void GroupFilterTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM pubserver;");
+
+            PublishServer p1 = new PublishServer(context);
+            p1.Name = "pf1";
+            p1.Protocol = "ftp";
+            p1.Hostname = "test.org";
+            p1.Port = 23;
+            p1.FileRootDir = "/dir1";
+            p1.Store();
+            PublishServer p2 = new PublishServer(context);
+            p2.Name = "pf1";
+            p2.Protocol = "ftp";
+            p2.Hostname = "anothertest.org";
+            p2.Port = 123;
+            p2.FileRootDir = "/dir2";
+            p2.Store();
+            PublishServer p3a = new PublishServer(context);
+            p3a.Name = "pf3";
+            p3a.Protocol = "ftp";
+            p3a.Hostname = "experiment.org";
+            p3a.Port = 234;
+            p3a.Store();
+
+            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
+            pd1.Load();
+            Assert.AreEqual(3, pd1.TotalResults);
+            Assert.AreEqual(3, pd1.Count);
+
+            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            context.ConsoleDebug = true;
+            pd2.SetGroupFilter("Name");
+            pd2.Load();
+            Assert.AreEqual(2, pd2.TotalResults);
+            Assert.AreEqual(2, pd2.Count);
+
+        }
+
+        [Test]
         public void KeywordFilterTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
             context.Execute("DELETE FROM pubserver;");

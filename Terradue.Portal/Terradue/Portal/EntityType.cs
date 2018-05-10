@@ -670,7 +670,37 @@ namespace Terradue.Portal {
                 offset = 0;
             }
 
-            return GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, limit, offset, items.AccessLevel);
+            object[] parts = GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, limit, offset, items.AccessLevel);
+
+            if (items.GroupFilters != null && items.GroupFilters.Count != 0) {
+                string aggregationSql = null;
+                foreach (FieldInfo field in items.GroupFilters) {
+                    string alias = null;
+                    if (field.FieldType == EntityFieldType.ForeignField) {
+                        ForeignTableInfo foreignTableInfo = null;
+                        foreach (ForeignTableInfo fti in ForeignTables) {
+                            if (fti.ReferringTable == Tables[field.TableIndex] && fti.SubIndex == field.TableSubIndex) {
+                                foreignTableInfo = fti;
+                                break;
+                            }
+                        }
+                        if (foreignTableInfo == null) continue;
+                        if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
+                    }
+                    if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
+                    string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+
+                    if (aggregationSql == null) aggregationSql = String.Empty;
+                    else aggregationSql += ", ";
+                    aggregationSql += fieldExpression;
+                }
+                parts[2] = String.Format(" GROUP BY {0}", aggregationSql);
+                //if (parts[2] == null || parts[2] is string && parts[2] as string == String.Empty) parts[2] = String.Format(" GROUP BY {0}", aggregationSql);
+                //else parts[2] = (parts[2] as string).Replace(" GROUP BY ", String.Format(" GROUP BY {0}, ", aggregationSql));
+            }
+
+            return parts;
+            
         }
 
         //---------------------------------------------------------------------------------------------------------------------
