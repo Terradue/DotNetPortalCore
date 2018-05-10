@@ -64,7 +64,7 @@ namespace Terradue.Portal {
         /// <summary>Gets or sets the <see cref="EntityAccessLevel"/> to be taken into account before loading the collection.</summary>
         /// <remarks>
         ///     <para>This property determines the user's <see cref="UserId"/> authorisation level for the loading of the list content.</para>
-        ///     <para>This is different from <see cref="AccessLevel"/> which determines what sort of items the list contains, according to what degree of visibility they have from the user's points of view.</para>
+        ///     <para>This is different from <see cref="ItemVisibility"/> which determines what sort of items the list contains, according to what degree of visibility they have from the user's points of view.</para>
         /// </remarks>
         public EntityAccessLevel AccessLevel { get; set; }
 
@@ -81,6 +81,12 @@ namespace Terradue.Portal {
 
         /// <summary>Gets or sets the collection of the filter values for properties.</summary>
         public Dictionary<FieldInfo, object> FilterValues { get; protected set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets the collection of the filter values for properties.</summary>
+        [Obsolete("This is not a permanent functionality")]
+        public List<FieldInfo> GroupFilters { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -224,6 +230,7 @@ namespace Terradue.Portal {
         private T template;
         private OpenSearchEngine ose;
         private Dictionary<FieldInfo, object> filterValues;
+        private List<FieldInfo> groupFilters;
         private Dictionary<FieldInfo, SortDirection> sortCriteria;
 
         public EntityType EntityType {
@@ -652,6 +659,14 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public void SetFilter(string propertyName, object searchValue) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
+            SetFilter(field, searchValue);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
         /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
         /// <param name="searchTerm">The filter search string according to the property type.</param>
@@ -667,9 +682,31 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Uses the values of the specified property for grouping by those values for uniqueness.</summary>
+        /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass by which should be grouped.</param>
+        [Obsolete("This is not a permanent functionality")]
+        public void SetGroupFilter(string propertyName) {
+            FieldInfo field = entityType.GetField(propertyName);
+            if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for grouping", entityType.ClassType.FullName, propertyName));
+            AddGroupFilter(field);
+        }
+
+        [Obsolete("This is not a permanent functionality")]
+        public void AddGroupFilter(FieldInfo field) {
+            if (groupFilters == null) {
+                groupFilters = new List<FieldInfo>();
+                base.GroupFilters = groupFilters;
+            }
+            groupFilters.Add(field);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public void ClearFilters() {
             filterValues = null;
+            groupFilters = null;
             base.FilterValues = null;
+            base.GroupFilters = null;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -687,7 +724,7 @@ namespace Terradue.Portal {
 
         /// <summary>Sets the filter search term for the specified field of the underlying entity type.</summary>
         /// <param name="field">The <see cref="FieldInfo"/> instance on which the filter is applied.</param>
-        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        /// <param name="direction">The sort direction (default: ascending).</param>
         public void AddSort(FieldInfo field, SortDirection direction = SortDirection.Ascending) {
             if (field == null) throw new ArgumentNullException("No filtering field specified");
             if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
