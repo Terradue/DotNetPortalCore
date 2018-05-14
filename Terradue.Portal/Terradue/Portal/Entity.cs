@@ -1132,20 +1132,31 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
+		/// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
         /// <returns>A list of database IDs of the authorized users or <em>null</em> if all users and groups are authorized.</returns>
-        public int[] GetAuthorizedUserIds() {
-            return GetAuthorizedSubjects(false);
+        /// <param name="permissionOnly">If set to <c>true</c> return authorized ids via permission only.</param>
+		/// <param name="privilegeOnly">If set to <c>true</c> return authorized ids via privilege only.</param>
+		public int[] GetAuthorizedUserIds(bool permissionOnly = false, bool privilegeOnly = false) {
+			if (permissionOnly) return GetAuthorizedSubjectsWithPermission(false);
+			if (privilegeOnly) return GetAuthorizedSubjectsWithPrivilege(false);
+			return GetAuthorizedSubjects(false);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the users who are authorized to view this entity.</summary>
         /// <returns>The authorized users or <em>null</em> if all users and groups are authorized.</returns>
-        public List<User> GetAuthorizedUsers() {
+		/// <param name="permissionOnly">If set to <c>true</c> return authorized ids via permission only.</param>
+        /// <param name="privilegeOnly">If set to <c>true</c> return authorized ids via privilege only.</param> 
+		public List<User> GetAuthorizedUsers(bool permissionOnly = false, bool privilegeOnly = false) {
             List<User> result = new List<User>();
-            int[] userIds = GetAuthorizedSubjects(false);
-            foreach (int id in userIds) result.Add(User.FromId(context, id));
+			int[] userIds = null;
+			if (permissionOnly) userIds = GetAuthorizedSubjectsWithPermission(false);
+			if (privilegeOnly) userIds = GetAuthorizedSubjectsWithPrivilege(false);
+			else userIds = GetAuthorizedSubjects(false);
+			if (userIds != null) {
+				foreach (int id in userIds) result.Add(User.FromId(context, id));
+			}
             return result;
         }
 
@@ -1153,30 +1164,41 @@ namespace Terradue.Portal {
 
         /// <summary>Gets the database IDs of users who are authorized to view this entity.</summary>
         /// <returns>A list of database IDs of the authorized users or <em>null</em> if all users and groups are authorized.</returns>
-        public int[] GetAuthorizedGroupIds() {
-            return GetAuthorizedSubjects(true);
+		/// <param name="permissionOnly">If set to <c>true</c> return authorized ids via permission only.</param>
+        /// <param name="privilegeOnly">If set to <c>true</c> return authorized ids via privilege only.</param>
+		public int[] GetAuthorizedGroupIds(bool permissionOnly = false, bool privilegeOnly = false) {
+			if (permissionOnly) return GetAuthorizedSubjectsWithPermission(true);
+			if (privilegeOnly) return GetAuthorizedSubjectsWithPrivilege(true);
+			return GetAuthorizedSubjects(true);
         }
 
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the groups who are authorized to view this entity.</summary>
         /// <returns>The authorized groups or <em>null</em> if all users and groups are authorized.</returns>
-        public List<Group> GetAuthorizedGroups() {
+		/// <param name="permissionOnly">If set to <c>true</c> return authorized ids via permission only.</param>
+        /// <param name="privilegeOnly">If set to <c>true</c> return authorized ids via privilege only.</param>
+		public List<Group> GetAuthorizedGroups(bool permissionOnly = false, bool privilegeOnly = false) {
             List<Group> result = new List<Group>();
-            int[] groupIds = GetAuthorizedSubjects(true);
-            foreach (int id in groupIds) result.Add(Group.FromId(context, id));
+			int[] groupIds = null;
+			if (permissionOnly) groupIds = GetAuthorizedSubjectsWithPermission(true);
+			if (privilegeOnly) groupIds = GetAuthorizedSubjectsWithPrivilege(true);
+			else groupIds = GetAuthorizedSubjects(true);
+			if (groupIds != null) {
+				foreach (int id in groupIds) result.Add(Group.FromId(context, id));
+			}
             return result;
         }
 
-        //---------------------------------------------------------------------------------------------------------------------
+		//---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets the users or groups who are authorized to view this entity via role privilege or item-specific permission.</summary>
-        /// <returns>The database IDs of the users or groups with view permission or privilege on this item. If <c>null</c> is returned, the item provides permissions to all users universally, i.e. all users are authorized to view the item.</returns>
-        /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
-        protected int[] GetAuthorizedSubjects(bool forGroups) {
-            HashSet<int> ids = new HashSet<int>();
+		/// <summary>Gets the users or groups who are authorized to view this entity via item-specific permission.</summary>
+		/// <returns>The database IDs of the users or groups with privilege on this item. If <c>null</c> is returned, the item provides permissions to all users universally, i.e. all users are authorized to view the item.</returns>
+		/// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
+		protected int[] GetAuthorizedSubjectsWithPermission(bool forGroups) { 
+			HashSet<int> ids = new HashSet<int>();
 
-            if (EntityType.HasPermissionManagement) {
+			if (EntityType.HasPermissionManagement) {
                 string sql = String.Format("SELECT true FROM {1} WHERE id_{2}={0} AND id_usr IS NULL AND id_grp IS NULL;",
                     Id,
                     EntityType.PermissionSubjectTable.PermissionTable,
@@ -1197,7 +1219,18 @@ namespace Terradue.Portal {
                 context.CloseQueryResult(reader, dbConnection);
             }
 
-            // Get roles that have view access on item's domain (i.e. any other operation than just Search)
+			int[] result = new int[ids.Count];
+            ids.CopyTo(result);
+            return result;
+		}
+
+		/// <summary>Gets the users or groups who are authorized to view this entity via role privilege.</summary>
+        /// <returns>The database IDs of the users or groups with view privilege on this item. If <c>null</c> is returned, the item provides permissions to all users universally, i.e. all users are authorized to view the item.</returns>
+        /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
+        protected int[] GetAuthorizedSubjectsWithPrivilege(bool forGroups) {
+            HashSet<int> ids = new HashSet<int>();
+
+			// Get roles that have view access on item's domain (i.e. any other operation than just Search)
             int[] roleIds = EntityType.GetRolesForPrivilege(context, new EntityOperationType[] { EntityOperationType.Create, EntityOperationType.Search }, true);
 
             // If privilege is not defined (roleIds == null) and entity type does not allow to set item-based permissions, grant to all
@@ -1226,6 +1259,25 @@ namespace Terradue.Portal {
             int[] result = new int[ids.Count];
             ids.CopyTo(result);
             return result;
+        }
+
+        /// <summary>Gets the users or groups who are authorized to view this entity via role privilege or item-specific permission.</summary>
+        /// <returns>The database IDs of the users or groups with view permission or privilege on this item. If <c>null</c> is returned, the item provides permissions to all users universally, i.e. all users are authorized to view the item.</returns>
+        /// <param name="forGroups">Decides whether a list of group or user IDs is returned. If <c>true</c>, group IDs are returned, otherwise user IDs.</param>
+        protected int[] GetAuthorizedSubjects(bool forGroups) {
+
+            // get authorized subjects with permission only
+			var permSubjects = GetAuthorizedSubjectsWithPermission(forGroups);
+			if (permSubjects == null) return null;
+
+			// get authorized subjects with privilege only
+			var privSubjects = GetAuthorizedSubjectsWithPrivilege(forGroups);
+			if (privSubjects == null) return null;
+
+			int[] result = new int[permSubjects.Length + privSubjects.Length];         
+			Array.Copy(permSubjects, result, permSubjects.Length);
+			Array.Copy(privSubjects, 0, result, permSubjects.Length, privSubjects.Length);
+			return result;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
