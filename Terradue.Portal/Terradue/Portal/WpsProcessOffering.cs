@@ -371,6 +371,7 @@ namespace Terradue.Portal {
             } catch(Exception) {
                 atomEntry = new AtomItem();
             }
+
             log.Debug("Adding owscontext");
             OwsContextAtomEntry entry = new OwsContextAtomEntry(atomEntry);
             var offering = new OwcOffering();
@@ -413,6 +414,7 @@ namespace Terradue.Portal {
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
 
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
+            entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
