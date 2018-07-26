@@ -414,7 +414,7 @@ namespace Terradue.Portal {
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
 
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
-            entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
+            if(!string.IsNullOrEmpty(this.Version)) entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
