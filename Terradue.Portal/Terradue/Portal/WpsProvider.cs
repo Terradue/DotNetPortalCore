@@ -518,6 +518,18 @@ namespace Terradue.Portal {
                             pDB.Name = pR.Name;
                             pDB.Description = pR.Description;
                             pDB.Version = pR.Version;
+							if (pDB.Url != null && !pDB.Url.ToLower().Contains("describeprocess")) {
+								if (pR.Url != null && pR.Url.ToLower().Contains("describeprocess")) {
+									pDB.Url = pR.Url;
+								} else {
+									var urib = new UriBuilder(pR.Url);
+									var query = "Service=WPS&Request=DescribeProcess&Version=" + this.WPSVersion ?? "1.0.0";
+									var identifier = (pR.RemoteIdentifier != null ? pR.RemoteIdentifier : pR.Identifier);
+									query += "&Identifier=" + identifier;
+									urib.Query = query;
+									pDB.Url = urib.Uri.AbsoluteUri;
+								}
+							}
                             pDB.Store();
                             break;
                         }
@@ -672,6 +684,15 @@ namespace Terradue.Portal {
                 wpsProcess.Name = (process.Title != null ? process.Title.Value : null);
                 wpsProcess.Description = (process.Abstract != null ? process.Abstract.Value : null);
                 wpsProcess.Version = process.processVersion;
+				if(!url.ToLower().Contains("describeprocess")){
+					var urib = new UriBuilder(url);
+					var query = "Service=WPS&Request=DescribeProcess&Version=" + this.WPSVersion ?? "1.0.0";
+
+					var identifier = (wpsProcess.RemoteIdentifier != null ? wpsProcess.RemoteIdentifier : wpsProcess.Identifier);
+                    query += "&Identifier=" + identifier;
+					urib.Query = query;
+					wpsProcess.Url = urib.Uri.AbsoluteUri;
+				}
                 wpsProcess.Url = url;
                 if(Tags != null) 
                     foreach (var tag in Tags) wpsProcess.AddTag(tag);
