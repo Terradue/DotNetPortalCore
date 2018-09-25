@@ -326,6 +326,15 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Gets or sets a value indicating whether job created from services of this this <see cref="T:Terradue.Portal.WpsProvider"/> must be staged or not.
+        /// </summary>
+        /// <value><c>true</c> if auto sync; otherwise, <c>false</c>.</value>
+        [EntityDataField("stage")]
+        public bool StageResults { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Specify if the provider is a sandbox or is operational.
         /// </summary>
         public bool IsSandbox;
