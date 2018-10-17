@@ -26,8 +26,8 @@ namespace Terradue.Portal.Test {
             domainusr.Store();
 
             Domain domaingrp = new Domain(context);
-            domaingrp.Identifier = "domainGroup";
-            domaingrp.Kind = DomainKind.Group;
+            domaingrp.Identifier = "domainRestricted";
+            domaingrp.Kind = DomainKind.Restricted;
             domaingrp.Store();
 
             Domain domainnone = new Domain(context);
@@ -69,11 +69,11 @@ namespace Terradue.Portal.Test {
 
             //Load only Group
             domains = new EntityList<Domain>(context);
-            domains.Template.Kind = DomainKind.Group;
+            domains.Template.Kind = DomainKind.Restricted;
             domains.Load();
             items = domains.GetItemsAsList();
             Assert.That(items.Count == 1);
-            Assert.That(items[0].Identifier == "domainGroup");
+            Assert.That(items[0].Identifier == "domainRestricted");
 
             //Load only User
             domains = new EntityList<Domain>(context);
