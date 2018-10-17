@@ -163,10 +163,33 @@ namespace Terradue.Portal {
 
         public override AtomItem ToAtomItem(NameValueCollection parameters) {
             bool ispublic = this.Kind == DomainKind.Public;
+            bool isRestricted = this.Kind == DomainKind.Restricted;
             bool isprivate = this.Kind == DomainKind.Private;
 
-            //if private, lets check the current user can access it (have a role in the domain)
-            if (isprivate) {
+            bool searchAll = false;
+            if (!string.IsNullOrEmpty(parameters["visibility"])) {
+                switch (parameters["visibility"]) {
+                    case "public":
+                        if (this.Kind != DomainKind.Public) return null;
+                        break;
+                    case "restricted":
+                        if (this.Kind != DomainKind.Restricted) return null;
+                        break;
+                    case "private":
+                        if (this.Kind != DomainKind.Private) return null;
+                        break;
+                    case "owned":
+                        if (!(context.UserId == this.OwnerId)) return null;
+                        break;
+                    case "all":
+                        searchAll = true;
+                        break;
+                }
+            }
+
+            //if private or restricted, lets check the current user can access it (have a role in the domain)
+            //if restricted but visibility=all, user can access
+            if (isprivate || (isRestricted && !searchAll)) {
                 var proles = Role.GetUserRolesForDomain(context, context.UserId, this.Id);
                 if (proles == null || proles.Length == 0) return null;
             }
@@ -221,7 +244,7 @@ namespace Terradue.Portal {
                 result.Links.Add(new SyndicationLink(uri, "icon", "", GetImageMimeType(IconUrl), 0));
             }
 
-            result.Categories.Add(new SyndicationCategory("visibility", null, ispublic ? "public" : "private"));
+            result.Categories.Add(new SyndicationCategory("visibility", null, ispublic ? "public" : isRestricted ? "restricted" : "private"));
 
             return result;
         }
@@ -330,9 +353,9 @@ namespace Terradue.Portal {
 
         User = 1,
 
-        Group = 2,
+        Private = 2,
 
-        Private = 3,
+        Restricted = 3,
 
         Public = 4
     }
