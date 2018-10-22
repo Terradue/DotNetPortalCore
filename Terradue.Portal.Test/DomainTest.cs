@@ -16,8 +16,8 @@ namespace Terradue.Portal.Test {
             domainpub.Store();
 
             Domain domainpriv = new Domain(context);
-            domainpriv.Identifier = "domainPrivate";
-            domainpriv.Kind = DomainKind.Private;
+            domainpriv.Identifier = "domainHidden";
+            domainpriv.Kind = DomainKind.Hidden;
             domainpriv.Store();
 
             Domain domainusr = new Domain(context);
@@ -26,8 +26,8 @@ namespace Terradue.Portal.Test {
             domainusr.Store();
 
             Domain domaingrp = new Domain(context);
-            domaingrp.Identifier = "domainRestricted";
-            domaingrp.Kind = DomainKind.Restricted;
+            domaingrp.Identifier = "domainPrivate";
+            domaingrp.Kind = DomainKind.Private;
             domaingrp.Store();
 
             Domain domainnone = new Domain(context);
@@ -61,19 +61,19 @@ namespace Terradue.Portal.Test {
 
             //Load only Private
             domains = new EntityList<Domain>(context);
+            domains.Template.Kind = DomainKind.Hidden;
+            domains.Load();
+            items = domains.GetItemsAsList();
+            Assert.That(items.Count == 1);
+            Assert.That(items[0].Identifier == "domainHidden");
+
+            //Load only Group
+            domains = new EntityList<Domain>(context);
             domains.Template.Kind = DomainKind.Private;
             domains.Load();
             items = domains.GetItemsAsList();
             Assert.That(items.Count == 1);
             Assert.That(items[0].Identifier == "domainPrivate");
-
-            //Load only Group
-            domains = new EntityList<Domain>(context);
-            domains.Template.Kind = DomainKind.Restricted;
-            domains.Load();
-            items = domains.GetItemsAsList();
-            Assert.That(items.Count == 1);
-            Assert.That(items[0].Identifier == "domainRestricted");
 
             //Load only User
             domains = new EntityList<Domain>(context);
@@ -104,12 +104,12 @@ namespace Terradue.Portal.Test {
 
             Domain domain1 = new Domain(context);
             domain1.Identifier = "domain1";
-            domain1.Kind = DomainKind.Private;
+            domain1.Kind = DomainKind.Hidden;
             domain1.Store();
 
             Domain domain2 = new Domain(context);
             domain2.Identifier = "domain2";
-            domain2.Kind = DomainKind.Private;
+            domain2.Kind = DomainKind.Hidden;
             domain2.Store();
 
             Domain publicDomain = new Domain(context);
