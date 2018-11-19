@@ -5,18 +5,28 @@ using Mono.Addins;
 using System.Collections.Specialized;
 using NUnit.Framework;
 using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
+using Terradue.OpenSearch.Engine;
+using Terradue.OpenSearch.Result;
 
 namespace Terradue.Portal.Test
 {
 
     [TestFixture]
     public class WpsProcessOfferingTest : BaseTest{
-    
+
+        OpenSearchEngine ose;
+
         [TestFixtureSetUp]
         public override void FixtureSetup() {
             base.FixtureSetup();
             context.BaseUrl = "http://localhost:8080/api";
             context.AccessLevel = EntityAccessLevel.Administrator;
+
+            AddinManager.Initialize();
+            AddinManager.Registry.Update(null);
+
+            ose = new OpenSearchEngine();
+            ose.LoadPlugins();
         }
 
         private WpsProvider CreateProvider(string identifier, string name, string url, bool proxy){
@@ -81,6 +91,32 @@ namespace Terradue.Portal.Test
             Assert.IsFalse(process2.Available);
             EntityList<WpsProcessOffering> processes = provider.GetWpsProcessOfferings(false);
             Assert.That(processes.Count == 1);
+        }
+
+        [Test]
+        public void SearchWpsServicesByTags() {
+            //context.AccessLevel = EntityAccessLevel.Privilege;
+            //var usr1 = User.FromUsername(context, "testusr1");
+
+            WpsProvider provider = CreateProvider("test-wps-search-1", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            WpsProcessOffering process = CreateProcess(provider, "com.test.provider.1", "test provider 1");
+            process.AddTag("mytag");
+            process.Store();
+
+            EntityList<WpsProcessOffering> services = new EntityList<WpsProcessOffering>(context);
+
+            var parameters = new NameValueCollection();
+            parameters.Set("tag", "mytag");
+
+            IOpenSearchResultCollection osr = ose.Query(services, parameters);
+            Assert.AreEqual(1, osr.Items.Count());
+
+            services = new EntityList<WpsProcessOffering>(context);
+            parameters.Set("tag", "tag");
+
+            osr = ose.Query(services, parameters);
+            Assert.AreEqual(0, osr.Items.Count());
+
         }
 
     }
