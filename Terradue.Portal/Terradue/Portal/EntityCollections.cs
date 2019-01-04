@@ -106,6 +106,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or decides whether username, first name and last name of entity owners are to be included in the keyword search.</summary>
+        public bool IncludeOwnerFieldsInSearch { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------

@@ -208,6 +208,81 @@ namespace Terradue.Portal.Test {
         }
 
         [Test]
+        public void OwnerFilterTest() {
+            context.AccessLevel = EntityAccessLevel.Administrator;
+            context.Execute("DELETE FROM usr WHERE username IN ('user1', 'user2', 'psmith');");
+            context.Execute("DELETE FROM pubserver;");
+
+            User user1 = new User(context);
+            user1.Username = "user1";
+            user1.FirstName = "John";
+            user1.LastName = "Doe";
+            user1.Store();
+
+            User user2 = new User(context);
+            user2.Username = "user2";
+            user2.FirstName = "Jane";
+            user2.LastName = "Doe";
+            user2.Store();
+
+            User user3 = new User(context);
+            user3.Username = "psmith";
+            user3.FirstName = "Peter";
+            user3.LastName = "Smith";
+            user3.Store();
+
+            PublishServer p1 = new PublishServer(context);
+            p1.Name = "p1";
+            p1.Protocol = "ftp";
+            p1.Hostname = "test1.org";
+            p1.FileRootDir = "/dir";
+            p1.OwnerId = user1.Id;
+            p1.Store();
+
+            PublishServer p2 = new PublishServer(context);
+            p2.Name = "p2";
+            p2.Protocol = "ftp";
+            p2.Hostname = "test2.org";
+            p2.FileRootDir = "/dir";
+            p2.OwnerId = user2.Id;
+            p2.Store();
+
+            PublishServer p3 = new PublishServer(context);
+            p3.Name = "p3";
+            p3.Protocol = "ftp";
+            p3.Hostname = "test3.org";
+            p3.FileRootDir = "/dir";
+            p3.OwnerId = user3.Id;
+            p3.Store();
+
+            EntityDictionary<PublishServer> pd1 = new EntityDictionary<PublishServer>(context);
+            pd1.SearchKeyword = "doe";
+            pd1.IncludeOwnerFieldsInSearch = true;
+            pd1.Load();
+            Assert.AreEqual(2, pd1.TotalResults);
+            Assert.AreEqual(2, pd1.Count);
+            Assert.IsTrue(pd1.Contains(p1.Id) && pd1.Contains(p2.Id));
+
+            EntityDictionary<PublishServer> pd2 = new EntityDictionary<PublishServer>(context);
+            pd2.SearchKeyword = "peter";
+            pd2.IncludeOwnerFieldsInSearch = true;
+            context.ConsoleDebug = true;
+            pd2.Load();
+            Assert.AreEqual(1, pd2.TotalResults);
+            Assert.AreEqual(1, pd2.Count);
+            Assert.IsTrue(pd2.Contains(p3.Id));
+
+            EntityDictionary<PublishServer> pd3 = new EntityDictionary<PublishServer>(context);
+            pd3.SearchKeyword = "Smith";
+            pd3.IncludeOwnerFieldsInSearch = true;
+            context.ConsoleDebug = true;
+            pd3.Load();
+            Assert.AreEqual(1, pd3.TotalResults);
+            Assert.AreEqual(1, pd3.Count);
+            Assert.IsTrue(pd3.Contains(p3.Id));
+        }
+
+        [Test]
         public void GroupFilterTest() {
             context.AccessLevel = EntityAccessLevel.Administrator;
             context.Execute("DELETE FROM pubserver;");
