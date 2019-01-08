@@ -522,7 +522,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>Gets or sets the name of the database table that holds the items of the entity.</summary>
+        /// <summary>Gets or sets a specially assigned numeric value that identifies the database table to which this field belongs.</summary>
         public int TableSubIndex { get; set; }
         
         //---------------------------------------------------------------------------------------------------------------------

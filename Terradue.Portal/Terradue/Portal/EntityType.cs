@@ -646,7 +646,7 @@ namespace Terradue.Portal {
                 }
             }
             if (AllowsKeywordSearch && items.SearchKeyword != null) {
-                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword, items.FindWholeWords, items.LiteralSearch);
+                string keywordCondition = GetKeywordFilterSql(items.SearchKeyword, items.FindWholeWords, items.LiteralSearch, TopTable.HasOwnerReference && TopTable.HasOwnerReference && items.IncludeOwnerFieldsInSearch);
                 if (keywordCondition != null) {
                     if (condition == null) condition = String.Empty;
                     else condition += " AND ";
@@ -671,6 +671,10 @@ namespace Terradue.Portal {
             }
 
             object[] parts = GetQueryParts(context, true, userId, groupIds, items.ItemVisibility, condition, sort, limit, offset, items.AccessLevel);
+
+            if (TopTable.HasOwnerReference && items.IncludeOwnerFieldsInSearch) {
+                parts[0] += String.Format(" LEFT JOIN usr AS tu ON t.{0}=tu.id", TopTable.OwnerReferenceField);
+            }
 
             if (items.GroupFilters != null && items.GroupFilters.Count != 0) {
                 string aggregationSql = null;
@@ -1136,7 +1140,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords, bool literalSearch = false) {
+        public string GetKeywordFilterSql(string searchTerm, bool findWholeWords, bool literalSearch = false, bool includeOwnerFields = false) {
             List<string> fieldNames = new List<string>();
 
             if (TopTable.HasIdentifierField) fieldNames.Add(String.Format("t.{0}", TopTable.IdentifierField));
@@ -1159,6 +1163,13 @@ namespace Terradue.Portal {
 
                 fieldNames.Add(field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
             }
+
+            if (includeOwnerFields) {
+                fieldNames.Add("tu.username");
+                fieldNames.Add("tu.firstname");
+                fieldNames.Add("tu.lastname");
+            }
+
             if (fieldNames.Count == 0) return null;
 
             string searchTermSql = (literalSearch ? literalRegexRegex : baseRegexRegex).Replace(searchTerm.Replace("'", "''").Replace(@"\", @"\\"), @"\\$0");
