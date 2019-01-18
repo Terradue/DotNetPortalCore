@@ -728,6 +728,17 @@ namespace Terradue.Portal {
             return context.GetQueryStringValue(String.Format("SELECT t.token FROM usrreg AS t WHERE t.id_usr={0};", this.Id));
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public void GenerateNewActivationToken() {
+            var token = Guid.NewGuid().ToString();
+            context.LogInfo(this, "Generate new Activation token for user " + this.Username + " -- id_usr = " + Id + " ; token = " + token);
+            context.Execute(string.Format("UPDATE usrreg SET token='{0}' WHERE id_usr={1};", token, this.Id));
+            activationtoken = token;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public override AtomItem ToAtomItem(NameValueCollection parameters) {
             throw new NotImplementedException();
         }
