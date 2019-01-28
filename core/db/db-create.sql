@@ -1,4 +1,4 @@
--- VERSION 2.7.14
+-- VERSION 2.7.15
 
 USE $MAIN$;
 
@@ -1864,6 +1864,7 @@ CREATE TABLE service (
     tags varchar(150) NULL DEFAULT NULL COMMENT 'Tags describing the service',
     quotable boolean DEFAULT false,
     geometry varchar(200) DEFAULT NULL COMMENT 'Geometry describing the AOI of the service',
+    commercial boolean NOT NULL DEFAULT false COMMENT 'If true, service is defined as commercial',
     CONSTRAINT pk_service PRIMARY KEY (id),
     UNIQUE INDEX (identifier),
     CONSTRAINT fk_service_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
