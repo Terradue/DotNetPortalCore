@@ -57,7 +57,16 @@ namespace Terradue.Portal {
         public string RemoteIdentifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
-       
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProcessOffering"/> is commercial.
+        /// </summary>
+        /// <value><c>true</c> if commercial; otherwise, <c>false</c>.</value>
+        [EntityDataField("commercial")]
+        public bool Commercial { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         [Obsolete("Use RemoteIdentifier")]
         public string ProcessIdentifier {
             get { return RemoteIdentifier; }
@@ -411,12 +420,17 @@ namespace Terradue.Portal {
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
 
             //categories
-            if ( this.Provider.Id == 0 )
-                entry.Categories.Add(new SyndicationCategory("Discovered"));
-            if(this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
+            if (this.Provider.Id == 0) entry.Categories.Add(new SyndicationCategory("Discovered"));
+            if (this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             foreach (var tag in GetTagsAsList ()){
                 entry.Categories.Add (new SyndicationCategory ("tag","",tag));
+            }
+            if (this.Commercial) {
+                var contact = ExtractProviderContact(this.Provider.Contact);
+                if (!string.IsNullOrEmpty(contact)) {
+                    entry.Categories.Add(new SyndicationCategory("contact", null, contact));
+                }
             }
 
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
@@ -446,6 +460,21 @@ namespace Terradue.Portal {
             parameters.Add ("hostname", "{t2:cloudhostname?}");
             parameters.Add ("tag", "{t2:cloudtag?}");
             return parameters;
+        }
+
+        public string ExtractProviderContact(string contact) {
+            if (!string.IsNullOrEmpty(contact)) {
+                if (contact.Contains("@")) {
+                    //in case contact contains more than an email address
+                    var contacts = contact.Split(" ".ToArray());
+                    foreach (var c in contacts) {
+                        if (c.Contains("@")) {
+                            return c;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         #endregion
