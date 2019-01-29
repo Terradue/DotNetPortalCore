@@ -116,6 +116,15 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.Service"/> is commercial.
+        /// </summary>
+        /// <value><c>true</c> if commercial; otherwise, <c>false</c>.</value>
+        [EntityDataField("commercial")]
+        public bool Commercial { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// The tags used to describe and filter the service.
         /// </summary>
         [EntityDataField ("tags")]

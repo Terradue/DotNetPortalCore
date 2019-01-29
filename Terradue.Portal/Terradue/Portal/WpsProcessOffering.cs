@@ -58,15 +58,6 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProcessOffering"/> is commercial.
-        /// </summary>
-        /// <value><c>true</c> if commercial; otherwise, <c>false</c>.</value>
-        [EntityDataField("commercial")]
-        public bool Commercial { get; set; }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
         [Obsolete("Use RemoteIdentifier")]
         public string ProcessIdentifier {
             get { return RemoteIdentifier; }
