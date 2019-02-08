@@ -213,19 +213,16 @@ namespace Terradue.Portal {
             }
         }
 
-        public object Execute(Execute executeInput, string jobreference=null){
+        public object Execute(HttpWebRequest executeHttpRequest) {
 
             //We first validate that the user can use the service
-            if (!CanUse) throw new Exception ("The current user is not allowed to Execute on the service " + Name);
+            if (!CanUse) throw new Exception("The current user is not allowed to Execute on the service " + Name);
 
             OpenGis.Wps.ExecuteResponse execResponse = null;
             MemoryStream memStream = new MemoryStream();
-
-            var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);        
-
             try {
                 using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse()) {
-                    using (var stream = executeResponse.GetResponseStream()){
+                    using (var stream = executeResponse.GetResponseStream()) {
                         stream.CopyTo(memStream);
                     }
                     memStream.Seek(0, SeekOrigin.Begin);
@@ -234,22 +231,22 @@ namespace Terradue.Portal {
                     log.Debug("Execute response : " + textResponse);
 
                     if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                       log.Debug ("Execute response code : " + executeResponse.StatusCode);
-                        return ExecuteError (memStream);
+                        log.Debug("Execute response code : " + executeResponse.StatusCode);
+                        return ExecuteError(memStream);
                     }
                 }
 
                 memStream.Seek(0, SeekOrigin.Begin);
                 execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
                 return execResponse;
-            } catch (WebException we){
+            } catch (WebException we) {
                 if (we.Response == null) throw new Exception(we.Message);
-                using (WebResponse response = we.Response){
-                    using (var httpResponse = (HttpWebResponse)response){
-                        using (var stream = httpResponse.GetResponseStream ()){
-                            stream.CopyTo (memStream);
+                using (WebResponse response = we.Response) {
+                    using (var httpResponse = (HttpWebResponse)response) {
+                        using (var stream = httpResponse.GetResponseStream()) {
+                            stream.CopyTo(memStream);
                         }
-                        log.Debug ("Execute response code : " + httpResponse.StatusCode);
+                        log.Debug("Execute response code : " + httpResponse.StatusCode);
                     }
                 }
                 return ExecuteError(memStream);
@@ -263,6 +260,14 @@ namespace Terradue.Portal {
             } finally {
                 memStream.Close();
             }
+        }
+
+        public object Execute(Execute executeInput, string jobreference=null){
+
+            var executeHttpRequest = PrepareExecuteRequest(executeInput, jobreference);
+
+            return Execute(executeHttpRequest);
+
         }
 
         //---------------------------------------------------------------------------------------------------------------------
