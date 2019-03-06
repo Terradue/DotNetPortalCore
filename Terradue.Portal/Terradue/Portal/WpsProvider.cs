@@ -497,11 +497,12 @@ namespace Terradue.Portal {
         /// Get and stores the process offerings from GetCapabilities url
         /// </summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        public void StoreProcessOfferings() {
+        public void StoreProcessOfferings(bool setAsAvailable = false) {
 
             List<WpsProcessOffering> processes = GetWpsProcessOfferingsFromRemote(true);
             foreach (WpsProcessOffering process in processes) {
                 try {
+                    if (setAsAvailable) process.Available = true;
                     process.Store();
                 } catch (Exception) {
                     //do nothing, process already in db, skip it
@@ -705,6 +706,8 @@ namespace Terradue.Portal {
                 wpsProcess.Url = url;
                 if(Tags != null) 
                     foreach (var tag in Tags) wpsProcess.AddTag(tag);
+
+                wpsProcess.Domain = this.Domain;
 
                 //get more infos (if necessary)
                 if (wpsProcess.Name == null || wpsProcess.Description == null) {

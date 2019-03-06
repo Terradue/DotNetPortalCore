@@ -2259,7 +2259,7 @@ namespace Terradue.Portal {
             message.Subject = subject;
             message.Body = body;
             if (cc != null && cc.Count > 0) message.CC.Add(string.Join(",", cc));
-            if(cc != null && bcc.Count > 0) message.Bcc.Add(string.Join(",", bcc));
+            if (bcc != null && bcc.Count > 0) message.Bcc.Add(string.Join(",", bcc));
 
             string smtpHostname = GetConfigValue("SmtpHostname");
             string smtpUsername = GetConfigValue("SmtpUsername");

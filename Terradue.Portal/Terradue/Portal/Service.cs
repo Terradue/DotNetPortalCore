@@ -697,6 +697,7 @@ namespace Terradue.Portal {
         public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "tag":
+                    if (string.IsNullOrEmpty(value)) return base.GetFilterForParameter(parameter, value);
                     var tags = value.Split(",".ToArray());
                     IEnumerable<IEnumerable<string>> permutations = GetPermutations(tags, tags.Count());
 					var r1 = permutations.Select(subset => string.Join("*", subset.Select(t => t).ToArray())).ToArray();

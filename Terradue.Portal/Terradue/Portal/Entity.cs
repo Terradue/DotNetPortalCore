@@ -1274,10 +1274,10 @@ namespace Terradue.Portal {
 			var privSubjects = GetAuthorizedSubjectsWithPrivilege(forGroups);
 			if (privSubjects == null) return null;
 
-			int[] result = new int[permSubjects.Length + privSubjects.Length];         
-			Array.Copy(permSubjects, result, permSubjects.Length);
-			Array.Copy(privSubjects, 0, result, permSubjects.Length, privSubjects.Length);
-			return result;
+            List<int> result = new List<int>(permSubjects);
+            foreach (int id in privSubjects) if (!result.Contains(id)) result.Add(id);
+
+            return result.ToArray();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
