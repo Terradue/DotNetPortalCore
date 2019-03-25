@@ -1,4 +1,4 @@
--- VERSION 2.7.15
+-- VERSION 2.7.16
 
 USE $MAIN$;
 
@@ -1621,6 +1621,7 @@ CREATE TABLE wpsprovider (
     contact varchar(200) COMMENT 'WPS contact point (link or email)',
     autosync boolean NOT NULL DEFAULT false COMMENT 'If true, wps is automatically synchronized',
     stage boolean NOT NULL DEFAULT true COMMENT 'If true, wps jobs are automatically staged',
+    tags VARCHAR(150) NULL DEFAULT NULL COMMENT 'Tags describing the provider',
     CONSTRAINT pk_wpsprovider PRIMARY KEY (id),
     CONSTRAINT fk_wpsprovider_cr FOREIGN KEY (id) REFERENCES cr(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Web Processing Service (WPS) providers';
