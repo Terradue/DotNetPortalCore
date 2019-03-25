@@ -23,6 +23,7 @@ using Terradue.OpenSearch.Schema;
 using Terradue.OpenSearch.Engine;
 using System.Web;
 using System.Runtime.Caching;
+using System.Linq;
 
 /*!
 \defgroup CoreWPS WPS
@@ -335,16 +336,39 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// The tags used to describe and filter the service.
+        /// </summary>
+        [EntityDataField("tags")]
+        public string Tags { get; set; }
+
+        /// <summary>
+        /// Adds a tag to the tags list.
+        /// </summary>
+        /// <param name="tag">Tag.</param>
+        public void AddTag(string tag) {
+            Tags += string.IsNullOrEmpty(Tags) ? tag : "," + tag;
+        }
+
+        /// <summary>
+        /// Gets the tags as list.
+        /// </summary>
+        /// <returns>The tags as list.</returns>
+        public List<string> GetTagsAsList() {
+            if (!string.IsNullOrEmpty(Tags))
+                return Tags.Split(",".ToCharArray()).ToList();
+            else return new List<string>();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Specify if the provider is a sandbox or is operational.
         /// </summary>
         public bool IsSandbox;
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// The tags used to describe and filter the provider.
-        /// </summary>
-        public List<string> Tags;
+
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -704,8 +728,10 @@ namespace Terradue.Portal {
 					wpsProcess.Url = urib.Uri.AbsoluteUri;
 				}
                 wpsProcess.Url = url;
-                if(Tags != null) 
-                    foreach (var tag in Tags) wpsProcess.AddTag(tag);
+                if (!string.IsNullOrEmpty(Tags)) {
+                    var tags = GetTagsAsList();
+                    foreach (var tag in tags) wpsProcess.AddTag(tag);
+                }
 
                 wpsProcess.Domain = this.Domain;
 

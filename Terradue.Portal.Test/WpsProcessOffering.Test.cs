@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Terradue.ServiceModel.Ogc.Owc.AtomEncoding;
 using Terradue.OpenSearch.Engine;
 using Terradue.OpenSearch.Result;
+using System.Collections.Generic;
 
 namespace Terradue.Portal.Test
 {
@@ -117,6 +118,56 @@ namespace Terradue.Portal.Test
             osr = ose.Query(services, parameters);
             Assert.AreEqual(0, osr.Items.Count());
 
+        }
+
+        [Test]
+        public void CreateWpsServiceFromRemote(){
+            WpsProvider provider = CreateProvider("test-wps-1-remote", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            List<WpsProcessOffering> services = provider.GetWpsProcessOfferingsFromRemote();
+            Assert.AreEqual(1, services.Count());
+        }
+
+        [Test]
+        public void CreateWpsServiceFromRemoteWithTags() {
+            WpsProvider provider = CreateProvider("test-wps-1-tag", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            provider.AddTag("mytag");
+            List<WpsProcessOffering> services = provider.GetWpsProcessOfferingsFromRemote();
+            Assert.AreEqual(1, services.Count());
+            Assert.True(!string.IsNullOrEmpty(services[0].Tags) && services[0].Tags.Contains("mytag"));
+        }
+
+        [Test]
+        public void CreateWpsServiceFromRemoteWithDomain() {
+            Domain domainpub = new Domain(context);
+            domainpub.Identifier = "domainPublic";
+            domainpub.Kind = DomainKind.Public;
+            domainpub.Store();
+
+            WpsProvider provider = CreateProvider("test-wps-1-domain", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            provider.Domain = domainpub;
+            List<WpsProcessOffering> services = provider.GetWpsProcessOfferingsFromRemote();
+            Assert.AreEqual(1, services.Count());
+            Assert.True(services[0].DomainId == domainpub.Id);
+        }
+
+        [Test]
+        public void UpdateProcessOfferings() {
+            WpsProvider provider = CreateProvider("test-wps-1-sync", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
+            provider.AddTag("mytag1");
+            List<WpsProcessOffering> services = provider.GetWpsProcessOfferingsFromRemote();
+            Assert.AreEqual(1, services.Count());
+            var service = services[0];
+            foreach (var s in services) s.Store();
+            Assert.True(!string.IsNullOrEmpty(service.Tags) && service.Tags.Contains("mytag1"));
+            provider.AddTag("mytag2");//mytag2 is added only for new services
+            provider.UpdateProcessOfferings();
+            Assert.True(!string.IsNullOrEmpty(service.Tags) && service.Tags.Contains("mytag1") && !service.Tags.Contains("mytag2"));
+            service.Delete();
+            provider.UpdateProcessOfferings();
+            EntityList<WpsProcessOffering> dbProcesses = provider.GetWpsProcessOfferings(false);
+            Assert.AreEqual(1, dbProcesses.Count());
+            service = dbProcesses.Items.First();
+            Assert.True(!string.IsNullOrEmpty(service.Tags) && service.Tags.Contains("mytag1") && service.Tags.Contains("mytag2"));
         }
 
     }
