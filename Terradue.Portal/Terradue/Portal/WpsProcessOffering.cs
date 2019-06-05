@@ -290,24 +290,24 @@ namespace Terradue.Portal {
             string text = (this.TextContent != null ? this.TextContent : "");
 
             //if query on parameter q we check one of the properties contains q
-            if (parameters ["q"] != null) {
+            if (!string.IsNullOrEmpty(parameters ["q"])) {
                 string q = parameters ["q"].ToLower ();
                 if (!(name.ToLower ().Contains (q) || identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q))) return false;
             }
 
             //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
-            if (parameters ["wpsUrl"] != null && parameters ["pId"] != null) {
+            if (!string.IsNullOrEmpty(parameters ["wpsUrl"]) && !string.IsNullOrEmpty(parameters ["pId"])) {
                 if (this.Provider.BaseUrl != parameters ["wpsUrl"] || this.RemoteIdentifier != parameters ["pId"]) return false;
             }
 
             //case of query for sandbox or operational provider
-            if (parameters["sandbox"] != null) {
+            if (!string.IsNullOrEmpty(parameters["sandbox"])) {
                 if (parameters["sandbox"] == "true" && !this.Provider.IsSandbox) return false;
                 if (parameters["sandbox"] == "false" && this.Provider.IsSandbox) return false;
             }
 
             //case of query on provider hostname
-            if (parameters["hostname"] != null) {
+            if (!string.IsNullOrEmpty(parameters["hostname"])) {
                 var uriHost = new UriBuilder(this.Provider.BaseUrl);
                 var r = new System.Text.RegularExpressions.Regex(parameters["hostname"]);
                 var m = r.Match(uriHost.Host);
@@ -315,7 +315,7 @@ namespace Terradue.Portal {
             }
 
             //case of query on service tags
-            if (parameters["tag"] != null) {
+            if (!string.IsNullOrEmpty(parameters["tag"])) {
                 var queryTags = parameters["tag"].Split(",".ToCharArray()).ToList();
                 var serviceTags = GetTagsAsList();
 
