@@ -1298,9 +1298,6 @@ namespace Terradue.Portal {
             bool hasSort = false;
             if (sortCriteria != null) {
                 foreach (var sortobject in sortCriteria) {
-                    //string expression = sortobject.Expression;
-                    //SortDirection direction = sortobject.Direction;
-                    //FieldInfo field = sortobject.Field;
                     if (sortobject.Field != null) {
                         string alias = null;
 
