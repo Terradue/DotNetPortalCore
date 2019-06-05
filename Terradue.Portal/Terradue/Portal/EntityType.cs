@@ -1291,35 +1291,50 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetSortSql(Dictionary<FieldInfo, SortDirection> sortCriteria) {
+        public string GetSortSql(List<SortCriterion> sortCriteria) {
             if (sortCriteria == null) return null;
 
             string result = null;
             bool hasSort = false;
+            if (sortCriteria != null) {
+                foreach (var sortobject in sortCriteria) {
+                    if (sortobject.Field != null) {
+                        string alias = null;
 
-            foreach (FieldInfo field in sortCriteria.Keys) {
-                string alias = null;
-                if (field.FieldType == EntityFieldType.ForeignField) {
-                    ForeignTableInfo foreignTableInfo = null;
-                    foreach (ForeignTableInfo fti in ForeignTables) {
-                        if (fti.ReferringTable == Tables [field.TableIndex] && fti.SubIndex == field.TableSubIndex) {
-                            foreignTableInfo = fti;
-                            break;
+                        if (sortobject.Field.FieldType == EntityFieldType.ForeignField) {
+                            ForeignTableInfo foreignTableInfo = null;
+                            foreach (ForeignTableInfo fti in ForeignTables) {
+                                if (fti.ReferringTable == Tables[sortobject.Field.TableIndex] && fti.SubIndex == sortobject.Field.TableSubIndex) {
+                                    foreignTableInfo = fti;
+                                    break;
+                                }
+                            }
+                            if (foreignTableInfo == null) continue;
+                            if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", sortobject.Field.TableIndex == 0 ? String.Empty : sortobject.Field.TableIndex.ToString(), sortobject.Field.TableSubIndex.ToString());
                         }
+                        if (alias == null) alias = String.Format("t{0}.", sortobject.Field.TableIndex == 0 ? String.Empty : sortobject.Field.TableIndex.ToString());
+                        string fieldExpression = (sortobject.Field.FieldName == null ? sortobject.Field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, sortobject.Field.FieldName));
+                        string sortTerm = String.Format("{0} {1}", fieldExpression, sortobject.Direction == SortDirection.Ascending ? "ASC" : "DESC");
+
+                        if (hasSort) result += ", ";
+                        else result = String.Empty;
+
+                        result += sortTerm;
+                        hasSort = true;
+                    } else if (!string.IsNullOrEmpty(sortobject.Expression)) {
+
+                        string sortTerm = String.Format("{0} {1}", sortobject.Expression, sortobject.Direction == SortDirection.Ascending ? "ASC" : "DESC");
+
+                        if (hasSort) result += ", ";
+                        else result = String.Empty;
+
+                        result += sortTerm;
+
+                        hasSort = true;
                     }
-                    if (foreignTableInfo == null) continue;
-                    if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
+
+
                 }
-                if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
-                string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
-                string sortTerm = String.Format("{0} {1}", fieldExpression, sortCriteria[field] == SortDirection.Ascending ? "ASC" : "DESC");
-
-                if (hasSort) result += ", ";
-                else result = String.Empty;
-
-                result += sortTerm;
-
-                hasSort = true;
             }
 
             return result;

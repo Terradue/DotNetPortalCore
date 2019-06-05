@@ -111,7 +111,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public Dictionary<FieldInfo, SortDirection> SortCriteria { get; protected set; }
+        public List<SortCriterion> SortCriteria { get; protected set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -236,7 +236,7 @@ namespace Terradue.Portal {
         private OpenSearchEngine ose;
         private Dictionary<FieldInfo, object> filterValues;
         private List<FieldInfo> groupFilters;
-        private Dictionary<FieldInfo, SortDirection> sortCriteria;
+        private List<SortCriterion> sortCriteria;
 
         public EntityType EntityType {
             get { return entityType; }
@@ -718,7 +718,7 @@ namespace Terradue.Portal {
 
         /// <summary>Sets the filter search term for the specified property.</summary>
         /// <param name="propertyName">The name of the property of the underlying <see cref="Entity"/> subclass on which the filter is applied.</param>
-        /// <param name="searchTerm">The filter search string according to the property type.</param>
+        /// <param name="direction">The sort direction (default: ascending).</param>
         public void AddSort(string propertyName, SortDirection direction = SortDirection.Ascending) {
             FieldInfo field = entityType.GetField(propertyName);
             if (field == null) throw new ArgumentException(String.Format("Property {0}.{1} does not exist or cannot be used for filtering", entityType.ClassType.FullName, propertyName));
@@ -734,10 +734,24 @@ namespace Terradue.Portal {
             if (field == null) throw new ArgumentNullException("No filtering field specified");
             if (!entityType.Fields.Contains(field) && !field.Property.DeclaringType.IsAssignableFrom(entityType.ClassType)) throw new InvalidOperationException("Invalid filtering field specified");
             if (sortCriteria == null) {
-                sortCriteria = new Dictionary<FieldInfo, SortDirection>();
+                sortCriteria = new List<SortCriterion>();
                 base.SortCriteria = sortCriteria;
             }
-            sortCriteria[field] = direction;
+            sortCriteria.Add(new SortCriterion { Field = field, Direction = direction });
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Sets the filter search term with the specified expression.</summary>
+        /// <param name="expression">The filter expression to be applied.</param>
+        /// <param name="direction">The sort direction (default: ascending).</param>
+        public void AddSortExpression(string expression, SortDirection direction = SortDirection.Ascending) {
+            if (string.IsNullOrEmpty(expression)) throw new InvalidOperationException("Invalid filtering expression specified");
+            if (sortCriteria == null) {
+                sortCriteria = new List<SortCriterion>();
+                base.SortCriteria = sortCriteria;
+            }
+            sortCriteria.Add(new SortCriterion { Expression = expression, Direction = direction });
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1385,6 +1399,24 @@ namespace Terradue.Portal {
         /// <summary>Any value other than <c>null</c>.</summary>
         NotNull
 
+    }
+
+    /// <summary>
+    /// Sort criterion used in EntityCollection load query
+    /// </summary>
+    public class SortCriterion {
+
+        /// <summary>Gets or sets the field.</summary>
+        /// <value>The field.</value>
+        public FieldInfo Field { get; set; }
+
+        /// <summary>Gets or sets the expression.</summary>
+        /// <value>The expression.</value>
+        public string Expression { get; set; }
+
+        /// <summary>Gets or sets the sort direction.</summary>
+        /// <value>The sort direction.</value>
+        public SortDirection Direction { get; set; }
     }
 
 }
