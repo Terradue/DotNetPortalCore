@@ -1291,7 +1291,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public string GetSortSql(List<SortObject> sortCriteria) {
+        public string GetSortSql(List<SortCriterion> sortCriteria) {
             if (sortCriteria == null) return null;
 
             string result = null;
