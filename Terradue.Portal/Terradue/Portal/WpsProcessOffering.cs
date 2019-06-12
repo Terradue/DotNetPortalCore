@@ -275,28 +275,26 @@ namespace Terradue.Portal {
         #region IAtomizable implementation
         public new bool IsSearchable (System.Collections.Specialized.NameValueCollection parameters)
         {
-            
-            string identifier = "";
 
             log.Debug ("WpsProcessOffering - ToAtomItem");
 
-            if (this.ProviderId == 0 || this.Provider.Proxy) {
-                identifier = this.Identifier;
-            } else {
-                identifier = this.RemoteIdentifier;
-            }
+            if (!string.IsNullOrEmpty(parameters["available"])) {
+                switch (parameters["available"]) {
+                    case "all":
+                        break;
+                    case "false":
+                        if (this.Available) return false;
+                        break;
+                    case "true":
+                    default:
+                        if (!this.Available) return false;
+                        break;
+                }
+            } else if (!this.Available) return false;
 
-            string name = (this.Name != null ? this.Name : identifier);
-            string text = (this.TextContent != null ? this.TextContent : "");
 
-            //if query on parameter q we check one of the properties contains q
-            if (!string.IsNullOrEmpty(parameters ["q"])) {
-                string q = parameters ["q"].ToLower ();
-                if (!(name.ToLower ().Contains (q) || identifier.ToLower ().Contains (q) || text.ToLower ().Contains (q))) return false;
-            }
-
-            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
-            if (!string.IsNullOrEmpty(parameters ["wpsUrl"]) && !string.IsNullOrEmpty(parameters ["pId"])) {
+                //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
+                if (!string.IsNullOrEmpty(parameters ["wpsUrl"]) && !string.IsNullOrEmpty(parameters ["pId"])) {
                 if (this.Provider.BaseUrl != parameters ["wpsUrl"] || this.RemoteIdentifier != parameters ["pId"]) return false;
             }
 
