@@ -152,7 +152,7 @@ namespace Terradue.Portal {
 
         /// <summary>Description text of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        [EntityDataField("description")]
+        [EntityDataField("description", IsUsedInKeywordSearch = true)]
         public string Description { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------

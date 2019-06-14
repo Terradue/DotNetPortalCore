@@ -1616,7 +1616,7 @@ CREATE TABLE cedir (
 
 CREATE TABLE wpsprovider (
     id int unsigned NOT NULL,
-    url varchar(100) COMMENT 'Base WPS access point',
+    url varchar(300) COMMENT 'Base WPS access point',
     proxy boolean NOT NULL DEFAULT false COMMENT 'If true, wps is proxied',
     contact varchar(200) COMMENT 'WPS contact point (link or email)',
     autosync boolean NOT NULL DEFAULT false COMMENT 'If true, wps is automatically synchronized',
@@ -1855,7 +1855,7 @@ CREATE TABLE service (
     description text NOT NULL COMMENT 'Description',
     version varchar(10) COMMENT 'Version',
     c_version varchar(10) COMMENT 'Cleanup version (in case of interrupted upgrade)',
-    url varchar(200) NOT NULL COMMENT 'Access point of service (relative URL)',
+    url varchar(400) NOT NULL COMMENT 'Access point of service (relative URL)',
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     view_url varchar(200) COMMENT 'View URL',
     rating tinyint COMMENT 'Rating in stars (0 to 5)',

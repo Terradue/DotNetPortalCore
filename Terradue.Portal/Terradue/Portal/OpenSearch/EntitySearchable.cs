@@ -22,7 +22,7 @@ namespace Terradue.Portal.OpenSearch {
 
         public EntitySearchable(IfyContext context) : base(context) { }
 
-        public NameValueCollection GetOpenSearchParameters() {
+        public virtual NameValueCollection GetOpenSearchParameters() {
             NameValueCollection nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
             nvc.Add("author", "{t2:author?}");
             nvc.Add("domain", "{t2:domain?}");
