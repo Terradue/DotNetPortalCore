@@ -414,6 +414,7 @@ namespace Terradue.Portal {
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
 
             //categories
+            if (this.Available) entry.Categories.Add(new SyndicationCategory("available"));
             if (this.Provider.Id == 0) entry.Categories.Add(new SyndicationCategory("Discovered"));
             if (this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
