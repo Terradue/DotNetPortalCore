@@ -1,4 +1,4 @@
--- VERSION 2.7.16
+-- VERSION 2.7.17
 
 USE $MAIN$;
 
@@ -2449,4 +2449,28 @@ CREATE TABLE project (
 -- CHECKPOINT CN-06
 
 /*****************************************************************************/
+
+-- Create table gitrepo ... \
+CREATE TABLE gitrepo (
+    id int unsigned NOT NULL auto_increment,
+    url VARCHAR(300) NOT NULL COMMENT 'Git Repository URL',
+    id_usr int unsigned COMMENT 'User creating the repo',
+    id_domain int unsigned COMMENT 'Domain of the repo',
+    CONSTRAINT pk_gitrepo PRIMARY KEY (id)
+) Engine=InnoDB COMMENT 'GIR repository';
+-- CHECKPOINT CN-07
+
+/*****************************************************************************/
+
+-- Create table gitrepo_perm ... \
+CREATE TABLE gitrepo_perm (
+    id_gitrepo int unsigned NOT NULL COMMENT 'FK: Git repository',
+    id_usr int unsigned COMMENT 'FK: User',
+    id_grp int unsigned COMMENT 'FK: Group',
+    CONSTRAINT fk_gitrepo_perm_gitrepo FOREIGN KEY (id_gitrepo) REFERENCES gitrepo(id) ON DELETE CASCADE,
+    CONSTRAINT fk_gitrepo_perm_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE,
+    CONSTRAINT fk_gitrepo_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User/group permissions on GIT repository';
+-- CHECKPOINT CN-08
+
 
