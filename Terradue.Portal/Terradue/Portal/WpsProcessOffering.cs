@@ -53,7 +53,7 @@ namespace Terradue.Portal {
 
         /// <summary>Remote identifier of the process offering on the \ref WPSProvider it belongs to.</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
-        [EntityDataFieldAttribute("remote_id")]
+        [EntityDataFieldAttribute("remote_id", IsUsedInKeywordSearch = true)]
         public string RemoteIdentifier { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -277,23 +277,8 @@ namespace Terradue.Portal {
         {
 
             log.Debug ("WpsProcessOffering - ToAtomItem");
-
-            if (!string.IsNullOrEmpty(parameters["available"])) {
-                switch (parameters["available"]) {
-                    case "all":
-                        break;
-                    case "false":
-                        if (this.Available) return false;
-                        break;
-                    case "true":
-                    default:
-                        if (!this.Available) return false;
-                        break;
-                }
-            } else if (!this.Available) return false;
-
-
-                //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
+                       
+            //case of Provider not on db (on the cloud), we don't have any identifier so we use the couple wpsUrl/pId to identify it
                 if (!string.IsNullOrEmpty(parameters ["wpsUrl"]) && !string.IsNullOrEmpty(parameters ["pId"])) {
                 if (this.Provider.BaseUrl != parameters ["wpsUrl"] || this.RemoteIdentifier != parameters ["pId"]) return false;
             }
@@ -311,27 +296,59 @@ namespace Terradue.Portal {
                 var m = r.Match(uriHost.Host);
                 if (!m.Success) return false;
             }
-
-            //case of query on service tags
-            if (!string.IsNullOrEmpty(parameters["tag"])) {
-                var queryTags = parameters["tag"].Split(",".ToCharArray()).ToList();
-                var serviceTags = GetTagsAsList();
-
-                //foreach (var qtag in queryTags)
-                //if (!serviceTags.Any(str => str.Equals(qtag))) return false;
-
-                foreach (var qtag in queryTags) {
-                    bool isTag = false;
-                    foreach (var stag in serviceTags) {
-                        if (stag.Equals(qtag)) isTag = true;
-                    }
-                    if (!isTag) return false;
-                }
-            }
-
+            
             return true;
         }
-        
+
+        public override bool IsPostFiltered(NameValueCollection parameters) {
+            foreach (var key in parameters.AllKeys) {
+                switch (key) {
+                    case "sandbox":
+                    case "hostname":
+                    case "wpsUrl":
+                    case "pId":
+                        return true;
+                        
+                    default:
+                        break;
+                }
+            }
+            return false;
+        }
+
+        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+            switch (parameter) {
+                case "available":
+                    switch (value) {
+                        case "all":
+                            return new KeyValuePair<string, string>();
+                        case "false":
+                            return new KeyValuePair<string, string>("Available","false");
+                        case "true":
+                        default:
+                            return new KeyValuePair<string, string>("Available", "true");
+                    }
+                case "cat":
+                    switch (value) {
+                        case "commercial":
+                            return new KeyValuePair<string, string>("Commercial", "true");
+                        case "!commercial":
+                            return new KeyValuePair<string, string>("Commercial", "false");
+                        default:
+                            return new KeyValuePair<string, string>();
+                    }
+                case "cr":
+                    try {
+                        var p = ComputingResource.FromIdentifier(context, value);
+                        return new KeyValuePair<string, string>("ProviderId", p.Id + "");    
+                    } catch(Exception e) {
+                        return new KeyValuePair<string, string>("ProviderId", "-1");
+                    }
+                default:
+                    return base.GetFilterForParameter(parameter, value);
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         public override AtomItem ToAtomItem(NameValueCollection parameters) {
@@ -415,6 +432,7 @@ namespace Terradue.Portal {
 
             //categories
             if (this.Available) entry.Categories.Add(new SyndicationCategory("available"));
+            if (this.Commercial) entry.Categories.Add(new SyndicationCategory("commercial"));
             if (this.Provider.Id == 0) entry.Categories.Add(new SyndicationCategory("Discovered"));
             if (this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
@@ -431,7 +449,8 @@ namespace Terradue.Portal {
             if (this.Quotable) entry.Categories.Add(new SyndicationCategory("quotable"));
 
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
-            if(!string.IsNullOrEmpty(this.Version)) entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
+            if (!string.IsNullOrEmpty(this.RemoteIdentifier)) entry.ElementExtensions.Add("remote_identifier", "http://purl.org/dc/elements/1.1/", this.RemoteIdentifier);
+            if (!string.IsNullOrEmpty(this.Version)) entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
@@ -450,10 +469,13 @@ namespace Terradue.Portal {
             parameters.Add("id", "{geo:uid?}");
             parameters.Add("wpsUrl", "{ows:url?}");
             parameters.Add("pid", "{ows:id?}");
-            parameters.Add ("sandbox", "{t2:cloudsandbox?}");
-            parameters.Add ("cloud", "{t2:cloud?}");
-            parameters.Add ("hostname", "{t2:cloudhostname?}");
-            parameters.Add ("tag", "{t2:cloudtag?}");
+            parameters.Add("cat", "{dct:subject?}");
+            parameters.Add("sandbox", "{t2:cloudsandbox?}");
+            parameters.Add("cloud", "{t2:cloud?}");
+            parameters.Add("hostname", "{t2:cloudhostname?}");
+            parameters.Add("tag", "{t2:cloudtag?}");
+            parameters.Add("available", "{t2:available?}");
+            parameters.Add("cr", "{t2:wpsprovider?}");
             return parameters;
         }
 
