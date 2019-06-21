@@ -24,6 +24,7 @@ using Terradue.OpenSearch.Engine;
 using System.Web;
 using System.Runtime.Caching;
 using System.Linq;
+using System.Data;
 
 /*!
 \defgroup CoreWPS WPS
@@ -538,9 +539,14 @@ namespace Terradue.Portal {
         /// Updates the process offerings.
         /// </summary>
         /// <param name="setAsAvailable">If set to <c>true</c> set as available.</param>
-        public void UpdateProcessOfferings(bool setAsAvailable = false, User owner = null, bool removeMissings = false) {
+        public void UpdateProcessOfferings(bool setAsAvailable = false, User owner = null, Domain domain = null, bool removeMissings = false) {
+
+            EntityList<WpsProcessOffering> dbProcesses = new EntityList<WpsProcessOffering>(context);
+            if (domain != null) dbProcesses.SetFilter("DomainId", domain.Id);
+            dbProcesses.SetFilter("ProviderId", this.Id);
+            dbProcesses.Load();
+
             List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, owner != null ? owner.Username : null);
-            EntityList<WpsProcessOffering> dbProcesses = this.GetWpsProcessOfferings(false);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
                 bool existsPrInDb = false;
@@ -574,7 +580,7 @@ namespace Terradue.Portal {
                 // if pR not in pDB -> we add pR (store in DB)
                 if (!existsPrInDb) {
                     pR.Available = setAsAvailable;
-                    pR.DomainId = this.DomainId;
+                    pR.DomainId = domain != null ? domain.Id : this.DomainId;
                     if (owner != null) pR.OwnerId = owner.Id;
                     pR.Store();
                 }
@@ -725,7 +731,7 @@ namespace Terradue.Portal {
 					var identifier = (wpsProcess.RemoteIdentifier != null ? wpsProcess.RemoteIdentifier : wpsProcess.Identifier);
                     query += "&Identifier=" + identifier;
 					urib.Query = query;
-					wpsProcess.Url = urib.Uri.AbsoluteUri;
+					url = urib.Uri.AbsoluteUri;
 				}
                 wpsProcess.Url = url;
                 if (!string.IsNullOrEmpty(Tags)) {
@@ -1133,6 +1139,28 @@ namespace Terradue.Portal {
             return true;
         }
 
+        public void AddDevUser(string username) {
+            var sql = string.Format("INSERT INTO wpsprovider_dev (id_wpsprovider, id_usr) SELECT {0},id FROM usr WHERE username='{1}';",this.Id, username);
+            context.Execute(sql);
+        }
+
+        public void RemoveDevUser(string username) {
+            var sql = string.Format("DELETE FROM wpsprovider_dev WHERE id_wpsprovider={0} AND id_usr=(SELECT id FROM usr WHERE username='{1}');", this.Id, username);
+            context.Execute(sql);
+        }
+
+        public int[] GetDevUsersId() {
+            string sql = string.Format("SELECT id_usr FROM wpsprovider_dev WHERE id_wpsprovider={0};", this.Id);
+            return context.GetQueryIntegerValues(sql);
+        }
+
+        public List<User> GetDevUsers() {
+            var users = new List<User>();
+            var ids = GetDevUsersId();
+            foreach (var id in ids) users.Add(User.FromId(context, id));
+            return users;
+        }
+
         protected bool GetTaskResult(Task task, ExecuteResponse exec) {
             string metalinkUrl = null;
             foreach (OutputDataType output in exec.ProcessOutputs) {
@@ -1357,6 +1385,14 @@ namespace Terradue.Portal {
 
             return osd;
 
+        }
+
+        public bool IsUserDeveloper(int id) {
+            var usrids = GetDevUsersId();
+            foreach (var usrid in usrids) {
+                if (usrid == id) return true;
+            }
+            return false;
         }
     }
 }
