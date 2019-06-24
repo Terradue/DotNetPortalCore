@@ -154,7 +154,7 @@ namespace Terradue.Portal {
             return domainIds.ToArray();
         }
 
-        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
                 default:
                     return base.GetFilterForParameter(parameter, value);

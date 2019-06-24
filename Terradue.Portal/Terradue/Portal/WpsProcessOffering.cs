@@ -316,7 +316,7 @@ namespace Terradue.Portal {
             return false;
         }
 
-        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
                 case "available":
                     switch (value) {
