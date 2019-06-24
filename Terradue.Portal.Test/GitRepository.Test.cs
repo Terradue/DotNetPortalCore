@@ -42,20 +42,20 @@ namespace Terradue.Portal.Test {
             context.AccessLevel = EntityAccessLevel.Permission;
 
             //usr1 should not have access to the git repo
-            EntityList<GitRepository> repos = new EntityList<GitRepository>(context);
             context.StartImpersonation(usr1.Id);
+            EntityList<GitRepository> repos = new EntityList<GitRepository>(context);
             repos.Load();
             Assert.AreEqual(0, repos.Items.Count());
             context.EndImpersonation();
 
             //we grant access to usr1
-            repo1.GrantPermissionsToUsers(new int[] { usr1.Id });
+            repo1.GrantPermissionsToUsers(new int[]{ usr1.Id });
 
             Assert.True(repo1.DoesGrantPermissionsToUser(usr1.Id));
 
             //usr1 should have access to the git repo
-            repos = new EntityList<GitRepository>(context);
             context.StartImpersonation(usr1.Id);
+            repos = new EntityList<GitRepository>(context);
             repos.Load();
             Assert.AreEqual(1, repos.Items.Count());
             context.EndImpersonation();
@@ -67,6 +67,7 @@ namespace Terradue.Portal.Test {
             Assert.AreEqual(0, repos.Items.Count());
             context.EndImpersonation();
 
+            context.AccessLevel = EntityAccessLevel.Administrator;
             Group grp1 = new Group(context);
             grp1.Identifier = "testgrp1";
             grp1.Name = "Group Test 1";
@@ -75,10 +76,11 @@ namespace Terradue.Portal.Test {
 
             //we grant access to grp1
             repo1.GrantPermissionsToGroups(new int[] { grp1.Id });
+            context.AccessLevel = EntityAccessLevel.Privilege;
 
             //usr2 should have access to the git repo
-            repos = new EntityList<GitRepository>(context);
             context.StartImpersonation(usr2.Id);
+            repos = new EntityList<GitRepository>(context);
             repos.Load();
             Assert.AreEqual(1, repos.Items.Count());
             context.EndImpersonation();
@@ -86,3 +88,4 @@ namespace Terradue.Portal.Test {
 
     }
 }
+
