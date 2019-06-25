@@ -344,6 +344,8 @@ namespace Terradue.Portal {
                     } catch(Exception e) {
                         return new KeyValuePair<string, string>("ProviderId", "-1");
                     }
+                case "version":
+                    return new KeyValuePair<string, string>("Version", value);
                 default:
                     return base.GetFilterForParameter(parameter, value);
             }
@@ -451,6 +453,8 @@ namespace Terradue.Portal {
             entry.ElementExtensions.Add("identifier", "http://purl.org/dc/elements/1.1/", this.Identifier);
             if (!string.IsNullOrEmpty(this.RemoteIdentifier)) entry.ElementExtensions.Add("remote_identifier", "http://purl.org/dc/elements/1.1/", this.RemoteIdentifier);
             if (!string.IsNullOrEmpty(this.Version)) entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
+            if (this.Domain != null) entry.ElementExtensions.Add("domain", "https://www.terradue.com/", this.Domain.Identifier);
+            if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("spatial", "http://purl.org/dc/terms/", this.Geometry);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
@@ -476,6 +480,7 @@ namespace Terradue.Portal {
             parameters.Add("tag", "{t2:cloudtag?}");
             parameters.Add("available", "{t2:available?}");
             parameters.Add("cr", "{t2:wpsprovider?}");
+            parameters.Add("version", "{t2:version?}");
             return parameters;
         }
 
