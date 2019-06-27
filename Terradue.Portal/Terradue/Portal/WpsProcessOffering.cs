@@ -431,6 +431,7 @@ namespace Terradue.Portal {
                 entry.Publisher = (this.Provider != null ? this.Provider.Name : "Unknown");
             else
                 entry.Publisher = this.Provider.Name + " (" + this.Provider.Description + ")";
+            if (this.Provider != null) entry.ElementExtensions.Add("providerId", "https://www.terradue.com/", this.Provider.Identifier);
 
             //categories
             if (this.Available) entry.Categories.Add(new SyndicationCategory("available"));
