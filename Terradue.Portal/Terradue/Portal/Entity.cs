@@ -1078,7 +1078,37 @@ namespace Terradue.Portal {
         }
 
         //---------------------------------------------------------------------------------------------------------------------
-        
+
+        /// <summary>Revoke the permissions on the resource represented by this instance for the specified user.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="userId">ID of the user to which the permission is revoked.</param>
+        public void RevokePermissionsFromUser(int userId) {
+            RevokePermissions(false, userId);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revoke the permissions on the resource represented by this instance for the specified group.</summary>
+        /// <remarks>This method allows managing permissions from the resource's point of view: one resource grants permissions to several users.</remarks>
+        /// <param name="grpId">ID of the group to which the permission is revoked.</param>
+        public void RevokePermissionsFromGroup(int grpId) {
+            EntityType entityType = this.EntityType;
+            RevokePermissions(true, grpId);
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Revoke the permissions on the resource represented by this instance for the specified beneficiaries according to the permission properties.</summary>
+        /// <param name="forGroup">If <c>true</c>, the methods considers the given IDs as group IDs, otherwise as user IDs.</param>
+        /// <param name="singleId">The database ID of a single user or group.</param>
+        public void RevokePermissions(bool forGroup, int singleId) {
+            EntityType entityType = this.EntityType;
+            string deleteCondition = String.Format("{0}={1}", forGroup ? "id_grp" : "id_usr", singleId);
+            context.Execute(String.Format("DELETE FROM {1} WHERE id_{2}={0} AND ({3});", Id, entityType.PermissionSubjectTable.PermissionTable, entityType.PermissionSubjectTable.Name, deleteCondition));
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Sets permissions on resources for a single user.</summary>
         /// <remarks>This method allows managing permissions from a single user's point of view: one user has permissions on several resources.</remarks>
         /// <param name="context">The execution environment context.</param>
