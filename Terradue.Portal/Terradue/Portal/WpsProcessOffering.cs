@@ -372,6 +372,8 @@ namespace Terradue.Portal {
                 }
             }
 
+            var status = this.DoesGrantPermissionsToAll() ? "public" : "private";
+
             if (identifier == null) identifier = "";
             string name = (this.Name != null ? this.Name : identifier);
             string description = this.Description;
@@ -438,6 +440,7 @@ namespace Terradue.Portal {
             if (this.Commercial) entry.Categories.Add(new SyndicationCategory("commercial"));
             if (this.Provider.Id == 0) entry.Categories.Add(new SyndicationCategory("Discovered"));
             if (this.Provider.IsSandbox) entry.Categories.Add (new SyndicationCategory ("sandbox"));
+            entry.Categories.Add(new SyndicationCategory("visibility", null, status));
             entry.Categories.Add(new SyndicationCategory("WpsOffering"));
             foreach (var tag in GetTagsAsList ()){
                 entry.Categories.Add (new SyndicationCategory ("tag","",tag));
