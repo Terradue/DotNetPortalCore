@@ -208,7 +208,7 @@ namespace Terradue.Portal {
         }
 
         #region IEntitySearchable implementation
-        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "entitytype":
                 var t = EntityType.GetEntityTypeFromKeyword(value);
