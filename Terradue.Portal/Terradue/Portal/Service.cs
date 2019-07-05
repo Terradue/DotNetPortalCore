@@ -694,7 +694,7 @@ namespace Terradue.Portal {
         }
 
         #region IEntitySearchable implementation
-        public override KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "tag":
                     if (string.IsNullOrEmpty(value)) return base.GetFilterForParameter(parameter, value);

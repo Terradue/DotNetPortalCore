@@ -1644,6 +1644,21 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public string[] GetQueryStringValues(string sql) {
+            List<string> result = new List<string>();
+            IDbConnection dbConnection = GetDbConnection();
+            IDbCommand dbCommand = dbConnection.CreateCommand();
+            dbCommand.CommandText = sql;
+            IDataReader dbReader = dbCommand.ExecuteReader();
+            while (dbReader.Read()) {
+                if (dbReader.GetValue(0) != DBNull.Value) result.Add(dbReader.GetString(0));
+            }
+            CloseQueryResult(dbReader, dbConnection);
+            return result.ToArray();
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public bool GetQueryBooleanValue(string sql) {
             bool result = false;
             IDbConnection dbConnection = GetDbConnection();
@@ -1708,7 +1723,7 @@ namespace Terradue.Portal {
             CloseQueryResult(dbReader, dbConnection);
             return result.ToArray();
         }
-
+        
         //---------------------------------------------------------------------------------------------------------------------
 
         public string GetValue(IDataReader reader, int index) {

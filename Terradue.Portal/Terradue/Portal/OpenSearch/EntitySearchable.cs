@@ -7,7 +7,7 @@ using Terradue.OpenSearch.Result;
 namespace Terradue.Portal.OpenSearch {
 
     public interface IEntitySearchable : IAtomizable {
-        KeyValuePair<string, string> GetFilterForParameter(string parameter, string value);
+        object GetFilterForParameter(string parameter, string value);
 
         bool IsPostFiltered(NameValueCollection parameters);
 
@@ -29,7 +29,7 @@ namespace Terradue.Portal.OpenSearch {
             return nvc;
         }
 
-        public virtual KeyValuePair<string, string> GetFilterForParameter(string parameter, string value) {
+        public virtual object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
             case "uid":
                 if(!string.IsNullOrEmpty(value))

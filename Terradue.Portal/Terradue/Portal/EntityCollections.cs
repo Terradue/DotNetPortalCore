@@ -845,14 +845,24 @@ namespace Terradue.Portal {
                             SetFilter("DomainId", dm.Id.ToString());
                             break;
                         default:
-                            var kv = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
-                            if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                            var kvo = (t as EntitySearchable).GetFilterForParameter(p, parameters[p]);
+                            if (kvo is List<KeyValuePair<string, string>>) {
+                                var kvl = kvo as List<KeyValuePair<string, string>>;
+                                if(kvl != null) {
+                                    foreach(var kv in kvl) {
+                                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                                    }
+                                }
+                            } else if (kvo is KeyValuePair<string, string>) {
+                                if (kvo != null) {
+                                    if (!string.IsNullOrEmpty(((KeyValuePair<string, string>)kvo).Key)) SetFilter(((KeyValuePair<string, string>)kvo).Key, ((KeyValuePair<string, string>)kvo).Value);
+                                }
+                            }                            
                             break;
                     }
-
                 }
             }
-            this.Load();
+                this.Load();
 
             foreach (T s in Items) {
 
