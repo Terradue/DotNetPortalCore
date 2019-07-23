@@ -145,9 +145,6 @@
     <Reference Include="Terradue.Portal">
       <HintPath>..\packages\Terradue.Portal.2.7.21\lib\net45\Terradue.Portal.dll</HintPath>
     </Reference>
-    <Reference Include="Terradue.Github">
-      <HintPath>..\packages\Terradue.Github.1.1.1\lib\net45\Terradue.Github.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -267,6 +264,5 @@
     <None Include="core\db\db-2.5#.sql" />
     <None Include="core\db\db-2.4c.sql" />
     <None Include="core\db\db-2.4#.sql" />
-    <None Include="modules\github\db\db-create.sql" />
   </ItemGroup>
 </Project>
