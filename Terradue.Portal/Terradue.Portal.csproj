@@ -122,6 +122,32 @@
     <Reference Include="Terradue.Metadata.EarthObservation">
       <HintPath>..\packages\Terradue.Metadata.EarthObservation.1.5.1\lib\net45\Terradue.Metadata.EarthObservation.dll</HintPath>
     </Reference>
+    <Reference Include="System.Net.Http.Extensions">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="Mono.Addins">
+      <HintPath>..\packages\Mono.Addins.1.2\lib\net40\Mono.Addins.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\packages\ServiceStack.Text.3.9.71\lib\net35\ServiceStack.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Portal.AdminTool">
+      <HintPath>..\packages\Terradue.Portal.2.7.21\lib\net45\Terradue.Portal.AdminTool.exe</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Portal.Agent">
+      <HintPath>..\packages\Terradue.Portal.2.7.21\lib\net45\Terradue.Portal.Agent.exe</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Portal">
+      <HintPath>..\packages\Terradue.Portal.2.7.21\lib\net45\Terradue.Portal.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Github">
+      <HintPath>..\packages\Terradue.Github.1.1.1\lib\net45\Terradue.Github.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -203,6 +229,7 @@
     <Compile Include="Terradue\Portal\_Documentation.cs" />
     <Compile Include="Terradue\Portal\DBCookie.cs" />
     <Compile Include="Terradue\Portal\OpenSearch\EntitySearchable.cs" />
+    <Compile Include="Terradue\Portal\GitRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -213,5 +240,33 @@
     <None Include="Resources\ne_110m_land\ne_110m_land.shp" />
     <None Include="Resources\ne_110m_land\ne_110m_land.prj" />
     <None Include="Resources\ne_110m_land\ne_110m_land.dbf" />
+    <None Include="core\db\db-create.sql" />
+    <None Include="core\db\db-2.7.9#.sql" />
+    <None Include="core\db\db-2.7.8#.sql" />
+    <None Include="core\db\db-2.7.4#.sql" />
+    <None Include="core\db\db-2.7.3.2#.sql" />
+    <None Include="core\db\db-2.7.3.1#.sql" />
+    <None Include="core\db\db-2.7.3#.sql" />
+    <None Include="core\db\db-2.7.2#.sql" />
+    <None Include="core\db\db-2.7.1#.sql" />
+    <None Include="core\db\db-2.7#.sql" />
+    <None Include="core\db\db-2.6.66#.sql" />
+    <None Include="core\db\db-2.6.59#.sql" />
+    <None Include="core\db\db-2.6.58#.sql" />
+    <None Include="core\db\db-2.6.49#.sql" />
+    <None Include="core\db\db-2.6.43#.sql" />
+    <None Include="core\db\db-2.6.36#.sql" />
+    <None Include="core\db\db-2.6.35#.sql" />
+    <None Include="core\db\db-2.6.31#.sql" />
+    <None Include="core\db\db-2.6.30#.sql" />
+    <None Include="core\db\db-2.6.29#.sql" />
+    <None Include="core\db\db-2.6.22#.sql" />
+    <None Include="core\db\db-2.6.19#.sql" />
+    <None Include="core\db\db-2.6.18#.sql" />
+    <None Include="core\db\db-2.5c.sql" />
+    <None Include="core\db\db-2.5#.sql" />
+    <None Include="core\db\db-2.4c.sql" />
+    <None Include="core\db\db-2.4#.sql" />
+    <None Include="modules\github\db\db-create.sql" />
   </ItemGroup>
 </Project>

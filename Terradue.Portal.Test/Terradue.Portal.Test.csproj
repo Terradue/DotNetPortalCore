@@ -138,6 +138,7 @@
     <Compile Include="RolePrivilegeTests.cs" />
     <Compile Include="TepScenarios.cs" />
     <Compile Include="DomainTest.cs" />
+    <Compile Include="GitRepository.Test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
