@@ -1718,13 +1718,15 @@ namespace Terradue.Portal {
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
 
-            string[] terms = StringUtils.SplitSimply(searchTerm, ',');
+            string COMA_SUBSTITUTE = "_!!COMA_SUBSTITUTE!!_";
+
+            string[] terms = StringUtils.SplitSimply(searchTerm.Replace("\\,", COMA_SUBSTITUTE), ',');
             bool interval = false, like;
             string cl = null, cr = null, cn = null;
             for (int i = 0; i < terms.Length; i++) {
                 like = false;
 
-                cn = terms[i];//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+                cn = terms[i].Replace(COMA_SUBSTITUTE, ",");//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
                 if (Regex.Match(cn, @"[\*\?]").Success) {
                     int shift = 0, shift2 = 0;
                     string cn2 = cn;
