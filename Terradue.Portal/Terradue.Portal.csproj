@@ -218,6 +218,7 @@
     <Compile Include="Terradue\Portal\DBCookie.cs" />
     <Compile Include="Terradue\Portal\OpenSearch\EntitySearchable.cs" />
     <Compile Include="Terradue\Portal\GitRepository.cs" />
+    <Compile Include="Terradue\Portal\Urf.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
