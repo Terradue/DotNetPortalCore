@@ -147,6 +147,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string AoIname { get; set; }
         [DataMember]
+        public string AoIdesc { get; set; }
+        [DataMember]
         public string AoIcoord { get; set; }
     }
 
@@ -170,6 +172,8 @@ namespace Terradue.Portal.Urf {
     public class ServiceIntegration {
         [DataMember]
         public string Title { get; set; }
+        [DataMember]
+        public string Acronym { get; set; }
         [DataMember]
         public string Description { get; set; }
         [DataMember]
