@@ -198,6 +198,7 @@ namespace Terradue.Portal {
             osd.ExtraNamespace.Add("geo", "http://a9.com/-/opensearch/extensions/geo/1.0/");
             osd.ExtraNamespace.Add("time", "http://a9.com/-/opensearch/extensions/time/1.0/");
             osd.ExtraNamespace.Add("dct", "http://purl.org/dc/terms/");
+            osd.ExtraNamespace.Add("t2", "http://www.terradue.com/opensearch");
 
             List<OpenSearchDescriptionUrl> urls = new List<OpenSearchDescriptionUrl>();
 
@@ -233,7 +234,7 @@ namespace Terradue.Portal {
         public virtual System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
             if (mimeType != "application/atom+xml") return null;
             var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
-            parameters.Set("grouped", "{os:grouped?}");
+            parameters.Set("grouped", "{t2:grouped?}");
             return parameters;
         }
 
