@@ -203,7 +203,7 @@ namespace Terradue.Portal {
 
             UriBuilder urlb = new UriBuilder(GetDescriptionBaseUrl());
 
-            OpenSearchDescriptionUrl url = new OpenSearchDescriptionUrl("application/opensearchdescription+xml", urlb.ToString(), "self");
+            OpenSearchDescriptionUrl url = new OpenSearchDescriptionUrl("application/opensearchdescription+xml", urlb.ToString(), "self", osd.ExtraNamespace);
             urls.Add(url);
 
             urlb = new UriBuilder(GetSearchBaseUrl("application/atom+xml"));
@@ -219,7 +219,7 @@ namespace Terradue.Portal {
 
                 string[] queryString = Array.ConvertAll(query.AllKeys, key => string.Format("{0}={1}", key, query[key]));
                 urlb.Query = string.Join("&", queryString);
-                url = new OpenSearchDescriptionUrl(osee.DiscoveryContentType, urlb.ToString(), "search");
+                url = new OpenSearchDescriptionUrl(osee.DiscoveryContentType, urlb.ToString(), "search", osd.ExtraNamespace);
                 urls.Add(url);
             }
 
