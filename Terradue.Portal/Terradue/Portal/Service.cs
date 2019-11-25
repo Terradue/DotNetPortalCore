@@ -699,11 +699,33 @@ namespace Terradue.Portal {
             case "tag":
                     if (string.IsNullOrEmpty(value)) return base.GetFilterForParameter(parameter, value);
                     var tags = value.Split(",".ToArray());
-                    IEnumerable<IEnumerable<string>> permutations = GetPermutations(tags, tags.Count());
-					var r1 = permutations.Select(subset => string.Join("*", subset.Select(t => t).ToArray())).ToArray();
-                    var result = string.Join(",", r1.Select(t => "*" + t + "*"));
-					return new KeyValuePair<string, string>("Tags", result);
-            default:
+                    if (tags.Length == 1) {
+                        var result = new string[] { value, value + "\\,*", "*\\," + value, "*\\," + value + "\\,*" };
+                        return new KeyValuePair<string, string[]>("Tags", result);
+                    } else if (tags.Length > 1) {
+
+                        var tags2 = tags.ToList();
+                        var p = GetPermutations(tags2, tags.Count());
+                        var allPermutations = p.Select(subset => string.Join("\\,", subset.Select(t => t).ToArray())).ToList();
+                        for (int i=0; i < tags.Length; i++){
+                            tags2.Add("_TMP_" + i);
+                            p = GetPermutations(tags2, tags2.Count());
+                            var p1 = p.Select(subset => string.Join("\\,", subset.Select(t => t).ToArray())).ToList();
+                            allPermutations.AddRange(p1);
+                        }
+
+                        var finalAllPermutations = new List<string>();
+                        foreach (var ap in allPermutations) {
+                            var tmp = ap;
+                            for (int i = 0; i < tags.Length; i++) tmp = tmp.Replace("_TMP_" + i, "*");
+                            while (tmp.Contains("*\\,*")) tmp = tmp.Replace("*\\,*", "*");
+                            if (!finalAllPermutations.Contains(tmp)) finalAllPermutations.Add(tmp);
+                        }
+
+                        return new KeyValuePair<string, string[]>("Tags", finalAllPermutations.ToArray());
+                    }
+                    return base.GetFilterForParameter(parameter, value);
+                default:
                 return base.GetFilterForParameter(parameter, value);
             }
         }

@@ -853,11 +853,26 @@ namespace Terradue.Portal {
                                         if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
                                     }
                                 }
+                            } else if (kvo is List<KeyValuePair<string, string[]>>) {
+                                var kvl = kvo as List<KeyValuePair<string, string[]>>;
+                                if (kvl != null) {
+                                    foreach (var kv in kvl) {
+                                        if (!string.IsNullOrEmpty(kv.Key)) SetFilter(kv.Key, kv.Value);
+                                    }
+                                }
                             } else if (kvo is KeyValuePair<string, string>) {
                                 if (kvo != null) {
                                     if (!string.IsNullOrEmpty(((KeyValuePair<string, string>)kvo).Key)) SetFilter(((KeyValuePair<string, string>)kvo).Key, ((KeyValuePair<string, string>)kvo).Value);
                                 }
-                            }                            
+                            } else if (kvo is KeyValuePair<string, string[]>) {
+                                if (kvo != null) {
+                                    if (!string.IsNullOrEmpty(((KeyValuePair<string, string[]>)kvo).Key)) SetFilter(((KeyValuePair<string, string[]>)kvo).Key, ((KeyValuePair<string, string[]>)kvo).Value);
+                                }
+                            } else if (kvo is KeyValuePair<string, List<string[]>>) {
+                                if (kvo != null) {
+                                    if (!string.IsNullOrEmpty(((KeyValuePair<string, List<string[]>>)kvo).Key)) SetFilter(((KeyValuePair<string, List<string[]>>)kvo).Key, ((KeyValuePair<string, List<string[]>>)kvo).Value);
+                                }
+                            }
                             break;
                     }
                 }
