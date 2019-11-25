@@ -752,8 +752,21 @@ namespace Terradue.Portal {
             return entry;
         }
 
+        public System.Collections.Specialized.NameValueCollection GetOpenSearchParameters(string mimeType) {
+
+            var nvc = OpenSearchFactory.GetBaseOpenSearchParameter();
+
+            //add EntityCollections parameters
+            nvc.Set("tag", "{t2:tag?}");
+            
+            return nvc;
+        }
+
         public new NameValueCollection GetOpenSearchParameters() {
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+            if (mimeType != "application/atom+xml") return null;
+            var parameters = OpenSearchFactory.MergeOpenSearchParameters(GetOpenSearchableArray(), mimeType);
+            parameters.Set("grouped", "{t2:grouped?}");
+            return parameters;
         }
 
         #endregion
