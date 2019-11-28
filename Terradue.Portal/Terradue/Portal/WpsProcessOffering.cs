@@ -471,12 +471,12 @@ namespace Terradue.Portal {
 
             return new AtomItem(entry);
         }
-
+        
         public new NameValueCollection GetOpenSearchParameters() {
             var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
             parameters.Add("id", "{geo:uid?}");
-            parameters.Add("wpsUrl", "{ows:url?}");
-            parameters.Add("pid", "{ows:id?}");
+            parameters.Add("wpsUrl", "{t2:url?}");
+            parameters.Add("pid", "{t2:id?}");
             parameters.Add("cat", "{dct:subject?}");
             parameters.Add("sandbox", "{t2:cloudsandbox?}");
             parameters.Add("cloud", "{t2:cloud?}");

@@ -120,7 +120,13 @@ namespace Terradue.Portal {
         /// <summary> Loging Error level </summary>
         public virtual void LogError(object reporter, string message, Exception exception) {
             SetReporter(reporter.GetType().ToString());
-            if (isLogActive) log.Error(message,exception);
+            bool hideExceptionInLog = this.GetConfigBooleanValue("log-hideException");
+            if (isLogActive) {
+                if (hideExceptionInLog) {
+                    if (string.IsNullOrEmpty(message)) message = exception.Message;
+                    log.Error(message);
+                } else log.Error(message, exception);
+            }
         }
 
         /// <summary> Loging Error level </summary>

@@ -102,6 +102,8 @@ namespace Terradue.Portal.Test
             WpsProvider provider = CreateProvider("test-wps-search-1", "test provider 1", "http://dem.terradue.int:8080/wps/WebProcessingService", false);
             WpsProcessOffering process = CreateProcess(provider, "com.test.provider.1", "test provider 1",true);
             process.AddTag("mytag");
+            process.AddTag("mytag1");
+            process.AddTag("mytag2");
             process.Store();
 
             EntityList<WpsProcessOffering> services = new EntityList<WpsProcessOffering>(context);
@@ -116,7 +118,20 @@ namespace Terradue.Portal.Test
             parameters.Set("tag", "tag");
 
             osr = ose.Query(services, parameters);
+            Assert.AreEqual(0, osr.Items.Count());            
+            
+            services = new EntityList<WpsProcessOffering>(context);
+            parameters.Set("tag", "tag,mytag");
+
+            osr = ose.Query(services, parameters);
             Assert.AreEqual(0, osr.Items.Count());
+
+            services = new EntityList<WpsProcessOffering>(context);
+            parameters.Set("tag", "mytag,mytag1");
+
+            osr = ose.Query(services, parameters);
+            Assert.AreEqual(1, osr.Items.Count());
+
             provider.Delete();
         }
 
@@ -189,7 +204,7 @@ namespace Terradue.Portal.Test
             parameters.Set("count", (nbprocesses + 1) + "");
 
             IOpenSearchResultCollection osr = ose.Query(services, parameters);
-            Assert.AreEqual(0, osr.Items.Count());
+            Assert.AreEqual(nbprocesses, osr.Items.Count());
 
             services = new EntityList<WpsProcessOffering>(context);
             parameters.Set("available", "all");
