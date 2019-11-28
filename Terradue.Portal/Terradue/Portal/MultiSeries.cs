@@ -129,9 +129,13 @@ namespace Terradue.Portal {
             osd.Developer = "Terradue GeoSpatial Development Team";
             osd.Attribution = context.GetConfigValue("CompanyName");
 
+            osd.ExtraNamespace.Add("geo", "http://a9.com/-/opensearch/extensions/geo/1.0/");
+            osd.ExtraNamespace.Add("time", "http://a9.com/-/opensearch/extensions/time/1.0/");
+            osd.ExtraNamespace.Add("dct", "http://purl.org/dc/terms/");
+
             // Create the union Link
 
-            OpenSearchDescriptionUrl url = new OpenSearchDescriptionUrl("application/atom+xml", "dummy://dummy" , "results");
+            OpenSearchDescriptionUrl url = new OpenSearchDescriptionUrl("application/atom+xml", "dummy://dummy" , "results", osd.ExtraNamespace);
 
             osd.Url = new OpenSearchDescriptionUrl[1];
             osd.Url[0] = url;

@@ -775,7 +775,10 @@ namespace Terradue.Portal {
         }
 
         public new NameValueCollection GetOpenSearchParameters() {
-            return OpenSearchFactory.GetBaseOpenSearchParameter();
+            var parameters = OpenSearchFactory.GetBaseOpenSearchParameter();
+            parameters.Set("grouped", "{t2:grouped?}");
+            parameters.Set("tag", "{t2:tag?}");
+            return parameters;
         }
 
         #endregion

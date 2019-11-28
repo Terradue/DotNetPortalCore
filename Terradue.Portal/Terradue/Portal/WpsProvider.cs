@@ -1348,11 +1348,15 @@ namespace Terradue.Portal {
             osd.Developer = "Terradue OpenSearch Development Team";
             osd.Attribution = context.GetConfigValue("CompanyName");
 
+            osd.ExtraNamespace.Add("geo", "http://a9.com/-/opensearch/extensions/geo/1.0/");
+            osd.ExtraNamespace.Add("time", "http://a9.com/-/opensearch/extensions/time/1.0/");
+            osd.ExtraNamespace.Add("dct", "http://purl.org/dc/terms/");
+
             List<OpenSearchDescriptionUrl> urls = new List<OpenSearchDescriptionUrl>();
 
             UriBuilder urlb = new UriBuilder(GetDescriptionBaseUrl());
 
-            OpenSearchDescriptionUrl urlxml = new OpenSearchDescriptionUrl("application/opensearchdescription+xml", urlb.ToString(), "self");
+            OpenSearchDescriptionUrl urlxml = new OpenSearchDescriptionUrl("application/opensearchdescription+xml", urlb.ToString(), "self", osd.ExtraNamespace);
             urls.Add(urlxml);
 
             urlb = new UriBuilder(GetSearchBaseUrl("application/atom+xml"));
@@ -1368,7 +1372,7 @@ namespace Terradue.Portal {
 
                 string[] queryString = Array.ConvertAll(query.AllKeys, key => string.Format("{0}={1}", key, query[key]));
                 urlb.Query = string.Join("&", queryString);
-                urlxml = new OpenSearchDescriptionUrl(osee.DiscoveryContentType, urlb.ToString(), "search");
+                urlxml = new OpenSearchDescriptionUrl(osee.DiscoveryContentType, urlb.ToString(), "search", osd.ExtraNamespace);
                 urls.Add(urlxml);
             }
 
@@ -1379,7 +1383,7 @@ namespace Terradue.Portal {
 
             query.Set("format", "json");
             urlb.Query = query.ToString();
-            OpenSearchDescriptionUrl urljson = new OpenSearchDescriptionUrl("application/json", urlb.ToString(), "search");
+            OpenSearchDescriptionUrl urljson = new OpenSearchDescriptionUrl("application/json", urlb.ToString(), "search", osd.ExtraNamespace);
             urls.Add(urljson);
             osd.Url = urls.ToArray();
 
