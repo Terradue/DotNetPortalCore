@@ -80,8 +80,10 @@ namespace Terradue.Portal.Urf {
 
     [DataContract]
     public enum UrfStatus {
+        Saved,
         Submitted,
         UnderReview,
+        UpdateRequested,
         Accepted,
         Postponed,
         Onboarded,
