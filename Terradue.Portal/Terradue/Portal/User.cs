@@ -119,7 +119,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the affiliation (company, organsation or similar) of the user.</summary>
-        [EntityDataField("affiliation")]
+        [EntityDataField("affiliation", IsUsedInKeywordSearch = true)]
         public string Affiliation { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
