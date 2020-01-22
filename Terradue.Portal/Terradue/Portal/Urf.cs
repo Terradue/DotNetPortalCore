@@ -50,7 +50,7 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string Identifier { get; set; }
         [DataMember]
-        public int Version { get; set; }
+        public string Version { get; set; }
         [DataMember]
         public UrfType Type { get; set; }
         [DataMember]
