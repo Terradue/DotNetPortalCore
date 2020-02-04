@@ -546,7 +546,7 @@ namespace Terradue.Portal {
             dbProcesses.SetFilter("ProviderId", this.Id);
             dbProcesses.Load();
 
-            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(true, owner != null ? owner.Username : null);
+            List<WpsProcessOffering> remoteProcesses = GetWpsProcessOfferingsFromRemote(false, owner != null ? owner.Username : null);
 
             foreach (WpsProcessOffering pR in remoteProcesses) {
                 bool existsPrInDb = false;
@@ -768,6 +768,7 @@ namespace Terradue.Portal {
 
             context.LogDebug(this, "GetWpsProcessOfferingsFromRemote - loop on processes");
             if (updateProviderInfo) {
+                try {
                 if (capabilities.ServiceProvider != null) {
                     if (capabilities.ServiceProvider.ServiceContact != null
                         && capabilities.ServiceProvider.ServiceContact.ContactInfo != null
@@ -790,6 +791,7 @@ namespace Terradue.Portal {
                         }
                     }
                 }
+                } catch(Exception e){}
             }
             return wpsProcessList;
         }
