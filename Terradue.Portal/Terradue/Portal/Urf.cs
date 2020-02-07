@@ -56,6 +56,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public UrfStatus Status { get; set; }
         [DataMember]
+        public string Feedback { get; set; }
+        [DataMember]
         public string Title { get; set; }
         [DataMember]
         public string Description { get; set; }
