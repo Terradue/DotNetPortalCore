@@ -542,9 +542,53 @@ namespace Terradue.Portal {
 
         public virtual QuerySettings GetQuerySettings(OpenSearchEngine ose) {
             IOpenSearchEngineExtension osee = ose.GetExtensionByContentTypeAbility(this.DefaultMimeType);
-            if (osee == null)
-                return null;
-            return new QuerySettings(this.DefaultMimeType, osee.ReadNative);
+            if (osee == null) return null;
+            var settings = new QuerySettings(this.DefaultMimeType, osee.ReadNative);
+            settings.ParametersKeywordsTable = InitializeParametersKeywordsTable();
+            return settings;
+        }
+
+        private Dictionary<string, string> InitializeParametersKeywordsTable() {
+            Dictionary<string, string> table = OpenSearchFactory.GetBaseOpenSearchParametersKeywordsTable();
+            table["update"] = "{http://purl.org/dc/terms/}modified";
+            table["updated"] = "{http://purl.org/dc/terms/}modified";
+            table["modified"] = "{http://purl.org/dc/terms/}modified";
+            table["do"] = "{http://www.terradue.com/opensearch}downloadOrigin";
+            table["from"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}accessedFrom";
+            table["start"] = "{http://a9.com/-/opensearch/extensions/time/1.0/}start";
+            table["stop"] = "{http://a9.com/-/opensearch/extensions/time/1.0/}end";
+            table["end"] = "{http://a9.com/-/opensearch/extensions/time/1.0/}end";
+            table["trel"] = "{http://a9.com/-/opensearch/extensions/time/1.0/}relation";
+            table["box"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}box";
+            table["bbox"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}box";
+            table["geom"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}geometry";
+            table["geometry"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}geometry";
+            table["uid"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}uid";
+            table["id"] = "{http://purl.org/dc/terms/}identifier";
+            table["rel"] = "{http://a9.com/-/opensearch/extensions/geo/1.0/}relation";
+            table["cat"] = "{http://purl.org/dc/terms/}subject";
+            table["pt"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}productType";
+            table["pc"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}processingCenter";
+            table["pl"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}processingLevel";
+            table["psn"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}platform";
+            table["psi"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}platformSerialIdentifier";
+            table["polc"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}polarizationChannels";
+            table["isn"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}instrument";
+            table["sm"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}sensorType";
+            table["sensor"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}sensorMode";
+            table["st"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}sensorType";
+            table["od"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}orbitDirection";
+            table["ot"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}orbitType";
+            table["title"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}title";
+            table["track"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}track";
+            table["frame"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}frame";
+            table["swath"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}swathIdentifier";
+            table["stst"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}statusSubType";
+            table["timeliness"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}timeliness";
+            table["cc"] = "{http://a9.com/-/opensearch/extensions/eo/1.0/}cloudCover";
+            table["lc"] = "{http://www.terradue.com/opensearch}landCover";
+            table["dcg"] = "{http://www.terradue.com/opensearch}doubleCheckGeometry";
+            return table;
         }
 
         [EntityDataField("default_mime_type")]
@@ -575,7 +619,7 @@ namespace Terradue.Portal {
             }
             return osd;
         }
-
+        
         public virtual string GetName ()
         {
             return Name;
