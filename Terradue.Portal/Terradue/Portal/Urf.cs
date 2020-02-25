@@ -88,7 +88,7 @@ namespace Terradue.Portal.Urf {
         UpdateRequested,
         Accepted,
         Postponed,
-        Onboarded,
+        Activated,
         Rejected,
         Closed,
         Cancelled
