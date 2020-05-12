@@ -353,6 +353,12 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool IsRestricted(){
+            string sql = String.Format("SELECT COUNT(*) FROM service_perm WHERE id_service={0} AND ((id_usr IS NOT NULL AND id_usr != {1}) OR id_grp IS NOT NULL);", this.Id, this.UserId);
+            return context.GetQueryIntegerValue(sql) > 0;
+        }
+
+
         public override AtomItem ToAtomItem(NameValueCollection parameters) {
 
             string providerUrl = null;
@@ -372,7 +378,7 @@ namespace Terradue.Portal {
                 }
             }
 
-            var status = this.DoesGrantPermissionsToAll() ? "public" : "private";
+            var status = this.DoesGrantPermissionsToAll() ? "public" : (IsRestricted() ? "restricted" : "private");            
 
             if (identifier == null) identifier = "";
             string name = (this.Name != null ? this.Name : identifier);
