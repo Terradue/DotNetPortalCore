@@ -314,6 +314,18 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        private User owner;
+        public User Owner {
+            get {
+                if (owner == null) {
+                    if (OwnerId != 0) owner = User.FromId(context, OwnerId);
+                }
+                return owner;
+            }
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Creates a new Service instance.</summary>
         /// <param name="context">The execution environment context.</param>
         public Service(IfyContext context) : base(context) {
@@ -782,6 +794,29 @@ namespace Terradue.Portal {
         }
 
         #endregion
+
+        /// <summary>
+        /// Is the service shared to user.
+        /// </summary>
+        /// <returns><c>true</c>, if shared to user, <c>false</c> otherwise.</returns>
+        /// <param name="id">Identifier.</param>
+        /// <param name="policy">Policy of sharing (direct = permission directly given to the user, role = permission only given via role and privilege, none = one of both previous cases ).</param>
+        public bool IsSharedToUser(int id, string policy = "none") {
+            bool permissionOnly = false;
+            bool privilegeOnly = false;
+            switch(policy){
+                case "permission":
+                    permissionOnly = true;
+                    break;
+                case "privilege":
+                    privilegeOnly = true;
+                    break;
+                default:
+                    break;
+            }
+            var sharedUsersIds = this.GetAuthorizedUserIds(permissionOnly, privilegeOnly);
+            return sharedUsersIds != null && (sharedUsersIds.Contains(id));
+        }
     }
 
 
