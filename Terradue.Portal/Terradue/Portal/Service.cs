@@ -817,6 +817,19 @@ namespace Terradue.Portal {
             var sharedUsersIds = this.GetAuthorizedUserIds(permissionOnly, privilegeOnly);
             return sharedUsersIds != null && (sharedUsersIds.Contains(id));
         }
+
+        public bool IsSharedWithUsers(){
+            string sql = String.Format("SELECT COUNT(*) FROM service_perm WHERE id_service={0} AND ((id_usr IS NOT NULL AND id_usr != {1}) OR id_grp IS NOT NULL);", this.Id, this.UserId);
+            return context.GetQueryIntegerValue(sql) > 0;
+        }
+
+        public bool IsSharedToCommunity() {
+            return (this.Owner != null && this.DomainId != this.Owner.DomainId);
+        }
+
+        public bool IsRestricted(){
+            return (IsSharedWithUsers() || IsSharedToCommunity());
+        }
     }
 
 
