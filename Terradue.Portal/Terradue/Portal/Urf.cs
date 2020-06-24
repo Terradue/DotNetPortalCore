@@ -58,6 +58,10 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string Feedback { get; set; }
         [DataMember]
+        public string TotalPricing { get; set; }
+        [DataMember]
+        public string ServiceType { get; set; }
+        [DataMember]
         public string Title { get; set; }
         [DataMember]
         public string Description { get; set; }
@@ -110,6 +114,8 @@ namespace Terradue.Portal.Urf {
         public string ContactLastName { get; set; }
         [DataMember]
         public string ContactFirstName { get; set; }
+        [DataMember]
+        public string ContactNationality { get; set; }
         [DataMember]
         public string ContactTitle { get; set; }
         [DataMember]
