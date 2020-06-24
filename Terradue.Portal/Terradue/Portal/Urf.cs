@@ -111,6 +111,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string ContactFirstName { get; set; }
         [DataMember]
+        public string ContactNationality { get; set; }
+        [DataMember]
         public string ContactTitle { get; set; }
         [DataMember]
         public string ContactPhone { get; set; }
