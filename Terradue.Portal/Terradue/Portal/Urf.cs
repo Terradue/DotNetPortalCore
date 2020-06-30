@@ -68,8 +68,6 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string ExpectedResults { get; set; }
         [DataMember]
-        public string OrganizationsInScope { get; set; }
-        [DataMember]
         public DateTime UrfSubmissionDate { get; set; }
         [DataMember]
         public DateTime ActivityStartDate { get; set; }
