@@ -60,6 +60,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string TotalPricing { get; set; }
         [DataMember]
+        public string PurchaseAction { get; set; }
+        [DataMember]
         public string ServiceType { get; set; }
         [DataMember]
         public string Title { get; set; }
