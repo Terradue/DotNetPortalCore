@@ -92,7 +92,7 @@ namespace Terradue.Portal.Urf {
         Submitted,
         UnderReview,
         UpdateRequested,
-        Accepted,
+        Approved,
         Postponed,
         Activated,
         Rejected,
