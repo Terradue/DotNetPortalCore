@@ -872,6 +872,10 @@ namespace Terradue.Portal {
                                 if (kvo != null) {
                                     if (!string.IsNullOrEmpty(((KeyValuePair<string, List<string[]>>)kvo).Key)) SetFilter(((KeyValuePair<string, List<string[]>>)kvo).Key, ((KeyValuePair<string, List<string[]>>)kvo).Value);
                                 }
+                            } else if (kvo is KeyValuePair<string, SpecialSearchValue>) {
+                                if (kvo != null) {
+                                    if (!string.IsNullOrEmpty(((KeyValuePair<string, SpecialSearchValue>)kvo).Key)) SetFilter(((KeyValuePair<string, SpecialSearchValue>)kvo).Key, ((KeyValuePair<string, SpecialSearchValue>)kvo).Value);
+                                }
                             }
                             break;
                     }
