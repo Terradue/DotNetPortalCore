@@ -793,6 +793,7 @@ namespace Terradue.Portal {
             //set search filters
             T t = entityType.GetEntityInstance(context) as T;
             if (t is EntitySearchable) {
+                this.ItemsPerPage = 20;
                 foreach (var p in parameters.AllKeys) {
                     if (string.IsNullOrEmpty(parameters[p])) continue;
                     switch (p) {

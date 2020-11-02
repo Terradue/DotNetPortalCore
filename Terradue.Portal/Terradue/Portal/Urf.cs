@@ -72,6 +72,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public DateTime UrfSubmissionDate { get; set; }
         [DataMember]
+        public DateTime UrfStatusUpdateDate { get; set; }
+        [DataMember]
         public DateTime ActivityStartDate { get; set; }
         [DataMember]
         public DateTime ActivityEndDate { get; set; }
@@ -104,6 +106,8 @@ namespace Terradue.Portal.Urf {
     public class UrfContact {
         [DataMember]
         public int Id { get; set; }
+        [DataMember]
+        public string Username { get; set; }
         [DataMember]
         public bool Primary { get; set; }
         [DataMember]
