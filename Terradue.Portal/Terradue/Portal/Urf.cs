@@ -210,6 +210,10 @@ namespace Terradue.Portal.Urf {
         public long ProcessingResourcesFssize { get; set; }
         [DataMember]
         public string ProcessingResourcesComments { get; set; }
+        [DataMember]
+        public long ProcessingCloudCapacity { get; set; }
+        [DataMember]
+        public string ProcessingCloudCapability { get; set; }
     }
 
     [DataContract]
