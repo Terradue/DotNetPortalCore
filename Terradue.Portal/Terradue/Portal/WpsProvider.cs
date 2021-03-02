@@ -393,6 +393,35 @@ namespace Terradue.Portal {
             CanCache = true;//default is true, to be set to false to disable the cache
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Return a WpsProvider from its base url
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="baseurl"></param>
+        /// <returns></returns>
+        public static WpsProvider FromBaseUrl(IfyContext context, string baseurl) {
+            WpsProvider provider = new WpsProvider(context);
+            provider.BaseUrl = baseurl;
+            provider.Load();
+            return provider;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// GetIdentifyingConditionSql
+        /// </summary>
+        /// <returns></returns>
+        public override string GetIdentifyingConditionSql() {
+            var res = base.GetIdentifyingConditionSql();
+            if (res == null && this.BaseUrl != null) return String.Format("t1.url='{0}'", this.BaseUrl);
+            else return res;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="T:Terradue.Portal.WpsProvider"/> can cache.
         /// </summary>
