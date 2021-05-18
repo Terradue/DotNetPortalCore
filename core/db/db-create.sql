@@ -446,7 +446,7 @@ CREATE TABLE usr (
 
 -- Adding initial administrator user (username admin, password changeme) ... \
 INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
-    (true, true, 'admin', PASSWORD('changeme'), 'Admin', 'Admin', 4, 100, 0, 1000)
+    (true, true, 'admin', PASSWORD('changeme@T2'), 'Admin', 'Admin', 4, 100, 0, 1000)
 ;
 -- RESULT
 -- CHECKPOINT C-16b
