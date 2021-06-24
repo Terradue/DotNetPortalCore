@@ -429,6 +429,7 @@ namespace Terradue.Portal {
             if (!string.IsNullOrEmpty(this.ValidationUrl)) {
                 var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/validate?id=" + this.Identifier;
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
+                operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
             }
 
             offering.Operations = operations.ToArray();
