@@ -426,6 +426,10 @@ namespace Terradue.Portal {
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri.AbsoluteUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri.AbsoluteUri});
             operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri.AbsoluteUri});
+            if (!string.IsNullOrEmpty(this.ValidationUrl)) {
+                var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/validate?id=" + this.Identifier;
+                operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
+            }
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
@@ -463,10 +467,9 @@ namespace Terradue.Portal {
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
 
             if (!string.IsNullOrEmpty(this.IconUrl)) {
-                log.Debug("icon link = " + IconUrl);
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
-
+            
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
 
             return new AtomItem(entry);

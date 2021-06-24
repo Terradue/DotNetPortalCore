@@ -184,6 +184,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Service validation URL.
+        /// </summary>
+        /// <value>The validation URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("validation_url")]
+        public string ValidationUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         [EntityDataField("view_url")]
         public string ViewUrl { get; set; }
 
