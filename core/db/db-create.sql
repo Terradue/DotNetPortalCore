@@ -1,4 +1,4 @@
--- VERSION 2.7.18
+-- VERSION 2.7.19
 
 USE $MAIN$;
 
@@ -2351,6 +2351,7 @@ CREATE TABLE priv_score (
 
 CREATE TABLE cookie (
     session VARCHAR(100) NOT NULL COMMENT 'Session',
+    username VARCHAR(100) NOT NULL COMMENT 'Username',
     identifier VARCHAR(100) NOT NULL COMMENT 'Identifier',
     value TEXT NULL COMMENT 'Value',
     expire datetime,    

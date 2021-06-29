@@ -8,6 +8,7 @@ namespace Terradue.Portal {
 
         private IfyContext Context;
         public string Session { get; set; }
+        public string Username { get; set; }
         public string Identifier { get; set; }
         public string Value { get; set; }
         public DateTime Expire { get; set; }
@@ -30,7 +31,7 @@ namespace Terradue.Portal {
         /// <returns>The created Group object.</returns>
         public static DBCookie FromSessionAndIdentifier(IfyContext context, string session, string identifier) {
             DBCookie cookie = new DBCookie(context);
-            string sql = String.Format("SELECT value, expire, creation_date FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(session), StringUtils.EscapeSql(identifier));
+            string sql = String.Format("SELECT value, expire, creation_date, username FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(session), StringUtils.EscapeSql(identifier));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             Console.WriteLine(sql);
@@ -41,6 +42,7 @@ namespace Terradue.Portal {
                 cookie.Value = reader.GetString(0);
                 cookie.Expire = reader.GetDateTime(1);
                 cookie.CreationDate = reader.GetDateTime(2);
+                cookie.Username = reader.GetString(3);
             }
             context.CloseQueryResult(reader, dbConnection);
 
@@ -66,13 +68,14 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the cookie.</param>
         /// <param name="value">The cookie value.</param>
         /// <param name="expire">The expiration date.</param>
-        public static void StoreDBCookie(IfyContext context, string session, string identifier, string value, DateTime expire) {
+        public static void StoreDBCookie(IfyContext context, string session, string identifier, string value, string username, DateTime expire) {
             if (string.IsNullOrEmpty(session) || string.IsNullOrEmpty(identifier)) return;
             DBCookie cookie = new DBCookie(context);
             cookie.Session = session;
             cookie.Identifier = identifier;
             cookie.Value = value;
             cookie.Expire = expire;
+            cookie.Username = username;
             cookie.Store();
         }
 
@@ -81,9 +84,9 @@ namespace Terradue.Portal {
         /// <param name="identifier">The unique identifier of the cookie.</param>
         /// <param name="value">The cookie value.</param>
         /// <param name="expire">The expiration time in seconds (default = 1 day).</param>
-        public static void StoreDBCookie(IfyContext context, string identifier, string value, long expire = 86400) {
+        public static void StoreDBCookie(IfyContext context, string identifier, string value, string username, long expire = 86400) {
             if (HttpContext.Current.Session == null) return;
-            DBCookie.StoreDBCookie(context, HttpContext.Current.Session.SessionID, identifier, value, DateTime.UtcNow.AddSeconds(expire));
+            DBCookie.StoreDBCookie(context, HttpContext.Current.Session.SessionID, identifier, value, username, DateTime.UtcNow.AddSeconds(expire));
         }
 
         /*****************************************************************************************************************/
@@ -139,12 +142,13 @@ namespace Terradue.Portal {
             //delete old value if exists
             Delete(false);
 
-            string sql = string.Format("INSERT INTO cookie (session, identifier, value, expire, creation_date) VALUES ({0},{1},{2},{3},{4});",
+            string sql = string.Format("INSERT INTO cookie (session, identifier, value, expire, creation_date, username) VALUES ({0},{1},{2},{3},{4},{5});",
                     StringUtils.EscapeSql(Session),
                     StringUtils.EscapeSql(Identifier),
                     StringUtils.EscapeSql(Value),
                     Expire.Equals(DateTime.MinValue) ? StringUtils.EscapeSql(DateTime.UtcNow.AddDays(1).ToString(@"yyyy\-MM\-dd\THH\:mm\:ss")) : StringUtils.EscapeSql(Expire.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss")),
-                    StringUtils.EscapeSql(DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss"))
+                    StringUtils.EscapeSql(DateTime.UtcNow.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss")),
+                    StringUtils.EscapeSql(Username)
             );
 
             Context.Execute(sql);
