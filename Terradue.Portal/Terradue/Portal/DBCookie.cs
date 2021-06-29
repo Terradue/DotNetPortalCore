@@ -49,6 +49,31 @@ namespace Terradue.Portal {
             return cookie;
         }
 
+        /// <summary>Creates a new DBCookie instance representing the cookie with the specified username and unique identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="username">The related username.</param>
+        /// <param name="identifier">The unique identifier of the cookie.</param>
+        /// <returns>The created Group object.</returns>
+        public static DBCookie FromUsernameAndIdentifier(IfyContext context, string username, string identifier) {
+            DBCookie cookie = new DBCookie(context);
+            string sql = String.Format("SELECT value, expire, creation_date, session FROM cookie WHERE username={0} AND identifier={1};", StringUtils.EscapeSql(username), StringUtils.EscapeSql(identifier));
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            Console.WriteLine(sql);
+
+            if (reader.Read()) {
+                cookie.Username = username;
+                cookie.Identifier = identifier;
+                cookie.Value = reader.GetString(0);
+                cookie.Expire = reader.GetDateTime(1);
+                cookie.CreationDate = reader.GetDateTime(2);
+                cookie.Session = reader.GetString(3);
+            }
+            context.CloseQueryResult(reader, dbConnection);
+
+            return cookie;
+        }
+
         /// <summary>
         /// Loads the DB cookie.
         /// </summary>
