@@ -56,7 +56,7 @@ namespace Terradue.Portal {
         /// <returns>The created Group object.</returns>
         public static DBCookie FromUsernameAndIdentifier(IfyContext context, string username, string identifier) {
             DBCookie cookie = new DBCookie(context);
-            string sql = String.Format("SELECT value, expire, creation_date, session FROM cookie WHERE username={0} AND identifier={1};", StringUtils.EscapeSql(username), StringUtils.EscapeSql(identifier));
+            string sql = String.Format("SELECT value, expire, creation_date, session FROM cookie WHERE username={0} AND identifier={1} ORDER BY expire DESC;", StringUtils.EscapeSql(username), StringUtils.EscapeSql(identifier));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             Console.WriteLine(sql);
