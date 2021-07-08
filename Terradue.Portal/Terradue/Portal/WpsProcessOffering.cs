@@ -427,7 +427,7 @@ namespace Terradue.Portal {
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri.AbsoluteUri});
             operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri.AbsoluteUri});
             if (!string.IsNullOrEmpty(this.ValidationUrl)) {
-                var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/validate?id=" + this.Identifier;
+                var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/" + this.Identifier + "/validate";
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
             }
