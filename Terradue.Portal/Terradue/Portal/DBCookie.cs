@@ -151,7 +151,7 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <param name="username">The related username.</param>
         public static void DeleteDBCookiesFromUsername(IfyContext context, string username) {
-            if (string.IsNullOrEmpty(session)) return;
+            if (string.IsNullOrEmpty(username)) return;
             string sql = string.Format("DELETE FROM cookie WHERE username='{0}';", username);
             context.Execute(sql);
         }
