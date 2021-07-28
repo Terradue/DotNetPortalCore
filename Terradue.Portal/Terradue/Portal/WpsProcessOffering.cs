@@ -426,11 +426,12 @@ namespace Terradue.Portal {
             operations.Add(new OwcOperation{ Method = "GET",Code = "GetCapabilities", Href = capabilitiesUri.AbsoluteUri});
             operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcess", Href = describeUri.AbsoluteUri});
             operations.Add(new OwcOperation{ Method = "POST",Code = "Execute", Href = executeUri.AbsoluteUri});
+            if(context.UserLevel == UserLevel.Administrator) operations.Add(new OwcOperation{ Method = "GET",Code = "DescribeProcessRemote", Href = this.Url });
             if (!string.IsNullOrEmpty(this.ValidationUrl)) {
                 var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/" + this.Identifier + "/validate";
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
-                operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
-            }
+                if (context.UserLevel == UserLevel.Administrator) operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
+            }            
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
