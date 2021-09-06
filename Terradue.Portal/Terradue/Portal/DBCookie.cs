@@ -42,7 +42,7 @@ namespace Terradue.Portal {
                 cookie.Value = reader.GetString(0);
                 cookie.Expire = reader.GetDateTime(1);
                 cookie.CreationDate = reader.GetDateTime(2);
-                cookie.Username = reader.GetString(3);
+                cookie.Username = reader.GetValue(3) != DBNull.Value ? reader.GetString(3) : null;
             }
             context.CloseQueryResult(reader, dbConnection);
 
@@ -67,7 +67,7 @@ namespace Terradue.Portal {
                 cookie.Value = reader.GetString(0);
                 cookie.Expire = reader.GetDateTime(1);
                 cookie.CreationDate = reader.GetDateTime(2);
-                cookie.Session = reader.GetString(3);
+                cookie.Session = reader.GetValue(3) != DBNull.Value ? reader.GetString(3) : null;
             }
             context.CloseQueryResult(reader, dbConnection);
 
