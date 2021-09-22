@@ -1,4 +1,4 @@
--- VERSION 2.7.19
+-- VERSION 2.7.20
 
 USE $MAIN$;
 
@@ -1858,6 +1858,8 @@ CREATE TABLE service (
     url varchar(400) NOT NULL COMMENT 'Access point of service (relative URL)',
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     validation_url varchar(200) COMMENT 'service validation url',
+    termsconditions_url varchar(200) COMMENT 'service termsconditions url',
+    termsconditions_text text COMMENT 'service termsconditions text',
     view_url varchar(200) COMMENT 'View URL',
     rating tinyint COMMENT 'Rating in stars (0 to 5)',
     all_input boolean COMMENT 'If true, service accepts all non-manual series as input',

@@ -34,7 +34,6 @@ namespace Terradue.Portal {
             string sql = String.Format("SELECT value, expire, creation_date, username FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(session), StringUtils.EscapeSql(identifier));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
-            Console.WriteLine(sql);
 
             if (reader.Read()) {
                 cookie.Session = session;
@@ -59,7 +58,6 @@ namespace Terradue.Portal {
             string sql = String.Format("SELECT value, expire, creation_date, session FROM cookie WHERE username={0} AND identifier={1} ORDER BY expire DESC;", StringUtils.EscapeSql(username), StringUtils.EscapeSql(identifier));
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
-            Console.WriteLine(sql);
 
             if (reader.Read()) {
                 cookie.Username = username;
@@ -186,7 +184,6 @@ namespace Terradue.Portal {
             );
 
             Context.Execute(sql);
-            Console.WriteLine(sql);
         }
 
         /// <summary>/// Deletes the cookie.</summary>
@@ -195,7 +192,6 @@ namespace Terradue.Portal {
 
             string sql = string.Format("DELETE FROM cookie WHERE session={0} AND identifier={1};", StringUtils.EscapeSql(Session), StringUtils.EscapeSql(Identifier));
             Context.Execute(sql);
-            Console.WriteLine(sql);
 
             if (emptyValue) Value = null;
         }
