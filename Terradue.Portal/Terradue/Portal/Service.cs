@@ -194,6 +194,26 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>
+        /// Service Terms and Conditions URL.
+        /// </summary>
+        /// <value>The Terms and Conditions URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("termsconditions_url")]
+        public string TermsConditionsUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Service Terms and Conditions URL.
+        /// </summary>
+        /// <value>The Terms and Conditions URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("termsconditions_text")]
+        public string TermsConditionsText { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         [EntityDataField("view_url")]
         public string ViewUrl { get; set; }
 

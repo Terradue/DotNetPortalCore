@@ -432,6 +432,22 @@ namespace Terradue.Portal {
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
                 if (context.UserLevel == UserLevel.Administrator) operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
             }            
+            if (!string.IsNullOrEmpty(this.TermsConditionsUrl) || !string.IsNullOrEmpty(this.TermsConditionsText)) {
+                var any = new List<System.Xml.XmlElement>();
+                var doc = new System.Xml.XmlDocument();
+                var termsconditions = doc.CreateElement("termsconditions", "http://www.terradue.com");
+                termsconditions.InnerText = this.TermsConditionsText;
+                termsconditions.SetAttribute("id", this.RemoteIdentifier);
+                termsconditions.SetAttribute("href", this.TermsConditionsUrl);
+                any.Add(termsconditions);
+                
+                operations.Add(new OwcOperation {
+                    Code = "TermsConditions",
+                    Type = "application/html",
+                    Href = this.TermsConditionsUrl ?? "file:///t2api/service/wps/search?uid=" + this.Identifier,
+                    Any = any.ToArray()
+                });
+            }
 
             offering.Operations = operations.ToArray();
             entry.Offerings = new List<OwcOffering>{ offering };
