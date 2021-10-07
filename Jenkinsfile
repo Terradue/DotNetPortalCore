@@ -46,3 +46,11 @@ pipeline {
     }
   }
 }
+
+def getConfiguration(branchName) {
+  def matcher = (branchName =~ /master/)
+  if (matcher.matches())
+    return "Release"
+  
+  return "Debug"
+}
