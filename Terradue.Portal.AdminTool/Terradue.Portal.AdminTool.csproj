@@ -5,7 +5,7 @@
     <RootNamespace>Terradue.OpenSearch</RootNamespace>
     <AssemblyName>Terradue.Portal.AdminTool</AssemblyName>
     <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
-    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
     <Version>1.4</Version>
     <Authors>Emmanuel Mathot</Authors>
