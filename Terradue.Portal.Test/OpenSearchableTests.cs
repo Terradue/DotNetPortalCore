@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using Terradue.OpenSearch.Schema;
 using System.Linq;
-using Mono.Addins;
 using Terradue.OpenSearch.Engine;
 using System.Collections.Specialized;
 
@@ -13,13 +12,10 @@ namespace Terradue.Portal.Test {
 
         OpenSearchEngine ose;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void FixtureSetup(){
 
             base.FixtureSetup();
-
-            AddinManager.Initialize();
-            AddinManager.Registry.Update(null);
 
             ose = new OpenSearchEngine();
             ose.LoadPlugins();

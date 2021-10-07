@@ -20,7 +20,7 @@ namespace Terradue.Portal.Test {
         Role seriesShareRole;
         Domain seriesShareDomain;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void FixtureSetup() {
             base.FixtureSetup();
             _CreateData();

@@ -14,7 +14,7 @@ namespace Terradue.Portal.Test {
         protected string BaseDirectory { get; set; }
 
         public string GetConnectionString() {
-            StreamReader sr = new StreamReader(Directory.GetCurrentDirectory() + "/../../db-conn.txt");
+            StreamReader sr = new StreamReader(Path.Combine(Directory.GetCurrentDirectory(), "db-conn.txt"));
             string result = sr.ReadToEnd().Trim();
             sr.Close();
             bool replaceDatabaseName = (DatabaseName != null);
@@ -29,7 +29,7 @@ namespace Terradue.Portal.Test {
             return result;
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public virtual void FixtureSetup() {
             connectionString = GetConnectionString();
             if (BaseDirectory == null) BaseDirectory = Directory.GetCurrentDirectory() + "/../..";
@@ -47,7 +47,7 @@ namespace Terradue.Portal.Test {
             }
         }
 
-        [TestFixtureTearDown]
+        [TearDown]
         public virtual void FixtureTearDown() {
 
             context.Execute(String.Format("DROP DATABASE {0};", DatabaseName));

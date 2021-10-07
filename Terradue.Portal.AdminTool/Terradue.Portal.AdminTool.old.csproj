@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <BuildDir>$(MSBuildProjectDirectory)</BuildDir>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Terradue.Portal</RootNamespace>
+    <AssemblyName>Terradue.Portal.AdminTool</AssemblyName>
+    <UseMSBuildEngine>False</UseMSBuildEngine>
+    <ReleaseVersion>1.4</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>Custom</type>
+          <name>create db corporate</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/corporate/root -u root -S corporate</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db eceo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/eceo/root -u root -S eceo</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db ngeo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/ngeo/root -u root -S ngeo-ws</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db tepqw</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/tepqw/root -u root -S tepqw</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>create db t2portal</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe create -r sites/t2portal/root -u root -S t2portal</command>
+          <workingdir>/Users/floeschau/Work/repo/platforms/tep</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>auto update db eceo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/eceo/root -u root -S eceo</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+          <pauseExternalConsole>True</pauseExternalConsole>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>auto update db ngeo</name>
+          <command>mono Terradue.Portal.AdminTool/bin/Debug/Terradue.Portal.AdminTool.exe auto -r sites/ngeo/root -u root -S ngeo-ws</command>
+          <workingdir>${SolutionDir}</workingdir>
+        </Command>
+        <Command>
+          <type>Custom</type>
+          <name>install ngeo test data</name>
+          <command>mysql -u root &lt; webtest/src/test/webtest/sql/Init-DatabaseInit.sql</command>
+          <workingdir>/Users/floeschau/Work/repo/platforms/tep</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Terradue.Util">
+      <HintPath>..\packages\Terradue.Util.1.4.0\lib\net40\Terradue.Util.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Terradue\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Terradue\Portal\AdminTool.cs" />
+    <Compile Include="Terradue\Portal\SoftwareItem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Terradue.Portal.AdminTool.csproj" />
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj">
+      <Project>{2E8D7875-8347-4205-936B-F1BBA2164D87}</Project>
+      <Name>Terradue.Portal</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
