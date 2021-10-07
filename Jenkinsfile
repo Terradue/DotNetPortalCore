@@ -14,8 +14,8 @@ pipeline {
     }
     stage('Build') {
       steps {
-        echo "The library will be build in ${params.DOTNET_CONFIG}"
-        sh "msbuild /t:build /p:Configuration=${params.DOTNET_CONFIG} /restore:True"
+        echo "The library will be build in ${env.CONFIGURATION}"
+        sh "msbuild /t:build /p:Configuration=${env.CONFIGURATION} /restore:True"
       }
     }
     stage('Test'){
@@ -29,7 +29,7 @@ pipeline {
     }
     stage('Package') {
       steps {
-        sh "msbuild /t:pack /p:Configuration=${params.DOTNET_CONFIG}"
+        sh "msbuild /t:pack /p:Configuration=${env.CONFIGURATION}"
         sh 'cat */obj/*/*.nuspec'           
       }
     }
