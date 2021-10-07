@@ -1,50 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="Current" Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <BuildDir>$(MSBuildProjectDirectory)</BuildDir>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7B85565C-F246-4535-B012-671E819AA644}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Terradue.Portal</RootNamespace>
+    <RootNamespace>Terradue.OpenSearch</RootNamespace>
     <AssemblyName>Terradue.Portal.Agent</AssemblyName>
-    <UseMSBuildEngine>False</UseMSBuildEngine>
-    <ReleaseVersion>1.4</ReleaseVersion>
-    <SynchReleaseVersion>false</SynchReleaseVersion>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
+    <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
+    <Authors>Emmanuel Mathot</Authors>
+    <Company>Terradue</Company>
+    <RepositoryUrl>https://github.com/Terradue/DotNetOpenSearch</RepositoryUrl>
+    <PackageTags>OGC;Terradue;Opensearch</PackageTags>
+    <PackageOutputPath>$(SolutionDir)\build</PackageOutputPath>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
-  </PropertyGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Compile Include="Terradue\Portal\Agent.cs" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Terradue.Portal.Agent.csproj" />
-    <None Include="packages.config" />
+    <PackageReference Include="Terradue.Util" Version="1.4.0" />
+    <PackageReference Include="MySql.Data" Version="6.10.9" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj">
-      <Project>{2E8D7875-8347-4205-936B-F1BBA2164D87}</Project>
-      <Name>Terradue.Portal</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj"></ProjectReference>
+
   </ItemGroup>
+  
 </Project>

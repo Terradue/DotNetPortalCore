@@ -11,22 +11,19 @@ pipeline {
       steps {
         sh 'rm -rf packges */bin build'
         sh 'mkdir -p build'
-        sh 'nuget restore -MSBuildVersion 14'
         sh 'ls -la'
       }
     }
     stage('Build') {
       steps {
         echo "The library will be build in ${params.DOTNET_CONFIG}"
-        sh "xbuild /p:Configuration=${params.DOTNET_CONFIG}"
+        sh "msbuild /t:build /p:Configuration=${params.DOTNET_CONFIG} /restore:True"
       }
     }
     stage('Package') {
       steps {
-        sh "nuget4mono -g origin/${env.BRANCH_NAME} -p ${workspace}/Terradue.Portal/packages.config ${workspace}/Terradue.Portal/bin/Terradue.Portal.dll ${workspace}/Terradue.Portal.Agent/bin/Terradue.Portal.Agent.exe ${workspace}/Terradue.Portal.AdminTool/bin/Terradue.Portal.AdminTool.exe ${workspace}/core/**/*,/content/core"
-        sh 'cat *.nuspec'
-        sh 'nuget pack -OutputDirectory build'
-        sh "echo ${params.NUGET_PUBLISH}"           
+        sh "msbuild /t:pack /p:Configuration=${params.DOTNET_CONFIG}"
+        sh 'cat */obj/*/*.nuspec'           
       }
     }
     stage('Publish') {

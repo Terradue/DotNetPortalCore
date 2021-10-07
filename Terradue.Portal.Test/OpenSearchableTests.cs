@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using Terradue.OpenSearch.Schema;
 using System.Linq;
-using Mono.Addins;
 using Terradue.OpenSearch.Engine;
 using System.Collections.Specialized;
 
