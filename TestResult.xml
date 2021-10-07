@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-run id="2" testcasecount="54" result="Failed" total="54" passed="0" failed="54" inconclusive="0" skipped="0" asserts="0" engine-version="3.10.0.0" clr-version="4.0.30319.42000" start-time="2021-10-07 18:09:10Z" end-time="2021-10-07 18:09:11Z" duration="1.215814">
+  <command-line><![CDATA[/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/nunit.consolerunner/3.10.0/tools/nunit3-console.exe Terradue.Portal.Test/bin/Debug/net472/Terradue.Portal.Test.dll]]></command-line>
+  <test-suite type="Assembly" id="0-1068" name="Terradue.Portal.Test.dll" fullname="/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Portal.Test/bin/Debug/net472/Terradue.Portal.Test.dll" runstate="Runnable" testcasecount="54" result="Failed" site="Child" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.335392" total="54" passed="0" failed="54" warnings="0" inconclusive="0" skipped="0" asserts="0">
+    <environment framework-version="3.12.0.0" clr-version="4.0.30319.42000" os-version="Unix 5.4.0.88" platform="Unix" cwd="/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore" machine-name="giglio" user="emathot" user-domain="giglio" culture="" uiculture="" os-architecture="x64" />
+    <settings>
+      <setting name="DisposeRunners" value="True" />
+      <setting name="WorkDirectory" value="/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore" />
+      <setting name="ImageRuntimeVersion" value="4.0.30319" />
+      <setting name="ImageTargetFrameworkName" value=".NETFramework,Version=v4.7.2" />
+      <setting name="ImageRequiresX86" value="False" />
+      <setting name="ImageRequiresDefaultAppDomainAssemblyResolver" value="False" />
+      <setting name="NumberOfTestWorkers" value="8" />
+    </settings>
+    <properties>
+      <property name="_PID" value="202137" />
+      <property name="_APPDOMAIN" value="domain-" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="TestSuite" id="0-1069" name="Terradue" fullname="Terradue" runstate="Runnable" testcasecount="54" result="Failed" site="Child" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.318136" total="54" passed="0" failed="54" warnings="0" inconclusive="0" skipped="0" asserts="0">
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="0-1070" name="Portal" fullname="Terradue.Portal" runstate="Runnable" testcasecount="54" result="Failed" site="Child" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.317825" total="54" passed="0" failed="54" warnings="0" inconclusive="0" skipped="0" asserts="0">
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="0-1071" name="Test" fullname="Terradue.Portal.Test" runstate="Runnable" testcasecount="54" result="Failed" site="Child" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.317776" total="54" passed="0" failed="54" warnings="0" inconclusive="0" skipped="0" asserts="0">
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="0-1000" name="DomainTest" fullname="Terradue.Portal.Test.DomainTest" classname="Terradue.Portal.Test.DomainTest" runstate="Runnable" testcasecount="3" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.290997" total="3" passed="0" failed="3" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1001" name="DomainCreationTest" fullname="Terradue.Portal.Test.DomainTest.DomainCreationTest" methodname="DomainCreationTest" classname="Terradue.Portal.Test.DomainTest" runstate="Runnable" seed="780520476" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1002" name="DomainListByKindTest" fullname="Terradue.Portal.Test.DomainTest.DomainListByKindTest" methodname="DomainListByKindTest" classname="Terradue.Portal.Test.DomainTest" runstate="Runnable" seed="1085349715" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1003" name="DomainListByKindTest2" fullname="Terradue.Portal.Test.DomainTest.DomainListByKindTest2" methodname="DomainListByKindTest2" classname="Terradue.Portal.Test.DomainTest" runstate="Runnable" seed="1664883659" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1004" name="EntityCollectionTest" fullname="Terradue.Portal.Test.EntityCollectionTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" testcasecount="11" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001888" total="11" passed="0" failed="11" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1006" name="AdminLoadingTest" fullname="Terradue.Portal.Test.EntityCollectionTest.AdminLoadingTest" methodname="AdminLoadingTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1766175189" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1007" name="FilterTest" fullname="Terradue.Portal.Test.EntityCollectionTest.FilterTest" methodname="FilterTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="400650288" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1015" name="GetIds" fullname="Terradue.Portal.Test.EntityCollectionTest.GetIds" methodname="GetIds" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1446607734" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1009" name="GroupFilterTest" fullname="Terradue.Portal.Test.EntityCollectionTest.GroupFilterTest" methodname="GroupFilterTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1524098366" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1010" name="KeywordFilterTest" fullname="Terradue.Portal.Test.EntityCollectionTest.KeywordFilterTest" methodname="KeywordFilterTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1465044828" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1005" name="LoadingTest" fullname="Terradue.Portal.Test.EntityCollectionTest.LoadingTest" methodname="LoadingTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1492362356" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1008" name="OwnerFilterTest" fullname="Terradue.Portal.Test.EntityCollectionTest.OwnerFilterTest" methodname="OwnerFilterTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1697969674" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1011" name="PagingTest" fullname="Terradue.Portal.Test.EntityCollectionTest.PagingTest" methodname="PagingTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="287343462" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1012" name="SortTest" fullname="Terradue.Portal.Test.EntityCollectionTest.SortTest" methodname="SortTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1419347031" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1013" name="TotalResultsTest" fullname="Terradue.Portal.Test.EntityCollectionTest.TotalResultsTest" methodname="TotalResultsTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="1568565396" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1014" name="VisibilityTest" fullname="Terradue.Portal.Test.EntityCollectionTest.VisibilityTest" methodname="VisibilityTest" classname="Terradue.Portal.Test.EntityCollectionTest" runstate="Runnable" seed="10111243" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1016" name="EntityListOpenSearchTests" fullname="Terradue.Portal.Test.EntityListOpenSearchTests" classname="Terradue.Portal.Test.EntityListOpenSearchTests" runstate="Runnable" testcasecount="1" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001197" total="1" passed="0" failed="1" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1017" name="CheckEntityListOsd" fullname="Terradue.Portal.Test.EntityListOpenSearchTests.CheckEntityListOsd" methodname="CheckEntityListOsd" classname="Terradue.Portal.Test.EntityListOpenSearchTests" runstate="Runnable" seed="2092345542" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1018" name="EntityTest" fullname="Terradue.Portal.Test.EntityTest" classname="Terradue.Portal.Test.EntityTest" runstate="Runnable" testcasecount="3" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001179" total="3" passed="0" failed="3" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1019" name="GlobalPrivilegeTest" fullname="Terradue.Portal.Test.EntityTest.GlobalPrivilegeTest" methodname="GlobalPrivilegeTest" classname="Terradue.Portal.Test.EntityTest" runstate="Runnable" seed="728783242" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1020" name="GroupPrivilegeTest" fullname="Terradue.Portal.Test.EntityTest.GroupPrivilegeTest" methodname="GroupPrivilegeTest" classname="Terradue.Portal.Test.EntityTest" runstate="Runnable" seed="1359064894" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1021" name="UserPrivilegeTest" fullname="Terradue.Portal.Test.EntityTest.UserPrivilegeTest" methodname="UserPrivilegeTest" classname="Terradue.Portal.Test.EntityTest" runstate="Runnable" seed="447304929" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1022" name="FeatureTest" fullname="Terradue.Portal.Test.FeatureTest" classname="Terradue.Portal.Test.FeatureTest" runstate="Runnable" testcasecount="2" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001904" total="2" passed="0" failed="2" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1023" name="FeatureCreationTest" fullname="Terradue.Portal.Test.FeatureTest.FeatureCreationTest" methodname="FeatureCreationTest" classname="Terradue.Portal.Test.FeatureTest" runstate="Runnable" seed="1659107317" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1024" name="PositionTest" fullname="Terradue.Portal.Test.FeatureTest.PositionTest" methodname="PositionTest" classname="Terradue.Portal.Test.FeatureTest" runstate="Runnable" seed="1665460219" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1025" name="GitRepositoryTest" fullname="Terradue.Portal.Test.GitRepositoryTest" classname="Terradue.Portal.Test.GitRepositoryTest" runstate="Runnable" testcasecount="2" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001078" total="2" passed="0" failed="2" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1027" name="GitRepositoryAddForUser" fullname="Terradue.Portal.Test.GitRepositoryTest.GitRepositoryAddForUser" methodname="GitRepositoryAddForUser" classname="Terradue.Portal.Test.GitRepositoryTest" runstate="Runnable" seed="1757205339" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1026" name="GitRepositoryCreationTest" fullname="Terradue.Portal.Test.GitRepositoryTest.GitRepositoryCreationTest" methodname="GitRepositoryCreationTest" classname="Terradue.Portal.Test.GitRepositoryTest" runstate="Runnable" seed="1632610871" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1028" name="OpenSearchableTests" fullname="Terradue.Portal.Test.OpenSearchableTests" classname="Terradue.Portal.Test.OpenSearchableTests" runstate="Runnable" testcasecount="0" result="Passed" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.000008" total="0" passed="0" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="0" />
+          <test-suite type="TestFixture" id="0-1029" name="RemoteResourceSetTest" fullname="Terradue.Portal.Test.RemoteResourceSetTest" classname="Terradue.Portal.Test.RemoteResourceSetTest" runstate="Runnable" testcasecount="1" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.003771" total="1" passed="0" failed="1" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1030" name="LoadSaveTest" fullname="Terradue.Portal.Test.RemoteResourceSetTest.LoadSaveTest" methodname="LoadSaveTest" classname="Terradue.Portal.Test.RemoteResourceSetTest" runstate="Runnable" seed="1519221169" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1031" name="RolePrivilegeTests" fullname="Terradue.Portal.Test.RolePrivilegeTests" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" testcasecount="5" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001250" total="5" passed="0" failed="5" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at Terradue.Portal.Test.RolePrivilegeTests.FixtureSetup () [0x00001] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1036" name="SharingTest" fullname="Terradue.Portal.Test.RolePrivilegeTests.SharingTest" methodname="SharingTest" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" seed="1167555325" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1032" name="TestDomainRoleGrant" fullname="Terradue.Portal.Test.RolePrivilegeTests.TestDomainRoleGrant" methodname="TestDomainRoleGrant" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" seed="608757941" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1033" name="TestGlobalRoleGrant" fullname="Terradue.Portal.Test.RolePrivilegeTests.TestGlobalRoleGrant" methodname="TestGlobalRoleGrant" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" seed="1815008117" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1034" name="TestLoadItemLists" fullname="Terradue.Portal.Test.RolePrivilegeTests.TestLoadItemLists" methodname="TestLoadItemLists" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" seed="1606431750" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1035" name="TestLoadItems" fullname="Terradue.Portal.Test.RolePrivilegeTests.TestLoadItems" methodname="TestLoadItems" classname="Terradue.Portal.Test.RolePrivilegeTests" runstate="Runnable" seed="1026792796" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1037" name="SafeTest" fullname="Terradue.Portal.Test.SafeTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" testcasecount="5" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.000954" total="5" passed="0" failed="5" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1038" name="SafeCreationTest" fullname="Terradue.Portal.Test.SafeTest.SafeCreationTest" methodname="SafeCreationTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" seed="1688541029" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1040" name="SafeKeyClearTest" fullname="Terradue.Portal.Test.SafeTest.SafeKeyClearTest" methodname="SafeKeyClearTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" seed="2019330217" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1039" name="SafeKeyGenerationTest" fullname="Terradue.Portal.Test.SafeTest.SafeKeyGenerationTest" methodname="SafeKeyGenerationTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" seed="1936578368" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1041" name="SafeKeyPuttyTest" fullname="Terradue.Portal.Test.SafeTest.SafeKeyPuttyTest" methodname="SafeKeyPuttyTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" seed="238212211" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1042" name="SafeKeySSHTest" fullname="Terradue.Portal.Test.SafeTest.SafeKeySSHTest" methodname="SafeKeySSHTest" classname="Terradue.Portal.Test.SafeTest" runstate="Runnable" seed="346318767" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1043" name="SerializationTest" fullname="Terradue.Portal.Test.SerializationTest" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" testcasecount="5" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.000898" total="5" passed="0" failed="5" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1045" name="DeserializeCapabilities" fullname="Terradue.Portal.Test.SerializationTest.DeserializeCapabilities" methodname="DeserializeCapabilities" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" seed="535504247" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1046" name="DeserializeDescribeProcess" fullname="Terradue.Portal.Test.SerializationTest.DeserializeDescribeProcess" methodname="DeserializeDescribeProcess" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" seed="343058293" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1047" name="DeserializeExecute" fullname="Terradue.Portal.Test.SerializationTest.DeserializeExecute" methodname="DeserializeExecute" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" seed="1381166002" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1048" name="DeserializeExecuteResponse" fullname="Terradue.Portal.Test.SerializationTest.DeserializeExecuteResponse" methodname="DeserializeExecuteResponse" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" seed="986409905" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1044" name="SerializeCapabilities" fullname="Terradue.Portal.Test.SerializationTest.SerializeCapabilities" methodname="SerializeCapabilities" classname="Terradue.Portal.Test.SerializationTest" runstate="Runnable" seed="1761078343" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1049" name="TepScenarios" fullname="Terradue.Portal.Test.TepScenarios" classname="Terradue.Portal.Test.TepScenarios" runstate="Runnable" testcasecount="1" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.002043" total="1" passed="0" failed="1" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1050" name="TepTest" fullname="Terradue.Portal.Test.TepScenarios.TepTest" methodname="TepTest" classname="Terradue.Portal.Test.TepScenarios" runstate="Runnable" seed="1747656855" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1051" name="WpsProcessOfferingTest" fullname="Terradue.Portal.Test.WpsProcessOfferingTest" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" testcasecount="10" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001064" total="10" passed="0" failed="10" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at Terradue.Portal.Test.WpsProcessOfferingTest.FixtureSetup () [0x00001] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1058" name="CreateWpsServiceFromRemote" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.CreateWpsServiceFromRemote" methodname="CreateWpsServiceFromRemote" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="1413550685" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1060" name="CreateWpsServiceFromRemoteWithDomain" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.CreateWpsServiceFromRemoteWithDomain" methodname="CreateWpsServiceFromRemoteWithDomain" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="796015058" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1059" name="CreateWpsServiceFromRemoteWithTags" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.CreateWpsServiceFromRemoteWithTags" methodname="CreateWpsServiceFromRemoteWithTags" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="2065114132" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1053" name="GetAtomItemWithoutProxy" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.GetAtomItemWithoutProxy" methodname="GetAtomItemWithoutProxy" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="2118020798" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1052" name="GetAtomItemWithProxy" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.GetAtomItemWithProxy" methodname="GetAtomItemWithProxy" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="2029809971" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1054" name="GetProcessOfferingEntityList" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.GetProcessOfferingEntityList" methodname="GetProcessOfferingEntityList" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="1251348462" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1057" name="SearchWpsServicesByAvailability" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.SearchWpsServicesByAvailability" methodname="SearchWpsServicesByAvailability" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="1300999792" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1056" name="SearchWpsServicesByQ" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.SearchWpsServicesByQ" methodname="SearchWpsServicesByQ" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="593864184" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1055" name="SearchWpsServicesByTags" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.SearchWpsServicesByTags" methodname="SearchWpsServicesByTags" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="590929034" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1061" name="UpdateProcessOfferings" fullname="Terradue.Portal.Test.WpsProcessOfferingTest.UpdateProcessOfferings" methodname="UpdateProcessOfferings" classname="Terradue.Portal.Test.WpsProcessOfferingTest" runstate="Runnable" seed="1764783726" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="0-1062" name="WpsProviderTest" fullname="Terradue.Portal.Test.WpsProviderTest" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" testcasecount="5" result="Failed" label="Error" site="SetUp" start-time="2021-10-07 18:09:11Z" end-time="2021-10-07 18:09:11Z" duration="0.001812" total="5" passed="0" failed="5" warnings="0" inconclusive="0" skipped="0" asserts="0">
+            <failure>
+              <message><![CDATA[MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              <stack-trace><![CDATA[  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00041] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Open () [0x0000e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.Driver.Create (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x0004e] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.CreateNewPooledConnection () [0x00006] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetPooledConnection () [0x0008a] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.TryToGetDriver () [0x0003f] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlPool.GetConnection () [0x0001c] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.MySqlConnection.Open () [0x0016d] in <91848474cae64953924e580b6a29a73d>:0 
+  at Terradue.Portal.AdminTool.OpenConnection (System.String connectionString) [0x00065] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.AdminTool.Process () [0x0008a] in <bf9bf64022fb4fb182798333d08c4541>:0 
+  at Terradue.Portal.Test.BaseTest.FixtureSetup () [0x0008c] in <9359826e75354eaca610d01ec30af592>:0 
+  at Terradue.Portal.Test.WpsProviderTest.FixtureSetup () [0x00001] in <9359826e75354eaca610d01ec30af592>:0 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <533173d24dae460899d2b10975534bb0>:0 
+--AggregateException
+  at System.Threading.Tasks.Task.ThrowIfExceptional (System.Boolean includeTaskCanceledExceptions) [0x00011] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout, System.Threading.CancellationToken cancellationToken) [0x00043] in <533173d24dae460899d2b10975534bb0>:0 
+  at System.Threading.Tasks.Task.Wait (System.Int32 millisecondsTimeout) [0x00000] in <533173d24dae460899d2b10975534bb0>:0 
+  at MySql.Data.Common.StreamCreator.GetTcpStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00089] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.Common.StreamCreator.GetStream (MySql.Data.MySqlClient.MySqlConnectionStringBuilder settings) [0x00021] in <91848474cae64953924e580b6a29a73d>:0 
+  at MySql.Data.MySqlClient.NativeDriver.Open () [0x00007] in <91848474cae64953924e580b6a29a73d>:0 
+--SocketException
+  at System.Net.Sockets.SocketAsyncResult.CheckIfThrowDelayedException () [0x00014] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.Socket.EndConnect (System.IAsyncResult asyncResult) [0x0002c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Net.Sockets.TcpClient.EndConnect (System.IAsyncResult asyncResult) [0x0000c] in <9c6e2cb7ddd8473fa420642ddcf7ce48>:0 
+  at System.Threading.Tasks.TaskFactory`1[TResult].FromAsyncCoreLogic (System.IAsyncResult iar, System.Func`2[T,TResult] endFunction, System.Action`1[T] endAction, System.Threading.Tasks.Task`1[TResult] promise, System.Boolean requiresSynchronization) [0x00019] in <533173d24dae460899d2b10975534bb0>:0 ]]></stack-trace>
+            </failure>
+            <test-case id="0-1064" name="DescribeProcess" fullname="Terradue.Portal.Test.WpsProviderTest.DescribeProcess" methodname="DescribeProcess" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" seed="1339985993" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1066" name="DescribeProcessSecret" fullname="Terradue.Portal.Test.WpsProviderTest.DescribeProcessSecret" methodname="DescribeProcessSecret" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" seed="947716936" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1063" name="GetCapabilities" fullname="Terradue.Portal.Test.WpsProviderTest.GetCapabilities" methodname="GetCapabilities" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" seed="454267295" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1065" name="GetCapabilitiesSecret" fullname="Terradue.Portal.Test.WpsProviderTest.GetCapabilitiesSecret" methodname="GetCapabilitiesSecret" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" seed="1350456350" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+            <test-case id="0-1067" name="GetProcessBriefTypes" fullname="Terradue.Portal.Test.WpsProviderTest.GetProcessBriefTypes" methodname="GetProcessBriefTypes" classname="Terradue.Portal.Test.WpsProviderTest" runstate="Runnable" seed="1625640182" result="Failed" label="Error" site="Parent" start-time="0001-01-01 00:00:00Z" end-time="0001-01-01 00:00:00Z" duration="0.000000" asserts="0">
+              <failure>
+                <message><![CDATA[OneTimeSetUp: MySql.Data.MySqlClient.MySqlException : Unable to connect to any of the specified MySQL hosts.
+Data:
+  Server Error Code: 1042
+
+  ----> System.AggregateException : One or more errors occurred. (Connection refused)
+  ----> System.Net.Sockets.SocketException : Connection refused]]></message>
+              </failure>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

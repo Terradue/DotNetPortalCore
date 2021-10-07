@@ -17,7 +17,7 @@ namespace Terradue.Portal.Test {
 
         OpenSearchEngine ose;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public new void FixtureSetup(){
 
             base.FixtureSetup();

@@ -12,13 +12,10 @@ namespace Terradue.Portal.Test {
 
         OpenSearchEngine ose;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void FixtureSetup(){
 
             base.FixtureSetup();
-
-            AddinManager.Initialize();
-            AddinManager.Registry.Update(null);
 
             ose = new OpenSearchEngine();
             ose.LoadPlugins();

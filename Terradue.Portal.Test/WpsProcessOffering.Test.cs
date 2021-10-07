@@ -16,14 +16,11 @@ namespace Terradue.Portal.Test
 
         OpenSearchEngine ose;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public override void FixtureSetup() {
             base.FixtureSetup();
             context.BaseUrl = "http://localhost:8080/api";
             context.AccessLevel = EntityAccessLevel.Administrator;
-
-            AddinManager.Initialize();
-            AddinManager.Registry.Update(null);
 
             ose = new OpenSearchEngine();
             ose.LoadPlugins();

@@ -20,6 +20,15 @@ pipeline {
         sh "msbuild /t:build /p:Configuration=${params.DOTNET_CONFIG} /restore:True"
       }
     }
+    stage('Test'){
+      when {
+        branch 'test'
+      }
+      steps {
+        sh 'mono packages/nunit.consolerunner/3.10.0/tools/nunit3-console.exe *.Test/bin/*/net4*/*.Test.dll'
+        nunit(testResultsPattern: 'TestResult.xml')
+      }
+    }
     stage('Package') {
       steps {
         sh "msbuild /t:pack /p:Configuration=${params.DOTNET_CONFIG}"
