@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Hadoop", "Terradue
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Authentication", "Terradue.Authentication\Terradue.Authentication.csproj", "{CCB79251-C07E-42BE-81D7-96782C269C25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.News", "Terradue.News\Terradue.News.csproj", "{B2199E82-A885-4377-8FA5-1043366EB735}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{CCB79251-C07E-42BE-81D7-96782C269C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCB79251-C07E-42BE-81D7-96782C269C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCB79251-C07E-42BE-81D7-96782C269C25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
