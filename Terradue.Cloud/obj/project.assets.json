@@ -1,0 +1,1598 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETFramework,Version=v4.7.2": {
+      "log4net/2.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45-full/log4net.dll": {}
+        },
+        "runtime": {
+          "lib/net45-full/log4net.dll": {}
+        }
+      },
+      "MathNet.Numerics/3.20.2": {
+        "type": "package",
+        "compile": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        }
+      },
+      "MySql.Data/6.10.9": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "System",
+          "System.ComponentModel",
+          "System.ComponentModel.DataAnnotations",
+          "System.Configuration",
+          "System.Configuration.Install",
+          "System.Data",
+          "System.Drawing",
+          "System.Drawing.Design",
+          "System.Management",
+          "System.Transactions",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net452/MySql.Data.dll": {}
+        },
+        "runtime": {
+          "lib/net452/MySql.Data.dll": {}
+        }
+      },
+      "NetTopologySuite/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        }
+      },
+      "NetTopologySuite.Features/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        }
+      },
+      "NetTopologySuite.IO.ShapeFile/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)",
+          "NetTopologySuite.Features": "[2.0.0, 3.0.0-A)",
+          "System.Text.Encoding.CodePages": "4.5.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        }
+      },
+      "Newtonsoft.Json/10.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet4Mono.Extensions/0.3.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        }
+      },
+      "ProjNET/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3",
+          "System.Numerics.Vectors": "4.5.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        }
+      },
+      "System.Buffers/4.4.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Buffers.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Buffers.dll": {}
+        }
+      },
+      "System.Memory/4.5.3": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.4.0",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.5.2"
+        },
+        "compile": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.5.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "System.Numerics",
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/4.7.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        }
+      },
+      "System.Text.Encoding.CodePages/4.7.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.7.0"
+        },
+        "compile": {
+          "lib/net461/System.Text.Encoding.CodePages.dll": {}
+        },
+        "runtime": {
+          "lib/net461/System.Text.Encoding.CodePages.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net461/System.Text.Encoding.CodePages.dll": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      },
+      "Terradue.GeoJson/1.12.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "2.0.0",
+          "Newtonsoft.Json": "10.0.3",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        }
+      },
+      "Terradue.Metadata/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        }
+      },
+      "Terradue.Metadata.EarthObservation/1.6.7": {
+        "type": "package",
+        "dependencies": {
+          "MathNet.Numerics": "3.20.2",
+          "NetTopologySuite": "2.0.0",
+          "NetTopologySuite.IO.ShapeFile": "2.0.0",
+          "ProjNet": "2.0.0",
+          "System.Text.Encoding.CodePages": "4.7.0",
+          "Terradue.GeoJson": "1.12.0",
+          "Terradue.OpenSearch": "1.17.4",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Data",
+          "System.Numerics",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        }
+      },
+      "Terradue.OpenNebula/1.0.2": {
+        "type": "package",
+        "dependencies": {
+          "NuGet4Mono.Extensions": "0.3.0",
+          "xmlrpcnet": "2.5.0"
+        },
+        "compile": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        }
+      },
+      "Terradue.OpenSearch/1.17.6": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Net",
+          "System.Net.Http",
+          "System.Runtime.Caching",
+          "System.Runtime.Serialization",
+          "System.ServiceModel",
+          "System.Web",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Ogc/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Core",
+          "System.Net.Http",
+          "System.Web",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Syndication/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Data",
+          "System.Runtime.Serialization",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        }
+      },
+      "Terradue.Util/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Util.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Util.dll": {}
+        }
+      },
+      "xmlrpcnet/2.5.0": {
+        "type": "package",
+        "compile": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        },
+        "runtime": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        }
+      },
+      "Terradue.Hadoop/1.3.3": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        }
+      },
+      "Terradue.Portal/2.9.0": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "MySql.Data": "6.10.9",
+          "Terradue.Metadata": "1.4.0",
+          "Terradue.Metadata.EarthObservation": "1.6.7",
+          "Terradue.OpenSearch": "1.17.6",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.Util": "1.4.0"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.7.2/linux": {
+      "log4net/2.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45-full/log4net.dll": {}
+        },
+        "runtime": {
+          "lib/net45-full/log4net.dll": {}
+        }
+      },
+      "MathNet.Numerics/3.20.2": {
+        "type": "package",
+        "compile": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        }
+      },
+      "MySql.Data/6.10.9": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "System",
+          "System.ComponentModel",
+          "System.ComponentModel.DataAnnotations",
+          "System.Configuration",
+          "System.Configuration.Install",
+          "System.Data",
+          "System.Drawing",
+          "System.Drawing.Design",
+          "System.Management",
+          "System.Transactions",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net452/MySql.Data.dll": {}
+        },
+        "runtime": {
+          "lib/net452/MySql.Data.dll": {}
+        }
+      },
+      "NetTopologySuite/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        }
+      },
+      "NetTopologySuite.Features/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        }
+      },
+      "NetTopologySuite.IO.ShapeFile/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)",
+          "NetTopologySuite.Features": "[2.0.0, 3.0.0-A)",
+          "System.Text.Encoding.CodePages": "4.5.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        }
+      },
+      "Newtonsoft.Json/10.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet4Mono.Extensions/0.3.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        }
+      },
+      "ProjNET/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3",
+          "System.Numerics.Vectors": "4.5.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        }
+      },
+      "System.Buffers/4.4.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Buffers.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Buffers.dll": {}
+        }
+      },
+      "System.Memory/4.5.3": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.4.0",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.5.2"
+        },
+        "compile": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.5.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "System.Numerics",
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/4.7.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        }
+      },
+      "System.Text.Encoding.CodePages/4.7.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.7.0"
+        },
+        "compile": {
+          "lib/net461/System.Text.Encoding.CodePages.dll": {}
+        },
+        "runtime": {
+          "lib/net461/System.Text.Encoding.CodePages.dll": {}
+        }
+      },
+      "Terradue.GeoJson/1.12.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "2.0.0",
+          "Newtonsoft.Json": "10.0.3",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        }
+      },
+      "Terradue.Metadata/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        }
+      },
+      "Terradue.Metadata.EarthObservation/1.6.7": {
+        "type": "package",
+        "dependencies": {
+          "MathNet.Numerics": "3.20.2",
+          "NetTopologySuite": "2.0.0",
+          "NetTopologySuite.IO.ShapeFile": "2.0.0",
+          "ProjNet": "2.0.0",
+          "System.Text.Encoding.CodePages": "4.7.0",
+          "Terradue.GeoJson": "1.12.0",
+          "Terradue.OpenSearch": "1.17.4",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Data",
+          "System.Numerics",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        }
+      },
+      "Terradue.OpenNebula/1.0.2": {
+        "type": "package",
+        "dependencies": {
+          "NuGet4Mono.Extensions": "0.3.0",
+          "xmlrpcnet": "2.5.0"
+        },
+        "compile": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        }
+      },
+      "Terradue.OpenSearch/1.17.6": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Net",
+          "System.Net.Http",
+          "System.Runtime.Caching",
+          "System.Runtime.Serialization",
+          "System.ServiceModel",
+          "System.Web",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Ogc/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Core",
+          "System.Net.Http",
+          "System.Web",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Syndication/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Data",
+          "System.Runtime.Serialization",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        }
+      },
+      "Terradue.Util/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Util.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Util.dll": {}
+        }
+      },
+      "xmlrpcnet/2.5.0": {
+        "type": "package",
+        "compile": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        },
+        "runtime": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        }
+      },
+      "Terradue.Hadoop/1.3.3": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        }
+      },
+      "Terradue.Portal/2.9.0": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "MySql.Data": "6.10.9",
+          "Terradue.Metadata": "1.4.0",
+          "Terradue.Metadata.EarthObservation": "1.6.7",
+          "Terradue.OpenSearch": "1.17.6",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.Util": "1.4.0"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        }
+      }
+    },
+    ".NETFramework,Version=v4.7.2/win": {
+      "log4net/2.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45-full/log4net.dll": {}
+        },
+        "runtime": {
+          "lib/net45-full/log4net.dll": {}
+        }
+      },
+      "MathNet.Numerics/3.20.2": {
+        "type": "package",
+        "compile": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/net40/MathNet.Numerics.dll": {}
+        }
+      },
+      "MySql.Data/6.10.9": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "System",
+          "System.ComponentModel",
+          "System.ComponentModel.DataAnnotations",
+          "System.Configuration",
+          "System.Configuration.Install",
+          "System.Data",
+          "System.Drawing",
+          "System.Drawing.Design",
+          "System.Management",
+          "System.Transactions",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net452/MySql.Data.dll": {}
+        },
+        "runtime": {
+          "lib/net452/MySql.Data.dll": {}
+        }
+      },
+      "NetTopologySuite/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.dll": {}
+        }
+      },
+      "NetTopologySuite.Features/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {}
+        }
+      },
+      "NetTopologySuite.IO.ShapeFile/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "[2.0.0, 3.0.0-A)",
+          "NetTopologySuite.Features": "[2.0.0, 3.0.0-A)",
+          "System.Text.Encoding.CodePages": "4.5.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll": {}
+        }
+      },
+      "Newtonsoft.Json/10.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet4Mono.Extensions/0.3.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/net40/NuGet4Mono.Extensions.dll": {}
+        }
+      },
+      "ProjNET/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Memory": "4.5.3",
+          "System.Numerics.Vectors": "4.5.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/ProjNET.dll": {}
+        }
+      },
+      "System.Buffers/4.4.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Buffers.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Buffers.dll": {}
+        }
+      },
+      "System.Memory/4.5.3": {
+        "type": "package",
+        "dependencies": {
+          "System.Buffers": "4.4.0",
+          "System.Numerics.Vectors": "4.4.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.5.2"
+        },
+        "compile": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Memory.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.5.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "System.Numerics",
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/4.7.0": {
+        "type": "package",
+        "compile": {
+          "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+        }
+      },
+      "System.Text.Encoding.CodePages/4.7.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "4.7.0"
+        },
+        "compile": {
+          "lib/net461/System.Text.Encoding.CodePages.dll": {}
+        },
+        "runtime": {
+          "runtimes/win/lib/net461/System.Text.Encoding.CodePages.dll": {}
+        }
+      },
+      "Terradue.GeoJson/1.12.0": {
+        "type": "package",
+        "dependencies": {
+          "NetTopologySuite": "2.0.0",
+          "Newtonsoft.Json": "10.0.3",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.GeoJson.dll": {}
+        }
+      },
+      "Terradue.Metadata/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Metadata.dll": {}
+        }
+      },
+      "Terradue.Metadata.EarthObservation/1.6.7": {
+        "type": "package",
+        "dependencies": {
+          "MathNet.Numerics": "3.20.2",
+          "NetTopologySuite": "2.0.0",
+          "NetTopologySuite.IO.ShapeFile": "2.0.0",
+          "ProjNet": "2.0.0",
+          "System.Text.Encoding.CodePages": "4.7.0",
+          "Terradue.GeoJson": "1.12.0",
+          "Terradue.OpenSearch": "1.17.4",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Data",
+          "System.Numerics",
+          "System.Runtime.Serialization",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.Metadata.EarthObservation.dll": {}
+        }
+      },
+      "Terradue.OpenNebula/1.0.2": {
+        "type": "package",
+        "dependencies": {
+          "NuGet4Mono.Extensions": "0.3.0",
+          "xmlrpcnet": "2.5.0"
+        },
+        "compile": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.OpenNebula.dll": {}
+        }
+      },
+      "Terradue.OpenSearch/1.17.6": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1",
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Core",
+          "System.Net",
+          "System.Net.Http",
+          "System.Runtime.Caching",
+          "System.Runtime.Serialization",
+          "System.ServiceModel",
+          "System.Web",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.OpenSearch.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Ogc/2.2.0": {
+        "type": "package",
+        "dependencies": {
+          "Terradue.ServiceModel.Syndication": "1.1.1"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Configuration",
+          "System.Core",
+          "System.Net.Http",
+          "System.Web",
+          "System.Xml",
+          "System.Xml.Linq"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Ogc.dll": {}
+        }
+      },
+      "Terradue.ServiceModel.Syndication/1.1.1": {
+        "type": "package",
+        "dependencies": {
+          "log4net": "2.0.8"
+        },
+        "frameworkAssemblies": [
+          "System",
+          "System.Data",
+          "System.Runtime.Serialization",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        },
+        "runtime": {
+          "lib/net472/Terradue.ServiceModel.Syndication.dll": {}
+        }
+      },
+      "Terradue.Util/1.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Terradue.Util.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Terradue.Util.dll": {}
+        }
+      },
+      "xmlrpcnet/2.5.0": {
+        "type": "package",
+        "compile": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        },
+        "runtime": {
+          "lib/net20/CookComputing.XmlRpcV2.dll": {}
+        }
+      },
+      "Terradue.Hadoop/1.3.3": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Hadoop.dll": {}
+        }
+      },
+      "Terradue.Portal/2.9.0": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.7.2",
+        "dependencies": {
+          "MySql.Data": "6.10.9",
+          "Terradue.Metadata": "1.4.0",
+          "Terradue.Metadata.EarthObservation": "1.6.7",
+          "Terradue.OpenSearch": "1.17.6",
+          "Terradue.ServiceModel.Ogc": "2.2.0",
+          "Terradue.Util": "1.4.0"
+        },
+        "compile": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Terradue.Portal.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "log4net/2.0.8": {
+      "sha512": "N41MQGHZImiCfn0cUuSBjZxrcNfIQCuCgQP0rpgB3J/NWponEh3lc1LxJEuIsPAR9Oc1jVvfkNNFCY1C5hf9LA==",
+      "type": "package",
+      "path": "log4net/2.0.8",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net20-full/log4net.dll",
+        "lib/net20-full/log4net.xml",
+        "lib/net35-client/log4net.dll",
+        "lib/net35-client/log4net.xml",
+        "lib/net35-full/log4net.dll",
+        "lib/net35-full/log4net.xml",
+        "lib/net40-client/log4net.dll",
+        "lib/net40-client/log4net.xml",
+        "lib/net40-full/log4net.dll",
+        "lib/net40-full/log4net.xml",
+        "lib/net45-full/log4net.dll",
+        "lib/net45-full/log4net.xml",
+        "lib/netstandard1.3/log4net.dll",
+        "log4net.2.0.8.nupkg.sha512",
+        "log4net.nuspec"
+      ]
+    },
+    "MathNet.Numerics/3.20.2": {
+      "sha512": "bvcoBclspyHDxyKxWACF7kB1MjgLmWNSMi9bml+spKldtLg+PC6/tLLI5bKOUDPqtze1/tmNip/whuYr6AtxNQ==",
+      "type": "package",
+      "path": "mathnet.numerics/3.20.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net35/MathNet.Numerics.dll",
+        "lib/net35/MathNet.Numerics.xml",
+        "lib/net40/MathNet.Numerics.dll",
+        "lib/net40/MathNet.Numerics.xml",
+        "lib/portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.XML",
+        "lib/portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.dll",
+        "lib/portable-net45+netcore45+MonoAndroid1+MonoTouch1/MathNet.Numerics.XML",
+        "lib/portable-net45+netcore45+MonoAndroid1+MonoTouch1/MathNet.Numerics.dll",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.XML",
+        "lib/portable-net45+netcore45+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.dll",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.XML",
+        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1/MathNet.Numerics.dll",
+        "lib/portable-net45+sl5+netcore45+MonoAndroid1+MonoTouch1/MathNet.Numerics.XML",
+        "lib/portable-net45+sl5+netcore45+MonoAndroid1+MonoTouch1/MathNet.Numerics.dll",
+        "license.txt",
+        "mathnet.numerics.3.20.2.nupkg.sha512",
+        "mathnet.numerics.nuspec",
+        "readme.txt"
+      ]
+    },
+    "MySql.Data/6.10.9": {
+      "sha512": "nfAf2+UzFrdGCX2/RfEpiII8k4dOdxI0nGFXDUcmsDuvzuCdcCLmBUHnEpe2WKWLMfti1iyONGtwtqPVVwiftw==",
+      "type": "package",
+      "path": "mysql.data/6.10.9",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net452/MySql.Data.dll",
+        "lib/net452/MySql.Data.xml",
+        "lib/netcoreapp2.2/MySql.Data.dll",
+        "lib/netcoreapp2.2/MySql.Data.xml",
+        "lib/netstandard1.3/MySql.Data.dll",
+        "lib/netstandard1.3/MySql.Data.xml",
+        "lib/netstandard2.0/MySql.Data.dll",
+        "lib/netstandard2.0/MySql.Data.xml",
+        "mysql.data.6.10.9.nupkg.sha512",
+        "mysql.data.nuspec"
+      ]
+    },
+    "NetTopologySuite/2.0.0": {
+      "sha512": "3ajBClEI9wx2/DjjGmV52sHW1m52vLg8sdz1pJbTf5ySj1X90qehQs3v1DRwGo0F8UKj/Z2SjNhRN/6LroAkqg==",
+      "type": "package",
+      "path": "nettopologysuite/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/NetTopologySuite.dll",
+        "lib/netstandard2.0/NetTopologySuite.xml",
+        "nettopologysuite.2.0.0.nupkg.sha512",
+        "nettopologysuite.nuspec"
+      ]
+    },
+    "NetTopologySuite.Features/2.0.0": {
+      "sha512": "RDbEpujDL0bsAyTMHlbKj36KIPhUrtSGUaO/jUjMnsLcixrJFwoDJ8p717FdgMHpQDrcEJAKF+QsAlYsSULkew==",
+      "type": "package",
+      "path": "nettopologysuite.features/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/NetTopologySuite.Features.dll",
+        "lib/netstandard2.0/NetTopologySuite.Features.xml",
+        "nettopologysuite.features.2.0.0.nupkg.sha512",
+        "nettopologysuite.features.nuspec"
+      ]
+    },
+    "NetTopologySuite.IO.ShapeFile/2.0.0": {
+      "sha512": "otapqNFabD0zEC/HDYlnOuxvX7cdCEHflEDs2Xmrf0TNvTocYSXholfWl92O37V1fPFPjG9IHloNtZWUvdUPlQ==",
+      "type": "package",
+      "path": "nettopologysuite.io.shapefile/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.dll",
+        "lib/netstandard2.0/NetTopologySuite.IO.ShapeFile.xml",
+        "nettopologysuite.io.shapefile.2.0.0.nupkg.sha512",
+        "nettopologysuite.io.shapefile.nuspec"
+      ]
+    },
+    "Newtonsoft.Json/10.0.3": {
+      "sha512": "hSXaFmh7hNCuEoC4XNY5DrRkLDzYHqPx/Ik23R4J86Z7PE/Y6YidhG602dFVdLBRSdG6xp9NabH3dXpcoxWvww==",
+      "type": "package",
+      "path": "newtonsoft.json/10.0.3",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/netstandard1.0/Newtonsoft.Json.dll",
+        "lib/netstandard1.0/Newtonsoft.Json.xml",
+        "lib/netstandard1.3/Newtonsoft.Json.dll",
+        "lib/netstandard1.3/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "newtonsoft.json.10.0.3.nupkg.sha512",
+        "newtonsoft.json.nuspec",
+        "tools/install.ps1"
+      ]
+    },
+    "NuGet4Mono.Extensions/0.3.0": {
+      "sha512": "UhqbYL8LTgpn+JoDl5LgHLJidmFBOIA+UIf3zyVddLF3vSqmFJ38UX02DqMiJCgxoo6/j1oRVnt89/2+u/qdXQ==",
+      "type": "package",
+      "path": "nuget4mono.extensions/0.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/NuGet4Mono.Extensions.dll",
+        "nuget4mono.extensions.0.3.0.nupkg.sha512",
+        "nuget4mono.extensions.nuspec"
+      ]
+    },
+    "ProjNET/2.0.0": {
+      "sha512": "iMJG8qpGJ8SjFrB044O8wgo0raAWCdG1Bvly0mmVcjzsrexDHhC+dUct6Wb1YwQtupMBjSTWq7Fn00YeNErprA==",
+      "type": "package",
+      "path": "projnet/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/ProjNET.dll",
+        "lib/netstandard2.0/ProjNET.xml",
+        "projnet.2.0.0.nupkg.sha512",
+        "projnet.nuspec"
+      ]
+    },
+    "System.Buffers/4.4.0": {
+      "sha512": "AwarXzzoDwX6BgrhjoJsk6tUezZEozOT5Y9QKF94Gl4JK91I4PIIBkBco9068Y9/Dra8Dkbie99kXB8+1BaYKw==",
+      "type": "package",
+      "path": "system.buffers/4.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard1.1/System.Buffers.dll",
+        "lib/netstandard1.1/System.Buffers.xml",
+        "lib/netstandard2.0/System.Buffers.dll",
+        "lib/netstandard2.0/System.Buffers.xml",
+        "ref/netcoreapp2.0/_._",
+        "ref/netstandard1.1/System.Buffers.dll",
+        "ref/netstandard1.1/System.Buffers.xml",
+        "ref/netstandard2.0/System.Buffers.dll",
+        "ref/netstandard2.0/System.Buffers.xml",
+        "system.buffers.4.4.0.nupkg.sha512",
+        "system.buffers.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "System.Memory/4.5.3": {
+      "sha512": "3oDzvc/zzetpTKWMShs1AADwZjQ/36HnsufHRPcOjyRAAMLDlu2iD33MBI2opxnezcVUtXyqDXXjoFMOU9c7SA==",
+      "type": "package",
+      "path": "system.memory/4.5.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/netcoreapp2.1/_._",
+        "lib/netstandard1.1/System.Memory.dll",
+        "lib/netstandard1.1/System.Memory.xml",
+        "lib/netstandard2.0/System.Memory.dll",
+        "lib/netstandard2.0/System.Memory.xml",
+        "ref/netcoreapp2.1/_._",
+        "system.memory.4.5.3.nupkg.sha512",
+        "system.memory.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "System.Numerics.Vectors/4.5.0": {
+      "sha512": "QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
+      "type": "package",
+      "path": "system.numerics.vectors/4.5.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Numerics.Vectors.dll",
+        "lib/net46/System.Numerics.Vectors.xml",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard1.0/System.Numerics.Vectors.dll",
+        "lib/netstandard1.0/System.Numerics.Vectors.xml",
+        "lib/netstandard2.0/System.Numerics.Vectors.dll",
+        "lib/netstandard2.0/System.Numerics.Vectors.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Numerics.Vectors.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Numerics.Vectors.xml",
+        "lib/uap10.0.16299/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/System.Numerics.Vectors.dll",
+        "ref/net45/System.Numerics.Vectors.xml",
+        "ref/net46/System.Numerics.Vectors.dll",
+        "ref/net46/System.Numerics.Vectors.xml",
+        "ref/netcoreapp2.0/_._",
+        "ref/netstandard1.0/System.Numerics.Vectors.dll",
+        "ref/netstandard1.0/System.Numerics.Vectors.xml",
+        "ref/netstandard2.0/System.Numerics.Vectors.dll",
+        "ref/netstandard2.0/System.Numerics.Vectors.xml",
+        "ref/uap10.0.16299/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._",
+        "system.numerics.vectors.4.5.0.nupkg.sha512",
+        "system.numerics.vectors.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "System.Runtime.CompilerServices.Unsafe/4.7.0": {
+      "sha512": "IpU1lcHz8/09yDr9N+Juc7SCgNUz+RohkCQI+KsWKR67XxpFr8Z6c8t1iENCXZuRuNCc4HBwme/MDHNVCwyAKg==",
+      "type": "package",
+      "path": "system.runtime.compilerservices.unsafe/4.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.xml",
+        "lib/netstandard1.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "lib/netstandard1.0/System.Runtime.CompilerServices.Unsafe.xml",
+        "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.xml",
+        "ref/netstandard1.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "ref/netstandard1.0/System.Runtime.CompilerServices.Unsafe.xml",
+        "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll",
+        "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.xml",
+        "system.runtime.compilerservices.unsafe.4.7.0.nupkg.sha512",
+        "system.runtime.compilerservices.unsafe.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "System.Text.Encoding.CodePages/4.7.0": {
+      "sha512": "aeu4FlaUTemuT1qOd1MyU4T516QR4Fy+9yDbwWMPHOHy7U8FD6SgTzdZFO7gHcfAPHtECqInbwklVvUK4RHcNg==",
+      "type": "package",
+      "path": "system.text.encoding.codepages/4.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Text.Encoding.CodePages.dll",
+        "lib/net461/System.Text.Encoding.CodePages.dll",
+        "lib/net461/System.Text.Encoding.CodePages.xml",
+        "lib/netstandard1.3/System.Text.Encoding.CodePages.dll",
+        "lib/netstandard2.0/System.Text.Encoding.CodePages.dll",
+        "lib/netstandard2.0/System.Text.Encoding.CodePages.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._",
+        "runtimes/win/lib/net461/System.Text.Encoding.CodePages.dll",
+        "runtimes/win/lib/net461/System.Text.Encoding.CodePages.xml",
+        "runtimes/win/lib/netcoreapp2.0/System.Text.Encoding.CodePages.dll",
+        "runtimes/win/lib/netcoreapp2.0/System.Text.Encoding.CodePages.xml",
+        "runtimes/win/lib/netstandard1.3/System.Text.Encoding.CodePages.dll",
+        "runtimes/win/lib/netstandard2.0/System.Text.Encoding.CodePages.dll",
+        "runtimes/win/lib/netstandard2.0/System.Text.Encoding.CodePages.xml",
+        "system.text.encoding.codepages.4.7.0.nupkg.sha512",
+        "system.text.encoding.codepages.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "Terradue.GeoJson/1.12.0": {
+      "sha512": "QTKAXc8AtoUsT4isHkUTRP2WrBCKa12uRw+rIK9LMJLW8bnUPmBu3YkcIfA0QWyz3/tnABFYYNGCIkGDFEd7Pg==",
+      "type": "package",
+      "path": "terradue.geojson/1.12.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net472/Terradue.GeoJson.dll",
+        "lib/netstandard2.0/Terradue.GeoJson.dll",
+        "terradue.geojson.1.12.0.nupkg.sha512",
+        "terradue.geojson.nuspec"
+      ]
+    },
+    "Terradue.Metadata/1.4.0": {
+      "sha512": "cOhnZqMhxfBGUhqKPu9nqqoC3g0t+bqfwTMmO4yB9oaJMrY2nSb3E/YIy6yOQs+VSCxU3GZBw/G2qZCN97fxtw==",
+      "type": "package",
+      "path": "terradue.metadata/1.4.0",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net40/Terradue.Metadata.dll",
+        "terradue.metadata.1.4.0.nupkg.sha512",
+        "terradue.metadata.nuspec"
+      ]
+    },
+    "Terradue.Metadata.EarthObservation/1.6.7": {
+      "sha512": "GI/2FAhP2a2GHkiyiVE645yKeMdihrjG7QueJmFWTEmqwjABlTPwf0nI52YV73E8wuUvESQxZM+uqRw4qpkYpQ==",
+      "type": "package",
+      "path": "terradue.metadata.earthobservation/1.6.7",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net472/Terradue.Metadata.EarthObservation.dll",
+        "lib/netstandard2.0/Terradue.Metadata.EarthObservation.dll",
+        "terradue.metadata.earthobservation.1.6.7.nupkg.sha512",
+        "terradue.metadata.earthobservation.nuspec"
+      ]
+    },
+    "Terradue.OpenNebula/1.0.2": {
+      "sha512": "v/18G9XY2ot0Q1P79VR+3WK2zLfCmY5w5CP5uw7Kt8iMrgwbj4t9VVLXH2PUyhxw6AXT66yHgs2m17jDvWZ4WA==",
+      "type": "package",
+      "path": "terradue.opennebula/1.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Terradue.OpenNebula.dll",
+        "terradue.opennebula.1.0.2.nupkg.sha512",
+        "terradue.opennebula.nuspec"
+      ]
+    },
+    "Terradue.OpenSearch/1.17.6": {
+      "sha512": "D7lpBMCLSzGGB7ywdJQVdqajAxTObM3vL8Uvf9ar7mD1v5JqKRKMjRe5dYpzPbwWbcWD92ILp0j52bmRPerR6A==",
+      "type": "package",
+      "path": "terradue.opensearch/1.17.6",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net472/Terradue.OpenSearch.dll",
+        "lib/netstandard2.0/Terradue.OpenSearch.dll",
+        "terradue.opensearch.1.17.6.nupkg.sha512",
+        "terradue.opensearch.nuspec"
+      ]
+    },
+    "Terradue.ServiceModel.Ogc/2.2.0": {
+      "sha512": "+YAnEF33U4+3fwFQWZhPKO86PsaUwCdg6f/v0Tv/y/+Yr+KPcNxEc4TCKqfbLRdS1T3YPrh6085Ep/jcrW7OGA==",
+      "type": "package",
+      "path": "terradue.servicemodel.ogc/2.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net472/Terradue.ServiceModel.Ogc.dll",
+        "lib/netstandard2.0/Terradue.ServiceModel.Ogc.dll",
+        "terradue.servicemodel.ogc.2.2.0.nupkg.sha512",
+        "terradue.servicemodel.ogc.nuspec"
+      ]
+    },
+    "Terradue.ServiceModel.Syndication/1.1.1": {
+      "sha512": "jprblCJfomtZ/JQ6T/OmiKDki/mfrlEt1e5cwNPsPiKSh4xgS2/004EDfKKR+Yn5KMb7Hu6b2y3ieZrzeg4uUQ==",
+      "type": "package",
+      "path": "terradue.servicemodel.syndication/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net472/Terradue.ServiceModel.Syndication.dll",
+        "lib/netstandard2.0/Terradue.ServiceModel.Syndication.dll",
+        "terradue.servicemodel.syndication.1.1.1.nupkg.sha512",
+        "terradue.servicemodel.syndication.nuspec"
+      ]
+    },
+    "Terradue.Util/1.4.0": {
+      "sha512": "rq/vBtzS6VjF2zRmkTx02h0OfZVdtYXL70zvjaBpqmPUler8Mjl2ERlI9lhaiK9rfKAMlnQ6pSWSDHYG4b7hNQ==",
+      "type": "package",
+      "path": "terradue.util/1.4.0",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net40/Terradue.Util.dll",
+        "terradue.util.1.4.0.nupkg.sha512",
+        "terradue.util.nuspec"
+      ]
+    },
+    "xmlrpcnet/2.5.0": {
+      "sha512": "Fey1UJ3sJOgzwFUy+0io/OkrW0R0rrJKhg3/xX4lF5KSnA3/r0amBBNLoBjAMrzLyYPCFtQGjlW9sIdU+vQv2g==",
+      "type": "package",
+      "path": "xmlrpcnet/2.5.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.txt",
+        "lib/net20/CookComputing.XmlRpcV2.dll",
+        "xmlrpcnet.2.5.0.nupkg.sha512",
+        "xmlrpcnet.nuspec"
+      ]
+    },
+    "Terradue.Hadoop/1.3.3": {
+      "type": "project",
+      "path": "../Terradue.Hadoop/Terradue.Hadoop.csproj",
+      "msbuildProject": "../Terradue.Hadoop/Terradue.Hadoop.csproj"
+    },
+    "Terradue.Portal/2.9.0": {
+      "type": "project",
+      "path": "../Terradue.Portal/Terradue.Portal.csproj",
+      "msbuildProject": "../Terradue.Portal/Terradue.Portal.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETFramework,Version=v4.7.2": [
+      "Terradue.Hadoop >= 1.3.3",
+      "Terradue.OpenNebula >= 1.0.2",
+      "Terradue.Portal >= 2.9.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages": {}
+  },
+  "project": {
+    "version": "1.3.3",
+    "restore": {
+      "projectUniqueName": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Cloud/Terradue.Cloud.csproj",
+      "projectName": "Terradue.Cloud",
+      "projectPath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Cloud/Terradue.Cloud.csproj",
+      "packagesPath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages",
+      "outputPath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Cloud/obj/",
+      "projectStyle": "PackageReference",
+      "crossTargeting": true,
+      "configFilePaths": [
+        "/home/emathot/.config/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net472"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {},
+        "https://repository.terradue.com/artifactory/api/nuget/nuget-release": {}
+      },
+      "frameworks": {
+        "net472": {
+          "projectReferences": {
+            "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Hadoop/Terradue.Hadoop.csproj": {
+              "projectPath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Hadoop/Terradue.Hadoop.csproj"
+            },
+            "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Portal/Terradue.Portal.csproj": {
+              "projectPath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Portal/Terradue.Portal.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "noWarn": [
+          "NU1605"
+        ],
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net472": {
+        "dependencies": {
+          "Terradue.OpenNebula": {
+            "target": "Package",
+            "version": "[1.0.2, )"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/lib/mono/msbuild/Current/bin/RuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "linux": {
+        "#import": []
+      },
+      "win": {
+        "#import": []
+      }
+    }
+  }
+}

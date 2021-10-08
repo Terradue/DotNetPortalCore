@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "dgSpecHash": "u9SYJ7hJN3GafpLFAeiNTIYe2mf4VXPHl7+dtb4uOSO8FI2wQP1FtKNgbqBicAQrrxmHKFLD883Fpvj5fW0Umg==",
+  "success": true,
+  "projectFilePath": "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/Terradue.Cloud/Terradue.Cloud.csproj",
+  "expectedPackageFiles": [
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/log4net/2.0.8/log4net.2.0.8.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/mathnet.numerics/3.20.2/mathnet.numerics.3.20.2.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/mysql.data/6.10.9/mysql.data.6.10.9.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/nettopologysuite/2.0.0/nettopologysuite.2.0.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/nettopologysuite.features/2.0.0/nettopologysuite.features.2.0.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/nettopologysuite.io.shapefile/2.0.0/nettopologysuite.io.shapefile.2.0.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/newtonsoft.json/10.0.3/newtonsoft.json.10.0.3.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/nuget4mono.extensions/0.3.0/nuget4mono.extensions.0.3.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/projnet/2.0.0/projnet.2.0.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/system.buffers/4.4.0/system.buffers.4.4.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/system.runtime.compilerservices.unsafe/4.7.0/system.runtime.compilerservices.unsafe.4.7.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/system.text.encoding.codepages/4.7.0/system.text.encoding.codepages.4.7.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.geojson/1.12.0/terradue.geojson.1.12.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.metadata/1.4.0/terradue.metadata.1.4.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.metadata.earthobservation/1.6.7/terradue.metadata.earthobservation.1.6.7.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.opennebula/1.0.2/terradue.opennebula.1.0.2.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.opensearch/1.17.6/terradue.opensearch.1.17.6.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.servicemodel.ogc/2.2.0/terradue.servicemodel.ogc.2.2.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.servicemodel.syndication/1.1.1/terradue.servicemodel.syndication.1.1.1.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/terradue.util/1.4.0/terradue.util.1.4.0.nupkg.sha512",
+    "/home/emathot/Workspace/Terradue/Components/sugar/DotNetPortalCore/packages/xmlrpcnet/2.5.0/xmlrpcnet.2.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
