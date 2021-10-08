@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project ToolsVersion="Current" Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Terradue.Authentication</RootNamespace>
+    <AssemblyName>Terradue.Authentication</AssemblyName>
+    <Title>Terradue.Authentication</Title>
+    <Description>Terradue.Authentication is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue Authentication</Description>
+    <Version>2.0</Version>
+    <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
+    <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
+    <Authors>Enguerran Boissier</Authors>
+    <Company>Terradue</Company>
+    <PackageTags>Terradue;Portal</PackageTags>
+    <PackageOutputPath>$(SolutionDir)\build</PackageOutputPath>
+    <RestorePackagesPath>$(SolutionDir)\packages</RestorePackagesPath>
+    <RepositoryUrl>https://github.com/Terradue/DotNetPortalCore</RepositoryUrl>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <Reference Include="System"/>
+    <Reference Include="System.Data"/>
+    <Reference Include="System.Web"/>
+    <Reference Include="System.Xml"/>
+    <Reference Include="System.Runtime.Serialization"/>
+    <Reference Include="System.ServiceModel"/>
+    <Reference Include="System.Core"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ProjectDir)Resources\**" PackagePath="content/modules" Pack="true"/>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Terradue.Ldap" Version="2.0.1"/>
+    <PackageReference Include="DotNetOpenAuth.Ultimate" Version="4.3.4.13329"/>
+  </ItemGroup>
+</Project>
