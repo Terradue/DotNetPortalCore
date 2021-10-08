@@ -12,7 +12,7 @@ namespace Terradue.Portal.Test {
 
         WpsProvider provider;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureSetup(){
             base.FixtureSetup();
             context.BaseUrl = "http://localhost:8080/api";

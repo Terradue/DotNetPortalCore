@@ -9,6 +9,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Portal.AdminTool",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Portal.Agent", "Terradue.Portal.Agent\Terradue.Portal.Agent.csproj", "{7B85565C-F246-4535-B012-671E819AA644}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Cloud", "Terradue.Cloud\Terradue.Cloud.csproj", "{F646E6B6-1359-4A5B-AA66-4BF863E77472}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Hadoop", "Terradue.Hadoop\Terradue.Hadoop.csproj", "{8E8A4437-E2DA-41F7-B453-240D0E6F74FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Authentication", "Terradue.Authentication\Terradue.Authentication.csproj", "{CCB79251-C07E-42BE-81D7-96782C269C25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.News", "Terradue.News\Terradue.News.csproj", "{B2199E82-A885-4377-8FA5-1043366EB735}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +39,22 @@ Global
 		{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDBA48E4-7D7C-486B-BC2B-B8C8AD64633E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F646E6B6-1359-4A5B-AA66-4BF863E77472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F646E6B6-1359-4A5B-AA66-4BF863E77472}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F646E6B6-1359-4A5B-AA66-4BF863E77472}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F646E6B6-1359-4A5B-AA66-4BF863E77472}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E8A4437-E2DA-41F7-B453-240D0E6F74FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8A4437-E2DA-41F7-B453-240D0E6F74FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8A4437-E2DA-41F7-B453-240D0E6F74FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8A4437-E2DA-41F7-B453-240D0E6F74FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCB79251-C07E-42BE-81D7-96782C269C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCB79251-C07E-42BE-81D7-96782C269C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCB79251-C07E-42BE-81D7-96782C269C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCB79251-C07E-42BE-81D7-96782C269C25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
