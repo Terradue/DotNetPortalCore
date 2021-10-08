@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project ToolsVersion="Current" Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Terradue.News</RootNamespace>
+    <AssemblyName>Terradue.News</AssemblyName>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
+    <Authors>Enguerran Boissier</Authors>
+    <Company>Terradue</Company>
+    <PackageTags>Terradue</PackageTags>
+    <PackageOutputPath>$(SolutionDir)\build</PackageOutputPath>
+    <RestorePackagesPath>$(SolutionDir)\packages</RestorePackagesPath>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <Version>2.0.1</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System"/>
+    <Reference Include="System.Web"/>
+    <Reference Include="System.Xml"/>
+    <Reference Include="System.Configuration"/>
+    <Reference Include="System.Runtime.Serialization"/>
+    <Reference Include="System.Runtime.Caching"/>
+    <Reference Include="System.Xml.Linq"/>
+    <Reference Include="System.Core"/>
+    <Reference Include="System.Numerics"/>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Terradue.OpenSearch.Tumblr" Version="1.0.11"/>
+    <PackageReference Include="Terradue.OpenSearch.Twitter" Version="1.8.0"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources/**/*" PackagePath="content/modules/news" Pack="true" />
+  </ItemGroup>
+</Project>
