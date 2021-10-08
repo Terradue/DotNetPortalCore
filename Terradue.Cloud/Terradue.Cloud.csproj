@@ -6,7 +6,7 @@
     <AssemblyName>Terradue.Cloud</AssemblyName>
     <Title>Terradue.Cloud</Title>
     <Description>Terradue.Cloud is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue Cloud</Description>
-    <Version>1.3.4</Version>
+    <Version>1.3.5</Version>
     <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
