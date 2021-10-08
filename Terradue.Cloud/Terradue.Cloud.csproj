@@ -36,7 +36,7 @@
     <ProjectReference Include="..\Terradue.Hadoop\Terradue.Hadoop.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(ProjectDir)/Resources/**/*" PackagePath="content/modules/cloud" Pack="true" />
+    <None Include="$(ProjectDir)Resources\**\*" PackagePath="content/modules/cloud" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Terradue.OpenNebula" Version="1.0.2" />
