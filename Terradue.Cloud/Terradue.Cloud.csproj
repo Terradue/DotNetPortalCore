@@ -33,10 +33,14 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj" />
-    <ProjectReference Include="..\Terradue.Hadoop\Terradue.Hadoop.csproj" />
+    <ProjectReference Include="..\Terradue.Hadoop\Terradue.Hadoop.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <IncludeAssets>Terradue.Hadoop.dll</IncludeAssets>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectDir)Resources\**\*" PackagePath="content/modules/cloud" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Hadoop/bin/*/net472/Terradue.Hadoop.dll" PackagePath="lib/net472/Terradue.Hadoop.dll" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Terradue.OpenNebula" Version="1.0.2" />
