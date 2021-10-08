@@ -40,7 +40,10 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'nuget_token', variable: 'NUGET_TOKEN')]) {
           echo 'Deploying'
-          sh "nuget push build/*.nupkg -ApiKey ${NUGET_TOKEN} -SkipDuplicate -Source https://www.nuget.org/api/v2/package"
+          sh "nuget push build/Terradue.Portal*.nupkg -ApiKey ${NUGET_TOKEN} -SkipDuplicate -Source https://www.nuget.org/api/v2/package"
+          sh "nuget push build/Terradue.Cloud*.nupkg -ApiKey ${NUGET_TOKEN} -SkipDuplicate -Source https://www.nuget.org/api/v2/package"
+          sh "nuget push build/Terradue.Authentication*.nupkg -ApiKey ${NUGET_TOKEN} -SkipDuplicate -Source https://www.nuget.org/api/v2/package"
+          sh "nuget push build/Terradue.News*.nupkg -ApiKey ${NUGET_TOKEN} -SkipDuplicate -Source https://www.nuget.org/api/v2/package"
         }
       }        
     }
