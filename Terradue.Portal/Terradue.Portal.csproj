@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)/core/**/*" PackagePath="content/core" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.AdminTool/bin/*/net472/Terradue.Portal.AdminTool.exe" PackagePath="Terradue.Portal.AdminTool.exe" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.Agent/bin/*/net472/Terradue.Portal.Agent.exe" PackagePath="Terradue.Portal.Agent.exe" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Portal.AdminTool/bin/*/net472/Terradue.Portal.AdminTool.exe" PackagePath="lib/net472/Terradue.Portal.AdminTool.exe" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Portal.Agent/bin/*/net472/Terradue.Portal.Agent.exe" PackagePath="lib/net472/Terradue.Portal.Agent.exe" Pack="true" />
   </ItemGroup>
 </Project>
