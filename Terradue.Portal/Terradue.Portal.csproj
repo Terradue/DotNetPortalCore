@@ -6,7 +6,7 @@
     <AssemblyName>Terradue.Portal</AssemblyName>
     <Title>Terradue.Portal</Title>
     <Description>Terradue.Portal is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue portal</Description>
-    <Version>2.9.1</Version>
+    <Version>2.9.2</Version>
     <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)/core/**/*" PackagePath="content/core" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.AdminTool/bin/*/net472/Terradue.Portal.AdminTool.exe" PackagePath="Terradue.Portal.AdminTool.exe" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.Agent/bin/*/net472/Terradue.Portal.Agent.exe" PackagePath="Terradue.Portal.Agent.exe" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Portal.AdminTool/bin/*/net472/Terradue.Portal.AdminTool.exe" PackagePath="lib/net472/Terradue.Portal.AdminTool.exe" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Portal.Agent/bin/*/net472/Terradue.Portal.Agent.exe" PackagePath="lib/net472/Terradue.Portal.Agent.exe" Pack="true" />
   </ItemGroup>
 </Project>
