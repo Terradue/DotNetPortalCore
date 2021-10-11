@@ -6,7 +6,7 @@
     <AssemblyName>Terradue.Cloud</AssemblyName>
     <Title>Terradue.Cloud</Title>
     <Description>Terradue.Cloud is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue Cloud</Description>
-    <Version>1.3.4</Version>
+    <Version>1.3.5</Version>
     <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
@@ -33,10 +33,14 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj" />
-    <ProjectReference Include="..\Terradue.Hadoop\Terradue.Hadoop.csproj" />
+    <ProjectReference Include="..\Terradue.Hadoop\Terradue.Hadoop.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <IncludeAssets>Terradue.Hadoop.dll</IncludeAssets>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(ProjectDir)Resources\**\*" PackagePath="content/modules/cloud" Pack="true" />
+    <None Include="$(SolutionDir)/Terradue.Hadoop/bin/*/net472/Terradue.Hadoop.dll" PackagePath="lib/net472/Terradue.Hadoop.dll" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Terradue.OpenNebula" Version="1.0.2" />
