@@ -6,7 +6,7 @@ USE $MAIN$;
 
 SET @pos = (SELECT MAX(pos) FROM auth);
 INSERT INTO auth (pos, identifier, name, description, type, enabled) VALUES 
-    (@pos + 1, 'ldap', 'LDAP authentication', 'LDAP authentication allows users to identify themselves using Terradue LDAP provider.', 'Terradue.Authentication.Ldap.LdapAuthenticationType, Terradue.Authentication.Ldap', '4')
+    (@pos + 1, 'ldap', 'LDAP authentication', 'LDAP authentication allows users to identify themselves using Terradue LDAP provider.', 'Terradue.Authentication.Ldap.LdapAuthenticationType, Terradue.Authentication', '4')
 ;
 -- RESULT
 

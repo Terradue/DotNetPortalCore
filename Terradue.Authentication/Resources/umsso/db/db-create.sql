@@ -1,4 +1,4 @@
--- VERSION 1.4
+-- VERSION 1.5
 
 USE $MAIN$;
 
@@ -18,7 +18,7 @@ INSERT INTO config (id_section, pos, name, type, source, caption, hint, value, o
 
 SET @pos = (SELECT MAX(pos) FROM auth);
 INSERT INTO auth (pos, identifier, name, description, type, enabled) VALUES 
-    (@pos + 1, 'umsso', 'UM-SSO authentication', 'UM-SSO authentication allows users to identify themselves using ESA um-sso provider.', 'Terradue.Authentication.Umsso.UmssoAuthenticationType, Terradue.Authentication.Umsso', '1')
+    (@pos + 1, 'umsso', 'UM-SSO authentication', 'UM-SSO authentication allows users to identify themselves using ESA um-sso provider.', 'Terradue.Authentication.Umsso.UmssoAuthenticationType, Terradue.Authentication', '1')
 ;
 -- RESULT
 
