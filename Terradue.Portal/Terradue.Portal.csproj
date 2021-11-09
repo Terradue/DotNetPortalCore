@@ -31,7 +31,6 @@
     <Reference Include="System.Core"/>
     <Reference Include="System.Numerics"/>
     <Reference Include="System.DirectoryServices"/>
-    <Reference Include="Novell.Directory.Ldap"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Terradue.OpenSearch" Version="1.17.6"/>
