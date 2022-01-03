@@ -446,7 +446,7 @@ CREATE TABLE usr (
 
 -- Adding initial administrator user (username admin, password changeme) ... \
 INSERT INTO usr (allow_password, allow_sessionless, username, password, firstname, lastname, level, credits, task_storage_period, publish_folder_size) VALUES
-    (true, true, 'admin', PASSWORD('changeme@T2'), 'Admin', 'Admin', 4, 100, 0, 1000)
+    (true, true, 'admin', 'changeme@T2', 'Admin', 'Admin', 4, 100, 0, 1000)
 ;
 -- RESULT
 -- CHECKPOINT C-16b
@@ -521,15 +521,15 @@ CREATE TABLE openidprovider (
 
 CREATE TABLE lookuplist (
     id smallint unsigned NOT NULL auto_increment,
-    system boolean NOT NULL DEFAULT false COMMENT 'If true, list is predefined and locked',
+    `system` boolean NOT NULL DEFAULT false COMMENT 'If true, list is predefined and locked',
     name varchar(25) NOT NULL COMMENT 'Name of lookup list',
     max_length smallint COMMENT 'Maximum string length of contained values',
-    CONSTRAINT pk_lookuplist PRIMARY KEY (id, system)
+    CONSTRAINT pk_lookuplist PRIMARY KEY (id, `system`)
 ) Engine=InnoDB COMMENT 'Configurable lookup lists';
 -- CHECKPOINT C-11a
 
 -- Initializing lookup lists ... \
-INSERT INTO lookuplist (id, system, name) VALUES
+INSERT INTO lookuplist (id, `system`, name) VALUES
     (1, true, 'userLevel'),
     (2, true, 'accountStatus'),
     (3, true, 'resourceAvailability'),
@@ -2155,7 +2155,7 @@ CREATE TABLE task (
     async_op tinyint unsigned COMMENT 'Requested asynchronous operation',
     message_code tinyint unsigned COMMENT 'Code of error/warning message',
     message_text varchar(255) COMMENT 'Text of error/warning message',
-    empty boolean NOT NULL DEFAULT false COMMENT 'Task has no input files',
+    `empty` boolean NOT NULL DEFAULT false COMMENT 'Task has no input files',
     remote_id varchar(50) COMMENT 'Remote identifier',
     status_url varchar(200) COMMENT 'Status URL if CR provides them explicitely (e.g. WPS)',
     creation_time datetime NOT NULL COMMENT 'Date/time of task creation',
