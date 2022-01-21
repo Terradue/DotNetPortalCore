@@ -177,6 +177,10 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public bool UseConfigFile { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public string DbResult { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -349,6 +353,9 @@ namespace Terradue.Portal {
                     case "-Sn" : 
                         if (argpos == args.Length - 1) return false;
                         DbNewsSchema = args[++argpos];
+                        break;
+                    case "-c" :
+                        UseConfigFile = true;
                         break;
                     default: 
                         return false;
@@ -583,7 +590,7 @@ namespace Terradue.Portal {
             string connectionString = null;
 
             // Get connection string (from web.config or build it from command line argument)
-            if (DbMainSchema == null) {
+            if (UseConfigFile) {
 
                 string configFile = String.Format("{0}{1}root{1}web.config", SiteBaseDirectory, Path.DirectorySeparatorChar);
                 if (!File.Exists(configFile)) {
