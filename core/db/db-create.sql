@@ -1,4 +1,4 @@
--- VERSION 2.7.20
+-- VERSION 2.7.21
 
 USE $MAIN$;
 
@@ -2379,6 +2379,7 @@ CREATE TABLE feature (
     image_credits VARCHAR(150) NULL DEFAULT NULL,
     button_text varchar(15),
     button_link varchar(1000),
+    is_dotted boolean NOT NULL DEFAULT false COMMENT 'If true, feature is dotted',
     PRIMARY KEY (id)
 ) Engine=InnoDB COMMENT 'Web portal featured content';
 -- CHECKPOINT CN-01

@@ -61,6 +61,13 @@ namespace Terradue.Portal {
         public string ButtonLink { get; set; }
 
         /// <summary>
+        /// Feature is dotted
+        /// </summary>
+        /// <value>Dotted</value>
+        [EntityDataField("is_dotted")]
+        public bool Dotted { get; set; }
+
+        /// <summary>
         /// Position in all the features
         /// </summary>
         /// <value>The position.</value>
