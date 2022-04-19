@@ -10,6 +10,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string TicketUrl { get; set; }
         [DataMember]
+        public List<string> Links { get; set; }
+        [DataMember]
         public UserInformation UserInformation { get; set; }
         [DataMember]
         public PortalInformation PortalInformation { get; set; }
