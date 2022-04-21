@@ -11,7 +11,7 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public string TicketUrl { get; set; }
         [DataMember]
-        public List<string> Links { get; set; }
+        public string ReportUrl { get; set; }
         [DataMember]
         public UserInformation UserInformation { get; set; }
         [DataMember]
