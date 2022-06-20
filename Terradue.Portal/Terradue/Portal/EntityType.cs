@@ -1536,13 +1536,21 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>The entity instance.</returns>
         /// \ingroup Persistence
-        public Entity GetEntityInstance(IfyContext context) {
+        public Entity GetEntityInstance(IfyContext context) {            
+            var constructorInfo = entityType.GetEntityConstructor(context);                        
+            var ent = (Entity)constructorInfo.Invoke(new object[]{context});            
+            return ent;
+        }
+
+        public System.Reflection.ConstructorInfo GetEntityConstructor(IfyContext context) {
             System.Reflection.ConstructorInfo constructorInfo = null;
-            if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});
+            
+            if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});        
+            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});            
+            if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});            
             if (constructorInfo == null) throw new NullReferenceException(String.Format("No suitable constructor found for {0}", ClassType.FullName));
-            return (Entity)constructorInfo.Invoke(new object[]{context});
+            
+            return constructorInfo;
         }
 
         //---------------------------------------------------------------------------------------------------------------------

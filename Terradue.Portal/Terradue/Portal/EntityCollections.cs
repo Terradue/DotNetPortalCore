@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Web;
 using Terradue.OpenSearch;
@@ -337,11 +338,17 @@ namespace Terradue.Portal {
 
             object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
             string sql = entityType.GetCountQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL (COUNT): " + sql);
+                context.LogDebug(this, "SQL (COUNT): " + sql);
+            }
             TotalResults = context.GetQueryLongIntegerValue(sql);
 
             sql = entityType.GetIdQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL: " + sql);
+                context.LogDebug(this, "SQL: " + sql);
+            }
 
             List<int> ids = new List<int>();
 
@@ -349,7 +356,10 @@ namespace Terradue.Portal {
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             while (reader.Read()) ids.Add(reader.GetInt32(0));
             context.CloseQueryResult(reader, dbConnection);
-            if (context.ConsoleDebug) Console.WriteLine("COUNT: " + ids.Count);
+            if (context.ConsoleDebug){
+                Console.WriteLine("COUNT: " + ids.Count);
+                context.LogDebug(this, "COUNT: " + ids.Count);
+            }
 
             IsLoading = true;
             foreach (int id in ids) {
@@ -385,12 +395,18 @@ namespace Terradue.Portal {
             this.ItemSource = source;
 
             object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, null);
-            string sql = entityType.GetCountQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            string sql = entityType.GetCountQuery(queryParts);            
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL (COUNT): " + sql);
+                context.LogDebug(this, "SQL (COUNT): " + sql);
+            }
             TotalResults = context.GetQueryLongIntegerValue(sql);
 
-            sql = entityType.GetIdQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+            sql = entityType.GetIdQuery(queryParts);            
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL: " + sql);
+                context.LogDebug(this, "SQL: " + sql);
+            }
 
             List<int> ids = new List<int>();
 
@@ -419,19 +435,26 @@ namespace Terradue.Portal {
 
             object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, condition);
             string sql = entityType.GetCountQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL (COUNT): " + sql);
+                context.LogDebug(this, "SQL (COUNT): " + sql);
+            }
             TotalResults = context.GetQueryLongIntegerValue(sql);
 
             sql = entityType.GetQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL: " + sql);
+                context.LogDebug(this, "SQL: " + sql);
+            }
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             IsLoading = true;
-            while (reader.Read()) {
-                T item = entityType.GetEntityInstance(context) as T;
-                item.Load(entityType, reader, AccessLevel);
-                if (template != null) AlignWithTemplate(item, false);
+            var ci = entityType.GetEntityConstructor(context);
+            while (reader.Read()) {                
+                T item = (Entity)ci.Invoke(new object[]{context}) as T;                
+                item.Load(entityType, reader, AccessLevel);                
+                if (template != null) AlignWithTemplate(item, false);                
                 IncludeInternal(item);
             }
             IsLoading = false;
@@ -447,11 +470,17 @@ namespace Terradue.Portal {
 
             object[] queryParts = entityType.GetListQueryParts(context, this, UserId, groupIds, null);
             string sql = entityType.GetCountQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL (COUNT): " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL (COUNT): " + sql);
+                context.LogDebug(this, "SQL (COUNT): " + sql);
+            }
             TotalResults = context.GetQueryLongIntegerValue(sql);
 
             sql = entityType.GetQuery(queryParts);
-            if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
+            if (context.ConsoleDebug){
+                Console.WriteLine("SQL: " + sql);
+                context.LogDebug(this, "SQL: " + sql);
+            }
 
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
@@ -776,6 +805,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private AtomFeed GenerateSyndicationFeed(NameValueCollection parameters) {
+            context.LogDebug(this, "GenerateSyndicationFeed 1");
             if (this.Identifier == null) this.Identifier = entityType.Keyword;
             UriBuilder myUrl = new UriBuilder(context.BaseUrl + "/" + this.Identifier);
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
@@ -882,7 +912,9 @@ namespace Terradue.Portal {
                     }
                 }
             }
+            context.LogDebug(this, "GenerateSyndicationFeed 2");
                 this.Load();
+            context.LogDebug(this, "GenerateSyndicationFeed 3");
 
             foreach (T s in Items) {
 
@@ -915,6 +947,7 @@ namespace Terradue.Portal {
                     items.Add(entry);
                 }
             }
+            context.LogDebug(this, "GenerateSyndicationFeed 4");
 
             // Load all avaialable Datasets according to the context
 
@@ -930,7 +963,7 @@ namespace Terradue.Portal {
                     feed.TotalResults = items.Count;
                 }
             }
-
+context.LogDebug(this, "GenerateSyndicationFeed 5");
             return feed;
 
         }
