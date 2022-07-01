@@ -1537,7 +1537,7 @@ namespace Terradue.Portal {
         /// <returns>The entity instance.</returns>
         /// \ingroup Persistence
         public Entity GetEntityInstance(IfyContext context) {            
-            var constructorInfo = entityType.GetEntityConstructor(context);                        
+            var constructorInfo = GetEntityConstructor(context);                        
             var ent = (Entity)constructorInfo.Invoke(new object[]{context});            
             return ent;
         }
