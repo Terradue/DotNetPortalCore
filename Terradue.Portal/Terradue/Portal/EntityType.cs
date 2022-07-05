@@ -1726,15 +1726,20 @@ namespace Terradue.Portal {
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
 
-            string COMA_SUBSTITUTE = "_!!COMA_SUBSTITUTE!!_";
+            string COMMA_SUBSTITUTE = "_!!COMMA_SUBSTITUTE!!_";
 
-            string[] terms = StringUtils.SplitSimply(searchTerm.Replace("\\,", COMA_SUBSTITUTE), ',');
+            string[] terms = StringUtils.SplitSimply(searchTerm.Replace("\\,", COMMA_SUBSTITUTE), ',');
             bool interval = false, like;
             string cl = null, cr = null, cn = null;
-            for (int i = 0; i < terms.Length; i++) {
+            foreach (string t in terms) {
+                string term = t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
                 like = false;
 
-                cn = terms[i].Replace(COMA_SUBSTITUTE, ",");//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+                cn = term.Replace(COMMA_SUBSTITUTE, ",");//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+
                 if (Regex.Match(cn, @"[\*\?]").Success) {
                     int shift = 0, shift2 = 0;
                     string cn2 = cn;
@@ -1789,7 +1794,7 @@ namespace Terradue.Portal {
 
                 if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
                 else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
                 else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, like ? " LIKE " : "=", cn);
 
                 interval = (!like && cl != String.Empty && cr == String.Empty);
@@ -1817,8 +1822,12 @@ namespace Terradue.Portal {
             string[] terms = searchTerm.Split(',');
             bool interval = false;
             string cl = null, cr = null, cn = null;
-            for (int i = 0; i < terms.Length; i++) {
-                match = Regex.Match(terms[i], @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
+            foreach (string t in terms) {
+                string term = t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
+                match = Regex.Match(term, @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
                 if (!match.Success) {
                     interval = false;
                     continue;
@@ -1832,7 +1841,7 @@ namespace Terradue.Portal {
 
                 if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
                 else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
                 else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
 
                 interval = (cl != String.Empty && cr == String.Empty);
@@ -1864,8 +1873,12 @@ namespace Terradue.Portal {
             string[] terms = searchTerm.Split(',');
             bool interval = false;
             string cl = null, cr = null, cn = null, ln = null;
-            for (int i = 0; i < terms.Length; i++) {
-                match = Regex.Match(terms[i], @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
+            foreach (string t in terms) {
+                string term = t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
+                match = Regex.Match(term, @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
                 if (!match.Success) continue;
 
                 // Check for ISO 8601 interval slash syntax (1) or mathematcial interval syntax (2)
@@ -1936,7 +1949,7 @@ namespace Terradue.Portal {
 
                     if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
                     else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                    else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
+                    else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
                     else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
                     else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
 
