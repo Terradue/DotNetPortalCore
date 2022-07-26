@@ -798,7 +798,7 @@ namespace Terradue.Portal {
             int oldUserId = 0;
             if (UserInformation != null && HttpContext.Current != null) {
                 oldUserId = UserInformation.UserId;
-                authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
+                // authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
             }
 
             SetUserInformation(null, null);
@@ -808,13 +808,18 @@ namespace Terradue.Portal {
                     if (User.ProfileExtension != null) User.ProfileExtension.OnSessionEnded(this, User.FromId(this, oldUserId), HttpContext.Current.Request);
                 }
             }
-            //if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
+            if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
 
-            if (authenticationTypes != null) {
-                foreach (AuthenticationType authenticationType in authenticationTypes) {
-                    if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
-                }
+            if (!string.IsNullOrEmpty(UserInformation.AuthIdentifier)){
+                var authenticationType = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
+                if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
             }
+
+            // if (authenticationTypes != null) {
+            //     foreach (AuthenticationType authenticationType in authenticationTypes) {
+            //         if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+            //     }
+            // }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1081,9 +1086,12 @@ namespace Terradue.Portal {
 
         public virtual void Redirect(string url, bool format, bool privileges) {
             char separator = (url.IndexOf('?') == -1 ? '?' : '&');
-            if (privileges && UserInformation != null && UserInformation.AuthenticationType is SessionlessAuthenticationType) {
-                url += separator + "_user=" + UserId;
-                separator = '&';
+            if (!string.IsNullOrEmpty(this.UserInformation.AuthIdentifier)){
+                var auth = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
+                if (privileges && UserInformation != null && auth is SessionlessAuthenticationType) {
+                    url += separator + "_user=" + UserId;
+                    separator = '&';
+                }
             }
             if (format && Format != null) url += separator + FormatParameterName + "=" + Format;
             HttpContext.Current.Response.Redirect(url, false);

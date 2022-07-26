@@ -793,10 +793,12 @@ namespace Terradue.Portal {
 
 
 
+    [Serializable]
     public class UserInformation {
 
-        public AuthenticationType AuthenticationType { get; protected set; }
-        public List<AuthenticationType> AllAuthenticationTypes { get; protected set; }
+        // public AuthenticationType AuthenticationType { get; protected set; }
+        // public List<AuthenticationType> AllAuthenticationTypes { get; protected set; }
+        public string AuthIdentifier { get; protected set; }
         public DateTime NextSessionRefreshTime { get; protected set; }
         public string ExternalUsername { get; protected set; }
         public bool NeedsEmailConfirmation { get; protected set; }
@@ -812,14 +814,14 @@ namespace Terradue.Portal {
         //HttpContext.Current.Session["Credits"] = AvailableCredits;
         //HttpContext.Current.Session["RemainingProxyTime"] = RemainingProxyTime;
 
+        public UserInformation(){}
         public UserInformation(AuthenticationType authenticationType, User user) {
-            if (user == null) throw new ArgumentNullException("user", "User cannot be null");
-            this.AuthenticationType = authenticationType;
+            if (user == null) throw new ArgumentNullException("user", "User cannot be null");            
             this.OriginalUserId = user.Id;
             Update(authenticationType, user);
         }
 
-        public void Update(AuthenticationType authenticationType, User user) {
+        public void Update(AuthenticationType authenticationType, User user) {            
             UserId = user.Id;
             UserLevel = user.Level;
             UserDebugLevel = user.DebugLevel;
@@ -828,10 +830,11 @@ namespace Terradue.Portal {
             UserTimeZone = user.TimeZone;
             PasswordExpired = user.PasswordExpired;
             ExternalUsername = user.Username;
-            NeedsEmailConfirmation = user.NeedsEmailConfirmation;
+            NeedsEmailConfirmation = user.NeedsEmailConfirmation;            
             if (authenticationType != null) {
-                if (AllAuthenticationTypes == null) AllAuthenticationTypes = new List<AuthenticationType>();
-                if (!AllAuthenticationTypes.Contains(authenticationType)) AllAuthenticationTypes.Add(authenticationType);
+                this.AuthIdentifier = authenticationType.Identifier;
+            //  if (AllAuthenticationTypes == null) AllAuthenticationTypes = new List<AuthenticationType>();
+            //  if (!AllAuthenticationTypes.Contains(authenticationType)) AllAuthenticationTypes.Add(authenticationType);
             }
         }
 
