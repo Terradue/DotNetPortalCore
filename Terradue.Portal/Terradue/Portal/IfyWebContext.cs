@@ -794,7 +794,7 @@ namespace Terradue.Portal {
 
         /// <summary>Ends the current HTTP session.</summary>
         public void EndSession() {
-            AuthenticationType[] authenticationTypes = null;
+            // AuthenticationType[] authenticationTypes = null;
             int oldUserId = 0;
             if (UserInformation != null && HttpContext.Current != null) {
                 oldUserId = UserInformation.UserId;
@@ -810,7 +810,7 @@ namespace Terradue.Portal {
             }
             if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
 
-            if (!string.IsNullOrEmpty(UserInformation.AuthIdentifier)){
+            if (UserInformation != null && !string.IsNullOrEmpty(UserInformation.AuthIdentifier)){
                 var authenticationType = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
                 if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
             }
@@ -1086,7 +1086,7 @@ namespace Terradue.Portal {
 
         public virtual void Redirect(string url, bool format, bool privileges) {
             char separator = (url.IndexOf('?') == -1 ? '?' : '&');
-            if (!string.IsNullOrEmpty(this.UserInformation.AuthIdentifier)){
+            if (this.UserInformation != null && !string.IsNullOrEmpty(this.UserInformation.AuthIdentifier)){
                 var auth = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
                 if (privileges && UserInformation != null && auth is SessionlessAuthenticationType) {
                     url += separator + "_user=" + UserId;
