@@ -489,10 +489,10 @@ namespace Terradue.Portal {
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
             if (!string.IsNullOrEmpty(this.TutorialUrl)) {
-                entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "tutorial", null, null, 0));
+                entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "tutorial", "Service tutorial", "text/html", 0));
             }
             if (!string.IsNullOrEmpty(this.SpecUrl)) {
-                entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "specification", null, null, 0));
+                entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "specification", "Service specification", "text/html", 0));
             }
             
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
