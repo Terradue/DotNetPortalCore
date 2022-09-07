@@ -195,6 +195,26 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Service tutorial URL.
+        /// </summary>
+        /// <value>The tutorial URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("tutorial_url")]
+        public string TutorialUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Service spec URL.
+        /// </summary>
+        /// <value>The spec URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("spec_url")]
+        public string SpecUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Service Terms and Conditions URL.
         /// </summary>
         /// <value>The Terms and Conditions URL.</value>

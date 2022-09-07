@@ -431,7 +431,8 @@ namespace Terradue.Portal {
                 var valUrl = context.BaseUrl + "/" + entityType.Keyword + "/" + this.Identifier + "/validate";
                 operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcess", Href = valUrl });
                 if (context.UserLevel == UserLevel.Administrator) operations.Add(new OwcOperation { Method = "POST", Code = "ValidateProcessRemote", Href = this.ValidationUrl });
-            }            
+            }     
+            
             if (!string.IsNullOrEmpty(this.TermsConditionsUrl) || !string.IsNullOrEmpty(this.TermsConditionsText)) {
                 var any = new List<System.Xml.XmlElement>();
                 var doc = new System.Xml.XmlDocument();
@@ -486,6 +487,12 @@ namespace Terradue.Portal {
 
             if (!string.IsNullOrEmpty(this.IconUrl)) {
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
+            }
+            if (!string.IsNullOrEmpty(this.TutorialUrl)) {
+                entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "tutorial", null, null, 0));
+            }
+            if (!string.IsNullOrEmpty(this.SpecUrl)) {
+                entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "specification", null, null, 0));
             }
             
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
