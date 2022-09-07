@@ -1,4 +1,4 @@
--- VERSION 2.7.21
+-- VERSION 2.7.22
 
 USE $MAIN$;
 
@@ -1858,6 +1858,8 @@ CREATE TABLE service (
     url varchar(400) NOT NULL COMMENT 'Access point of service (relative URL)',
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     validation_url varchar(200) COMMENT 'service validation url',
+    tutorial_url varchar(200) COMMENT 'service tutorial url',
+    spec_url varchar(200) COMMENT 'service spec url',
     termsconditions_url varchar(200) COMMENT 'service termsconditions url',
     termsconditions_text text COMMENT 'service termsconditions text',
     view_url varchar(200) COMMENT 'View URL',
