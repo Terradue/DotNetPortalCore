@@ -136,19 +136,26 @@ namespace Terradue.Portal {
             ProcessDescriptions describeProcess = null;
 
             //call describe url
-            using (HttpWebResponse describeResponse = (HttpWebResponse)describeHttpRequest.GetResponse ()) {
-                using (var memStream = new MemoryStream ()) {
-                    describeResponse.GetResponseStream ().CopyTo (memStream);
-                    memStream.Seek (0, SeekOrigin.Begin);
-                    if (describeResponse.StatusCode != HttpStatusCode.OK) {
-                        using (StreamReader reader = new StreamReader (memStream)) {
-                            string errormsg = reader.ReadToEnd ();
-                            log.Error (errormsg);
-                            throw new Exception (errormsg);//TEMPORARY - 52 North bug
+            using (var memStream = new MemoryStream ()) {
+                describeProcess = System.Threading.Tasks.Task.Factory.FromAsync<WebResponse>(describeHttpRequest.BeginGetResponse,describeHttpRequest.EndGetResponse,null)
+                .ContinueWith(task =>
+                {
+                    var httpResponse = (HttpWebResponse)task.Result;
+                    try{
+                        httpResponse.GetResponseStream ().CopyTo (memStream);
+                        memStream.Seek (0, SeekOrigin.Begin);
+                        if (httpResponse.StatusCode != HttpStatusCode.OK) {
+                            using (StreamReader reader = new StreamReader (memStream)) {
+                                string errormsg = reader.ReadToEnd ();
+                                log.Error (errormsg);
+                                throw new Exception (errormsg);//TEMPORARY - 52 North bug
+                            }
                         }
-                    }
-                    describeProcess = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (memStream);
-                }
+                        return (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (memStream);
+                    } catch (Exception e) {
+                        throw e;
+                    }                    
+                }).ConfigureAwait(false).GetAwaiter().GetResult();                    
             }
             return describeProcess;
         }
@@ -218,47 +225,44 @@ namespace Terradue.Portal {
             //We first validate that the user can use the service
             if (!CanUse) throw new Exception("The current user is not allowed to Execute on the service " + Name);
 
-            OpenGis.Wps.ExecuteResponse execResponse = null;
-            MemoryStream memStream = new MemoryStream();
-            try {
-                using (var executeResponse = (HttpWebResponse)executeHttpRequest.GetResponse()) {
-                    using (var stream = executeResponse.GetResponseStream()) {
-                        stream.CopyTo(memStream);
-                    }
-                    memStream.Seek(0, SeekOrigin.Begin);
-                    var reader = new StreamReader(memStream);
-                    string textResponse = reader.ReadToEnd();
-                    log.Debug("Execute response : " + textResponse);
-
-                    if (executeResponse.StatusCode != HttpStatusCode.OK) {
-                        log.Debug("Execute response code : " + executeResponse.StatusCode);
-                        return ExecuteError(memStream);
-                    }
-                }
-
-                memStream.Seek(0, SeekOrigin.Begin);
-                execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
-                return execResponse;
-            } catch (WebException we) {
-                if (we.Response == null) throw new Exception(we.Message);
-                using (WebResponse response = we.Response) {
-                    using (var httpResponse = (HttpWebResponse)response) {
-                        using (var stream = httpResponse.GetResponseStream()) {
+            OpenGis.Wps.ExecuteResponse execResponse = null;            
+            using (var memStream = new MemoryStream ()) {
+                try {                
+                    System.Threading.Tasks.Task.Factory.FromAsync<WebResponse>(executeHttpRequest.BeginGetResponse,executeHttpRequest.EndGetResponse,null)
+                    .ContinueWith(task =>
+                    {
+                        var httpResponse = (HttpWebResponse)task.Result;
+                        using (var stream = httpResponse.GetResponseStream()) 
+                        {
                             stream.CopyTo(memStream);
+                            memStream.Seek(0, SeekOrigin.Begin);
+                            var reader = new StreamReader(memStream);
+                            string textResponse = reader.ReadToEnd();
+                            log.Debug("Execute response : " + textResponse);                            
                         }
-                        log.Debug("Execute response code : " + httpResponse.StatusCode);
+                    }).ConfigureAwait(false).GetAwaiter().GetResult();                
+                    memStream.Seek(0, SeekOrigin.Begin);
+                    execResponse = (ExecuteResponse)new System.Xml.Serialization.XmlSerializer(typeof(ExecuteResponse)).Deserialize(memStream);
+                    return execResponse;                
+                } catch (WebException we) {
+                    if (we.Response == null) throw new Exception(we.Message);
+                    using (WebResponse response = we.Response) {
+                        using (var httpResponse = (HttpWebResponse)response) {
+                            using (var stream = httpResponse.GetResponseStream()) {
+                                stream.CopyTo(memStream);
+                            }
+                            log.Debug("Execute response code : " + httpResponse.StatusCode);
+                        }
                     }
+                    return ExecuteError(memStream);
+                } catch (InvalidOperationException ioe) {
+                    log.Error("InvalidOperationException : " + ioe.Message + " - " + ioe.StackTrace);
+                    //bug 52 NORTH - to be removed once AIR updated
+                    return ExecuteError(memStream);
+                } catch (Exception e) {
+                    log.Error("Execute request failed");
+                    throw e;
                 }
-                return ExecuteError(memStream);
-            } catch (InvalidOperationException ioe) {
-                log.Error("InvalidOperationException : " + ioe.Message + " - " + ioe.StackTrace);
-                //bug 52 NORTH - to be removed once AIR updated
-                return ExecuteError(memStream);
-            } catch (Exception e) {
-                log.Error("Execute request failed");
-                throw e;
-            } finally {
-                memStream.Close();
             }
         }
 
