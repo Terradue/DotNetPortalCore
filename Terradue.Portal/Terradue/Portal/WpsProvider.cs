@@ -654,14 +654,24 @@ namespace Terradue.Portal {
                 HttpWebRequest request = CreateWebRequest (uri.Uri.AbsoluteUri);
                 if (!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
-                    using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                        using (var stream = httpResponse.GetResponseStream ()) {
-                            context.LogDebug (this, "GetWPSCapabilities -- deserialize response");
-                            response = (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
-                            context.LogDebug (this, "GetWPSCapabilities -- deserialize response OK");
-                            //GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
+                    response = System.Threading.Tasks.Task.Factory.FromAsync<WebResponse>(request.BeginGetResponse,request.EndGetResponse,null)
+                    .ContinueWith(task =>
+                    {
+                        var httpResponse = (HttpWebResponse)task.Result;
+                        using (var stream = httpResponse.GetResponseStream()) 
+                        {
+                            try {
+                                context.LogDebug (this, "GetWPSCapabilities -- deserialize response");
+                                return (WPSCapabilitiesType)new System.Xml.Serialization.XmlSerializer (typeof (WPSCapabilitiesType)).Deserialize (stream);
+                            } catch (Exception e) {
+                                throw e;
+                            }
                         }
-                    }
+                    }).ConfigureAwait(false).GetAwaiter().GetResult();
+                    
+                    context.LogDebug (this, "GetWPSCapabilities -- deserialize response OK");
+                    //GetCapabilitiesCache.Set (new CacheItem (getCapUrl, response), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
+                    
                 } catch (Exception e) {
                     context.LogError(this, e.Message);
                     throw e;
@@ -696,15 +706,24 @@ namespace Terradue.Portal {
                 HttpWebRequest request = CreateWebRequest (descPUrl);
                 if (!string.IsNullOrEmpty(username)) request.Headers.Set("REMOTE_USER", username);
                 try {
-                    using (var httpResponse = (HttpWebResponse)request.GetResponse ()) {
-                        using (var stream = httpResponse.GetResponseStream ()) {
-                            context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response");
-                            var response = (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
-                            context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response OK");
-                            result = response.ProcessDescription [0];
-                            //DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });
+                    var response = System.Threading.Tasks.Task.Factory.FromAsync<WebResponse>(request.BeginGetResponse,request.EndGetResponse,null)
+                    .ContinueWith(task =>
+                    {
+                        var httpResponse = (HttpWebResponse)task.Result;
+                        using (var stream = httpResponse.GetResponseStream()) 
+                        {
+                            try {
+                                context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response");
+                                return (ProcessDescriptions)new System.Xml.Serialization.XmlSerializer (typeof (ProcessDescriptions)).Deserialize (stream);
+                            } catch (Exception e) {
+                                throw e;
+                            }
                         }
-                    }
+                    }).ConfigureAwait(false).GetAwaiter().GetResult();
+                    
+                    context.LogDebug (this, "GetWPSDescribeProcess -- deserialize response OK");
+                    result = response.ProcessDescription [0];
+                    //DescribeProcessCache.Set (new CacheItem (descPUrl, result), new CacheItemPolicy () { AbsoluteExpiration = DateTimeOffset.Now.AddHours (1) });                    
                 } catch (Exception e) {
                     throw e;
                 }
