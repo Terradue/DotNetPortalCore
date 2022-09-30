@@ -1859,6 +1859,7 @@ CREATE TABLE service (
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     validation_url varchar(200) COMMENT 'service validation url',
     tutorial_url varchar(200) COMMENT 'service tutorial url',
+    media_url varchar(200) COMMENT 'service media url',
     spec_url varchar(200) COMMENT 'service spec url',
     termsconditions_url varchar(200) COMMENT 'service termsconditions url',
     termsconditions_text text COMMENT 'service termsconditions text',
