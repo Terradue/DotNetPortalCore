@@ -205,6 +205,16 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Service media URL.
+        /// </summary>
+        /// <value>The tutorial URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("media_url")]
+        public string MediaUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Service spec URL.
         /// </summary>
         /// <value>The spec URL.</value>
