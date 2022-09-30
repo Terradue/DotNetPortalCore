@@ -495,6 +495,9 @@ namespace Terradue.Portal {
             if (!string.IsNullOrEmpty(this.TutorialUrl)) {
                 entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "alternate", "tutorial", "text/html", 0));
             }
+            if (!string.IsNullOrEmpty(this.MediaUrl)) {
+                entry.Links.Add(new SyndicationLink(new Uri(this.MediaUrl), "alternate", "media", "text/html", 0));
+            }
             if (!string.IsNullOrEmpty(this.SpecUrl)) {
                 entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "alternate", "specification", "text/html", 0));
             }
