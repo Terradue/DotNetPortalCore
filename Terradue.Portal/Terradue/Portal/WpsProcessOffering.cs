@@ -493,13 +493,13 @@ namespace Terradue.Portal {
                 entry.Links.Add(new SyndicationLink(new Uri(this.IconUrl), "icon", null, null, 0));
             }
             if (!string.IsNullOrEmpty(this.TutorialUrl)) {
-                entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "alternate", "tutorial", "text/html", 0));
+                entry.Links.Add(new SyndicationLink(new Uri(this.TutorialUrl), "alternate", "Service tutorial", "text/html", 0));
             }
             if (!string.IsNullOrEmpty(this.MediaUrl)) {
-                entry.Links.Add(new SyndicationLink(new Uri(this.MediaUrl), "alternate", "media", "text/html", 0));
+                entry.Links.Add(new SyndicationLink(new Uri(this.MediaUrl), "alternate", "Video tutorial", "text/html", 0));
             }
             if (!string.IsNullOrEmpty(this.SpecUrl)) {
-                entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "alternate", "specification", "text/html", 0));
+                entry.Links.Add(new SyndicationLink(new Uri(this.SpecUrl), "alternate", "Service specification", "text/html", 0));
             }
             
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
