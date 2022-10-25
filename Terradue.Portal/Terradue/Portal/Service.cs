@@ -249,6 +249,16 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        [EntityDataField("publish_url")]
+        public string PublishUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataField("publish_type")]
+        public string PublishType { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Rating of the service</summary>
         /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
         [EntityDataField("rating")]

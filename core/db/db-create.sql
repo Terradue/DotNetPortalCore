@@ -1,4 +1,4 @@
--- VERSION 2.7.23
+-- VERSION 2.8
 
 USE $MAIN$;
 
@@ -1863,6 +1863,8 @@ CREATE TABLE service (
     spec_url varchar(200) COMMENT 'service spec url',
     termsconditions_url varchar(200) COMMENT 'service termsconditions url',
     termsconditions_text text COMMENT 'service termsconditions text',
+    publish_url varchar(200) COMMENT 'service publish url',
+    publish_type varchar(50) COMMENT 'service publish type',
     view_url varchar(200) COMMENT 'View URL',
     rating tinyint COMMENT 'Rating in stars (0 to 5)',
     all_input boolean COMMENT 'If true, service accepts all non-manual series as input',
