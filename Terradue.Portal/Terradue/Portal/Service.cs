@@ -460,6 +460,67 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public override void Store() {
+            if(!string.IsNullOrEmpty(this.Url)){
+                try{
+                    new Uri(this.Url);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Url");
+                    this.Url = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.IconUrl)){
+                try{
+                    new Uri(this.IconUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Icon Url");
+                    this.IconUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.SpecUrl)){
+                try{
+                    new Uri(this.SpecUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Spec Url");
+                    this.SpecUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.TutorialUrl)){
+                try{
+                    new Uri(this.TutorialUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Tutorial Url");
+                    this.TutorialUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.MediaUrl)){
+                try{
+                    new Uri(this.MediaUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Media Url");
+                    this.MediaUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.PublishUrl)){
+                try{
+                    new Uri(this.PublishUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Publish Url");
+                    this.PublishUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.ValidationUrl)){
+                try{
+                    new Uri(this.ValidationUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Validation Url");
+                    this.ValidationUrl = null;
+                }
+            }
+            base.Store();
+        }
+        //---------------------------------------------------------------------------------------------------------------------
+
         /// <summary>Loads the service information from the database.</summary>
         /// <param name="condition">SQL conditional clause without <c>WHERE</c> keyword</param>
         public override void Load() {
