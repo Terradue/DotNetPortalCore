@@ -6,7 +6,7 @@
     <AssemblyName>Terradue.Portal</AssemblyName>
     <Title>Terradue.Portal</Title>
     <Description>Terradue.Portal is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue portal</Description>
-    <Version>2.13.7</Version>
+    <Version>2.13.8</Version>
     <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
