@@ -507,7 +507,7 @@ namespace Terradue.Portal {
             }
             
             if (!string.IsNullOrEmpty(this.PublishType)) {
-                entry.Categories.Add(new SyndicationCategory(this.PublishType, "", "publish"));
+                entry.Categories.Add(new SyndicationCategory("publish", null, this.PublishType));
             }
 
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("box", "http://www.georss.org/georss", this.Geometry);
