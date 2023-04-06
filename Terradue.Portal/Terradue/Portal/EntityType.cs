@@ -1226,7 +1226,7 @@ namespace Terradue.Portal {
                         string searchTerm = searchValue as string;
 
                         if (field.Property.PropertyType == typeof(string)) {
-                            subCondition = GetStringConditionSql(fieldExpression, searchTerm);
+                            subCondition = GetStringConditionSql(fieldExpression, searchTerm, field.MustMatchAllFilterValues);
                         } else if (field.Property.PropertyType == typeof(bool)) {
                             if (String.IsNullOrEmpty(searchTerm)) continue;
                             subCondition = searchTerm.ToLower();
@@ -1716,10 +1716,13 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string that can consist of several string values and takes also into account wildcard characters.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain wildcards such as <em>*</em> or <em>?</em>.</param>
-        public static string GetStringConditionSql(string name, string searchTerm) {
+        /// <param name="mustMatchAll">Whether or not all (comma-separated) search values must be matched.</param>
+        public static string GetStringConditionSql(string expression, string searchTerm, bool mustMatchAll = false) {
             if (searchTerm == null) return null;
+
+            if (mustMatchAll) expression = String.Format("CONCAT(',', {0}, ',')", expression);
 
             string result = String.Empty, exclude = String.Empty;
 
@@ -1732,7 +1735,7 @@ namespace Terradue.Portal {
             bool interval = false, like;
             string cl = null, cr = null, cn = null;
             foreach (string t in terms) {
-                string term = t;
+                string term = mustMatchAll ? String.Format("*,{0},*", t) : t;
                 bool negate = (term.Length != 0 && term[0] == '!');
                 if (negate) term = term.Substring(1);
 
@@ -1792,10 +1795,10 @@ namespace Terradue.Portal {
 
                 cn = String.Format("'{0}'", cn.Replace("'", "''"));
 
-                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
-                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, like ? " LIKE " : "=", cn);
+                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", expression, like ? " NOT LIKE " : "!=", cn);
+                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : mustMatchAll ? " AND " : " OR ", expression, like ? " LIKE " : "=", cn);
 
                 interval = (!like && cl != String.Empty && cr == String.Empty);
             }
@@ -1809,9 +1812,9 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string related to a numeric search.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
-        public static string GetNumericConditionSql(string name, string searchTerm) {
+        public static string GetNumericConditionSql(string expression, string searchTerm) {
             if (searchTerm == null) return null;
 
             string result = String.Empty, exclude = String.Empty;
@@ -1839,10 +1842,10 @@ namespace Terradue.Portal {
                 if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
                 if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
 
-                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
-                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
+                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", expression, cn);
+                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", expression, cn);
 
                 interval = (cl != String.Empty && cr == String.Empty);
             }
@@ -1856,13 +1859,13 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string related to a temporal search.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple numeric values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
         public static string GetDateTimeConditionSql(string expression, string value) {
             return GetDateTimeConditionSql(expression, value, TimeZoneInfo.Utc);
         }
 
-        public static string GetDateTimeConditionSql(string name, string searchTerm, TimeZoneInfo timeZoneInfo) {
+        public static string GetDateTimeConditionSql(string expression, string searchTerm, TimeZoneInfo timeZoneInfo) {
             if (searchTerm == null) return null;
 
             string result = String.Empty, exclude = String.Empty;
@@ -1917,7 +1920,7 @@ namespace Terradue.Portal {
 
                     //if (dt.TimeOfDay.TotalSeconds == 0) dt = dt.Add(new TimeSpan(1, 0, 0, 0));
                     cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
-                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", expression, ln, cn);
 
                     interval = false;
 
@@ -1947,11 +1950,11 @@ namespace Terradue.Portal {
                     }
                     cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
 
-                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                    else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
-                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
-                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                    else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", expression, ln, cn);
+                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", expression, cn);
+                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", expression, ln, cn);
 
                     interval = (cl != String.Empty && cr == String.Empty);
                 }
@@ -2253,6 +2256,7 @@ namespace Terradue.Portal {
         public bool IsReadOnly { get; protected set; }
         public bool IsForeignKey { get; protected set; }
         public bool IsUsedInKeywordSearch { get; protected set; }
+        public bool MustMatchAllFilterValues { get; protected set; }
         public object NullValue { get; protected set; }
         public object IgnoreValue { get; protected set; }
         public Type UnderlyingType { get; protected set; }
@@ -2284,6 +2288,7 @@ namespace Terradue.Portal {
             this.IsReadOnly = attribute.IsReadOnly;
             this.IsForeignKey = attribute.IsForeignKey;
             this.IsUsedInKeywordSearch = attribute.IsUsedInKeywordSearch;
+            this.MustMatchAllFilterValues = attribute.MustMatchAllFilterValues;
             Type type = @property.PropertyType;
             if (attribute.NullValue != null) this.NullValue = attribute.NullValue;
             else if (this.IsForeignKey) this.NullValue = 0;
