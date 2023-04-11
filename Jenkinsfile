@@ -20,9 +20,15 @@ pipeline {
         stage("Build & Test") {
           steps {
             echo "Build .NET application"
-            sh "dotnet nuget add source https://repository.terradue.com/artifactory/api/nuget/nuget-release --name t2 --username jenkins --password ${env.JENKINS_API_TOKEN} --store-password-in-clear-text"
-            sh "dotnet restore ./"
-            sh "dotnet build -c ${env.CONFIGURATION} --no-restore ./"
+            sh "dotnet nuget add source https://repository.terradue.com/artifactory/api/nuget/nuget-release --name t2 --username jenkins --password ${env.JENKINS_API_TOKEN} --store-password-in-clear-text"            
+            // sh "dotnet restore ./"
+            // sh "dotnet restore Terradue.Cloud/Terradue.Cloud.csproj"
+            // sh "dotnet restore Terradue.News/Terradue.News.csproj"
+            // sh "dotnet restore Terradue.Authentication/Terradue.Authentication.csproj"
+            // sh "dotnet build -c ${env.CONFIGURATION} --no-restore ./"
+            // sh "dotnet test -c ${env.CONFIGURATION} --no-build --no-restore ./"
+            sh "dotnet restore Terradue.Portal/Terradue.Portal.csproj"
+            sh "dotnet build -c ${env.CONFIGURATION} --no-restore Terradue.Portal"
             sh "dotnet test -c ${env.CONFIGURATION} --no-build --no-restore ./"
           }
         }
@@ -33,9 +39,9 @@ pipeline {
           steps {
             withCredentials([string(credentialsId: 'nuget_token', variable: 'NUGET_TOKEN')]) {
               sh "dotnet pack Terradue.Portal/Terradue.Portal.csproj -c ${env.CONFIGURATION} -o publish"
-              sh "dotnet pack Terradue.Cloud/Terradue.Cloud.csproj -c ${env.CONFIGURATION} -o publish"
-              sh "dotnet pack Terradue.News/Terradue.News.csproj -c ${env.CONFIGURATION} -o publish"
-              sh "dotnet pack Terradue.Authentication/Terradue.Authentication.csproj -c ${env.CONFIGURATION} -o publish"
+              // sh "dotnet pack Terradue.Cloud/Terradue.Cloud.csproj -c ${env.CONFIGURATION} -o publish"
+              // sh "dotnet pack Terradue.News/Terradue.News.csproj -c ${env.CONFIGURATION} -o publish"
+              // sh "dotnet pack Terradue.Authentication/Terradue.Authentication.csproj -c ${env.CONFIGURATION} -o publish"
               sh "dotnet nuget push publish/*.nupkg --skip-duplicate -k $NUGET_TOKEN -s https://api.nuget.org/v3/index.json"
             }
           }
