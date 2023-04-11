@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Portal", "Terradue.Portal\Terradue.Portal.csproj", "{2E8D7875-8347-4205-936B-F1BBA2164D87}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terradue.Portal.Test", "Terradue.Portal.Test\Terradue.Portal.Test.csproj", "{2D6E8E65-990D-48C5-8F3D-84DF6F0BB84E}"
@@ -55,24 +55,5 @@ Global
 		{B2199E82-A885-4377-8FA5-1043366EB735}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2199E82-A885-4377-8FA5-1043366EB735}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.TextStylePolicy = $1
-		$1.FileWidth = 120
-		$1.NoTabsAfterNonTabs = True
-		$1.inheritsSet = VisualStudio
-		$1.inheritsScope = text/plain
-		$1.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $2
-		$2.NewLinesForBracesInTypes = False
-		$2.NewLinesForBracesInMethods = False
-		$2.SpacingAfterMethodDeclarationName = False
-		$2.SpaceAfterMethodCallName = False
-		$2.SpaceBeforeOpenSquareBracket = False
-		$2.inheritsSet = Mono
-		$2.inheritsScope = text/x-csharp
-		$2.scope = text/x-csharp
-		$2.IndentSwitchSection = True
-	EndGlobalSection
+	EndGlobalSection	
 EndGlobal
