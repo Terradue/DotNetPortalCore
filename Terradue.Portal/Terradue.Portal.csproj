@@ -4,21 +4,17 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Terradue.Portal</RootNamespace>
     <AssemblyName>Terradue.Portal</AssemblyName>
-    <Title>Terradue.Portal</Title>
-    <Description>Terradue.Portal is a library targeting .NET 4.0 and above that provides core interfaces and classes of Terradue portal</Description>
-    <Version>2.13.9</Version>
-    <_ExtraTargetFrameworks Condition="'$(OS)' == 'Windows_NT' or '$(MSBuildRuntimeType)' == 'Mono'">net472</_ExtraTargetFrameworks>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks);$(_ExtraTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net472</TargetFrameworks>
     <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
-    <Authors>Emmanuel Mathot</Authors>
+    <Authors>Enguerran Boissier</Authors>
     <Company>Terradue</Company>
     <PackageTags>Terradue;Portal</PackageTags>
     <PackageOutputPath>$(SolutionDir)\build</PackageOutputPath>
     <RestorePackagesPath>$(SolutionDir)\packages</RestorePackagesPath>
-    <RepositoryUrl>https://github.com/Terradue/DotNetPortalCore</RepositoryUrl>
     <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <Version>2.14.0</Version>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+  <ItemGroup>
     <Reference Include="System"/>
     <Reference Include="System.Data"/>
     <Reference Include="System.Web"/>
