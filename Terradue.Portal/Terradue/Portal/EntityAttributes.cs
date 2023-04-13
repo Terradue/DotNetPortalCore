@@ -451,6 +451,11 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Indicates or determines whether the field can contain multiple comma-separated values and a multiple-value filter search must match all included values.</summary>
+        public bool MustMatchAllFilterValues { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityDataFieldAttribute(string name) {
             this.Name = name;
             if (this.Name == null) this.IsReadOnly = true;

@@ -127,7 +127,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// The tags used to describe and filter the service.
         /// </summary>
-        [EntityDataField ("tags")]
+        [EntityDataField("tags", MustMatchAllFilterValues = true)]
         public string Tags { get; set; }
 
         /// <summary>
@@ -839,14 +839,13 @@ namespace Terradue.Portal {
         #region IEntitySearchable implementation
         public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
-            case "tag":
-                    if (string.IsNullOrEmpty(value)) return base.GetFilterForParameter(parameter, value);
-                    var tags = value.Split(",".ToArray());
-                    if (tags.Length == 1) {
+                case "tag":
+                    return new KeyValuePair<string, string>("Tags", value);
+
+                    /*if (tags.Length == 1) {
                         var result = new string[] { value, value + "\\,*", "*\\," + value, "*\\," + value + "\\,*" };
                         return new KeyValuePair<string, string[]>("Tags", result);
                     } else if (tags.Length > 1) {
-
                         var tags2 = tags.ToList();
                         var p = GetPermutations(tags2, tags.Count());
                         var allPermutations = p.Select(subset => string.Join("\\,", subset.Select(t => t).ToArray())).ToList();
@@ -867,7 +866,8 @@ namespace Terradue.Portal {
 
                         return new KeyValuePair<string, string[]>("Tags", finalAllPermutations.ToArray());
                     }
-                    return base.GetFilterForParameter(parameter, value);
+                    return base.GetFilterForParameter(parameter, value);*/
+
                 default:
                 return base.GetFilterForParameter(parameter, value);
             }
