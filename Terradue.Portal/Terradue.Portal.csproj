@@ -38,8 +38,9 @@
     <PackageReference Include="Terradue.Metadata.EarthObservation" Version="1.6.7"/>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(SolutionDir)/core/**/*" PackagePath="content/core" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.AdminTool/bin/*/net472/Terradue.Portal.AdminTool.exe" PackagePath="lib/net472/Terradue.Portal.AdminTool.exe" Pack="true" />
-    <None Include="$(SolutionDir)/Terradue.Portal.Agent/bin/*/net472/Terradue.Portal.Agent.exe" PackagePath="lib/net472/Terradue.Portal.Agent.exe" Pack="true" />
+    <!-- <None Include="$(SolutionDir)/core/**/*" PackagePath="content/core" Pack="true" /> -->
+    <None Include="$(ProjectDir)..\core\**\*" PackagePath="content/core" Pack="true"/>
+    <None Include="$(ProjectDir)..\Terradue.Portal.AdminTool\bin\*\net472\Terradue.Portal.AdminTool.exe" PackagePath="lib/net472/Terradue.Portal.AdminTool.exe" Pack="true" />
+    <None Include="$(ProjectDir)..\Terradue.Portal.Agent\bin\*\net472\Terradue.Portal.Agent.exe" PackagePath="lib/net472/Terradue.Portal.Agent.exe" Pack="true" />
   </ItemGroup>
 </Project>

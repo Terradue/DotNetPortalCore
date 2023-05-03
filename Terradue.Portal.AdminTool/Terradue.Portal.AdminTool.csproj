@@ -3,13 +3,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Terradue.OpenSearch</RootNamespace>
-    <AssemblyName>Terradue.Portal.AdminTool</AssemblyName>    
+    <AssemblyName>Terradue.Portal.AdminTool</AssemblyName>  
+    <TargetFrameworks>net472</TargetFrameworks>
+    <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>  
     <Version>1.5</Version>
     <Authors>Emmanuel Mathot</Authors>
     <Company>Terradue</Company>
-    <RepositoryUrl>https://github.com/Terradue/DotNetOpenSearch</RepositoryUrl>
     <PackageTags>OGC;Terradue;Opensearch</PackageTags>
     <PackageOutputPath>$(SolutionDir)\build</PackageOutputPath>
+    <RestorePackagesPath>$(SolutionDir)\packages</RestorePackagesPath>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
