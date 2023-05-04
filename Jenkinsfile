@@ -27,8 +27,10 @@ pipeline {
             // sh "dotnet restore Terradue.Authentication/Terradue.Authentication.csproj"
             // sh "dotnet build -c ${env.CONFIGURATION} --no-restore ./"
             // sh "dotnet test -c ${env.CONFIGURATION} --no-build --no-restore ./"
-            sh "dotnet restore Terradue.Portal/Terradue.Portal.csproj"
-            sh "dotnet build -c ${env.CONFIGURATION} --no-restore Terradue.Portal"
+            // sh "dotnet restore Terradue.Portal/Terradue.Portal.csproj"
+            sh "dotnet build -c ${env.CONFIGURATION} Terradue.Portal.AdminTool"
+            sh "dotnet build -c ${env.CONFIGURATION} Terradue.Portal.Agent"
+            sh "dotnet build -c ${env.CONFIGURATION} Terradue.Portal"
             sh "dotnet test -c ${env.CONFIGURATION} --no-build --no-restore ./"
           }
         }
