@@ -272,6 +272,18 @@ namespace Terradue.Portal {
             return AccountStatusType.Disabled;
         }
 
+        /// <summary>
+        /// Returns the username associated to a given user for this authentication type
+        /// </summary>
+        /// <param name="id_usr"></param>
+        /// <returns></returns>
+        public virtual string GetUsername(int id_usr){
+            return context.GetQueryStringValue(string.Format("SELECT username FROM usr_auth WHERE id_auth={1} AND id_usr={0};", 
+                    id_usr, 
+                    this.Id
+            ));
+        }
+
     }
     
 
