@@ -65,6 +65,8 @@ namespace Terradue.Portal.Urf {
         [DataMember]
         public double Credit { get; set; }
         [DataMember]
+        public bool NegativeCredit { get; set; }
+        [DataMember]
         public string PurchaseAction { get; set; }
         [DataMember]
         public string ServiceType { get; set; }
