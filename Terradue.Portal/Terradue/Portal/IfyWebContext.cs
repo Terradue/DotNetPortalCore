@@ -884,9 +884,11 @@ namespace Terradue.Portal {
         /// <returns><b>true</b> if a session is active.</returns>
         public bool CheckUserSession() {
             if (HttpContext.Current.Session == null) {
+                this.LogError(this, "CheckUserSession - The current context session is null");
                 throw new NullReferenceException("The current context session is null");
             } else {
                 UserInformation = HttpContext.Current.Session["user"] as UserInformation;
+                this.LogDebug(this, "CheckUserSession - user session is " + (UserInformation == null ? "null" : "not null"));
                 if (UserInformation == null) return false;
                 SetUserFields();
                 return true;
