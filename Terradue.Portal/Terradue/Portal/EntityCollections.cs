@@ -805,7 +805,7 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         private AtomFeed GenerateSyndicationFeed(NameValueCollection parameters) {
-            context.LogDebug(this, "GenerateSyndicationFeed 1");
+            // context.LogDebug(this, "GenerateSyndicationFeed 1");
             if (this.Identifier == null) this.Identifier = entityType.Keyword;
             UriBuilder myUrl = new UriBuilder(context.BaseUrl + "/" + this.Identifier);
             string[] queryString = Array.ConvertAll(parameters.AllKeys, key => String.Format("{0}={1}", key, parameters[key]));
@@ -912,9 +912,9 @@ namespace Terradue.Portal {
                     }
                 }
             }
-            context.LogDebug(this, "GenerateSyndicationFeed 2");
+            // context.LogDebug(this, "GenerateSyndicationFeed 2");
                 this.Load();
-            context.LogDebug(this, "GenerateSyndicationFeed 3");
+            // context.LogDebug(this, "GenerateSyndicationFeed 3");
 
             foreach (T s in Items) {
 
@@ -947,7 +947,7 @@ namespace Terradue.Portal {
                     items.Add(entry);
                 }
             }
-            context.LogDebug(this, "GenerateSyndicationFeed 4");
+            // context.LogDebug(this, "GenerateSyndicationFeed 4");
 
             // Load all avaialable Datasets according to the context
 
@@ -963,7 +963,7 @@ namespace Terradue.Portal {
                     feed.TotalResults = items.Count;
                 }
             }
-context.LogDebug(this, "GenerateSyndicationFeed 5");
+// context.LogDebug(this, "GenerateSyndicationFeed 5");
             return feed;
 
         }
