@@ -4,6 +4,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Terradue.Portal.Test</RootNamespace>
     <AssemblyName>Terradue.Portal.Test</AssemblyName>    
+    <TargetFrameworks>net472</TargetFrameworks>
+    <RuntimeIdentifiers>win;linux</RuntimeIdentifiers>
+    <Authors>Enguerran Boissier</Authors>
+    <Company>Terradue</Company>    
     <IsPackable>false</IsPackable>
     <RestorePackagesPath>$(SolutionDir)\packages</RestorePackagesPath>
     <NoWarn>$(NoWarn);NU1605</NoWarn>
