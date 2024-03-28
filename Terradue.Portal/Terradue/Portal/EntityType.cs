@@ -121,6 +121,11 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Indicates or determines whether entities of this type can be assigned to additional dommains beside their owning domain.</summary>
+        public bool CanHaveMultipleDomains { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
         /// <summary>Gets the singular caption of the entity type.</summary>
         /// \ingroup Persistence
         public string SingularCaption {
@@ -255,7 +260,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : this(null as IfyContext) {
+        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, bool canHaveMultipleDomains, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : this(null as IfyContext) {
             if (IfyContext.DefaultConsoleDebug) Console.WriteLine("NEW ENTITY TYPE {0}", className);
             this.Id = id;
             this.PersistentTypeId = id;
@@ -275,6 +280,7 @@ namespace Terradue.Portal {
 
             if (invalid) throw new Exception("Invalid entity type");
             
+            this.CanHaveMultipleDomains = canHaveMultipleDomains;
             this.SingularCaption = singularCaption;
             this.PluralCaption = pluralCaption;
             this.Keyword = keyword;
@@ -346,7 +352,7 @@ namespace Terradue.Portal {
 
         public static void LoadEntityTypes(IfyContext context) {
             entityTypes.Clear();
-            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.id_super, t.pos;");
+            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.multi_domain, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.id_super, t.pos;");
             while (reader.Read()) {
                 string typeStr = context.GetValue(reader, 2);
                 Type type = Type.GetType(typeStr);
@@ -361,10 +367,11 @@ namespace Terradue.Portal {
                         context.GetValue(reader, 2),
                         context.GetValue(reader, 3),
                         context.GetValue(reader, 4),
-                        context.GetValue(reader, 5),
+                        context.GetBooleanValue(reader, 5),
                         context.GetValue(reader, 6),
                         context.GetValue(reader, 7),
-                        context.GetBooleanValue(reader, 8)
+                        context.GetValue(reader, 8),
+                        context.GetBooleanValue(reader, 9)
                 );
             }
             reader.Close();
