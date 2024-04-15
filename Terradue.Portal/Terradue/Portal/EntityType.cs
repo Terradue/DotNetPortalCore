@@ -334,6 +334,7 @@ namespace Terradue.Portal {
             TopTypeId = source.TopTypeId;
             if (PersistentTypeId == 0) PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;
+            CanHaveMultipleDomains = source.CanHaveMultipleDomains;
             TopTable = source.TopTable;
             PermissionSubjectTable = source.PermissionSubjectTable;
             HasMultipleTables = source.HasMultipleTables;
@@ -361,18 +362,25 @@ namespace Terradue.Portal {
                     /*reader.Close();
                     throw new Exception(String.Format("Entity type not found: {0}", typeStr));*/
                 }
+                string customClass = context.GetValue(reader, 4);
                 entityTypes[type] = new EntityType(
                         context.GetIntegerValue(reader, 0),
                         context.GetIntegerValue(reader, 1),
                         context.GetValue(reader, 2),
                         context.GetValue(reader, 3),
-                        context.GetValue(reader, 4),
+                        customClass,
                         context.GetBooleanValue(reader, 5),
                         context.GetValue(reader, 6),
                         context.GetValue(reader, 7),
                         context.GetValue(reader, 8),
                         context.GetBooleanValue(reader, 9)
                 );
+
+                if (customClass != null)
+                {
+                    Type customType = Type.GetType(customClass);
+                    if (type != null) entityTypes[customType] = entityTypes[type];
+                }
             }
             reader.Close();
         }
@@ -868,7 +876,7 @@ namespace Terradue.Portal {
 
             // Add GROUP BY aggregation if necessary
             string aggregationSql = null;
-            if (HasPermissionManagement) {
+            if (CanHaveMultipleDomains || HasPermissionManagement) {
                 aggregationSql = String.Format(" GROUP BY t.id{0}", GetVisibilityAggregationClause(visibility, accessLevel, list));
             } else {
                 aggregationSql = String.Empty;
@@ -900,11 +908,18 @@ namespace Terradue.Portal {
                     // some domains (partly authorised) -> if entity can be assigned to domains: filter result by domains in domainIds, otherwise: select grant value according to items' domains (or true in case of list, because list already filters)
                     // NULL domain (globally authorised) -> no domain filtering in query
 
-                    string domainMatchSql = TopTable.HasDomainReference && domainIds != null && domainIds.Length != 0 ? String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds)) : null; 
-
                     if (domainIds != null) {
-                        if (domainIds.Length == 0 || !TopTable.HasDomainReference) grantSelectSql = ", false";
-                        else if (TopTable.HasDomainReference) grantSelectSql = String.Format(", {0}", domainMatchSql);
+                        if (domainIds.Length == 0 || !TopTable.HasDomainReference) {
+                            grantSelectSql = ", false";
+                        } else if (TopTable.HasDomainReference || CanHaveMultipleDomains) {
+                            string domainMatchSql;
+                            if (CanHaveMultipleDomains) {
+                                domainMatchSql = String.Format("MAX(da.id_domain IN ({1}))", TopTable.DomainReferenceField, String.Join(",", domainIds));
+                            } else {
+                                domainMatchSql = String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds));
+                            }
+                            grantSelectSql = String.Format(", {0}", domainMatchSql);
+                        }
                     }
                 }
             }
@@ -970,6 +985,8 @@ namespace Terradue.Portal {
 
             // no result-limiting HAVING clause with administrator access or when single item is to be loaded (if unauthorized, exception is raised later)
             if (accessLevel == EntityAccessLevel.Administrator || !list) return String.Empty;
+
+            if (accessLevel == EntityAccessLevel.Privilege && !HasPermissionManagement) return " HAVING _grant";
 
             string result = " HAVING ";
             if ((visibility & EntityItemVisibility.All) == EntityItemVisibility.All) {
@@ -1616,7 +1633,7 @@ namespace Terradue.Portal {
             //bool restrictedList = list && context.RestrictedMode;
             //bool includePrivileges = !context.AdminMode && TopTable.HasPermissionManagement;
             //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
-            bool distinct = false;
+            //bool distinct = false;
 
             // Build join
             int permissionSubjectTableIndex = -1;
@@ -1659,11 +1676,19 @@ namespace Terradue.Portal {
                         ForeignTables[j].IsRequired ? "INNER" : "LEFT",
                         ForeignTables[j].Join
                     );
-                    distinct |= ForeignTables[j].IsMultiple;
+                    //distinct |= ForeignTables[j].IsMultiple;
                     restrictedJoinSql += s;
                     unrestrictedJoinSql += s;
                     adminJoinSql += s;
                 }
+            }
+
+            if (CanHaveMultipleDomains)
+            {
+                s = String.Format("JOIN domainassign as da ON da.id_type={0} AND t.id=da.id", TopType.Id);
+                restrictedJoinSql += String.Format(" INNER {0}", s);
+                unrestrictedJoinSql += String.Format(" LEFT {0}", s);
+                adminJoinSql += String.Format(" LEFT {0}", s);
             }
 
             s = String.Format("t.{0}", TopTable.IdField);

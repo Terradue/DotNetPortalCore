@@ -1,4 +1,4 @@
--- VERSION 2.8
+-- VERSION 2.9
 
 USE $MAIN$;
 
@@ -389,7 +389,9 @@ CREATE TABLE domain (
 CREATE TABLE domainassign (
     id_type int unsigned NOT NULL COMMENT 'FK: Entity type',
     id int unsigned NOT NULL COMMENT 'FK: Entity ID',
-    id_domain int unsigned NOT NULL COMMENT 'FK: Domain'
+    id_domain int unsigned NOT NULL COMMENT 'FK: Domain',
+    CONSTRAINT fk_domainassign_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domainassign_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'Assignments of entities to multiple domains';
 -- CHECKPOINT C-07b
 
