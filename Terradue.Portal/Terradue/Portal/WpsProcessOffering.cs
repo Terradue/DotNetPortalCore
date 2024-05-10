@@ -485,6 +485,14 @@ namespace Terradue.Portal {
             if (!string.IsNullOrEmpty(this.RemoteIdentifier)) entry.ElementExtensions.Add("remote_identifier", "http://purl.org/dc/elements/1.1/", this.RemoteIdentifier);
             if (!string.IsNullOrEmpty(this.Version)) entry.ElementExtensions.Add("version", "https://www.terradue.com/", this.Version);
             if (this.Domain != null) entry.ElementExtensions.Add("domain", "https://www.terradue.com/", this.Domain.Identifier);
+            if (this.EntityType.CanHaveMultipleDomains)
+            {
+                List<string> domainIdentifiers = GetDomainIdentifiers();
+                foreach (string domainIdentifier in domainIdentifiers)
+                {
+                    entry.ElementExtensions.Add("domains", "https://www.terradue.com/", domainIdentifier);
+                }
+            }
             if (!string.IsNullOrEmpty(this.Geometry)) entry.ElementExtensions.Add("spatial", "http://purl.org/dc/terms/", this.Geometry);
 
             entry.Links.Add(new SyndicationLink(id, "self", name, "application/atom+xml", 0));
