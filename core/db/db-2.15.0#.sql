@@ -4,7 +4,7 @@ USE $MAIN$;
 
 -- Changing structure of table "type" (multi-domain) ... \
 ALTER TABLE type
-    ADD COLUMN multi_domain boolean NOT NULL default false COMMENT 'If true, entity can be assigned to multiple domains' AFTER  custom_class
+    ADD COLUMN multi_domain boolean NOT NULL default false COMMENT 'If true, entity can be assigned to multiple domains' AFTER custom_class
 ;
 -- RESULT
 -- CHECKPOINT C-01
