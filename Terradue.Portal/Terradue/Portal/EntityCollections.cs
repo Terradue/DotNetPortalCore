@@ -913,7 +913,7 @@ namespace Terradue.Portal {
                 }
             }
             // context.LogDebug(this, "GenerateSyndicationFeed 2");
-                this.Load();
+            this.Load();
             // context.LogDebug(this, "GenerateSyndicationFeed 3");
 
             foreach (T s in Items) {

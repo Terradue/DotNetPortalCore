@@ -1,4 +1,4 @@
--- VERSION 2.8
+-- VERSION 2.9
 
 USE $MAIN$;
 
@@ -12,6 +12,7 @@ CREATE TABLE type (
     class varchar(100) NOT NULL COMMENT 'Fully qualified name of the class',
     generic_class varchar(100) COMMENT 'Fully qualified name of the .NET/Mono class replacing abstract classes',
     custom_class varchar(100) COMMENT 'Fully qualified name of the alternative .NET/Mono class',
+    multi_domain boolean NOT NULL default false COMMENT 'If true, entity can be assigned to multiple domains',
     caption_sg varchar(100) COMMENT 'Caption (singular)',
     caption_pl varchar(100) COMMENT 'Caption (plural) displayed in admin index page',
     keyword varchar(50) COMMENT 'Keyword used in admin interface URLs',
@@ -381,7 +382,18 @@ CREATE TABLE domain (
     CONSTRAINT pk_domain PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Domains';
--- CHECKPOINT C-07
+-- CHECKPOINT C-07a
+
+/*****************************************************************************/
+
+CREATE TABLE domainassign (
+    id_type int unsigned NOT NULL COMMENT 'FK: Entity type',
+    id int unsigned NOT NULL COMMENT 'FK: Entity ID',
+    id_domain int unsigned NOT NULL COMMENT 'FK: Domain',
+    CONSTRAINT fk_domainassign_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domainassign_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of entities to multiple domains';
+-- CHECKPOINT C-07b
 
 /*****************************************************************************/
 

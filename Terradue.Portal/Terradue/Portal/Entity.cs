@@ -49,6 +49,7 @@ namespace Terradue.Portal {
 
         private int domainId;
         private Domain domain;
+        private List<int> domainIds;
         private int userId;
         private Privilege[] itemPrivileges;
         private EntityCollection collection;
@@ -138,6 +139,28 @@ namespace Terradue.Portal {
             }
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Gets or sets multiple IDs of the domain to which the item is assigned.</summary>
+        /// <remarks>
+        ///     The value is only meaningful if the related entity type has a domain reference and the entity type allows
+        ///     multiple-domain assignemnt (configured via database table type).
+        /// </remarks>
+        public virtual List<int> DomainIds {
+            get {
+                if (!this.EntityType.CanHaveMultipleDomains) return null;
+                if (domainIds == null) LoadDomainIds();
+                return domainIds;
+            }
+            set {
+                if (!this.EntityType.CanHaveMultipleDomains)
+                {
+                    throw new InvalidOperationException(String.Format("Entity type {0} does not support multiple-domain assignment", this.EntityType.SingularCaption));
+                }
+                domainIds = value;
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets or sets the ID of the owner of the item.</summary>
@@ -769,6 +792,8 @@ namespace Terradue.Portal {
                 activity.Store();
             }
 
+            if (this.EntityType.CanHaveMultipleDomains) StoreDomainIds();
+
             if (hasAutoStoreFields) StoreComplexFields(false);
         }
         
@@ -1363,6 +1388,79 @@ namespace Terradue.Portal {
             context.Execute(String.Format("DELETE FROM {0} WHERE {1}={2};", entityType.TopTable.Name, entityType.TopTable.IdField, Id));
         }
         
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Loads the list of domain IDs for an entity if it can be assigned to multiple domains.</summary>
+        public virtual void LoadDomainIds() {
+            if (!this.EntityType.CanHaveMultipleDomains) return;
+
+            string sql = String.Format("SELECT id_domain FROM domainassign WHERE id_type={0} AND id={1};", this.EntityType.TopType.Id, Id);
+
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                throw;
+            }
+
+            this.domainIds = new List<int>();
+            while (reader.Read()) {
+                this.domainIds.Add(context.GetIntegerValue(reader, 0));
+            }
+
+            context.CloseQueryResult(reader, dbConnection);
+        }
+
+        /// <summary>Loads the list of domain IDs for an entity if it can be assigned to multiple domains.</summary>
+        public virtual List<string> GetDomainIdentifiers() {
+            if (!this.EntityType.CanHaveMultipleDomains) return null;
+
+            string sql = String.Format("SELECT d.id, d.identifier FROM domainassign AS da INNER JOIN domain AS d ON da.id_domain=d.id WHERE da.id_type={0} AND da.id={1};", this.EntityType.TopType.Id, Id);
+
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                throw;
+            }
+
+            this.domainIds = new List<int>();
+            List<string> identifiers = new List<string>();
+
+            while (reader.Read()) {
+                this.domainIds.Add(context.GetIntegerValue(reader, 0));
+                identifiers.Add(context.GetValue(reader, 1));
+            }
+
+            context.CloseQueryResult(reader, dbConnection);
+
+            return identifiers;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Loads the list of domain IDs for an entity if it can be assigned to multiple domains.</summary>
+        public virtual void StoreDomainIds() {
+            if (!this.EntityType.CanHaveMultipleDomains || this.domainIds == null) return;
+
+            context.Execute(String.Format("DELETE FROM domainassign WHERE id_type={0} AND id={1};", this.EntityType.TopType.Id, Id));
+            if (this.domainIds.Count != 0)
+            {
+                string values = null;
+                foreach (int domainId in this.domainIds)
+                {
+                    if (values == null) values = String.Empty;
+                    else values += ", ";
+                    values += String.Format("({0}, {1}, {2})", this.EntityType.TopType.Id, Id, domainId);
+                }
+                context.Execute(String.Format("INSERT INTO domainassign (id_type, id, id_domain) VALUES {0};", values));
+            }
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Obsolete, do not use (should load the values of complex properties, such as collections of items of other types).</summary>
