@@ -127,7 +127,7 @@ namespace Terradue.Portal {
         /// <summary>
         /// The tags used to describe and filter the service.
         /// </summary>
-        [EntityDataField ("tags")]
+        [EntityDataField("tags", MustMatchAllFilterValues = true)]
         public string Tags { get; set; }
 
         /// <summary>
@@ -195,6 +195,36 @@ namespace Terradue.Portal {
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Service tutorial URL.
+        /// </summary>
+        /// <value>The tutorial URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("tutorial_url")]
+        public string TutorialUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Service media URL.
+        /// </summary>
+        /// <value>The tutorial URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("media_url")]
+        public string MediaUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Service spec URL.
+        /// </summary>
+        /// <value>The spec URL.</value>
+        /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
+        [EntityDataField("spec_url")]
+        public string SpecUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        /// <summary>
         /// Service Terms and Conditions URL.
         /// </summary>
         /// <value>The Terms and Conditions URL.</value>
@@ -216,6 +246,16 @@ namespace Terradue.Portal {
 
         [EntityDataField("view_url")]
         public string ViewUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataField("publish_url")]
+        public string PublishUrl { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        [EntityDataField("publish_type")]
+        public string PublishType { get; set; }
 
         //---------------------------------------------------------------------------------------------------------------------
 
@@ -418,6 +458,67 @@ namespace Terradue.Portal {
             return result;
         }
 
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public override void Store() {
+            if(!string.IsNullOrEmpty(this.Url)){
+                try{
+                    new Uri(this.Url);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Url");
+                    this.Url = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.IconUrl)){
+                try{
+                    new Uri(this.IconUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Icon Url");
+                    this.IconUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.SpecUrl)){
+                try{
+                    new Uri(this.SpecUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Spec Url");
+                    this.SpecUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.TutorialUrl)){
+                try{
+                    new Uri(this.TutorialUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Tutorial Url");
+                    this.TutorialUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.MediaUrl)){
+                try{
+                    new Uri(this.MediaUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Media Url");
+                    this.MediaUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.PublishUrl)){
+                try{
+                    new Uri(this.PublishUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Publish Url");
+                    this.PublishUrl = null;
+                }
+            }
+            if(!string.IsNullOrEmpty(this.ValidationUrl)){
+                try{
+                    new Uri(this.ValidationUrl);
+                }catch(Exception){
+                    context.LogError(this, "Invalid Validation Url");
+                    this.ValidationUrl = null;
+                }
+            }
+            base.Store();
+        }
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Loads the service information from the database.</summary>
@@ -738,14 +839,13 @@ namespace Terradue.Portal {
         #region IEntitySearchable implementation
         public override object GetFilterForParameter(string parameter, string value) {
             switch (parameter) {
-            case "tag":
-                    if (string.IsNullOrEmpty(value)) return base.GetFilterForParameter(parameter, value);
-                    var tags = value.Split(",".ToArray());
-                    if (tags.Length == 1) {
+                case "tag":
+                    return new KeyValuePair<string, string>("Tags", value);
+
+                    /*if (tags.Length == 1) {
                         var result = new string[] { value, value + "\\,*", "*\\," + value, "*\\," + value + "\\,*" };
                         return new KeyValuePair<string, string[]>("Tags", result);
                     } else if (tags.Length > 1) {
-
                         var tags2 = tags.ToList();
                         var p = GetPermutations(tags2, tags.Count());
                         var allPermutations = p.Select(subset => string.Join("\\,", subset.Select(t => t).ToArray())).ToList();
@@ -766,7 +866,8 @@ namespace Terradue.Portal {
 
                         return new KeyValuePair<string, string[]>("Tags", finalAllPermutations.ToArray());
                     }
-                    return base.GetFilterForParameter(parameter, value);
+                    return base.GetFilterForParameter(parameter, value);*/
+
                 default:
                 return base.GetFilterForParameter(parameter, value);
             }

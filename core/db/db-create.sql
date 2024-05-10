@@ -1,4 +1,4 @@
--- VERSION 2.7.21
+-- VERSION 2.15.0
 
 USE $MAIN$;
 
@@ -12,6 +12,7 @@ CREATE TABLE type (
     class varchar(100) NOT NULL COMMENT 'Fully qualified name of the class',
     generic_class varchar(100) COMMENT 'Fully qualified name of the .NET/Mono class replacing abstract classes',
     custom_class varchar(100) COMMENT 'Fully qualified name of the alternative .NET/Mono class',
+    multi_domain boolean NOT NULL default false COMMENT 'If true, entity can be assigned to multiple domains',
     caption_sg varchar(100) COMMENT 'Caption (singular)',
     caption_pl varchar(100) COMMENT 'Caption (plural) displayed in admin index page',
     keyword varchar(50) COMMENT 'Keyword used in admin interface URLs',
@@ -381,7 +382,18 @@ CREATE TABLE domain (
     CONSTRAINT pk_domain PRIMARY KEY (id),
     UNIQUE INDEX (identifier)
 ) Engine=InnoDB COMMENT 'Domains';
--- CHECKPOINT C-07
+-- CHECKPOINT C-07a
+
+/*****************************************************************************/
+
+CREATE TABLE domainassign (
+    id_type int unsigned NOT NULL COMMENT 'FK: Entity type',
+    id int unsigned NOT NULL COMMENT 'FK: Entity ID',
+    id_domain int unsigned NOT NULL COMMENT 'FK: Domain',
+    CONSTRAINT fk_domainassign_type FOREIGN KEY (id_type) REFERENCES type(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domainassign_domain FOREIGN KEY (id_domain) REFERENCES domain(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'Assignments of entities to multiple domains';
+-- CHECKPOINT C-07b
 
 /*****************************************************************************/
 
@@ -1858,8 +1870,13 @@ CREATE TABLE service (
     url varchar(400) NOT NULL COMMENT 'Access point of service (relative URL)',
     icon_url varchar(200) COMMENT 'Relative URL of logo/icon',
     validation_url varchar(200) COMMENT 'service validation url',
+    tutorial_url varchar(200) COMMENT 'service tutorial url',
+    media_url varchar(200) COMMENT 'service media url',
+    spec_url varchar(200) COMMENT 'service spec url',
     termsconditions_url varchar(200) COMMENT 'service termsconditions url',
     termsconditions_text text COMMENT 'service termsconditions text',
+    publish_url varchar(200) COMMENT 'service publish url',
+    publish_type varchar(50) COMMENT 'service publish type',
     view_url varchar(200) COMMENT 'View URL',
     rating tinyint COMMENT 'Rating in stars (0 to 5)',
     all_input boolean COMMENT 'If true, service accepts all non-manual series as input',
@@ -2477,3 +2494,13 @@ CREATE TABLE gitrepo_perm (
     CONSTRAINT fk_gitrepo_perm_grp FOREIGN KEY (id_grp) REFERENCES grp(id) ON DELETE CASCADE
 ) Engine=InnoDB COMMENT 'User/group permissions on GIT repository';
 -- CHECKPOINT CN-08
+
+-- Create table wpsprovider_dev ... \
+CREATE TABLE wpsprovider_dev (
+    id_wpsprovider int unsigned NOT NULL COMMENT 'FK: WPS provider',
+    id_usr int unsigned COMMENT 'FK: User',
+    
+    CONSTRAINT fk_wpsprovider_dev_wpsprovider FOREIGN KEY (id_wpsprovider) REFERENCES wpsprovider(id) ON DELETE CASCADE,
+    CONSTRAINT fk_wpsprovider_dev_usr FOREIGN KEY (id_usr) REFERENCES usr(id) ON DELETE CASCADE
+) Engine=InnoDB COMMENT 'User developers of WPS providers';
+-- RESULT

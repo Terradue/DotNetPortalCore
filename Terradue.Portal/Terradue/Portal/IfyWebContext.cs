@@ -794,11 +794,11 @@ namespace Terradue.Portal {
 
         /// <summary>Ends the current HTTP session.</summary>
         public void EndSession() {
-            AuthenticationType[] authenticationTypes = null;
+            // AuthenticationType[] authenticationTypes = null;
             int oldUserId = 0;
             if (UserInformation != null && HttpContext.Current != null) {
                 oldUserId = UserInformation.UserId;
-                authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
+                // authenticationTypes = UserInformation.AllAuthenticationTypes.ToArray();
             }
 
             SetUserInformation(null, null);
@@ -808,13 +808,18 @@ namespace Terradue.Portal {
                     if (User.ProfileExtension != null) User.ProfileExtension.OnSessionEnded(this, User.FromId(this, oldUserId), HttpContext.Current.Request);
                 }
             }
-            //if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
+            if (HttpContext.Current != null) HttpContext.Current.Session.Abandon();
 
-            if (authenticationTypes != null) {
-                foreach (AuthenticationType authenticationType in authenticationTypes) {
-                    if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
-                }
+            if (UserInformation != null && !string.IsNullOrEmpty(UserInformation.AuthIdentifier)){
+                var authenticationType = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
+                if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
             }
+
+            // if (authenticationTypes != null) {
+            //     foreach (AuthenticationType authenticationType in authenticationTypes) {
+            //         if (authenticationType.UsesExternalIdentityProvider) authenticationType.EndExternalSession(this, HttpContext.Current.Request, HttpContext.Current.Response);
+            //     }
+            // }
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -879,9 +884,11 @@ namespace Terradue.Portal {
         /// <returns><b>true</b> if a session is active.</returns>
         public bool CheckUserSession() {
             if (HttpContext.Current.Session == null) {
+                this.LogError(this, "CheckUserSession - The current context session is null");
                 throw new NullReferenceException("The current context session is null");
             } else {
                 UserInformation = HttpContext.Current.Session["user"] as UserInformation;
+                this.LogDebug(this, "CheckUserSession - user session is " + (UserInformation == null ? "null" : "not null"));
                 if (UserInformation == null) return false;
                 SetUserFields();
                 return true;
@@ -1081,9 +1088,12 @@ namespace Terradue.Portal {
 
         public virtual void Redirect(string url, bool format, bool privileges) {
             char separator = (url.IndexOf('?') == -1 ? '?' : '&');
-            if (privileges && UserInformation != null && UserInformation.AuthenticationType is SessionlessAuthenticationType) {
-                url += separator + "_user=" + UserId;
-                separator = '&';
+            if (this.UserInformation != null && !string.IsNullOrEmpty(this.UserInformation.AuthIdentifier)){
+                var auth = AuthenticationType.FromIdentifier(this, UserInformation.AuthIdentifier);
+                if (privileges && UserInformation != null && auth is SessionlessAuthenticationType) {
+                    url += separator + "_user=" + UserId;
+                    separator = '&';
+                }
             }
             if (format && Format != null) url += separator + FormatParameterName + "=" + Format;
             HttpContext.Current.Response.Redirect(url, false);

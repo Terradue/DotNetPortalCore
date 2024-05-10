@@ -35,8 +35,12 @@ namespace Terradue.Portal {
             //check url exists
             var request = (HttpWebRequest)WebRequest.Create(this.Url);
             request.Method = "HEAD";
-            try {
-                using (var httpResponse = (HttpWebResponse)request.GetResponse()) { }
+            try {                
+                System.Threading.Tasks.Task.Factory.FromAsync<WebResponse>(request.BeginGetResponse,request.EndGetResponse,null)
+                .ContinueWith(task =>
+                {
+                    var httpResponse = (HttpWebResponse)task.Result;                
+                }).ConfigureAwait(false).GetAwaiter().GetResult();     
             } catch (Exception e) {
                 throw new Exception("Invalid Git repository url");
             }

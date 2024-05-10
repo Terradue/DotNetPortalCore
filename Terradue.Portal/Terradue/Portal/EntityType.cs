@@ -121,6 +121,11 @@ namespace Terradue.Portal {
         
         //---------------------------------------------------------------------------------------------------------------------
         
+        /// <summary>Indicates or determines whether entities of this type can be assigned to additional dommains beside their owning domain.</summary>
+        public bool CanHaveMultipleDomains { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+        
         /// <summary>Gets the singular caption of the entity type.</summary>
         /// \ingroup Persistence
         public string SingularCaption {
@@ -255,7 +260,7 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : this(null as IfyContext) {
+        public EntityType(int id, int superTypeId, string className, string genericClassName, string customClassName, bool canHaveMultipleDomains, string singularCaption, string pluralCaption, string keyword, bool hasExtensions) : this(null as IfyContext) {
             if (IfyContext.DefaultConsoleDebug) Console.WriteLine("NEW ENTITY TYPE {0}", className);
             this.Id = id;
             this.PersistentTypeId = id;
@@ -275,6 +280,7 @@ namespace Terradue.Portal {
 
             if (invalid) throw new Exception("Invalid entity type");
             
+            this.CanHaveMultipleDomains = canHaveMultipleDomains;
             this.SingularCaption = singularCaption;
             this.PluralCaption = pluralCaption;
             this.Keyword = keyword;
@@ -328,6 +334,7 @@ namespace Terradue.Portal {
             TopTypeId = source.TopTypeId;
             if (PersistentTypeId == 0) PersistentTypeId = source.PersistentTypeId;
             GenericClassType = source.GenericClassType;
+            CanHaveMultipleDomains = source.CanHaveMultipleDomains;
             TopTable = source.TopTable;
             PermissionSubjectTable = source.PermissionSubjectTable;
             HasMultipleTables = source.HasMultipleTables;
@@ -346,7 +353,7 @@ namespace Terradue.Portal {
 
         public static void LoadEntityTypes(IfyContext context) {
             entityTypes.Clear();
-            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.id_super, t.pos;");
+            IDataReader reader = context.GetQueryResult("SELECT t.id, t.id_super, t.class, t.generic_class, t.custom_class, t.multi_domain, t.caption_sg, t.caption_pl, t.keyword, COUNT(t1.id)>0 FROM type AS t LEFT JOIN type AS t1 ON t.id=t1.id_super GROUP BY t.id ORDER BY t.id_module, t.id_super IS NOT NULL, t.id_super, t.pos;");
             while (reader.Read()) {
                 string typeStr = context.GetValue(reader, 2);
                 Type type = Type.GetType(typeStr);
@@ -355,17 +362,25 @@ namespace Terradue.Portal {
                     /*reader.Close();
                     throw new Exception(String.Format("Entity type not found: {0}", typeStr));*/
                 }
+                string customClass = context.GetValue(reader, 4);
                 entityTypes[type] = new EntityType(
                         context.GetIntegerValue(reader, 0),
                         context.GetIntegerValue(reader, 1),
                         context.GetValue(reader, 2),
                         context.GetValue(reader, 3),
-                        context.GetValue(reader, 4),
-                        context.GetValue(reader, 5),
+                        customClass,
+                        context.GetBooleanValue(reader, 5),
                         context.GetValue(reader, 6),
                         context.GetValue(reader, 7),
-                        context.GetBooleanValue(reader, 8)
+                        context.GetValue(reader, 8),
+                        context.GetBooleanValue(reader, 9)
                 );
+
+                if (customClass != null)
+                {
+                    Type customType = Type.GetType(customClass);
+                    if (type != null) entityTypes[customType] = entityTypes[type];
+                }
             }
             reader.Close();
         }
@@ -861,7 +876,7 @@ namespace Terradue.Portal {
 
             // Add GROUP BY aggregation if necessary
             string aggregationSql = null;
-            if (HasPermissionManagement) {
+            if (CanHaveMultipleDomains || HasPermissionManagement) {
                 aggregationSql = String.Format(" GROUP BY t.id{0}", GetVisibilityAggregationClause(visibility, accessLevel, list));
             } else {
                 aggregationSql = String.Empty;
@@ -893,11 +908,18 @@ namespace Terradue.Portal {
                     // some domains (partly authorised) -> if entity can be assigned to domains: filter result by domains in domainIds, otherwise: select grant value according to items' domains (or true in case of list, because list already filters)
                     // NULL domain (globally authorised) -> no domain filtering in query
 
-                    string domainMatchSql = TopTable.HasDomainReference && domainIds != null && domainIds.Length != 0 ? String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds)) : null; 
-
                     if (domainIds != null) {
-                        if (domainIds.Length == 0 || !TopTable.HasDomainReference) grantSelectSql = ", false";
-                        else if (TopTable.HasDomainReference) grantSelectSql = String.Format(", {0}", domainMatchSql);
+                        if (domainIds.Length == 0 || !TopTable.HasDomainReference) {
+                            grantSelectSql = ", false";
+                        } else if (TopTable.HasDomainReference || CanHaveMultipleDomains) {
+                            string domainMatchSql;
+                            if (CanHaveMultipleDomains) {
+                                domainMatchSql = String.Format("MAX(da.id_domain IN ({1}))", TopTable.DomainReferenceField, String.Join(",", domainIds));
+                            } else {
+                                domainMatchSql = String.Format("t.{0} IN ({1})", TopTable.DomainReferenceField, String.Join(",", domainIds));
+                            }
+                            grantSelectSql = String.Format(", {0}", domainMatchSql);
+                        }
                     }
                 }
             }
@@ -963,6 +985,8 @@ namespace Terradue.Portal {
 
             // no result-limiting HAVING clause with administrator access or when single item is to be loaded (if unauthorized, exception is raised later)
             if (accessLevel == EntityAccessLevel.Administrator || !list) return String.Empty;
+
+            if (accessLevel == EntityAccessLevel.Privilege && !HasPermissionManagement) return " HAVING _grant";
 
             string result = " HAVING ";
             if ((visibility & EntityItemVisibility.All) == EntityItemVisibility.All) {
@@ -1226,7 +1250,7 @@ namespace Terradue.Portal {
                         string searchTerm = searchValue as string;
 
                         if (field.Property.PropertyType == typeof(string)) {
-                            subCondition = GetStringConditionSql(fieldExpression, searchTerm);
+                            subCondition = GetStringConditionSql(fieldExpression, searchTerm, field.MustMatchAllFilterValues);
                         } else if (field.Property.PropertyType == typeof(bool)) {
                             if (String.IsNullOrEmpty(searchTerm)) continue;
                             subCondition = searchTerm.ToLower();
@@ -1536,13 +1560,21 @@ namespace Terradue.Portal {
         /// <param name="context">The execution environment context.</param>
         /// <returns>The entity instance.</returns>
         /// \ingroup Persistence
-        public Entity GetEntityInstance(IfyContext context) {
+        public Entity GetEntityInstance(IfyContext context) {            
+            var constructorInfo = GetEntityConstructor(context);                        
+            var ent = (Entity)constructorInfo.Invoke(new object[]{context});            
+            return ent;
+        }
+
+        public System.Reflection.ConstructorInfo GetEntityConstructor(IfyContext context) {
             System.Reflection.ConstructorInfo constructorInfo = null;
-            if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});
-            if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});
+            
+            if (CustomClassType != null) constructorInfo = CustomClassType.GetConstructor(new Type[]{typeof(IfyContext)});        
+            if (constructorInfo == null && ClassType != null && !ClassType.IsAbstract) constructorInfo = ClassType.GetConstructor(new Type[]{typeof(IfyContext)});            
+            if (constructorInfo == null && GenericClassType != null) constructorInfo = GenericClassType.GetConstructor(new Type[]{typeof(IfyContext)});            
             if (constructorInfo == null) throw new NullReferenceException(String.Format("No suitable constructor found for {0}", ClassType.FullName));
-            return (Entity)constructorInfo.Invoke(new object[]{context});
+            
+            return constructorInfo;
         }
 
         //---------------------------------------------------------------------------------------------------------------------
@@ -1601,7 +1633,7 @@ namespace Terradue.Portal {
             //bool restrictedList = list && context.RestrictedMode;
             //bool includePrivileges = !context.AdminMode && TopTable.HasPermissionManagement;
             //bool excludeUnaccessibleItems = restrictedList && includePrivileges;
-            bool distinct = false;
+            //bool distinct = false;
 
             // Build join
             int permissionSubjectTableIndex = -1;
@@ -1644,11 +1676,19 @@ namespace Terradue.Portal {
                         ForeignTables[j].IsRequired ? "INNER" : "LEFT",
                         ForeignTables[j].Join
                     );
-                    distinct |= ForeignTables[j].IsMultiple;
+                    //distinct |= ForeignTables[j].IsMultiple;
                     restrictedJoinSql += s;
                     unrestrictedJoinSql += s;
                     adminJoinSql += s;
                 }
+            }
+
+            if (CanHaveMultipleDomains)
+            {
+                s = String.Format("JOIN domainassign as da ON da.id_type={0} AND t.id=da.id", TopType.Id);
+                restrictedJoinSql += String.Format(" INNER {0}", s);
+                unrestrictedJoinSql += String.Format(" LEFT {0}", s);
+                adminJoinSql += String.Format(" LEFT {0}", s);
             }
 
             s = String.Format("t.{0}", TopTable.IdField);
@@ -1708,25 +1748,33 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string that can consist of several string values and takes also into account wildcard characters.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain wildcards such as <em>*</em> or <em>?</em>.</param>
-        public static string GetStringConditionSql(string name, string searchTerm) {
+        /// <param name="mustMatchAll">Whether or not all (comma-separated) search values must be matched.</param>
+        public static string GetStringConditionSql(string expression, string searchTerm, bool mustMatchAll = false) {
             if (searchTerm == null) return null;
+
+            if (mustMatchAll) expression = String.Format("CONCAT(',', {0}, ',')", expression);
 
             string result = String.Empty, exclude = String.Empty;
 
             Match match = Regex.Match(searchTerm, @"^\{([^\}]+)\}$");
             if (match.Success) searchTerm = match.Groups[1].Value;
 
-            string COMA_SUBSTITUTE = "_!!COMA_SUBSTITUTE!!_";
+            string COMMA_SUBSTITUTE = "_!!COMMA_SUBSTITUTE!!_";
 
-            string[] terms = StringUtils.SplitSimply(searchTerm.Replace("\\,", COMA_SUBSTITUTE), ',');
+            string[] terms = StringUtils.SplitSimply(searchTerm.Replace("\\,", COMMA_SUBSTITUTE), ',');
             bool interval = false, like;
             string cl = null, cr = null, cn = null;
-            for (int i = 0; i < terms.Length; i++) {
+            foreach (string t in terms) {
+                string term = mustMatchAll ? String.Format("*,{0},*", t) : t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
                 like = false;
 
-                cn = terms[i].Replace(COMA_SUBSTITUTE, ",");//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+                cn = term.Replace(COMMA_SUBSTITUTE, ",");//StringUtils.EscapeSql(terms[i]).Replace("\\\\\\\\", "\\\\");
+
                 if (Regex.Match(cn, @"[\*\?]").Success) {
                     int shift = 0, shift2 = 0;
                     string cn2 = cn;
@@ -1779,10 +1827,10 @@ namespace Terradue.Portal {
 
                 cn = String.Format("'{0}'", cn.Replace("'", "''"));
 
-                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", name, like ? " NOT LIKE " : "!=", cn);
-                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, like ? " LIKE " : "=", cn);
+                if (!like && cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                else if (!like && cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}{2}{3}", exclude == String.Empty ? String.Empty : " AND ", expression, like ? " NOT LIKE " : "!=", cn);
+                else result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : mustMatchAll ? " AND " : " OR ", expression, like ? " LIKE " : "=", cn);
 
                 interval = (!like && cl != String.Empty && cr == String.Empty);
             }
@@ -1796,9 +1844,9 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string related to a numeric search.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
-        public static string GetNumericConditionSql(string name, string searchTerm) {
+        public static string GetNumericConditionSql(string expression, string searchTerm) {
             if (searchTerm == null) return null;
 
             string result = String.Empty, exclude = String.Empty;
@@ -1809,8 +1857,12 @@ namespace Terradue.Portal {
             string[] terms = searchTerm.Split(',');
             bool interval = false;
             string cl = null, cr = null, cn = null;
-            for (int i = 0; i < terms.Length; i++) {
-                match = Regex.Match(terms[i], @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
+            foreach (string t in terms) {
+                string term = t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
+                match = Regex.Match(term, @"^([\[\]\(])?(-?([0-9]+)|([0-9]*\.[0-9]+))([\[\]\)])?$");
                 if (!match.Success) {
                     interval = false;
                     continue;
@@ -1822,10 +1874,10 @@ namespace Terradue.Portal {
                 if (cl != String.Empty) cl = (cl == "[" ? ">=" : ">");
                 if (cr != String.Empty) cr = (cr == "]" ? "<=" : "<");
 
-                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", name, cn);
-                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
+                if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}!={2}", exclude == String.Empty ? String.Empty : " AND ", expression, cn);
+                else result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", expression, cn);
 
                 interval = (cl != String.Empty && cr == String.Empty);
             }
@@ -1839,13 +1891,13 @@ namespace Terradue.Portal {
 
         /// <summary>Returns the SQL conditional expression for a search string related to a temporal search.</summary>
         /// <returns>The SQL expression that, if applied to a list query, yields <c>true</c> for item records that match the given condition.</returns>
-        /// <param name="name">The expression against which the search term is compared, usually the qualified name of a table field.</param>
+        /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple numeric values separated by comma. The values may contain interval the delimiter characters <em>[</em>, <em>]</em>, <em>(</em> and <em>)</em>.</param>
         public static string GetDateTimeConditionSql(string expression, string value) {
             return GetDateTimeConditionSql(expression, value, TimeZoneInfo.Utc);
         }
 
-        public static string GetDateTimeConditionSql(string name, string searchTerm, TimeZoneInfo timeZoneInfo) {
+        public static string GetDateTimeConditionSql(string expression, string searchTerm, TimeZoneInfo timeZoneInfo) {
             if (searchTerm == null) return null;
 
             string result = String.Empty, exclude = String.Empty;
@@ -1856,8 +1908,12 @@ namespace Terradue.Portal {
             string[] terms = searchTerm.Split(',');
             bool interval = false;
             string cl = null, cr = null, cn = null, ln = null;
-            for (int i = 0; i < terms.Length; i++) {
-                match = Regex.Match(terms[i], @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
+            foreach (string t in terms) {
+                string term = t;
+                bool negate = (term.Length != 0 && term[0] == '!');
+                if (negate) term = term.Substring(1);
+
+                match = Regex.Match(term, @"^([\[\]\(])?([0-9PTZYMDHShms\/\-\:\.]+)?([\[\]\)])?$");
                 if (!match.Success) continue;
 
                 // Check for ISO 8601 interval slash syntax (1) or mathematcial interval syntax (2)
@@ -1896,7 +1952,7 @@ namespace Terradue.Portal {
 
                     //if (dt.TimeOfDay.TotalSeconds == 0) dt = dt.Add(new TimeSpan(1, 0, 0, 0));
                     cn = String.Format(@"'{0:yyyy\-MM\-dd\THH\:mm\:ss'", dt);
-                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+                    result += String.Format("{0}({1}>={2} AND {1}<{3})", result == String.Empty ? String.Empty : " OR ", expression, ln, cn);
 
                     interval = false;
 
@@ -1926,11 +1982,11 @@ namespace Terradue.Portal {
                     }
                     cn = "'" + dt.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff") + "'";
 
-                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", name, cl, cn);
-                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", name, cr, cn);
-                    else if (cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", name, ln, cn);
-                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", name, cn);
-                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", name, ln, cn);
+                    if (cl != String.Empty && cr == String.Empty) result += String.Format("{0}{1}{2}{3}", result == String.Empty ? String.Empty : " OR ", expression, cl, cn);
+                    else if (cl == String.Empty && cr != String.Empty) result += String.Format("{0}{1}{2}{3}", interval ? " AND " : result == String.Empty ? String.Empty : " OR ", expression, cr, cn);
+                    else if (negate || cl == ">" && cr == "<") exclude += String.Format("{0}{1}<{2} AND {1}>={3}", exclude == String.Empty ? String.Empty : " AND ", expression, ln, cn);
+                    else if (cn == ln) result += String.Format("{0}{1}={2}", result == String.Empty ? String.Empty : " OR ", expression, cn);
+                    else result += String.Format("{0}{1}>={2} AND {1}<{3}", result == String.Empty ? String.Empty : " OR ", expression, ln, cn);
 
                     interval = (cl != String.Empty && cr == String.Empty);
                 }
@@ -2232,6 +2288,7 @@ namespace Terradue.Portal {
         public bool IsReadOnly { get; protected set; }
         public bool IsForeignKey { get; protected set; }
         public bool IsUsedInKeywordSearch { get; protected set; }
+        public bool MustMatchAllFilterValues { get; protected set; }
         public object NullValue { get; protected set; }
         public object IgnoreValue { get; protected set; }
         public Type UnderlyingType { get; protected set; }
@@ -2263,6 +2320,7 @@ namespace Terradue.Portal {
             this.IsReadOnly = attribute.IsReadOnly;
             this.IsForeignKey = attribute.IsForeignKey;
             this.IsUsedInKeywordSearch = attribute.IsUsedInKeywordSearch;
+            this.MustMatchAllFilterValues = attribute.MustMatchAllFilterValues;
             Type type = @property.PropertyType;
             if (attribute.NullValue != null) this.NullValue = attribute.NullValue;
             else if (this.IsForeignKey) this.NullValue = 0;
