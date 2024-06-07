@@ -1066,6 +1066,46 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public Dictionary<int, List<int>> GetDomainIdsForItems(IfyContext context) {
+            Dictionary<int, List<int>>  result = new Dictionary<int, List<int>>();
+            if (!CanHaveMultipleDomains) return result;
+
+            string sql = String.Format("SELECT da.id, da.id_domain FROM domainassign AS da WHERE da.id_type={0} ORDER BY da.id, da.id_domain", TopType.Id);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool privilegeExists = false;
+            while (reader.Read()) {
+                int id = reader.GetInt32(0);
+                int domainId = reader.GetInt32(1);
+                if (!result.ContainsKey(id)) result[id] = new List<int>();
+                result[id].Add(domainId);
+            }
+            context.CloseQueryResult(reader, dbConnection);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
+        public Dictionary<int, List<string>> GetDomainIdentifiersForItems(IfyContext context) {
+            Dictionary<int, List<string>>  result = new Dictionary<int, List<string>>();
+            if (!CanHaveMultipleDomains) return result;
+
+            string sql = String.Format("SELECT da.id, da.id_domain, d.identifier FROM domainassign AS da INNER JOIN domain AS d ON da.id_domain=d.id WHERE da.id_type={0} ORDER BY da.id, d.identifier", TopType.Id);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool privilegeExists = false;
+            while (reader.Read()) {
+                int id = reader.GetInt32(0);
+                string domainIdentifier = reader.GetString(2);
+                if (!result.ContainsKey(id)) result[id] = new List<string>();
+                result[id].Add(domainIdentifier);
+            }
+            context.CloseQueryResult(reader, dbConnection);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public string GetAdministratorOperationsQuery(int userId, int itemId) {
 
             string join = "priv AS t INNER JOIN role_priv AS t1 ON t.id=t1.id_priv INNER JOIN usr_role AS t2 ON t1.id_role=t2.id_role";
@@ -1234,8 +1274,16 @@ namespace Terradue.Portal {
                     if (foreignTableInfo == null) continue;
                     if (foreignTableInfo.IsMultiple) alias = String.Format("t{0}r{1}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString(), field.TableSubIndex.ToString());
                 }
-                if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
-                string fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+                string fieldExpression;
+                if (field.Property.Name == "DomainId" && CanHaveMultipleDomains)
+                {
+                    fieldExpression = "da.id_domain";
+                }
+                else
+                {
+                    if (alias == null) alias = String.Format("t{0}.", field.TableIndex == 0 ? String.Empty : field.TableIndex.ToString());
+                    fieldExpression = (field.FieldName == null ? field.Expression.Replace("$(TABLE).", alias) : String.Format("{0}{1}", alias, field.FieldName));
+                }
 
                 foreach (object searchValue in searchValues) {
 

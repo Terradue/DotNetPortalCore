@@ -346,8 +346,8 @@ namespace Terradue.Portal {
 
             sql = entityType.GetIdQuery(queryParts);
             if (context.ConsoleDebug){
-                Console.WriteLine("SQL: " + sql);
-                context.LogDebug(this, "SQL: " + sql);
+                Console.WriteLine("SQL (ID): " + sql);
+                context.LogDebug(this, "SQL (ID): " + sql);
             }
 
             List<int> ids = new List<int>();
@@ -435,7 +435,7 @@ namespace Terradue.Portal {
 
             object[] queryParts = entityType.GetListQueryParts(context, this, UserId, null, condition);
             string sql = entityType.GetCountQuery(queryParts);
-            if (context.ConsoleDebug){
+            if (context.ConsoleDebug) {
                 Console.WriteLine("SQL (COUNT): " + sql);
                 context.LogDebug(this, "SQL (COUNT): " + sql);
             }
@@ -443,8 +443,8 @@ namespace Terradue.Portal {
 
             sql = entityType.GetQuery(queryParts);
             if (context.ConsoleDebug){
-                Console.WriteLine("SQL: " + sql);
-                context.LogDebug(this, "SQL: " + sql);
+                Console.WriteLine("SQL (LIST): " + sql);
+                context.LogDebug(this, "SQL (LIST): " + sql);
             }
 
             IDbConnection dbConnection = context.GetDbConnection();
@@ -913,7 +913,7 @@ namespace Terradue.Portal {
                 }
             }
             // context.LogDebug(this, "GenerateSyndicationFeed 2");
-            this.Load();
+                this.Load();
             // context.LogDebug(this, "GenerateSyndicationFeed 3");
 
             foreach (T s in Items) {
