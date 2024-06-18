@@ -1106,6 +1106,32 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        public Dictionary<string, List<string>> GetDomainIdentifiersForItemIdentfiers(IfyContext context) {
+            Dictionary<string, List<string>>  result = new Dictionary<string, List<string>>();
+            if (!CanHaveMultipleDomains) return result;
+
+            string sql = String.Format("SELECT t.{0}, da.id_domain, d.identifier FROM domainassign AS da INNER JOIN {1} AS t ON da.id=t.{2} INNER JOIN domain AS d ON da.id_domain=d.id WHERE da.id_type={3} ORDER BY da.id, d.identifier",
+                TopTable.IdentifierField,
+                TopTable.Name,
+                TopTable.IdField,
+                TopType.Id
+            );
+            Console.WriteLine(sql);
+            IDbConnection dbConnection = context.GetDbConnection();
+            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            bool privilegeExists = false;
+            while (reader.Read()) {
+                string identifier = reader.GetString(0);
+                string domainIdentifier = reader.GetString(2);
+                if (!result.ContainsKey(identifier)) result[identifier] = new List<string>();
+                result[identifier].Add(domainIdentifier);
+            }
+            context.CloseQueryResult(reader, dbConnection);
+            return result;
+        }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public string GetAdministratorOperationsQuery(int userId, int itemId) {
 
             string join = "priv AS t INNER JOIN role_priv AS t1 ON t.id=t1.id_priv INNER JOIN usr_role AS t2 ON t1.id_role=t2.id_role";
