@@ -1116,7 +1116,6 @@ namespace Terradue.Portal {
                 TopTable.IdField,
                 TopType.Id
             );
-            Console.WriteLine(sql);
             IDbConnection dbConnection = context.GetDbConnection();
             IDataReader reader = context.GetQueryResult(sql, dbConnection);
             bool privilegeExists = false;
