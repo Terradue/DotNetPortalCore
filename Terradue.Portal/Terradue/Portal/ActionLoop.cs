@@ -150,6 +150,7 @@ namespace Terradue.Portal {
             if (log && context.GetLogFilenameFromConfig("AgentLogFile", now)) WriteStartupInfo();
             SetInterval();
             if (startup) WriteStartupInfo();
+            IDbConnection dbConnection = context.GetDbConnection();
             try {
                 // Force the reload of the configuration if it was changed (by another process, such as the web server component)
                 if (context.GetConfigBooleanValue("ForceReload")) {
@@ -162,7 +163,8 @@ namespace Terradue.Portal {
                         String.Format(
                                 "SELECT t.id, t.identifier, t.name, t.class, t.method, t.time_interval, t.next_execution_time, t.immediate FROM action AS t WHERE t.immediate OR (t.enabled AND (t.next_execution_time IS NULL OR t.next_execution_time<='{0}')) ORDER BY t.immediate DESC, pos;",
                                 now.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff")
-                        )
+                        ),
+                        dbConnection
                 );
                 while (dbReader.Read()) {
                     DateTime nextExecutionTime = DateTime.MinValue;
@@ -185,7 +187,7 @@ namespace Terradue.Portal {
                             
                     executions.Add(exec);
                 }
-                dbReader.Close();
+                context.CloseQueryResult(dbReader, dbConnection);
 
                 foreach (ActionExecution exec in executions) {
                     try {
@@ -215,6 +217,7 @@ namespace Terradue.Portal {
                 if (e.InnerException != null) context.WriteError(String.Format("Caused by: {0} - {1}", e.InnerException.Message, e.InnerException.StackTrace));
                 context.WriteSeparator();
                 if (dbReader != null && !dbReader.IsClosed) dbReader.Close();
+                dbConnection.Close();
                 running = false;
             }
             running = false;
@@ -224,6 +227,7 @@ namespace Terradue.Portal {
 
         /// <summary>Writes an initial overview about agent actions and their execution schedule to the console or the log.</summary>
         protected void WriteStartupInfo() {
+            IDbConnection dbConnection = context.GetDbConnection();
             try {
                 // Enabled actions ordered by:
                 // 1. next execution time in the past (i.e overdue),
@@ -233,7 +237,8 @@ namespace Terradue.Portal {
                         String.Format(
                                 "SELECT t.name, t.next_execution_time, t.enabled, t.next_execution_time IS NULL OR t.next_execution_time<='{0}' OR t.immediate FROM action AS t ORDER BY t.enabled OR immediate DESC, immediate DESC, next_execution_time>'{0}' OR next_execution_time IS NULL OR immediate, pos, next_execution_time;",
                                 context.Now.ToString(@"yyyy\-MM\-dd\THH\:mm\:ss\.fff")
-                        )
+                        ),
+                        dbConnection
                 );
                         
                 if (startup) {
@@ -247,7 +252,7 @@ namespace Terradue.Portal {
                             (enabled ? (dbReader.GetBoolean(3) ? "immediately" : dbReader.GetDateTime(1).ToString(@"yyyy\-MM\-dd HH\:mm\:ss")) : "disabled")
                     );
                 }
-                dbReader.Close();
+                context.CloseQueryResult(dbReader, dbConnection);
                 context.WriteSeparator();
                 if (startup) {
                     context.WriteInfo("Setting timer interval to " + interval + " seconds");
@@ -257,6 +262,7 @@ namespace Terradue.Portal {
             } catch (Exception e) {
                 context.WriteError(e.Message);
                 if (dbReader != null && !dbReader.IsClosed) dbReader.Close();
+                dbConnection.Close();
             }
             startup = false;
         }
