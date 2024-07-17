@@ -606,6 +606,27 @@ namespace Terradue.Portal {
             return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, EntityItemVisibility.All, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), null, true, -1, -1, EntityAccessLevel.Administrator)) != 0;
         }
 
+        /// <summary>Returns the database ID of the item that matches a unique identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="identifier">The unique identifier of the item.</param>
+        /// <returns>The item's database ID, if the item exists, <c>0</c> otherwise.</returns>
+        public int GetItemIdFromIdentifier(IfyContext context, string identifier) {
+            if (!TopTable.HasIdentifierField) return 0;
+            return context.GetQueryIntegerValue(GetQuery(context, true, 0, null, EntityItemVisibility.All, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), null, true, -1, -1, EntityAccessLevel.Administrator));
+        }
+
+        /// <summary>Tries to get the database ID of the item that matches a unique identifier.</summary>
+        /// <param name="context">The execution environment context.</param>
+        /// <param name="identifier">The unique identifier of the item.</param>
+        /// <param name="id">The item's database ID if the item exists, <c>0</c> otherwise.</param>
+        /// <returns><c>true</c>, if item exists, <c>false</c> otherwise.</returns>
+        public bool TryGetItemIdFromIdentifier(IfyContext context, string identifier, out int id) {
+            id = 0;
+            if (!TopTable.HasIdentifierField) return false;
+            id = context.GetQueryIntegerValue(GetQuery(context, true, 0, null, EntityItemVisibility.All, String.Format("t.{1}={0}", StringUtils.EscapeSql(identifier), TopTable.IdentifierField), null, true, -1, -1, EntityAccessLevel.Administrator));
+            return (id != 0);
+        }
+
         //---------------------------------------------------------------------------------------------------------------------
 
         /// <summary>Gets the SQL query for selecting a single item on behalf of the specified user.</summary>

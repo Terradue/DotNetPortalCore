@@ -1448,17 +1448,17 @@ namespace Terradue.Portal {
             if (!this.EntityType.CanHaveMultipleDomains || this.domainIds == null) return;
 
             context.Execute(String.Format("DELETE FROM domainassign WHERE id_type={0} AND id={1};", this.EntityType.TopType.Id, Id));
-            if (this.domainIds.Count != 0)
+
+            if (this.domainIds.Count == 0) return;
+
+            string values = null;
+            foreach (int domainId in this.domainIds)
             {
-                string values = null;
-                foreach (int domainId in this.domainIds)
-                {
-                    if (values == null) values = String.Empty;
-                    else values += ", ";
-                    values += String.Format("({0}, {1}, {2})", this.EntityType.TopType.Id, Id, domainId);
-                }
-                context.Execute(String.Format("INSERT INTO domainassign (id_type, id, id_domain) VALUES {0};", values));
+                if (values == null) values = String.Empty;
+                else values += ", ";
+                values += String.Format("({0}, {1}, {2})", this.EntityType.TopType.Id, Id, domainId);
             }
+            context.Execute(String.Format("INSERT INTO domainassign (id_type, id, id_domain) VALUES {0};", values));
         }
 
         //---------------------------------------------------------------------------------------------------------------------
