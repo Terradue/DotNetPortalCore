@@ -702,6 +702,8 @@ namespace Terradue.Portal {
                         }*/
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
 
+                        if (entityType.TopTable.IdentifierField == field.FieldName) continue;
+
                         object value = field.Property.GetValue(this, null);
                         if (value == null) continue;
 
@@ -774,6 +776,9 @@ namespace Terradue.Portal {
                     
                     foreach (FieldInfo field in entityType.Fields) {
                         if (field.TableIndex != i || field.FieldType != EntityFieldType.DataField || field.IsReadOnly) continue;
+
+                        if (entityType.TopTable.IdentifierField == field.FieldName) continue;
+
                         if (assignments == null) assignments = String.Empty;
                         else assignments += ", ";
                         object value = field.Property.GetValue(this, null);
