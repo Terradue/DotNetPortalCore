@@ -1344,7 +1344,7 @@ namespace Terradue.Portal {
                         string searchTerm = searchValue as string;
 
                         if (field.Property.PropertyType == typeof(string)) {
-                            subCondition = GetStringConditionSql(fieldExpression, searchTerm, field.MustMatchAllFilterValues);
+                            subCondition = GetStringConditionSql(fieldExpression, searchTerm, field.MustMatchAllFilterValues, field.Delimiter);
                         } else if (field.Property.PropertyType == typeof(bool)) {
                             if (String.IsNullOrEmpty(searchTerm)) continue;
                             subCondition = searchTerm.ToLower();
@@ -1845,10 +1845,10 @@ namespace Terradue.Portal {
         /// <param name="expression">The expression against which the search term is compared, usually the qualified name of a table field.</param>
         /// <param name="searchTerm">The search term. It can contain multiple values separated by comma. The values may contain wildcards such as <em>*</em> or <em>?</em>.</param>
         /// <param name="mustMatchAll">Whether or not all (comma-separated) search values must be matched.</param>
-        public static string GetStringConditionSql(string expression, string searchTerm, bool mustMatchAll = false) {
+        public static string GetStringConditionSql(string expression, string searchTerm, bool mustMatchAll = false, char delimiter = ',') {
             if (searchTerm == null) return null;
 
-            if (mustMatchAll) expression = String.Format("CONCAT(',', {0}, ',')", expression);
+            if (mustMatchAll) expression = String.Format("CONCAT({1}, {0}, {1})", expression, StringUtils.EscapeSql(delimiter.ToString()));
 
             string result = String.Empty, exclude = String.Empty;
 
@@ -2383,6 +2383,7 @@ namespace Terradue.Portal {
         public bool IsForeignKey { get; protected set; }
         public bool IsUsedInKeywordSearch { get; protected set; }
         public bool MustMatchAllFilterValues { get; protected set; }
+        public char Delimiter { get; protected set; }
         public object NullValue { get; protected set; }
         public object IgnoreValue { get; protected set; }
         public Type UnderlyingType { get; protected set; }
@@ -2415,6 +2416,7 @@ namespace Terradue.Portal {
             this.IsForeignKey = attribute.IsForeignKey;
             this.IsUsedInKeywordSearch = attribute.IsUsedInKeywordSearch;
             this.MustMatchAllFilterValues = attribute.MustMatchAllFilterValues;
+            this.Delimiter = attribute.Delimiter;
             Type type = @property.PropertyType;
             if (attribute.NullValue != null) this.NullValue = attribute.NullValue;
             else if (this.IsForeignKey) this.NullValue = 0;

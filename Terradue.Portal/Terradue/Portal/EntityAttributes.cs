@@ -456,9 +456,15 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
+        /// <summary>Gets or sets the delimiter used in both the field's string representation and in search terms.</summary>
+        public char Delimiter { get; set; }
+
+        //---------------------------------------------------------------------------------------------------------------------
+
         public EntityDataFieldAttribute(string name) {
             this.Name = name;
             if (this.Name == null) this.IsReadOnly = true;
+            this.Delimiter = ',';
         }
         
     }
