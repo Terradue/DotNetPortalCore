@@ -44,6 +44,9 @@ namespace Terradue.Portal {
     /// \xrefitem rmodp "RM-ODP" "RM-ODP Documentation"
     public abstract partial class Entity {
 
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+            (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>Execution environment context this entity instance was created with.</summary>
         protected IfyContext context;
 
@@ -406,15 +409,17 @@ namespace Terradue.Portal {
             // Do not restrict query (a single item is requested)
             //EntityQueryMode queryMode = context.AdminMode ? EntityQueryMode.Administrator : EntityQueryMode.Unrestricted;
             string sql = entityType.GetItemQuery(context, this, UserId, condition, accessLevel);
-            
+
             if (context.ConsoleDebug) Console.WriteLine("SQL: " + sql);
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader;
+            IDataReader reader = null;
             try {
                 reader = context.GetQueryResult(sql, dbConnection);
             } catch (Exception e) {
                 Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (E): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
                 throw;
             }
 
@@ -1402,11 +1407,13 @@ namespace Terradue.Portal {
             string sql = String.Format("SELECT id_domain FROM domainassign WHERE id_type={0} AND id={1};", this.EntityType.TopType.Id, Id);
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader;
+            IDataReader reader = null;
             try {
                 reader = context.GetQueryResult(sql, dbConnection);
             } catch (Exception e) {
                 Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (D): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
                 throw;
             }
 
@@ -1425,11 +1432,13 @@ namespace Terradue.Portal {
             string sql = String.Format("SELECT d.id, d.identifier FROM domainassign AS da INNER JOIN domain AS d ON da.id_domain=d.id WHERE da.id_type={0} AND da.id={1};", this.EntityType.TopType.Id, Id);
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader;
+            IDataReader reader = null;
             try {
                 reader = context.GetQueryResult(sql, dbConnection);
             } catch (Exception e) {
                 Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (D): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
                 throw;
             }
 
