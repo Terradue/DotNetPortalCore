@@ -232,6 +232,9 @@ namespace Terradue.Portal {
     /// <summary>A list of entities of a specific type.</summary>
     public abstract class EntityCollection<T> : EntityCollection, IEnumerable<T>, IMonitoredOpenSearchable where T : Entity {
 
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+            (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private EntityType entityType;
         private T template;
         private OpenSearchEngine ose;
@@ -353,7 +356,16 @@ namespace Terradue.Portal {
             List<int> ids = new List<int>();
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IDataReader reader = null;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (EC): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
+                throw;
+            }
+
             while (reader.Read()) ids.Add(reader.GetInt32(0));
             context.CloseQueryResult(reader, dbConnection);
             if (context.ConsoleDebug){
@@ -411,7 +423,15 @@ namespace Terradue.Portal {
             List<int> ids = new List<int>();
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IDataReader reader = null;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (EC): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
+                throw;
+            }
             IsLoading = true;
             while (reader.Read()) ids.Add(reader.GetInt32(0));
             context.CloseQueryResult(reader, dbConnection);
@@ -448,7 +468,15 @@ namespace Terradue.Portal {
             }
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IDataReader reader = null;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (EC): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
+                throw;
+            }
             IsLoading = true;
             var ci = entityType.GetEntityConstructor(context);
             while (reader.Read()) {                
@@ -483,7 +511,15 @@ namespace Terradue.Portal {
             }
 
             IDbConnection dbConnection = context.GetDbConnection();
-            IDataReader reader = context.GetQueryResult(sql, dbConnection);
+            IDataReader reader = null;
+            try {
+                reader = context.GetQueryResult(sql, dbConnection);
+            } catch (Exception e) {
+                Console.WriteLine("FAILING SQL: {0} - {1}", sql, e.Message);
+                log.ErrorFormat("Failing SQL command (EC): {0} - {1}", sql, e.Message);
+                context.CloseQueryResult(reader, dbConnection);
+                throw;
+            }
             while (reader.Read()) {
                 T item = entityType.GetEntityInstance(context) as T;
                 item.Load(entityType, reader, AccessLevel);

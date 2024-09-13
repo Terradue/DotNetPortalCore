@@ -1599,15 +1599,9 @@ namespace Terradue.Portal {
 
         //---------------------------------------------------------------------------------------------------------------------
 
-        public void CloseQueryResult(IDataReader dbReader) {
-            dbReader.Close();
-        }
-
-        //---------------------------------------------------------------------------------------------------------------------
-
-        public void CloseQueryResult(IDataReader dbReader, IDbConnection dbConnection) {
-            dbReader.Close();
-            if (DynamicDbConnections) dbConnection.Close();
+        public void CloseQueryResult(IDataReader dbReader, IDbConnection dbConnection = null) {
+            if (dbReader != null) dbReader.Close();
+            if (dbConnection != null && DynamicDbConnections) dbConnection.Close();
         }
 
         //---------------------------------------------------------------------------------------------------------------------
