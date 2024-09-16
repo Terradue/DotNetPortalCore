@@ -379,7 +379,21 @@ namespace Terradue.Portal {
                 if (customClass != null)
                 {
                     Type customType = Type.GetType(customClass);
-                    if (type != null) entityTypes[customType] = entityTypes[type];
+                    if (customType != null && !entityTypes.ContainsKey(customType)) {
+                        //entityTypes[customType] = entityTypes[type];
+                        entityTypes[customType] = new EntityType(
+                                context.GetIntegerValue(reader, 0),
+                                context.GetIntegerValue(reader, 1),
+                                customClass,
+                                context.GetValue(reader, 3),
+                                null,
+                                context.GetBooleanValue(reader, 5),
+                                context.GetValue(reader, 6),
+                                context.GetValue(reader, 7),
+                                context.GetValue(reader, 8),
+                                context.GetBooleanValue(reader, 9)
+                        );
+                    }
                 }
             }
             reader.Close();
