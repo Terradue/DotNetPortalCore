@@ -1806,7 +1806,7 @@ CREATE TABLE resourceset_perm (
 CREATE TABLE resource (
     id int unsigned NOT NULL auto_increment,
     id_set int unsigned NOT NULL COMMENT 'FK: Owning resource set',
-    location varchar(200) NOT NULL COMMENT 'Resource location, e.g. URI',
+    location varchar(1000) NOT NULL COMMENT 'Resource location, e.g. URI',
     name varchar(100) NULL DEFAULT NULL COMMENT 'Resource name',
     CONSTRAINT pk_resource PRIMARY KEY (id),
     CONSTRAINT fk_resource_set FOREIGN KEY (id_set) REFERENCES resourceset(id) ON DELETE CASCADE
